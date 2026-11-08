@@ -308,16 +308,17 @@ describe("Simple-mode sidebar layout", () => {
     expect(tree.some((node) => node.props["data-sidebar-top-buttons"] !== undefined)).toBe(false);
   });
 
-  it("puts round search and the same + menu at the top of the rail, and dragging its edge out opens it again", () => {
+  it("puts round search and the same + menu above Apps at the foot of the rail, and dragging its edge out opens it again", () => {
     setSidebarDensity("icons");
-    const top = () => render().tree.find((node) => node.props["data-sidebar-rail-top"] !== undefined)!;
-    const plus = () => nodes(top().props.children).find((node) => node.type === "button" && node.props["aria-label"] === "New or share")!;
+    // Search and + now live in the rail footer's topActions, above Apps and the account.
+    const foot = () => nodes(render().tree.find((node) => node.type === SimpleRailFooter)!.props.topActions as ReactNode);
+    const plus = () => foot().find((node) => node.type === "button" && node.props["aria-label"] === "New or share")!;
     expect(plus().props.className).toEqual(expect.stringContaining("size-9"));
     (plus().props.onClick as () => void)();
-    const menu = nodes(top().props.children).find((node) => /\bmin-w-\[200px\]/.test(node.props.className ?? ""))!;
+    const menu = foot().find((node) => /\bmin-w-\[200px\]/.test(node.props.className ?? ""))!;
     expect(menu.props.className).toEqual(expect.stringContaining("left-full top-0"));
     expect(menu.props.className).toEqual(expect.stringContaining("rounded-[var(--radius-menu)]"));
-    const item = (label: string) => nodes(top().props.children).find((node) => node.type === "button" && nodes(node.props.children).concat(node).some((part) => Children.toArray(part.props.children).includes(label)));
+    const item = (label: string) => foot().find((node) => node.type === "button" && nodes(node.props.children).concat(node).some((part) => Children.toArray(part.props.children).includes(label)));
     expect(item("Create department"), "Simple makes a department from its bots, by dragging one onto another or from a bot's menu").toBeUndefined();
     expect(item("New chat"), "a new conversation starts from the bot panel").toBeUndefined();
     expect(item("New bot")).toBeDefined();
@@ -348,7 +349,8 @@ describe("Simple-mode sidebar layout", () => {
     expect(fixture.dispatch.mock.calls.map(([action]) => action)).toEqual([{ type: "newBot" }]);
   });
 
-  const railSearch = (tree: ReactElement<Props>[]) => tree.find((node) => node.type === "button" && node.props["aria-label"] === "Search bots and messages")!.props.onClick as () => void;
+  const railSearch = (tree: ReactElement<Props>[]) => nodes(tree.find((node) => node.type === SimpleRailFooter)!.props.topActions as ReactNode)
+    .find((node) => node.type === "button" && node.props["aria-label"] === "Search bots and messages")!.props.onClick as () => void;
 
   it("opens the search pill from the rail's search button by expanding the sidebar", () => {
     setSidebarDensity("icons");

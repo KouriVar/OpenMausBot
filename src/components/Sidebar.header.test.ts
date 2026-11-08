@@ -210,7 +210,7 @@ describe("sidebar top row", () => {
     expect(buttons).toBeGreaterThan(spacer);
   });
 
-  it("collapses Simple mode to a rail: round search and + on top (the frame's top bar holds the lights), nothing on the edge, and Apps and the account at the foot", () => {
+  it("collapses Simple mode to a rail: nothing on top but the lights' space, round search and + above Apps and the account at the foot, nothing on the edge", () => {
     fixture.advanced = false;
     fixture.density = "icons";
     fixture.windowChrome = "mac-inset";
@@ -220,9 +220,11 @@ describe("sidebar top row", () => {
     expect(top).not.toContain("data-traffic-light-space");
     expect(top).not.toContain("data-sidebar-top-buttons");
     expect(top).not.toContain("data-workspace-switcher");
-    expect(top.indexOf('aria-label="Search bots and messages"')).toBeLessThan(top.indexOf('aria-label="New or share"'));
+    // Search and + now live at the foot of the rail, above Apps and the account.
+    // The hidden search input still lives in this slice; the search and + buttons do not.
+    expect(top).not.toMatch(/<button[^>]*aria-label="Search bots and messages"/);
+    expect(top).not.toMatch(/<button[^>]*aria-label="New or share"/);
     expect(top).toMatch(/data-sidebar-rail-top="true" class="flex flex-col items-center gap-2 pt-1"/);
-    expect(top).toMatch(/aria-label="New or share" class="[^"]*\bsize-9\b[^"]*\brounded-full\b/);
     const foot = html.slice(html.indexOf("data-sidebar-rail-footer"));
     const at = (marker: string) => {
       const index = foot.indexOf(marker);
@@ -230,7 +232,9 @@ describe("sidebar top row", () => {
       return index;
     };
     expect(html).not.toContain("data-sidebar-edge-toggle");
-    expect(foot).not.toContain('aria-label="Search bots and messages"');
+    expect(at('aria-label="Search bots and messages"')).toBeLessThan(at('aria-label="New or share"'));
+    expect(at('aria-label="New or share"')).toBeLessThan(at('data-sidebar-nav="apps"'));
+    expect(foot).toMatch(/aria-label="New or share" class="[^"]*\bsize-9\b[^"]*\brounded-full\b/);
     const positions = [
       at('data-sidebar-nav="apps"'),
       at("data-sidebar-account"),

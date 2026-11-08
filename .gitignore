@@ -40,3 +40,6 @@ deploy/podman/.env
 deploy/podman/.env.*
 !deploy/podman/.env.example
 /.env
+
+# Local UI patch backups (apply-ui-patch.sh)
+.ui-backup-*/

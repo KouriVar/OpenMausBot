@@ -78,12 +78,13 @@ describe("the header's right side", () => {
     return { markup, controls: markup.slice(markup.indexOf("data-chathead-controls"), markup.indexOf("role=\"log\"")) };
   };
 
-  it("keeps the model picker and the bot's computer in view in Simple mode, with ⋯ left to the bot panel", () => {
+  it("keeps the bot's computer in view in Simple mode, with the model picker hidden and ⋯ left to the bot panel", () => {
     fixture.advanced = false;
     try {
       const { markup, controls } = header();
-      expect(controls).toContain("data-test-model-control");
-      expect(fixture.model).toMatchObject({ threadId: "selected" });
+      // The model picker is hidden from the header by design; the model is chosen in settings.
+      expect(controls).not.toContain("data-test-model-control");
+      expect(fixture.model).toBeNull();
       const computer = controls.match(/<button[^>]*data-tour="computer"[^>]*>/)?.[0] ?? "";
       expect(computer.split(" ")).toEqual(expect.arrayContaining(["rounded-full", "size-8"]));
       expect(markup).not.toContain('data-testid="chat-more"');
@@ -94,14 +95,14 @@ describe("the header's right side", () => {
     }
   });
 
-  it("keeps the model, the computer and ⋯ in a remote client's Simple header, whose settings panel has no room for them", () => {
+  it("keeps the computer and ⋯ in a remote client's Simple header, whose settings panel has no room for them", () => {
     fixture.advanced = false;
     window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
     try {
       const { markup } = header();
-      // The host checks the model against its own catalog, so a paired desktop can change it like the phone can.
-      expect(markup).toContain("data-test-model-control");
-      expect(fixture.model).toMatchObject({ bot: { id: "bot" }, threadId: "selected" });
+      // The model picker is hidden from the header by design, in remote clients too.
+      expect(markup).not.toContain("data-test-model-control");
+      expect(fixture.model).toBeNull();
       expect(markup).toContain('data-tour="computer"');
       expect(markup).toContain('data-testid="chat-more"');
       const more = fixture.menus.find((menu) => menu.ariaLabel === "More")!;
@@ -133,10 +134,10 @@ describe("the header's right side", () => {
     expect(controls).toContain('title="Stop this turn"');
   });
 
-  it("leaves Advanced mode's model, computer and ⋯ exactly as they were, the inspector unlocked", () => {
+  it("leaves Advanced mode's computer and ⋯ exactly as they were, the model picker hidden and the inspector unlocked", () => {
     fixture.advanced = true;
     const { markup } = header();
-    expect(markup).toContain("data-test-model-control");
+    expect(markup).not.toContain("data-test-model-control");
     expect(markup).toContain('data-tour="computer"');
     expect(markup).toContain('data-testid="chat-more"');
     const more = fixture.menus.find((menu) => menu.ariaLabel === "More")!;
@@ -653,15 +654,14 @@ describe("thread control placement", () => {
     expect(badge[2].split(" ")).toContain("@max-4xl/chathead:sr-only");
   });
 
-  it("keeps the selected thread's model in the header and permissions inside the composer pill", () => {
+  it("keeps the model picker out of the header and permissions inside the composer pill", () => {
     const markup = renderToStaticMarkup(createElement(ChatView, { bot }));
-    expect(markup.match(/data-test-model-control/g)).toHaveLength(1);
-    expect(markup.indexOf("data-test-model-control")).toBeLessThan(markup.indexOf('role="log"'));
+    expect(markup.match(/data-test-model-control/g)).toBeNull();
     expect(markup.indexOf('data-tour="composer"')).toBeGreaterThan(-1);
     expect(markup.indexOf("data-test-approval-control")).toBeGreaterThan(markup.indexOf('data-tour="composer"'));
     expect(markup.indexOf("data-test-approval-control")).toBeLessThan(markup.indexOf("<textarea"));
     expect(markup).not.toContain('aria-label="Thread settings"');
-    expect(fixture.model).toMatchObject({ threadId: "selected", bot: { busy: false, modelSelection: { model: "thread-model" } } });
+    expect(fixture.model).toBeNull();
     expect(fixture.approval).toMatchObject({ approvalMode: "ask", busy: false, trustedModesAvailable: false });
     fixture.approval!.onSelect("auto");
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "updateTask", botId: "bot", threadId: "selected", patch: { approvalMode: "auto" } });
@@ -674,13 +674,13 @@ describe("thread control placement", () => {
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "updateTask", botId: "bot", threadId: "selected", patch: { approvalMode: "full" } });
   });
 
-  it("offers remote clients the model picker but keeps approval changes on the host", () => {
+  it("hides the model picker from remote clients too and keeps approval changes on the host", () => {
     window.ogb = { remoteClient: { active: true } } as NonNullable<Window["ogb"]>;
     try {
       fixture.model = null;
       const markup = renderToStaticMarkup(createElement(ChatView, { bot }));
-      expect(markup).toContain("data-test-model-control");
-      expect(fixture.model).toMatchObject({ bot: { id: "bot" }, threadId: "selected" });
+      expect(markup).not.toContain("data-test-model-control");
+      expect(fixture.model).toBeNull();
       expect(markup).not.toContain("data-test-approval-control");
     } finally {
       delete window.ogb;
