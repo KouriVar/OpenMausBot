@@ -51,6 +51,9 @@ importers:
       '@novnc/novnc':
         specifier: 1.7.0
         version: 1.7.0
+      '@remixicon/react':
+        specifier: ^4.9.0
+        version: 4.9.0(react@19.2.8)
       '@resvg/resvg-js':
         specifier: 2.6.2
         version: 2.6.2
@@ -1818,6 +1821,11 @@ packages:
 
   '@posthog/types@1.402.3':
     resolution: {integrity: sha512-nnqKIGUqggeNbCZg6of/hYN+4shYZUoPFkILIIpYq0p9HDX8PgOrnrtBAUH8kr1MOmDh2nm+fY5Ceks7A5y6BQ==}
+
+  '@remixicon/react@4.9.0':
+    resolution: {integrity: sha512-5/jLDD4DtKxH2B4QVXTobvV1C2uL8ab9D5yAYNtFt+w80O0Ys1xFOrspqROL3fjrZi+7ElFUWE37hBfaAl6U+Q==}
+    peerDependencies:
+      react: '>=18.2.0'
 
   '@resvg/resvg-js-android-arm-eabi@2.6.2':
     resolution: {integrity: sha512-FrJibrAk6v29eabIPgcTUMPXiEz8ssrAk7TXxsiZzww9UTQ1Z5KAbFJs+Z0Ez+VZTYgnE5IQJqBcoSiMebtPHA==}
@@ -6830,6 +6838,10 @@ snapshots:
       '@posthog/types': 1.402.3
 
   '@posthog/types@1.402.3': {}
+
+  '@remixicon/react@4.9.0(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
 
   '@resvg/resvg-js-android-arm-eabi@2.6.2':
     optional: true

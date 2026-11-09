@@ -8,6 +8,23 @@ below are local customizations on top of upstream `v0.1.149`.
 
 ### Changed
 
+- **Every icon in the app is now Remix Icon.** `src/lib/icons.tsx` re-exports
+  the 263 names the code imports from `lucide-react` as `@remixicon/react`
+  components; a Vite `app-icons` plugin resolves `lucide-react` to that file
+  for files under `src/`, and the `tsconfig.json` path does the same for the
+  type checker, so a name missing from the shim fails `pnpm typecheck`. The
+  wrappers keep the `lucide lucide-<name>` class names (styles and tests select
+  them), `size` and `currentColor`; Remix writes its own `remixicon` class
+  before them. Lucide still draws the sandboxed JSX-page frame (`shared/
+  app-frame/jsx-page.ts`), which loads it from jsDelivr. `NOTICE` carries the
+  Remix Icon attribution.
+  - Visual difference: Remix line icons are filled paths, so a call site's
+    `strokeWidth` no longer changes their weight, and the CSS rule that
+    lightened lucide's default 2px stroke (`svg.lucide[stroke-width="2"]`) has
+    nothing left to affect.
+  - Two markup assertions that compared an icon's class string exactly now
+    expect the `remixicon` prefix (`BrowserPanel.dom.test.ts`,
+    `DesktopWorkspaceSwitcher.test.ts`).
 - **Sidebar: search and new-chat buttons moved to the bottom.** The search
   button and the `+` button now sit at the bottom of the sidebar, just above
   the tools/plugins button, instead of at the top.
