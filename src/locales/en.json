@@ -1759,6 +1759,8 @@
   "settings.runCard.title": "This run",
   "settings.runCard.subtitle": "Show a list of the shell commands a bot ran for your current request. Turn it off to hide the card and its shortcut for saving the run as a skill.",
   "settings.runCard.show": "Show the run card",
+  "settings.bloubAvatar.title": "Grok-style avatar (Bloub)",
+  "settings.bloubAvatar.subtitle": "Draw every bot with Bloub, the MIT-licensed morphing avatar, in the bot's own colour.",
   "settings.pinnedCircles.title": "Pinned bots as circles",
   "settings.pinnedCircles.subtitle": "Show pinned bots as large avatars, like Grok Bot. Widening the sidebar fits more on each row.",
   "settings.universalPins.title": "Universal pins",

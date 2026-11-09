@@ -18,6 +18,7 @@ import { setShowThreads, useShowThreadsChoice } from "@/lib/thread-preferences";
 import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
 import { setPinnedCircles, setUniversalPins, usePinnedCircles, useUniversalPins } from "@/lib/sidebar-preferences";
 import { setShowRunCard, useShowRunCard } from "@/lib/run-card-preferences";
+import { setForkAvatarStyle, useForkAvatarStyle } from "@/fork/avatar-style";
 import { parseSendKey, SEND_KEYS, sendKeyLabel, setSendKey, useSendKey } from "@/lib/send-key";
 import { alternateSendLabel, parseFollowUpDefault, setFollowUpDefault, useFollowUpDefault } from "@/lib/follow-up";
 import { effectiveLanguage, setLanguageChoice, useLanguageChoice } from "@/lib/language-preference";
@@ -313,6 +314,21 @@ export function PinnedCirclesRow() {
         checked={enabled}
         aria-label={t("settings.pinnedCircles.title")}
         onClick={() => setPinnedCircles(!enabled)}
+      />
+    </SettingRow>
+  );
+}
+
+/** The fork's switch: draw the bots with Bloub instead of the MausBot mascot. */
+export function ForkAvatarStyleRow() {
+  const style = useForkAvatarStyle();
+  const bloub = style === "bloub";
+  return (
+    <SettingRow title={t("settings.bloubAvatar.title")} subtitle={t("settings.bloubAvatar.subtitle")}>
+      <Switch
+        checked={bloub}
+        aria-label={t("settings.bloubAvatar.title")}
+        onClick={() => setForkAvatarStyle(bloub ? "maus" : "bloub")}
       />
     </SettingRow>
   );

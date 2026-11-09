@@ -174,6 +174,24 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Optional Bloub avatar (Grok-style), vendored from `jeremy-prt/bloub`.**
+  Settings → Appearance gains "Grok-style avatar (Bloub)": with it on, every bot
+  avatar is drawn by the vendored engine (`src/vendor/bloub`, MIT, commit
+  `b4bb3c1`) through `src/components/BloubAvatar.tsx`, in the bot's own colour,
+  and the choice is kept in `localStorage` (`omb.fork.avatarStyle`). The
+  engine's measurements are untouched; every avatar shares one
+  `requestAnimationFrame` clock, below 28px it is a still frame with the odd
+  blink, and `prefers-reduced-motion` stops the animation. The ref handle still
+  works: `blink` and `spin` play Bloub's wink and swirl, `setExpression` is a
+  no-op. CPU with 15 animated avatars in the collapsed sidebar: ~22% of the
+  renderer against ~11% for the mascot.
+  中文：**可选 Bloub（Grok 风）头像，内置自 `jeremy-prt/bloub`。** 设置 → 外观新增
+  「Grok 风头像（Bloub）」开关：打开后所有机器人头像由内置引擎（`src/vendor/bloub`，MIT，
+  commit `b4bb3c1`）经 `src/components/BloubAvatar.tsx` 绘制，用机器人自己的颜色；选择存在
+  `localStorage` 的 `omb.fork.avatarStyle`。引擎里的测量常量一个没改；所有头像共用一个
+  `requestAnimationFrame` 时钟，小于 28px 时只画静态帧加偶尔眨眼，`prefers-reduced-motion`
+  下完全不动画。ref 句柄保留：`blink` 和 `spin` 分别播 Bloub 的 wink 和 swirl，
+  `setExpression` 暂为空实现。侧栏 15 个动画头像时，渲染进程 CPU 约 22%（原版吉祥物约 11%）。
 - `apply-ui-patch.sh` — builds the renderer and copies `dist/` into the
   installed `/Applications/OpenMausBot.app/Contents/Resources/ui/`, with a
   timestamped backup of the previous UI. Re-run it after an app auto-update

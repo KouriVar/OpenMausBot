@@ -18,6 +18,8 @@ import { useFestivalDress, wornBody } from "@/lib/festival-dress";
 import { t } from "@/lib/i18n";
 import { CarvedAvatar } from "./CarvedAvatar";
 import { steelBodyImage } from "@/lib/steel-body";
+import { useForkAvatarStyle } from "@/fork/avatar-style";
+import { BloubAvatar } from "./BloubAvatar";
 
 export const EYE_SCALE = 1.12;
 export const MOUTH_WEIGHT = 11;
@@ -101,6 +103,10 @@ export type MausAvatarProps = {
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
   const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label } = props;
+  // The fork's switch: Bloub replaces every built body, the festival ones included.
+  if (useForkAvatarStyle() === "bloub") {
+    return <BloubAvatar ref={ref} size={size} color={MAUS_COLORS[color] ?? MAUS_COLORS.green} state={state} animated={animated} label={label} />;
+  }
   if (isCarvedBody(bodyId)) {
     return (
       <CarvedAvatar
