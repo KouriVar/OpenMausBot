@@ -1,14 +1,16 @@
 import type { ReactNode } from "react";
 import { Search } from "lucide-react";
 
-// Search and + at the foot of the icon sidebar, just above the tools button.
-export function SidebarBottomActions({ onSearch, searchLabel, plus }: {
+// Inbox, search and + at the foot of the icon sidebar, just above the tools button.
+export function SidebarBottomActions({ onSearch, searchLabel, plus, inbox }: {
   onSearch: () => void;
   searchLabel: string;
   plus: ReactNode;
+  inbox?: ReactNode;
 }) {
   return (
     <div data-sidebar-bottom-actions className="flex flex-col items-center gap-1 px-2 pb-1">
+      {inbox}
       <button
         type="button"
         onClick={onSearch}

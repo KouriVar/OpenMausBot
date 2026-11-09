@@ -40,6 +40,15 @@ below are local customizations on top of upstream `v0.1.149`.
     (`left-full`), the only direction with room in a narrow rail.
   - The full (non-icon) sidebar list keeps its buttons at the top.
   - Search still opens the command palette; no behaviour change.
+- **Sidebar: the Inbox entry follows the collapsed layout.** In the full
+  sidebar the Inbox row stays at the top; collapsed to icons it now sits at the
+  foot, directly above search.
+  - Icon sidebar: `SidebarBottomActions` gained an optional `inbox` slot, and
+    `Sidebar.tsx` passes the row in there.
+  - Avatar rail (Simple): the row uses the same round `SIMPLE_TOP_BUTTON` control
+    as the search button below it, so the rail keeps its Inbox entry too.
+  - `SidebarInboxRow` gained `rail` for that round shape; its count badge and
+    running dot stay in place.
 
 - **Model picker removed from the chat header** (`ChatView.tsx`). The header no
   longer renders `ModelPicker`; the model is chosen from settings instead. This

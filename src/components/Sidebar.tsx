@@ -1315,7 +1315,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
           />
         </div>
       </div>}
-      {!q && <SidebarInboxRow icons={density === "icons"} large={!advanced} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
+      {!q && density !== "icons" && <SidebarInboxRow icons={false} large={!advanced} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
       {universalPins && pinnedBots.length > 0 && !simpleDesk && (
         <div
           data-sidebar-universal-pins=""
@@ -1501,12 +1501,13 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
         iconOnly={density === "icons"}
       />
 
-      {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} />}
+      {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} inbox={!q ? <SidebarInboxRow icons large={false} running={attentionHasRunningWork(attention)} /> : null} />}
 
       {rail ? <SimpleRailFooter
         owner={cloudOwner}
         archived={archivedEntry}
         topActions={<div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
+          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
           <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
             <Search size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
