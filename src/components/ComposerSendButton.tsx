@@ -16,7 +16,7 @@ export interface FollowUpMenu {
   alternateKey: string;
 }
 
-/** The composer's round Send button. While a one-to-one bot works, a click does what Enter does and a Ctrl/⌘-click the
+/** The composer's Send button. While a one-to-one bot works, a click does what Enter does and a Ctrl/⌘-click the
  * other one; the chevron beside it lists every way this message can meet the running turn. */
 export function ComposerSendButton({ compact, waits, label, title, look, disabled, onSend, menu, onChoose }: {
   compact: boolean;
@@ -39,8 +39,8 @@ export function ComposerSendButton({ compact, waits, label, title, look, disable
       title={menu && alternate ? t("composer.followUp.buttonTitle", { title, key: menu.alternateKey, alternate: t(`composer.followUp.${alternate}`) }) : title}
       style={waits ? undefined : look.style}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full disabled:cursor-default",
-        compact ? "size-7 animate-[slot-fade-in_120ms_ease-out]" : "size-8",
+        "flex size-7 shrink-0 items-center justify-center rounded-[10px] disabled:cursor-default",
+        compact && "animate-[slot-fade-in_120ms_ease-out]",
         waits ? "bg-raised text-ink-secondary hover:bg-raised-hover" : look.className,
       )}
     >

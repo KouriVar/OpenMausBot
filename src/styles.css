@@ -128,7 +128,7 @@
   --animate-pop-in: pop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   --animate-pop-out: pop-out 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   --animate-caret: caret-blink 1s step-end infinite;
-  --animate-msg-in: msg-in 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-msg-in: msg-in 0.24s cubic-bezier(0.23, 1, 0.32, 1) backwards;
   --animate-status-pulse: status-pulse 1.6s steps(2, jump-none) infinite;
   /* onboarding: a block of copy or a row arriving in a beat; `.stagger`
      spaces siblings out. Rare, first-time motion, so it may run past the
@@ -193,7 +193,7 @@
      "the app is talking to you", not as a browser default */
   --color-focus: #459ffe;
   --color-accent-text: #7fc0ff;
-  --color-bubble-user: #5a5a5a;
+  --color-bubble-user: #3e3e3e;
   --color-success: #38d591;
   --color-danger: #ff5667;
   --color-warning: #ff9800;
@@ -293,7 +293,7 @@
   --color-accent-border: #459ffe;
   --color-accent-text: #7fc0ff;
   --color-accent-ink: #ffffff;
-  --color-bubble-user: #5a5a5a;
+  --color-bubble-user: #3e3e3e;
   --color-bubble-user-ink: #f5f5f5;   /* = ink: unchanged */
   --color-success: #38d591;
   --color-danger: #ff5667;
@@ -1257,6 +1257,9 @@
 .chat-md :is(strong, b) {
   font-weight: 600;
 }
+.chat-md .ui-code-chip {
+  font-size: 0.93em;
+}
 [data-chat-bubble="simple"] :is(.chat-md, .chat-text),
 [data-chat-bubble="simple"].chat-text {
   line-height: 22px;
@@ -1269,8 +1272,8 @@
 .chat-md :is(p, li, blockquote) {
   text-wrap: pretty;
 }
-[data-chat-bubble="simple"] .chat-md > * + .md-heading {
-  margin-top: 18px;
+.chat-md > * + .md-heading {
+  margin-top: 8px;
 }
 [data-chat-bubble="simple"] .chat-md > .md-heading:first-child {
   margin-top: 0;
@@ -2011,7 +2014,7 @@ body {
 }
 /* new message settle-in: subtle, fast, GPU-only */
 @keyframes msg-in {
-  from { transform: translateY(4px); opacity: 0; }
+  from { transform: translateY(12px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 @keyframes slot-fade-in {
@@ -2226,7 +2229,7 @@ html[data-cloud-intent-morph] [data-tour="composer"] { view-transition-name: clo
   inset: 0;
   -webkit-mask-image: linear-gradient(90deg, transparent 30%, #000 50%, transparent 70%);
   mask-image: linear-gradient(90deg, transparent 30%, #000 50%, transparent 70%);
-  animation: sheen-band var(--sheen-period) linear var(--sheen-delay) infinite;
+  animation: sheen-band var(--sheen-period) steps(60, end) var(--sheen-delay) infinite;
 }
 .thinking-sheen > span::before {
   content: attr(data-text) / "";
@@ -2236,7 +2239,7 @@ html[data-cloud-intent-morph] [data-tour="composer"] { view-transition-name: clo
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--color-ink);
-  animation: sheen-letters var(--sheen-period) linear var(--sheen-delay) infinite;
+  animation: sheen-letters var(--sheen-period) steps(60, end) var(--sheen-delay) infinite;
 }
 /* Simple mode's typing row is quieter: the sheen runs from tertiary ink up to secondary. */
 .turn-phrase-quiet .thinking-shimmer { color: var(--color-ink-tertiary); }

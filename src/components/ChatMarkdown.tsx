@@ -707,22 +707,22 @@ const MARKDOWN_COMPONENTS: Components = {
     return <p dir={blockDirection(node)}>{children}</p>;
   },
   ul({ node, children }: BlockProps) {
-    return <ul dir={blockDirection(node)} className="list-disc space-y-1 ps-5">{children}</ul>;
+    return <ul dir={blockDirection(node)} className="list-disc space-y-1 ps-5 [&_ol]:ps-4 [&_ul]:ps-4 [&_li::marker]:text-ink-tertiary">{children}</ul>;
   },
   ol({ node, children }: BlockProps) {
-    return <ol dir={blockDirection(node)} className="list-decimal space-y-1 ps-5">{children}</ol>;
+    return <ol dir={blockDirection(node)} className="list-decimal space-y-1 ps-5 [&_ol]:ps-4 [&_ul]:ps-4 [&_li::marker]:text-ink-tertiary">{children}</ol>;
   },
   h1({ node, children }: BlockProps) {
-    return <div dir={blockDirection(node)} className="md-heading mt-3 text-[20px] font-semibold leading-[26px] tracking-[-0.01em]">{children}</div>;
+    return <div dir={blockDirection(node)} className="md-heading mt-2 text-[22px] font-semibold leading-[28px] tracking-[-0.012em]">{children}</div>;
   },
   h2({ node, children }: BlockProps) {
-    return <div dir={blockDirection(node)} className="md-heading mt-2 text-[17px] font-semibold leading-6 tracking-[-0.005em]">{children}</div>;
+    return <div dir={blockDirection(node)} className="md-heading mt-2 text-[17px] font-semibold leading-6 tracking-[-0.006em]">{children}</div>;
   },
   h3({ node, children }: BlockProps) {
-    return <div dir={blockDirection(node)} className="mt-1.5 font-semibold">{children}</div>;
+    return <div dir={blockDirection(node)} className="md-heading mt-2 font-semibold">{children}</div>;
   },
   h4({ node, children }: BlockProps) {
-    return <div dir={blockDirection(node)} className="mt-1.5 font-semibold">{children}</div>;
+    return <div dir={blockDirection(node)} className="md-heading mt-2 font-semibold">{children}</div>;
   },
   h5({ node, children }: BlockProps) {
     return <div dir={blockDirection(node)} className="mt-1.5 text-[14px] font-semibold">{children}</div>;
@@ -732,7 +732,7 @@ const MARKDOWN_COMPONENTS: Components = {
   },
   blockquote({ node, children }: BlockProps) {
     return (
-      <blockquote dir={blockDirection(node)} className="border-s-2 border-hairline ps-3 text-ink-secondary">{children}</blockquote>
+      <blockquote dir={blockDirection(node)} className="border-s-2 border-hairline py-0.5 ps-3 text-ink-secondary">{children}</blockquote>
     );
   },
   del({ children }: { children?: ReactNode }) {
@@ -820,7 +820,7 @@ function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS,
   });
   return (
     <MessageScopeContext.Provider value={{ message, imageOffsets, threads, currentBotId, delivered, originals }}>
-      <div className="chat-md min-w-0 [&>*+*]:mt-2">{markdown}</div>
+      <div className="chat-md min-w-0 [&>*+*]:mt-2.5">{markdown}</div>
     </MessageScopeContext.Provider>
   );
 }

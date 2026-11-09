@@ -82,7 +82,7 @@ describe("Simple mode's table card", () => {
     expect(html).toContain('aria-label="Download results as CSV"');
     expect(html).toContain('aria-label="Expand table"');
     expect(html).toMatch(/<button type="button" class="group\/th [^"]*" aria-label="Sort by Sender"[^>]*><span dir="auto">Sender<\/span>/);
-    expect(html).toContain("border-t-[0.5px] border-ink/[0.07]");
+    expect(html).toContain("border-b-[0.5px] border-ink/[0.07]");
     expect(html).not.toContain("<footer");
     expect(html).not.toContain(`aria-label="${"Search all rows…"}"`);
     expect(html).toContain('data-fit="true"');
