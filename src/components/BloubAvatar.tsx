@@ -118,24 +118,27 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-function resolvePaper(given: string | undefined): string {
-  if (given && /^#[0-9a-f]{3,8}$/i.test(given)) return given;
-  if (typeof document !== "undefined") {
-    const value = getComputedStyle(document.documentElement).getPropertyValue("--color-panel").trim();
-    if (/^#[0-9a-f]{3,8}$/i.test(value)) return value;
-  }
-  return "#f9f9f9";
+/** Relative luminance of a #rgb/#rrggbb, so the eye holes can be tinted against the body. */
+function luminance(hex: string): number {
+  const full = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
+  const value = Number.parseInt(full.slice(1), 16);
+  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255].map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
 }
 
-function usePaper(given: string | undefined): string {
-  const [paper, setPaper] = useState(() => resolvePaper(given));
-  useEffect(() => {
-    setPaper(resolvePaper(given));
-    if (given || typeof document === "undefined") return;
-    const observer = new MutationObserver(() => setPaper(resolvePaper(given)));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class", "style"] });
-    return () => observer.disconnect();
-  }, [given]);
+/** The eye holes are punched through the body, so what shows through must contrast with the ink — a light
+ * paper on a dark body, a dark one on a pale body — in either theme. */
+function resolvePaper(given: string | undefined, ink: string): string {
+  if (given && /^#[0-9a-f]{3,8}$/i.test(given)) return given;
+  return luminance(ink) < 0.45 ? "#f9f9f9" : "#101410";
+}
+
+function usePaper(given: string | undefined, ink: string): string {
+  const [paper, setPaper] = useState(() => resolvePaper(given, ink));
+  useEffect(() => { setPaper(resolvePaper(given, ink)); }, [given, ink]);
   return paper;
 }
 
@@ -195,7 +198,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const shapes = SHAPE_BY_ID.get(shape)?.radii ?? null;
   const expr = EXPRESSION_BY_ID.get(expression) ?? null;
   const ink = COLOR_BY_ID.get(colorId)?.hex ?? "#0a0a0c";
-  const surface = usePaper(paper);
+  const surface = usePaper(paper, ink);
 
   const engine = useRef<BotEngine | null>(null);
   if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, expr);

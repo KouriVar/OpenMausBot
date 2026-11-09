@@ -229,14 +229,14 @@ below are local customizations on top of upstream `v0.1.150`.
   40px in Simple's rail (74% of 54px), on the 46.00px line, drawn at 2× device pixels. A resting bot shows
   idle with its chosen expression; the "one dot" was Bloub's `sleep` state (a 16%-wide bouncing ball) being
   picked for old conversations — the fork no longer uses Bloub's sleep state at all, so a resting bot always
-  keeps a complete face. The hovered
+  keeps a complete face. The eye holes are tinted against the body (light paper on dark ink, dark on pale), so the face reads in either theme too. The hovered
   tile also gets a 150ms grey wash and a 1.06× scale.
   中文：**按 Grok 录屏修正 Bloub：只在悬停时跟随、弹簧侧倾、真正的大头像、静止时有完整脸。** 只有指针下的
   那个头像跟随——每个脸只听自己的 pointerenter/move/leave，没有全局监听——且整个身体朝指针侧倾（Bloub 的
   yaw/pitch 转头，加约 2.5px 位移与 ±6° 倾斜，弹簧 k=170/c=18，离开轻微回弹）；被悬停的脸每帧 60fps。
   侧栏脸真正填满格子：高级 45px（60px 格子的 75%），简易 rail 40px（54px 的 74%），仍在 46.00px 中线上，
   按 2× 设备像素绘制。静止的 bot 显示 idle 加它选的表情；之前「只剩一个点」是因为旧会话被映射到 Bloub 的
-  `sleep`（16% 宽的弹跳小球）——本 fork 完全不再用 Bloub 的 sleep 状态，静止的 bot 永远有完整脸。悬停格还有 150ms 浅灰底和
+  `sleep`（16% 宽的弹跳小球）——本 fork 完全不再用 Bloub 的 sleep 状态，静止的 bot 永远有完整脸。眼睛的洞按身体墨色取对比纸色（深墨配浅色、浅墨配深色），深浅主题都看得清。悬停格还有 150ms 浅灰底和
   1.06 倍放大。
 - **Bloub, finished for daily use.** The fork's Bloub avatar now follows the
   pointer within a tight range (about one avatar size; 1.5× in the sidebar), with
