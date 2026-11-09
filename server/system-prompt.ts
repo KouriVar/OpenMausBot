@@ -100,7 +100,7 @@ export function buildSystemPrompt(
 }
 
 // "box" is Boat's persisted kind literal.
-export type ComputerPromptKind = "vm-private" | "vm-shared" | "box" | "vps" | "local";
+export type ComputerPromptKind = "vm-private" | "vm-shared" | "box" | "vps" | "local" | "simular";
 
 export type ComputerPromptKindInput = {
   kind: "vm" | "box" | "vps" | "local" | null;
@@ -133,6 +133,8 @@ const COMPUTER_PARAGRAPH: Record<ComputerPromptKind, string> = {
   box: " You control the assigned cloud computer. Inspect it with screenshots; click coordinates refer to the full image. Use the advertised computer tools for desktop actions and shell commands.",
   vps:
     " You have your own self-hosted remote Linux computer through the official Cua tools. This is the user's own VPS; using it does not require a Boat API key. Its filesystem is disposable: everything on it is wiped whenever its container is recreated, so keep long-lived work somewhere durable — push it to a remote, or hand the results back in chat — instead of leaving it only on that computer. Inspect the desktop state before acting, prefer accessibility targets over raw coordinates, and act carefully." + SANDBOX_DESKTOP_INPUT,
+  simular:
+    " You control the person's own Simular desktop through Simular's own MCP server, whose tools are named for what they do: read the screen, drive the mouse and keyboard, run a command, use its browser, put the box to sleep. Reading the screen first tells you what is there; prefer the box's browser tools for web work and its screen-state tool before clicking by coordinates. It is another company's machine on the person's own account: a shell command there runs as on any Linux desktop, and deleting the box is destructive, so both always ask the person first — call them only when the task needs them and say in plain words what they will do.",
   local:
     " You can act on the user's computer through the computer tools. Discover the target app/window and inspect its state first. Prefer window-targeted accessibility actions with background delivery so the user can keep working in another app; do not bring OpenMausBot or another app to the front just to inspect it. Use the dedicated browser tools for browser work when available, keeping the user's intended browser profile/account, and OpenMausBot's configuration/proposal tools for supported bot setup rather than clicking through this app. Full-desktop input, app activation, and foreground delivery can move the real cursor, change focus, or switch desktops: use them only when the user asked for foreground control or agrees after background control reports it cannot perform the action. Do not silently retry a background refusal as foreground input, including through shell scripts, AppleScript/System Events, or another automation tool. If a background action unexpectedly changes focus, report it and stop that route rather than continuing to interrupt the user. Never promise that arbitrary desktop actions can run in the background.",
 };

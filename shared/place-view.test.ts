@@ -19,6 +19,26 @@ const facts = (patch: Partial<PlaceFacts> = {}): PlaceFacts => ({
   ...patch,
 });
 
+describe("A Simular Box is the person's own desktop, not this app's", () => {
+  it("is ready once its MCP server is connected, and says where to connect it when it is not", () => {
+    expect(placeState(facts({ backend: "simular", simular: { connected: true } })).state).toBe("cc-simular");
+    expect(placeState(facts({ backend: "simular", simular: { connected: false } })).state).toBe("cc-simular-off");
+    expect(placeState(facts({ backend: "simular" })).state).toBe("cc-simular-off");
+    // No Boat key, no plan and no hours decide it: those belong to the paid cloud desktops, not to this one.
+    expect(placeState(facts({ backend: "simular", boat: "none", plan: false, simular: { connected: true } })).state).toBe("cc-simular");
+  });
+
+  it("keeps a model's own limits in front of the box, and words both states without jargon", () => {
+    expect(placeState(facts({ backend: "simular", engine: { name: "Kimi", computer: false, browser: false, signedIn: true } })).state).toBe("cc-cannot");
+    expect(placeState(facts({ backend: "simular", toolsAllowComputer: false })).state).toBe("cc-tools-off");
+    for (const state of ["cc-simular", "cc-simular-off"] as const) {
+      const view = placeViewOf(state, PARAMS, { role: "admin", server: "mac" });
+      expect(`${view.short} ${view.line}`).not.toMatch(/\bbox\b|Boat/i);
+      expect(view.action).toBeNull();
+    }
+  });
+});
+
 describe("U1: one line and at most one action for every state", () => {
   it("words every state whole, for an Admin and for a User", () => {
     for (const state of PLACE_STATES) {

@@ -17,6 +17,8 @@ import { useCaptionChrome } from "@/components/DesktopCapabilities";
 import { usePageVisible } from "@/lib/page-visible";
 import { listenLiveFrames } from "@/lib/live-events";
 import { CloudScreenPreview } from "./CloudScreenPreview";
+import { useSimularBoxReady } from "@/lib/mcp-servers";
+import { SIMULAR_BOX_URL } from "../../shared/simular";
 import { isActiveTurnRefusal, isRemoteScreenshotContention } from "@/lib/remote-desktop";
 import { CloudBackendPicker } from "./CloudBackendPicker";
 import { SimpleVpsChoices } from "./SimpleVpsChoices";
@@ -68,6 +70,7 @@ interface VpsComputerStatus {
 type Phase =
   | "checking"
   | "unconfigured"
+  | "simular-off"
   | "starting"
   | "busy-boat"
   | "ready"
@@ -172,6 +175,7 @@ export function ComputerPanel({
     id: string; name: string; botId: string; section: string;
   } | null>(null);
   const cloudBackend = bot.cloudBackend ?? "box";
+  const simularBox = cloudBackend === "simular";
   const computerSelectionPersisted = Boolean(
     persistedComputerSelection
       && persistedComputerSelection.botId === bot.id
@@ -469,6 +473,23 @@ export function ComputerPanel({
       return;
     }
     if (bot.computer !== "cloud" && !capabilitiesReady) return;
+    // The person's own Simular desktop: its MCP sign-in is the whole status, and it never starts or wakes a Boat.
+    if (cloudBackend === "simular") {
+      api(threadPath("computer"))
+        .then((status) => {
+          if (!alive) return;
+          setResolvedComputerSelection({ botId: bot.id, threadId: bot.threadId, computer: bot.computer, cloudBackend });
+          setPhase(status.configured ? "ready" : "simular-off");
+        })
+        .catch((e) => {
+          if (!alive) return;
+          setError(e instanceof Error ? e : String(e));
+          setPhase("error");
+        });
+      return () => {
+        alive = false;
+      };
+    }
     if (cloudBackend === "vps") {
       api(threadPath("computer"))
         .then((rawStatus) => {
@@ -679,9 +700,11 @@ export function ComputerPanel({
     let contentionSince: number | null = null;
     const controller = new AbortController();
     setPreviewError(null);
-    setPreviewRefreshing(true);
+    setPreviewRefreshing(!simularBox || previewBusy.current === true);
     const shoot = async () => {
       if (inFlight || controller.signal.aborted) return;
+      // A Simular Box wakes for every call and its hours belong to the person: the panel only watches while the bot works.
+      if (simularBox && !previewBusy.current) return;
       if (Date.now() - lastAttemptAt < (retryDelay ?? (previewBusy.current ? 4000 : 30_000))) return;
       if (previewBusy.current && Date.now() - lastLiveAt.current < 10_000) return;
       inFlight = true;
@@ -720,13 +743,13 @@ export function ComputerPanel({
         lastAttemptAt = Date.now();
       }
     };
-    void shoot();
+    if (!simularBox || previewBusy.current) void shoot();
     const timer = setInterval(shoot, 1000);
     return () => {
       controller.abort();
       clearInterval(timer);
     };
-  }, [panelView, cloudPreviewReady, threadPath, cloudBackend, viewerOpen, liveHere, pageVisible, pending, controlPending, previewRetry]);
+  }, [panelView, cloudPreviewReady, threadPath, cloudBackend, simularBox, viewerOpen, liveHere, pageVisible, pending, controlPending, previewRetry]);
 
   useEffect(() => {
     if (panelView !== "computer" || phase !== "vm" || !computerStatusCurrent || viewerOpen || liveHere || !pageVisible) return;
@@ -862,6 +885,16 @@ export function ComputerPanel({
   );
 
   const openDesktop = async () => {
+    // Simular's own page is signed in as the person; opening it in this app's viewer would be a different, signed-out session.
+    if (simularBox) {
+      setError(null);
+      if (window.ogb?.openExternal) {
+        if (!(await window.ogb.openExternal(SIMULAR_BOX_URL))) setError(new LocalizedPanelError("computer.err.openDesktopLink"));
+        return;
+      }
+      if (!window.open(SIMULAR_BOX_URL, "_blank", "noopener")) setError(new LocalizedPanelError("computer.err.popupBlocked"));
+      return;
+    }
     const controller = new AbortController();
     desktopJoin.current = controller;
     const ownsConnection = () => !controller.signal.aborted && viewerConnection.current === viewerConnectionKey;
@@ -1096,9 +1129,11 @@ export function ComputerPanel({
       : phase === "busy-boat" ? (busyBoat.spinner ? "starting" : busyBoat.line === "computer.cloud.asleep" ? "asleep" : "none")
         : phase === "ready" ? "on"
           : boatState === "archived" || boatState === "stopped" ? "asleep" : undefined;
+  const simularConnected = useSimularBoxReady();
   const viewOf = (place: PlaceFacts["place"], refusal?: PlaceFacts["refusal"]): PlaceView => placeViewFor({
     ...placeFacts({
       bot, place, seat: placeSeat, config: state.config, instances: state.instances,
+      simularConnected,
       local: { ready: localSelectable, reason: localDisabledReason ?? t("computer.unavailableLocal") },
       ...(place === "cloud" ? { computer: cloudComputer } : {}),
       ...(place === "auto" && currentTeamComputer ? { teamComputer: currentTeamComputer.name } : {}),
@@ -1165,6 +1200,7 @@ export function ComputerPanel({
     starting: cloudBackend === "vps" ? t("computer.phase.starting") : cloudView.line,
     "busy-boat": cloudView.line,
     unconfigured: cloudView.line,
+    "simular-off": cloudView.line,
     "auto-unavailable": autoView.line,
     "team-boat": autoView.line,
     "show-ready-boat": t("computer.phase.showReadyBoat"),
@@ -1331,6 +1367,7 @@ export function ComputerPanel({
               refreshing={previewRefreshing}
               retry={previewRetry}
               starting={phase === "starting"}
+              quiet={simularBox && !profileBot.busy ? t("computer.preview.simularIdle") : null}
               opening={pending === "join"}
               disabled={controlPending}
               onOpen={() => void takeControl()}
@@ -1610,7 +1647,7 @@ export function ComputerPanel({
               held={control.held} frame={frameSrc} name={bot.name} onTakeControl={(expand) => void takeControl(expand)}
               disabled={control.held && takeBlocked} takeDisabled={controlPending || takeBlocked} error={errorText}
             />
-            {cloudPreviewReady && canManageCloud && (cloudBackend === "vps" || boatState !== "archived") && (
+            {cloudPreviewReady && canManageCloud && cloudBackend !== "simular" && (cloudBackend === "vps" || boatState !== "archived") && (
               <button
                 type="button"
                 onClick={() => run("sleep")}
@@ -1647,7 +1684,7 @@ export function ComputerPanel({
                 {t(liveTarget ? "computer.fullScreen" : "computer.openLiveDesktop")}
               </button>
             )}
-            {canManageCloud && (cloudBackend === "vps" || boatState !== "archived") && (
+            {canManageCloud && cloudBackend !== "simular" && (cloudBackend === "vps" || boatState !== "archived") && (
               <button
                 onClick={() => run("sleep")}
                 disabled={pending === "sleep" || profileBot.busy}

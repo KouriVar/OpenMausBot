@@ -53,6 +53,8 @@ export function placeFacts(input: {
   local?: PlaceFacts["local"];
   computer?: PlaceFacts["computer"];
   teamComputer?: string;
+  /** The person's Simular Box can be used here (its MCP server is connected and signed in). */
+  simularConnected?: boolean;
 }): PlaceFacts {
   const { bot, config, seat } = input;
   const instance = input.instances.find((candidate) => candidate.instanceId === bot.modelSelection.instanceId);
@@ -62,7 +64,8 @@ export function placeFacts(input: {
     bot: bot.name,
     plan: seat.plan,
     boat: config?.box?.configured ? (config.box.included ? "included" : "own-key") : "none",
-    backend: bot.cloudBackend === "vps" ? "vps" : "box",
+    backend: bot.cloudBackend === "simular" ? "simular" : bot.cloudBackend === "vps" ? "vps" : "box",
+    ...(bot.cloudBackend === "simular" ? { simular: { connected: input.simularConnected === true } } : {}),
     engine: engineFacts(instance, bot.modelSelection.model),
     toolsAllowComputer: canUseMcpServer(bot.toolScope, "computer"),
     browserOn: builtInBrowserEnabled(config) && browserAvailable(config),
@@ -90,7 +93,7 @@ export function placeBlocked(view: PlaceView): boolean {
 
 export function placeHasIssue(view: PlaceView): boolean {
   return placeBlocked(view) || view.state === "cc-tools-off" || view.state === "cc-sign-in" || view.state === "cc-needs-key"
-    || view.state === "cc-unavailable";
+    || view.state === "cc-unavailable" || view.state === "cc-simular-off";
 }
 
 export function useCloudPlanPaid(): boolean {

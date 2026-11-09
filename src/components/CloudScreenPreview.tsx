@@ -3,7 +3,7 @@ import { Loader2, Maximize2, Monitor } from "lucide-react";
 
 import { t } from "@/lib/i18n";
 
-export function CloudScreenPreview({ src, name, error, starting, opening, disabled, refreshing = false, retry = 0, onOpen, onRetry }: {
+export function CloudScreenPreview({ src, name, error, starting, opening, disabled, refreshing = false, retry = 0, quiet = null, onOpen, onRetry }: {
   src: string | null;
   name: string;
   error: string | null;
@@ -12,6 +12,8 @@ export function CloudScreenPreview({ src, name, error, starting, opening, disabl
   disabled: boolean;
   refreshing?: boolean;
   retry?: number;
+  /** Screen the app does not capture on its own right now: this line explains that, instead of a spinner. */
+  quiet?: string | null;
   onOpen: () => void;
   onRetry: (discardFrame: boolean) => void;
 }) {
@@ -48,11 +50,15 @@ export function CloudScreenPreview({ src, name, error, starting, opening, disabl
           )}
         </button>
       )}
-      {!visible && !problem && (
-        <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-[12px] text-ink-secondary">
-          <Loader2 size={18} className="animate-spin" />
-          {starting ? t("computer.phase.starting") : t("computer.preview.connectingScreen")}
-        </div>
+      {!visible && !problem && (quiet
+        ? <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-[12px] text-ink-secondary">
+            <Monitor size={20} />
+            <span>{quiet}</span>
+          </div>
+        : <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-center text-[12px] text-ink-secondary">
+            <Loader2 size={18} className="animate-spin" />
+            {starting ? t("computer.phase.starting") : t("computer.preview.connectingScreen")}
+          </div>
       )}
       {visible && refreshing && !problem && (
         <div role="status" className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] text-white">

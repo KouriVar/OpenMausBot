@@ -7,7 +7,7 @@ import { useBotEditor } from "./BotEditorContext";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
-import { mcpServersForBot, mcpServersOfBot, mcpSwitch, useMcpServers } from "@/lib/mcp-servers";
+import { mcpServersForBot, mcpServersOfBot, mcpSwitch, useMcpServers, useSimularBoxReady } from "@/lib/mcp-servers";
 import { instanceSupportsLocalComputer, localComputerDisabledReason, localComputerSelectable } from "@/lib/local-computer";
 import { placeBlocked, placeFacts, placeHasIssue, placeViewFor, usePlaceSeat, type PlaceSeat } from "@/lib/place-view";
 import { shortPath } from "@/lib/short-path";
@@ -638,9 +638,10 @@ function DraftWorksOn({ bot, patch, seat }: { bot: Bot; patch: ReturnType<typeof
   const providerSupportsLocal = instanceSupportsLocalComputer(state.instances, bot);
   const localReason = localComputerDisabledReason({ capabilities, providerSupportsLocal });
   const named = { ...bot, name: bot.name || t("sidebar.newBotSimple") };
+  const simularConnected = useSimularBoxReady();
   const options = worksOnChoices(state.config, capabilities).map(([mode, labelKey, descriptionKey, Icon]) => {
     const view = placeViewFor(placeFacts({
-      bot: named, place: mode ?? "auto", seat, config: state.config, instances: state.instances,
+      bot: named, place: mode ?? "auto", seat, config: state.config, instances: state.instances, simularConnected,
       local: {
         ready: localComputerSelectable({ capabilities, providerSupportsLocal }),
         reason: localReason ?? t("computer.unavailableLocal"),
@@ -692,8 +693,9 @@ export function AccessSection({
   const browserInstallable = state.config?.browserEngine?.installable === true;
   const { capabilities } = useDesktopCapabilities();
   const placeSeat = usePlaceSeat(state.config, capabilities);
+  const simularConnected = useSimularBoxReady();
   const worksOn = placeViewFor(placeFacts({
-    bot, place: bot.computer ?? "auto", seat: placeSeat, config: state.config, instances: state.instances,
+    bot, place: bot.computer ?? "auto", seat: placeSeat, config: state.config, instances: state.instances, simularConnected,
   }));
   // The same list the Vault tab shows: Composio's connected accounts plus the native Email connection.
   const apps = useBotApps(bot);

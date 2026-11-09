@@ -11,7 +11,7 @@ export const PLACE_STATES = [
   "auto", "auto-team",
   "cc-cannot", "cc-tools-off", "cc-sign-in", "cc-new", "cc-starting", "cc-waking", "cc-on", "cc-asleep",
   "cc-no-hours", "cc-at-once", "cc-unavailable", "cc-ended", "cc-no-start", "cc-clearing", "cc-provider",
-  "cc-on-my-cloud", "cc-needs-key", "vps",
+  "cc-on-my-cloud", "cc-needs-key", "cc-simular", "cc-simular-off", "vps",
   "browser", "browser-off", "browser-cannot",
   "local", "local-unavailable", "vm", "vm-cannot", "place-failed",
   "off",
@@ -83,8 +83,10 @@ export interface PlaceFacts {
   plan?: boolean;
   /** Where cloud computers come from here: the plan's, the person's own Boat key, or nowhere. */
   boat: "included" | "own-key" | "none";
-  /** The cloud computer's provider: Boat, or the person's own server. */
-  backend?: "box" | "vps";
+  /** The cloud computer's provider: Boat, the person's own server, or their Simular Box. */
+  backend?: "box" | "vps" | "simular";
+  /** The person's Simular Box, when `backend` is "simular": its MCP server is connected and signed in. */
+  simular?: { connected: boolean };
   engine: {
     name: string;
     model?: string;
@@ -157,6 +159,10 @@ export const PLACE_EN = {
   "place.view.ccOnMyCloud.line": "Cloud desktops from your plan work for Cloud bots for now.",
   "place.view.ccNeedsKey.short": "Connect Boat first",
   "place.view.ccNeedsKey.line": "Bots here can get their own cloud desktops from Boat, a paid service.",
+  "place.view.ccSimular.short": "On Simular",
+  "place.view.ccSimular.line": "{bot} works on your Simular desktop, and you can watch it there.",
+  "place.view.ccSimularOff.short": "Connect it first",
+  "place.view.ccSimularOff.line": "Connect Simular in Settings → Plugins, then choose it here.",
   "place.view.vps.short": "Your own machine",
   "place.view.vps.line": "Uses your own Linux machine, connected over SSH.",
   "place.view.browser.short": "Web pages only",
@@ -254,6 +260,8 @@ const STATE: Record<PlaceState, { key: string; action: PlaceActionId | null }> =
   "cc-provider": { key: "ccProvider", action: "try-again" },
   "cc-on-my-cloud": { key: "ccOnMyCloud", action: "open-my-cloud" },
   "cc-needs-key": { key: "ccNeedsKey", action: "add-boat-key" },
+  "cc-simular": { key: "ccSimular", action: null },
+  "cc-simular-off": { key: "ccSimularOff", action: null },
   vps: { key: "vps", action: null },
   browser: { key: "browser", action: null },
   "browser-off": { key: "browserOff", action: "turn-on-browser" },
@@ -321,12 +329,16 @@ export function placeState(facts: PlaceFacts): { state: PlaceState; params: Plac
   if (facts.place === "vm") {
     return facts.engine.computer ? { state: "vm", params: { bot } } : { state: "vm-cannot", params: { bot, model } };
   }
-  // On the person's own server (VPS) or on Boat, one rule for both.
+  // On the person's own server (VPS), on Boat, or on their Simular Box, one rule for each provider.
   const vps = facts.backend === "vps";
   if (!facts.engine.computer) return { state: "cc-cannot", params: { bot, model } };
   if (!facts.toolsAllowComputer) return { state: "cc-tools-off", params: { bot } };
   if (!facts.engine.signedIn) return { state: "cc-sign-in", params: { bot, engine: facts.engine.name } };
   if (vps) return { state: "vps", params: { bot } };
+  // A Simular Box is the person's own account, not this app's: it has no plan, no hours and no Boat key to check.
+  if (facts.backend === "simular") {
+    return facts.simular?.connected ? { state: "cc-simular", params: { bot } } : { state: "cc-simular-off", params: { bot } };
+  }
   if (facts.refusal) return { state: facts.refusal.state, params: { bot, ...facts.refusal.params } };
   if (facts.boat === "none") {
     // My Cloud always has the plan's computers while the plan is active.
