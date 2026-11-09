@@ -890,7 +890,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
   const unreadDivider = useUnreadDivider({ threadId: bot.threadId, messages, following });
 
   const bots = useDrawnBots(state.bots);
-  const teammates = useTeammates(); const mentionPeers = useMemo(() => [...bots.filter((peer) => peer.id !== bot.id), ...teammates.peers], [bots, bot.id, teammates]);
+  const teammates = useTeammates(); const mentionPeers = useMemo(() => [...bots.filter((peer) => peer.id !== bot.id).map((peer) => ({ name: peer.name, botId: peer.id, color: peer.color })), ...teammates.peers], [bots, bot.id, teammates]);
   const focus = state.focusMessage?.threadId === bot.threadId ? state.focusMessage : null;
   const showToolCalls = showToolCallsEnabled(state.config);
   const tts = state.config?.tts;

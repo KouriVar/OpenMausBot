@@ -66,7 +66,7 @@ describe("mention display ranges", () => {
 describe("the @devs tag in display ranges", () => {
   it("is drawn like a tag, in any chat, unless a bot has that name", () => {
     expect(matches("@devs the page froze, @Devs! but not ops@devs.test or @devsite")).toEqual(["@devs", "@Devs"]);
-    expect(mentionRanges("@devs hi", [{ name: "Devs", color: "blue" }]).map((range) => range.color)).toEqual(["#377FE6"]);
+    expect(mentionRanges("@devs hi", [{ name: "Devs", color: "blue" }]).map((range) => range.fallbackColor)).toEqual(["blue"]);
   });
 });
 
@@ -99,7 +99,7 @@ describe("a teammate's tag in display ranges", () => {
     const text = "@Atlas and @Bob Stone, then @Bob, then @Sam";
     expect(mentionRanges(text, roster, false, { profileName: "Sam" }).map(({ start, end, person, you }) => [text.slice(start, end), person ?? false, you ?? false]))
       .toEqual([["@Atlas", false, false], ["@Bob Stone", true, false], ["@Bob", true, false], ["@Sam", false, true]]);
-    expect(mentionClassName({ person: true })).toBe("mention-highlight mention-person");
+    expect(mentionClassName({ person: true })).toBe("mention-chip");
   });
   it("gives a teammate a tie with a bot of the same name, whichever comes first in the list", () => {
     const text = "@Bob, please";

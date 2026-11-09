@@ -98,6 +98,7 @@ import { HandoffChip } from "./HandoffReply"; import { TeammateChip } from "./Te
 import { RoomWorkingFolder } from "./RoomWorkingFolder";
 import { RoomBulletin } from "./RoomBulletin";
 import { RoomHeader } from "./RoomHeader";
+import { SpeakerName } from "./BloubIdentity";
 import { useChatFindRequests } from "@/lib/chat-find";
 import { simpleRoomHeader } from "@/lib/room-panel";
 
@@ -169,7 +170,7 @@ function RoomTextMessage({
   useEffect(() => { if (focusedSearch && collapsible) setExpanded(true); }, [focusedSearch, collapsible, focus?.nonce]);
   const simple = !useAdvancedMode();
   const speakerBot = members.find((member) => member.id === m.from?.botId);
-  const botText = rawText; const teammates = useTeammates(); const peers = useMemo(() => [...members, ...teammates.peers], [members, teammates]);
+  const botText = rawText; const teammates = useTeammates(); const peers = useMemo(() => [...members.map((mm) => ({ name: mm.name, botId: mm.id, color: mm.color })), ...teammates.peers], [members, teammates]);
   const pin = roomPin(group, m, dispatch);
   const botMenu = useBotMessageMenu({
     text: botText,
@@ -197,7 +198,7 @@ function RoomTextMessage({
   );
   return (
     <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "items-end" : "items-start")}>
-      {speaker && <div className="mb-0.5 px-1 text-[12px] font-medium text-ink-secondary">{speaker}</div>}
+      {speaker && <div className="mb-0.5 px-1"><SpeakerName label={speaker} botId={speakerBot?.id} fallbackColor={speakerBot?.color} /></div>}
       <div className={cn("flex w-full items-end gap-1.5", user ? "justify-end" : "justify-start")}>
         {user && (
           <MessageActions side="user" menu={userMessageMenu({ messageId: m.id, pin })}>

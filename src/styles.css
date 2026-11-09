@@ -14,32 +14,43 @@
   }
 }
 
-/* Inline mentions keep the surrounding font metrics, including in the
-   textarea mirror. No padding/border/font-weight changes that shift the caret. */
-.mention-highlight {
+/* One unified @ mention chip: small static face + name in the bot's Bloub colour on a light tint.
+   `.mention-chip-bare` (the textarea mirror) keeps exact metrics — inline, no padding, no face. */
+.mention-chip {
   --mention-color: var(--color-ink-secondary);
-
-  color: color-mix(in srgb, var(--mention-color) 30%, var(--color-ink));
-  background: color-mix(in srgb, var(--mention-color) 24%, var(--color-inset));
-  border-radius: 3px;
-  text-decoration: underline;
-  text-decoration-color: var(--mention-color);
-  text-underline-offset: 3px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-.mention-highlight.mention-person {
-  text-decoration-style: dotted;
-}
-.mention-highlight.mention-you {
-  --mention-color: var(--color-accent);
-  color: var(--color-ink);
-  background: color-mix(in srgb, var(--mention-color) 40%, var(--color-inset));
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 4px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--mention-color) 14%, transparent);
+  color: var(--mention-color);
+  font-size: inherit;
+  line-height: inherit;
   text-decoration: none;
-  font-weight: 600;
-  padding: 0 0.25em;
-  border-radius: 4px;
+  vertical-align: baseline;
+  white-space: nowrap;
+  max-width: 100%;
 }
+.mention-chip-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.mention-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mention-chip-bare {
+  display: inline;
+  padding: 0;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--mention-color) 14%, transparent);
+}
+.mention-chip-bare .mention-chip-name { display: inline; }
 ::highlight(search-result-text) {
   color: var(--color-ink);
   background-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
@@ -3372,10 +3383,11 @@ button:disabled.bg-danger {
 [data-chat-bubble="simple"].user-bubble-colored {
   box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.16);
 }
-.user-bubble-colored .mention-highlight {
-  color: var(--color-ink);
-  background: color-mix(in srgb, var(--mention-color) 22%, var(--color-inset));
-  text-decoration-color: var(--color-ink);
+.user-bubble-colored .mention-chip:not(.mention-chip-bare) {
+  background: color-mix(in srgb, var(--mention-color) 26%, transparent);
+}
+.user-bubble-colored .mention-chip-bare {
+  background: color-mix(in srgb, var(--mention-color) 22%, transparent);
 }
 .user-bubble-colored::selection,
 .user-bubble-colored *::selection {

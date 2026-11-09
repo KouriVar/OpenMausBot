@@ -1,13 +1,13 @@
 import { t } from "./i18n";
-import { MAUS_COLORS, type MausColor } from "./mascot";
+import type { MausColor } from "./mascot";
 import { isMentionBoundary, isMentionNameContinuation } from "../../shared/mention-boundary";
 import { personTagAt, personTagNames } from "../../shared/person-mention";
 import { devsTagAt } from "../../shared/devs-mention";
 import { blankCode } from "../../shared/skill-command";
 
 /** A name the @ list offers: a bot's, or (`person`) a teammate's on a Team Cloud. */
-export type MentionPeer = { name: string; hidden?: boolean; color?: MausColor; person?: true };
-export type MentionRange = { start: number; end: number; color?: string; you?: true; person?: true };
+export type MentionPeer = { name: string; hidden?: boolean; color?: MausColor; botId?: string; person?: true };
+export type MentionRange = { start: number; end: number; botId?: string; fallbackColor?: MausColor; you?: true; person?: true };
 export type MentionPerson = { profileName?: string | null };
 
 export function sameMentionPerson(a?: MentionPerson, b?: MentionPerson): boolean {
@@ -78,23 +78,24 @@ export function mentionRanges(text: string, peers: readonly MentionPeer[], every
     }
     const length = all ? 8 : peer?.name.length ?? devsTagAt(rest, botNames);
     if (length === undefined) continue;
-    // Only palette values enter CSS.
-    const color = !all && peer?.color && Object.hasOwn(MAUS_COLORS, peer.color) ? MAUS_COLORS[peer.color] : undefined;
-    ranges.push({ start: at, end: at + length + 1, ...(color ? { color } : {}), ...(!all && peer?.person ? { person: true as const } : {}) });
+    const botId = !all && peer && !peer.person ? peer.botId : undefined;
+    const fallbackColor = !all && peer?.color ? peer.color : undefined;
+    ranges.push({ start: at, end: at + length + 1, ...(botId ? { botId } : {}), ...(fallbackColor ? { fallbackColor } : {}), ...(!all && peer?.person ? { person: true as const } : {}) });
     at += length;
   }
   return ranges;
 }
 
-export function mentionClassName(range: Pick<MentionRange, "you" | "person">): string {
-  return range.you ? "mention-highlight mention-you" : range.person ? "mention-highlight mention-person" : "mention-highlight";
+export function mentionClassName(_range: Pick<MentionRange, "you" | "person">): string {
+  // One unified chip for every mention (bots, people, you).
+  return "mention-chip";
 }
 
 type MarkdownNode = {
   type: string;
   value?: string;
   children?: MarkdownNode[];
-  data?: { hName: string; hProperties: { className: string; style?: string } };
+  data?: { hName: string; hProperties: Record<string, string | undefined> };
 };
 
 export function remarkMentions({ peers, everyone = false, person }: { peers: readonly MentionPeer[]; everyone?: boolean; person?: MentionPerson }) {
@@ -110,11 +111,16 @@ export function remarkMentions({ peers, everyone = false, person }: { peers: rea
         let end = 0;
         for (const range of ranges) {
           if (range.start > end) result.push({ type: "text", value: text.slice(end, range.start) });
+          const label = text.slice(range.start, range.end);
           result.push({ type: "mention", data: { hName: "span", hProperties: {
             className: mentionClassName(range),
-            ...(range.color ? { style: `--mention-color:${range.color}` } : {}),
+            "data-mention-name": label,
+            ...(range.botId ? { "data-mention-bot": range.botId } : {}),
+            ...(range.fallbackColor ? { "data-mention-fallback": range.fallbackColor } : {}),
+            ...(range.you ? { "data-mention-you": "1" } : {}),
+            ...(range.person ? { "data-mention-person": "1" } : {}),
           } },
-            children: [{ type: "text", value: text.slice(range.start, range.end) }] });
+            children: [{ type: "text", value: label }] });
           end = range.end;
         }
         if (end < text.length) result.push({ type: "text", value: text.slice(end) });
