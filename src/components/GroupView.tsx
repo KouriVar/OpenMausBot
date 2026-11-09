@@ -99,6 +99,7 @@ import { RoomWorkingFolder } from "./RoomWorkingFolder";
 import { RoomBulletin } from "./RoomBulletin";
 import { RoomHeader } from "./RoomHeader";
 import { SpeakerName } from "./BloubIdentity";
+import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
 import { useChatFindRequests } from "@/lib/chat-find";
 import { simpleRoomHeader } from "@/lib/room-panel";
 
@@ -1162,6 +1163,7 @@ export function GroupView({ group }: { group: Group }) {
                   forward={false}
                   lookAround={1}
                   trackPointer={false}
+                  sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.progress}
                 />
               }
               visible={presenceVisible}

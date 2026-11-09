@@ -41,10 +41,22 @@ export function lookTarget({ nx, ny, tour, pointer }: Aim): Look {
 
 /* ---------------------------------------------------- Grok's rest pose & follow */
 
-/** Grok's authored resting head orientation, in degrees (from its `Da` Euler triple
- * [-18.061, 18.11, 25.643]): pitch lifts the gaze up, yaw turns it right, and roll tilts the WHOLE
- * head — body and eyes together — not the body alone. Every shape shares it. */
-export const REST_PITCH = 18.06;
+/** Grok's authored resting head orientation, in degrees, from its `Da` Euler triple
+ * [-18.061, 18.11, 25.643]. Two sign conventions meet here, so read this before "fixing" a sign:
+ *
+ * - Grok projects its sphere with y NEGATED (`y: r - i*t.y`), so ITS -18.061 is "looking up".
+ * - This engine uses screen coordinates (y down) and face.ts rotates `down` into `forward`, so its
+ *   POSITIVE pitch is "looking up".
+ *
+ * Same picture, opposite sign. Keeping +18.06 here is what puts the eyes in the upper right: measured
+ * on the rendered 150px blob (after the +25.64 roll), +18.06 lands the eye pair at (+38%, -16%) of the
+ * radius — upper right — while -18.06 lands it at (+11%, +40%), i.e. lower right / looking down.
+ *
+ * 26° rather than 18.06° is a deliberate lift: at 18.06° the outer eye sits ON the centre line
+ * (y ≈ -4), which reads as "level, maybe down" at 40-45px. At 26° both eyes are clearly above it
+ * (L (20,-37), R (65,-16)) while still inside the body, near the upper-right edge like Grok.
+ */
+export const REST_PITCH = 26;
 export const REST_YAW = 18.11;
 export const REST_ROLL = 25.64;
 

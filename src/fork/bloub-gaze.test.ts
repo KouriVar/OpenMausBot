@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { bloubStateKeepsRestPose } from "./bloub-session";
 import { PITCH, PITCH_MAX, REST_LOOK, REST_PITCH, REST_ROLL, REST_YAW, SPIN, TURN, YAW_MAX, approach, bloubShapeKind, followTarget, lookTarget } from "./bloub-gaze";
 
 describe("where Bloub looks", () => {
@@ -30,8 +31,9 @@ describe("where Bloub looks", () => {
 });
 
 describe("Grok rest pose and follow", () => {
-  it("uses Grok's authored rest orientation", () => {
-    expect(REST_PITCH).toBeCloseTo(18.06, 2);
+  it("uses Grok's authored rest orientation, with pitch in this engine's sign (positive = up)", () => {
+    // Grok's own -18.061 is "up" only because its sphere projection negates y; this engine's is +.
+    expect(REST_PITCH).toBe(26); // authored 18.06, lifted so both eyes clear the centre line
     expect(REST_YAW).toBeCloseTo(18.11, 2);
     expect(REST_ROLL).toBeCloseTo(25.64, 2);
     expect(REST_LOOK).toEqual({ yaw: REST_YAW, pitch: REST_PITCH, mix: 1, spin: 0, wander: 0 });
@@ -100,5 +102,16 @@ describe("Grok rest pose and follow", () => {
     // 0.5 s = 30 frames; it must have returned by then
     expect(frames).toBeLessThanOrEqual(30);
     expect(hold).toBe(0);
+  });
+});
+
+describe("which states keep the resting pose", () => {
+  it("keeps it for faces, flattens it for animations", () => {
+    for (const face of ["idle", "wink", "wide", "alert", "notify", "exclaim"]) {
+      expect(bloubStateKeepsRestPose(face)).toBe(true);
+    }
+    for (const animation of ["thinking", "orbit", "comet", "burst", "play", "swirl", "sleep"]) {
+      expect(bloubStateKeepsRestPose(animation)).toBe(false);
+    }
   });
 });

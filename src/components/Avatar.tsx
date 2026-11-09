@@ -111,6 +111,9 @@ export type MausAvatarProps = {
   hitRef?: React.RefObject<HTMLElement | null>;
   /** Let a click on the (already-selected) face cycle spin/bounce/nod. */
   pokable?: boolean;
+  /** Play Bloub's session-state animation here (the sidebar tile, the progress avatar). A face that
+   * must stay a face — the chat header pill — passes false and keeps the bot's resting face. */
+  sessionAnimation?: boolean;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
@@ -283,9 +286,9 @@ export function resolveBotAvatarOutcome(params: {
   return "flatImage";
 }
 
-export function BotAvatar({ bot, size = 44, label, readable = false, messages, ...mascotProps }: BotAvatarProps) {
+export function BotAvatar({ bot, size = 44, label, readable = false, messages, sessionAnimation = true, ...mascotProps }: BotAvatarProps) {
   const bloubStyle = useForkAvatarStyle() === "bloub";
-  const sessionState = useBloubSessionState(bot as unknown as Bot, messages, bloubStyle);
+  const sessionState = useBloubSessionState(bot as unknown as Bot, messages, bloubStyle && sessionAnimation);
   const profile = botAvatarProfile(bot);
   const festival = useFestivalDress();
   const [imageFailed, setImageFailed] = useState(false);
@@ -304,7 +307,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, messages, .
         bodyId={wornBody(bot.mascotBody, bot.color, festival)}
         {...mascotProps}
         botId={bot.id}
-        state={bloubStyle ? (sessionState as unknown as MausState) : mascotProps.state}
+        state={bloubStyle ? ((sessionAnimation ? sessionState : "idle") as unknown as MausState) : mascotProps.state}
         color={bot.color}
         faceColor={bot.mascotFaceColor}
         gradient={readable ? roomAvatarGradient(bot.color) : undefined}

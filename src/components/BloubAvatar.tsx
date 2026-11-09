@@ -16,6 +16,7 @@ import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
 import { DEFAULT_COLOR, DEFAULT_SHAPE, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
 import { useColorScheme, type ColorScheme } from "@/lib/color-scheme";
+import type { Look } from "@/fork/bloub-gaze";
 import {
   REST_LOOK,
   REST_PITCH,
@@ -34,7 +35,7 @@ import {
   normalizeBloubColor,
 } from "@/fork/bloub-skin";
 import { bloubShapeRadii } from "@/fork/bloub-shapes";
-import { BLOUB_MIN_BLOCK, stateSwitchDelay } from "@/fork/bloub-session";
+import { BLOUB_MIN_BLOCK, bloubStateKeepsRestPose, stateSwitchDelay } from "@/fork/bloub-session";
 
 /** The app's bot states on Bloub's own; anything else rests. */
 const STATE_BY_MAUS: Record<string, StateId> = {
@@ -62,6 +63,9 @@ export function bloubState(mausState: string | undefined): StateId {
 
 /** A lone large avatar gets the full frame rate; everything animated runs at 60fps now. */
 export const BLOUB_SINGLE_SIZE = 96;
+
+/** Dead ahead, for the states that play in the front coordinate system. */
+const FRONT_LOOK: Look = { yaw: 0, pitch: 0, mix: 1, spin: 0, wander: 0 };
 
 const FPS = 60;
 const POKE_ORDER = ["spin", "bounce", "nod"] as const;
@@ -270,6 +274,9 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const pointer = useRef<{ nx: number; ny: number } | null>(null); // screen sense: nx right+, ny down+
   const follow = useRef({ yaw: REST_YAW, pitch: REST_PITCH, px: 0, py: 0, hold: 0 });
   const view = useRef({ tx: 0, ty: 0, roll: grok ? REST_ROLL : 0, sx: 1, sy: 1 });
+  /** 1 = a state animation is playing in the FRONT coordinate system: the resting 3/4 pose and the
+   * pointer follow have eased to 0. 0 = a face, which keeps the resting pose. */
+  const flat = useRef(grok && !bloubStateKeepsRestPose(stateId) ? 1 : 0);
   const poke = useRef<{ kind: PokeKind; start: number; dur: number; turns: number } | null>(null);
   const pokeCount = useRef(0);
   const lastSwitch = useRef(-BLOUB_MIN_BLOCK);
@@ -291,12 +298,17 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   // The expression the engine should hold: surprised while merely hovering a resting face.
   const renderExpr = grok && hovering && stateId === "idle" && baseFace ? hoverExpr ?? baseExpr : baseExpr;
 
+  /** A still frame, in the pose that state belongs in: a face keeps the resting 3/4 turn, an animation
+   * state sits in the front coordinate system (no roll, no gaze). */
   const stillFrame = (bot: BotEngine, at: number) => {
-    // A settled face is a clean snapshot: no in-progress morph leaking across the live clock, and the
+    // A settled frame is a clean snapshot: no in-progress morph leaking across the live clock, and the
     // spontaneous liveliness blink on (so it matches an untouched face pixel-for-pixel).
     bot.setLiveliness(true);
     bot.clearMorphs();
-    if (grok) bot.setLook(REST_LOOK, at - 0.02, 0.001);
+    const rest = bloubStateKeepsRestPose(stateId);
+    flat.current = rest ? 0 : 1;
+    view.current = { tx: 0, ty: 0, roll: grok && rest ? REST_ROLL : 0, sx: 1, sy: 1 };
+    if (grok) bot.setLook(rest ? REST_LOOK : FRONT_LOOK, at - 0.02, 0.001);
     else bot.setLook(null, at, 0.001);
     return bot.sample(at);
   };
@@ -395,10 +407,18 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       st.hold = approach(st.hold, aim ? 1 : 0, dt, 0.02);
       const h = st.hold;
 
-      let yaw = REST_YAW + (st.yaw - REST_YAW) * h;
-      let pitch = REST_PITCH + (st.pitch - REST_PITCH) * h;
-      let tx = st.px * h * RAYON;
-      let ty = -st.py * h * RAYON;
+      // A state animation plays in the front coordinate system: its rest roll/yaw/pitch (and the
+      // follow) ease to 0 over the state's own morph, then ease back when the bot returns to a face.
+      const rest = bloubStateKeepsRestPose(stateId);
+      const morphSec = STATE_BY_ID.get(stateId)?.morph ?? 0.45;
+      const flatStep = dt / Math.max(0.05, morphSec);
+      flat.current = rest ? Math.max(0, flat.current - flatStep) : Math.min(1, flat.current + flatStep);
+      const fk = 1 - flat.current;
+
+      let yaw = (REST_YAW + (st.yaw - REST_YAW) * h) * fk;
+      let pitch = (REST_PITCH + (st.pitch - REST_PITCH) * h) * fk;
+      let tx = st.px * h * RAYON * fk;
+      let ty = -st.py * h * RAYON * fk;
       let sx = 1;
       let sy = 1;
 
@@ -420,7 +440,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       // forced state blinks (wink) still run. Bloub's own palette keeps it for the pixel suite.
       bot.setLiveliness(!grok);
       bot.setLook(grok ? { yaw, pitch, mix: 1, spin: 0, wander: 0 } : null, now - 0.001, grok ? 0.0001 : 0.001);
-      view.current = { tx, ty, roll: grok ? REST_ROLL * (1 - h) : 0, sx, sy };
+      view.current = { tx, ty, roll: grok ? REST_ROLL * (1 - h) * fk : 0, sx, sy };
       setFrame(bot.sample(now));
 
       if (!hovering && !poke.current && h < 0.001 && !(animated && activeState)) {

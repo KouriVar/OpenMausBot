@@ -55,6 +55,7 @@ import { BotAvatar } from "./Avatar";
 import { TurnPresence } from "./TurnPresence";
 import { showToolCallsEnabled, skillAuthoringEnabled } from "@/lib/feature-flags";
 import { normalizeState, stateForBot } from "@/lib/mascot";
+import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
 import { peerLine, peerRequest, type PeerLine } from "@/lib/peer-message";
 import { showWorkingDots } from "@/lib/turn-tail";
 import { lastNonReceipt } from "@/lib/receipts";
@@ -1042,6 +1043,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
                   motion={mascotMotion?.kind ?? "none"}
                   motionKey={mascotMotion?.nonce ?? 0}
                   animated={headerAnimated}
+                  sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader}
                 />
               </button>
               <RenameTitle
@@ -1073,7 +1075,8 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
               className={cn("group flex h-9 min-w-0 items-center gap-2.5 rounded-full py-0.5 pl-2 pr-3.5 text-ink", ELEVATED_FLOAT, ELEVATED_HOVER)}
             >
               <BotAvatar bot={bot} messages={messages} state={stateForBot({ ...bot, messages })} size={24}
-                motion={mascotMotion?.kind ?? "none"} motionKey={mascotMotion?.nonce ?? 0} animated={headerAnimated} />
+                motion={mascotMotion?.kind ?? "none"} motionKey={mascotMotion?.nonce ?? 0} animated={headerAnimated}
+                sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader} />
               <span className="min-w-0 truncate text-[14px] font-medium text-ink">{bot.name}</span>
               {chiefOfStaffBadge(bot)}
               <ChevronRight size={14} aria-hidden="true" className="-ml-2.5 w-0 shrink-0 text-ink-secondary opacity-0 transition-[width,margin,opacity] duration-150 group-hover:ml-0 group-hover:w-3.5 group-hover:opacity-100 group-focus-visible:ml-0 group-focus-visible:w-3.5 group-focus-visible:opacity-100" />
@@ -1235,6 +1238,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
                 forward={false}
                 lookAround={1}
                 trackPointer={false}
+                sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.progress}
               />
             }
             simple={!advanced}

@@ -12,6 +12,7 @@ import { llmThreadTitlesEnabled } from "@/lib/feature-flags";
 import { BotAvatar } from "./Avatar";
 import { BotEngineMark, BotModelBadge, botTooltip } from "./BotModelBadge"; import { SidebarBotRole } from "./BotRole";
 import { stateForBot } from "@/lib/mascot";
+import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
 import { cn } from "@/lib/cn";
 import { searchMatchesThreads, useSearchDisclosure } from "@/lib/search-disclosure";
 import { useHeldMenuMotion, useMenuMotion } from "./MenuMotion";
@@ -741,6 +742,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
           size={simpleRow ? avatarSize + 6 : avatarSize}
           messages={visible} fitBody={iconOnly} hitRef={iconOnly ? tileRef : undefined} frameSize={iconOnly ? (railTile ? 54 : 60) : undefined}
           pokable={selected}
+          sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.sidebar}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}

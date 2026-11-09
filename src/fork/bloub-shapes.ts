@@ -29,32 +29,44 @@ const heart = (): number[] => {
 /** A rounded pentagon "bottom square, pointed top" — a house/home silhouette.
  * Points are centred on the origin with y down positive (screen space). */
 const house = (): number[] => {
+  // About 1.0 wide and 1.05 tall: a flat base, vertical sides, and a triangular roof.
   const pts = [
-    { x: -0.78, y: 0.62 },
-    { x: 0.78, y: 0.62 },
-    { x: 0.78, y: -0.02 },
-    { x: 0, y: -1.0 },
-    { x: -0.78, y: -0.02 },
+    { x: -0.5, y: 0.55 },
+    { x: 0.5, y: 0.55 },
+    { x: 0.5, y: -0.02 },
+    { x: 0, y: -0.5 },
+    { x: -0.5, y: -0.02 },
   ];
   return normalise(profileFromPolygon(pts, 0, 0), 1.02);
 };
 
-/** An n-point star profile: sharp tips at `phase` (tip up when phase = −90°), valleys at `inner` radius,
- * with a light smoothing pass so the tips read as rounded. */
-const starProfile = (points: number, inner: number, phase: number, smoothPasses: number): number[] => {
-  const poly: Array<{ x: number; y: number }> = [];
-  const step = Math.PI / points;
-  for (let k = 0; k < points; k += 1) {
-    const tip = phase + k * 2 * step;
-    const val = tip + step;
-    poly.push({ x: Math.cos(tip), y: Math.sin(tip) });
-    poly.push({ x: Math.cos(val) * inner, y: Math.sin(val) * inner });
-  }
-  let r = profileFromPolygon(poly, 0, 0);
-  for (let p = 0; p < smoothPasses; p += 1) {
-    const n = r.length;
-    r = r.map((v, i) => (r[(i - 1 + n) % n]! + 2 * v + r[(i + 1) % n]!) / 4);
-  }
+/** An n-point star: `points` narrow arms, tips exactly at `phase + k·(2π/points)` and `inner` at the
+ * valleys, each arm a rounded bell so the tip reads as filed-down rather than cusped. Written as one
+ * analytic radius function so every arm is identical by construction — only the 64-sample grid differs
+ * between them, which is a fraction of a pixel at the sizes the app draws (measured spread ≈ 0.5%). */
+const starArms = (points: number, inner: number, phase: number, spreadDeg: number): number[] => {
+  const step = (2 * Math.PI) / points;
+  const width = (spreadDeg * Math.PI) / 180;
+  return normalise(ANGLES.map((a) => {
+    let d = (((a - phase) % step) + step) % step;
+    d = Math.min(d, step - d); // distance to the nearest tip, 0 .. step/2
+    return inner + (1 - inner) * Math.exp(-((d / width) ** 2));
+  }), 1.02);
+};
+
+/** A four-point sparkle: concave sides running into four sharp tips at `phase + k·90°`, with a full
+ * centre block for the eyes. Its tips fall exactly on the 64-sample grid, so it is perfectly symmetric
+ * (measured tip-length spread: 0). */
+const sparkleArms = (inner: number, phase: number, sharp: number): number[] => {
+  const depth = 1 - inner;
+  let r = ANGLES.map((a) => {
+    const c = 0.5 + 0.5 * Math.cos(4 * (a - phase));
+    return 1 - depth + depth * Math.pow(c, sharp);
+  });
+  // One symmetric 1-2-1 pass: a sharp tip lands on a single sample, and without this the path
+  // smoothing leaves a dimple right at the point. Equal weights keep the four tips identical.
+  const n = r.length;
+  r = r.map((v, i) => (r[(i - 1 + n) % n]! + 2 * v + r[(i + 1) % n]!) / 4);
   return normalise(r, 1.02);
 };
 
@@ -74,7 +86,7 @@ const CATALOG: ReadonlyMap<string, number[]> = new Map<string, number[]>([
   ["blob", vendorRadii("cercle")],
   ["cloud", vendorRadii("nuage")],
   ["square", vendorRadii("squircle")],
-  ["sparkle", starProfile(4, 0.56, 0, 0)],
+  ["sparkle", sparkleArms(0.42, 0, 3)],
   ["clover", lobed(4, 0.3, Math.PI / 4)],
   ["heart", heart()],
   ["flower", puffs(8, 0.08)],
@@ -82,7 +94,7 @@ const CATALOG: ReadonlyMap<string, number[]> = new Map<string, number[]>([
   ["tablet", vendorRadii("capsule")],
   ["wedge", vendorRadii("triangle")],
   ["house", house()],
-  ["star", starProfile(5, 0.58, -Math.PI / 2, 1)],
+  ["star", starArms(5, 0.33, -Math.PI / 2, 24)],
   ["hex", vendorRadii("hexagone")],
   ["pebble", vendorRadii("galet")],
 ]);

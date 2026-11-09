@@ -254,3 +254,12 @@ export function bloubColorChoices(palette: BloubPalette = FORK_BLOUB_PALETTE): R
 
 /** The fork hides the expression grid in the avatar panel; expressions stay in code, idle uses neutre. */
 export const FORK_HIDE_EXPRESSIONS_IN_PANEL = true;
+
+/** Where the fork plays Bloub's session-state animations. The sidebar tile and the progress avatar above
+ * the composer show what the bot is doing; the chat header's profile pill always keeps the bot's own
+ * resting face (it may still turn to the pointer), so it never turns into dots or deforms. */
+export const FORK_BLOUB_SESSION_ANIMATION = {
+  sidebar: true,
+  progress: true,
+  chatHeader: false,
+} as const;
