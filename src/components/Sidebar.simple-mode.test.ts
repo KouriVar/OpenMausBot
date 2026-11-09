@@ -105,7 +105,7 @@ describe("bot-first sidebar", () => {
         ? `width="${size}" height="${size}"`
         : `width="${size}px" height="${size}px"`);
       // Simple draws its mascot larger than the 36px it takes in the row, so the text stays where it was.
-      if (!advanced && density === "comfortable") expect(markup).toContain('<span class="relative flex shrink-0 transition-transform duration-150 ease-out -m-[3px]">');
+      if (!advanced && density === "comfortable") expect(markup).toContain('<span class="relative flex shrink-0 -m-[3px]">');
     }
   });
 

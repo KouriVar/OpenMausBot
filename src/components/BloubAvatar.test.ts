@@ -25,14 +25,22 @@ describe("BloubAvatar", () => {
     expect(bloubState(undefined)).toBe("idle");
   });
 
-  it("draws one masked body in the bot's colour, with a frame per state", () => {
+  it("draws a cutout (masked) gradient body in the Grok palette, one frame per state", () => {
     const idle = render({ size: 44, colorId: "vert", state: "idle", animated: false });
     expect(idle).toContain("<svg");
-    expect(idle).toContain("<clipPath");
-    expect(idle).toContain("#38c470");
+    expect(idle).toContain("<mask"); // Grok eyes are holes, not painted shapes
+    expect(idle).not.toContain("<clipPath");
+    expect(idle).toContain("#00C972"); // green gradient start
     expect(idle).toContain("role=\"img\"");
     const alert = render({ size: 44, colorId: "vert", state: "alerting", animated: false });
     expect(alert).not.toBe(idle);
+  });
+
+  it("keeps Bloub's own palette on clip + paper eyes (the pixel-suite path)", () => {
+    const bloub = render({ size: 44, palette: "bloub", colorId: "vert", state: "idle", animated: false });
+    expect(bloub).toContain("<clipPath");
+    expect(bloub).toContain("#3ecf8e");
+    expect(bloub).not.toContain("<mask");
   });
 
   it("draws Bloub's own shapes and faces, not the mascot's", () => {

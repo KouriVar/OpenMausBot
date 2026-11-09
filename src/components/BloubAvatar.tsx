@@ -3,19 +3,36 @@ import {
   useEffect,
   useId,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
 
 import { NOTIF_BLUE, type DotRender } from "@/vendor/bloub/decor";
 import { BotEngine, type BotFrame } from "@/vendor/bloub/engine";
-import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from "@/vendor/bloub/expressions";
+import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID, type BotExpression } from "@/vendor/bloub/expressions";
 import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
 import { DEFAULT_COLOR, DEFAULT_SHAPE, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
-import { followLook } from "@/fork/bloub-gaze";
-import { bloubColorHex, bloubEyeColor, bloubShapeRotation, GROK_DEFAULT_YAW, GROK_DEFAULT_PITCH } from "@/fork/bloub-skin";
+import { useColorScheme, type ColorScheme } from "@/lib/color-scheme";
+import {
+  REST_LOOK,
+  REST_PITCH,
+  REST_ROLL,
+  REST_YAW,
+  approach,
+  bloubShapeKind,
+  followTarget,
+} from "@/fork/bloub-gaze";
+import {
+  bloubColorHex,
+  bloubEyeColor,
+  bloubEyeMode,
+  bloubGradient,
+  bloubSolid,
+  normalizeBloubColor,
+} from "@/fork/bloub-skin";
 import { bloubShapeRadii } from "@/fork/bloub-shapes";
 import { BLOUB_MIN_BLOCK, stateSwitchDelay } from "@/fork/bloub-session";
 
@@ -46,25 +63,16 @@ export function bloubState(mausState: string | undefined): StateId {
 /** A lone large avatar gets the full frame rate; everything animated runs at 60fps now. */
 export const BLOUB_SINGLE_SIZE = 96;
 
-/** Degrees the body leans and pixels it drifts toward the pointer (Grok's own little lean). */
-const LEAN_DEG = 6;
-const DRIFT_PX = 2.5;
-/** Chasing: stiff, ~120-180ms to arrive. Coming home: softer, with a small rebound. */
-const CHASE_K = 260;
-const CHASE_C = 24;
-const HOME_K = 140;
-const HOME_C = 16;
-/** The gaze (yaw/pitch) is a spring in its own right, so the eyes GLIDE to the pointer instead of
- * teleporting: chasing ~200ms, easing back home ~350ms with a soft settle. */
-const GAZE_CHASE_K = 170;
-const GAZE_CHASE_C = 20;
-const GAZE_HOME_K = 120;
-const GAZE_HOME_C = 14;
+const FPS = 60;
+const POKE_ORDER = ["spin", "bounce", "nod"] as const;
+type PokeKind = (typeof POKE_ORDER)[number];
+const POKE_DURATION: Record<PokeKind, number> = { spin: 0.9, bounce: 0.62, nod: 0.5 };
 
 export type BloubAvatarHandle = {
   blink: () => void;
   spin: (durationMs?: number) => void;
   setExpression: (index: number) => void;
+  poke?: () => void;
 };
 
 export type BloubAvatarProps = {
@@ -76,7 +84,7 @@ export type BloubAvatarProps = {
   animated?: boolean;
   /** Renders this instant instead of a clock: one reproducible picture. */
   frozenAt?: number;
-  /** The surface behind the eye holes; falls back to the page's own colour. */
+  /** The surface behind the eye holes for Bloub's own palette; Grok's eyes are real cutouts. */
   paper?: string;
   label?: string;
   /** Draw the body to the edges of the box (the small sidebar/composer faces), not the ring's framing. */
@@ -89,6 +97,10 @@ export type BloubAvatarProps = {
   palette?: "grok" | "bloub";
   /** A thin outline following the body, for the selected tile in the panel. */
   outlineColor?: string;
+  /** Pin the light/dark scheme instead of reading it from the app skin. */
+  theme?: ColorScheme;
+  /** Let a click on the face cycle spin/bounce/nod. */
+  pokable?: boolean;
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -99,7 +111,7 @@ let raf = 0;
 let last = 0;
 
 function tick(now: number) {
-  const dt = last ? Math.min((now - last) / 1000, 0.064) : 0;
+  const dt = last ? Math.min((now - last) / 1000, 0.1) : 0;
   last = now;
   clock += dt;
   for (const listener of frameListeners) listener(clock);
@@ -135,7 +147,7 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-/** Relative luminance of a #rgb/#rrggbb, so the eye holes can be tinted against the body. */
+/** Relative luminance of a #rgb/#rrggbb, so Bloub's paper eye holes can be tinted against the ink. */
 function luminance(hex: string): number {
   const full = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
   const value = Number.parseInt(full.slice(1), 16);
@@ -146,8 +158,6 @@ function luminance(hex: string): number {
   return channels[0]! * 0.2126 + channels[1]! * 0.7152 + channels[2]! * 0.0722;
 }
 
-/** The eye holes are punched through the body, so what shows through must contrast with the ink — a light
- * paper on a dark body, a dark one on a pale body — in either theme. */
 function resolvePaper(given: string | undefined, ink: string): string {
   if (given && /^#[0-9a-f]{3,8}$/i.test(given)) return given;
   return luminance(ink) < 0.45 ? "#f9f9f9" : "#101410";
@@ -188,21 +198,25 @@ function dotFill(dot: DotRender, ink: string, paper: string): { fill: string; fi
   return { fill: safeMix(paper, ink, dot.depth) };
 }
 
-/** One axis of a damped spring, stepped by the engine's own frame clock. Sub-stepped to ≤1/120 s so a
- * long gap (a throttled frame, a tab regaining focus) can never make a stiff spring overshoot or leap. */
-function stepSpring(position: number, velocity: number, target: number, dt: number, k: number, c: number): [number, number] {
-  const H = 1 / 120;
-  let p = position;
-  let v = velocity;
-  let remaining = dt;
-  while (remaining > 1e-9) {
-    const h = Math.min(H, remaining);
-    const acceleration = k * (target - p) - c * v;
-    v += acceleration * h;
-    p += v * h;
-    remaining -= h;
-  }
-  return [p, v];
+/** Zero the expression's own roll so the whole-head roll can be applied on the group instead (Grok's
+ * roll tilts body and eyes together, it is not a separate eye tilt). */
+function zeroRoll(e: BotExpression | null): BotExpression | null {
+  return e ? { ...e, gaze: { ...e.gaze, roll: 0 } } : null;
+}
+
+/* ------------------------------------------------- shared static-frame cache */
+/** Small, resting Grok faces share one sampled frame per shape:colour:theme (never ticking). */
+const idleFrameCache = new Map<string, BotFrame>();
+function sharedIdleFrame(shape: string, radii: number[], color: string, scheme: ColorScheme, expr: BotExpression | null): BotFrame {
+  const key = `${shape}|${color}|${scheme}|${expr?.id ?? ""}`;
+  const hit = idleFrameCache.get(key);
+  if (hit) return hit;
+  const bot = new BotEngine(RAYON, "idle", radii, expr);
+  bot.setLook(REST_LOOK, POSES.idle - 0.02, 0.001);
+  const frame = bot.sample(POSES.idle);
+  if (idleFrameCache.size > 256) idleFrameCache.clear();
+  idleFrameCache.set(key, frame);
+  return frame;
 }
 
 export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(function BloubAvatar(
@@ -221,75 +235,108 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     hitRef,
     palette,
     outlineColor,
+    theme,
+    pokable = false,
   },
   ref,
 ) {
   const reduced = useReducedMotion();
+  const autoScheme = useColorScheme();
+  const scheme: ColorScheme = theme ?? autoScheme;
   const stateId = bloubState(state);
   const shapes = bloubShapeRadii(shape);
-  const expr = EXPRESSION_BY_ID.get(expression) ?? null;
-  const ink = bloubColorHex(colorId, palette);
-  const eyeFill = bloubEyeColor(palette) ?? null;
-  // The app leaves `palette` unset, which IS Grok (see FORK_BLOUB_PALETTE); only the comparison suite
-  // passes "bloub" explicitly. Treat anything but "bloub" as the Grok look.
+  const rawExpr = EXPRESSION_BY_ID.get(expression) ?? null;
+  // The app leaves `palette` unset, which IS Grok; only the comparison suite passes "bloub".
   const grok = palette !== "bloub";
-  const baseYaw = grok ? GROK_DEFAULT_YAW : 0;
-  const basePitch = grok ? GROK_DEFAULT_PITCH : 0;
-  const baseRot = grok ? bloubShapeRotation(shape) : 0;
+  const color = normalizeBloubColor(colorId);
+  const ink = grok ? bloubSolid(color, scheme) : bloubColorHex(colorId, "bloub");
+  const eyeMode = bloubEyeMode(palette);
   const surface = usePaper(paper, ink);
+  const kind = bloubShapeKind(shape);
+
+  const baseExpr = useMemo(() => (grok ? zeroRoll(rawExpr) : rawExpr), [rawExpr, grok]);
+  const hoverExpr = useMemo(() => zeroRoll(EXPRESSION_BY_ID.get("surpris") ?? null), []);
 
   const engine = useRef<BotEngine | null>(null);
-  if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, expr);
+  if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, baseExpr);
 
   const [hovering, setHovering] = useState(false);
   const [settling, setSettling] = useState(false);
+  const [pokeActive, setPokeActive] = useState(false);
+  const [inView, setInView] = useState(true);
+  const [docHidden, setDocHidden] = useState(typeof document !== "undefined" ? document.hidden : false);
+
   const svgRef = useRef<SVGSVGElement>(null);
-  const pointer = useRef<{ nx: number; ny: number } | null>(null);
-  const aiming = useRef(false);
-  const spring = useRef({ x: 0, y: 0, vx: 0, vy: 0, lean: 0, vLean: 0 });
-  // The gaze is its own spring (degrees), starting at the resting 3/4 look and chasing the pointer.
-  const gaze = useRef({ yaw: baseYaw, pitch: basePitch, vYaw: 0, vPitch: 0 });
+  const pointer = useRef<{ nx: number; ny: number } | null>(null); // screen sense: nx right+, ny down+
+  const follow = useRef({ yaw: REST_YAW, pitch: REST_PITCH, px: 0, py: 0, hold: 0 });
+  const view = useRef({ tx: 0, ty: 0, roll: grok ? REST_ROLL : 0, sx: 1, sy: 1 });
+  const poke = useRef<{ kind: PokeKind; start: number; dur: number; turns: number } | null>(null);
+  const pokeCount = useRef(0);
   const lastSwitch = useRef(-BLOUB_MIN_BLOCK);
   const pendingState = useRef<string | null>(null);
   const queueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const activeState = stateId !== "idle";
-  const canAnimate = frozenAt === undefined && !reduced;
-  const live = canAnimate && (hovering || settling || (animated && activeState));
-  const fps = 60;
-  // A small face may lean only when it has room to (the sidebar tile); in a tight pill it just turns its head.
-  const canLean = fitBody || size >= 48;
-  const cssSize = fitBody ? (frameSize ?? size) : size;
-  const half = fitBody ? (RAYON * cssSize) / Math.max(1, size) : size < 48 ? RAYON : DEMI_VIEWBOX;
-  const unitsPerPx = (half * 2) / Math.max(1, cssSize);
-
-  const frozenTime = frozenAt ?? POSES[stateId];
-  // The resting 2.5D look: a fixed direction (mix = 1 so it overrides the pose's own gaze).
-  const defaultLook = () => ({ yaw: baseYaw, pitch: basePitch, mix: 1, spin: 0, wander: 0 });
-  const stillFrame = (bot: BotEngine, at: number) => {
-    // Grok rests on its 2.5D gaze; Bloub's own palette keeps the expression's own gaze (for the pixel suite).
-    if (!grok) return bot.sample(at);
-    bot.setLook(defaultLook(), at - 0.02, 0.001);
-    return bot.sample(at);
-  };
-  const [frame, setFrame] = useState<BotFrame>(() => engine.current!.sample(frozenTime));
   const lastDraw = useRef(0);
   const blinkOff = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const activeState = stateId !== "idle";
+  const baseFace = Boolean(STATE_BY_ID.get(stateId)?.baseFace);
+  const canAnimate = frozenAt === undefined && !reduced;
+  const live = canAnimate && inView && !docHidden && (hovering || settling || pokeActive || (animated && activeState));
+
+  const cssSize = fitBody ? (frameSize ?? size) : size;
+  const half = fitBody ? (RAYON * cssSize) / Math.max(1, size) : size < 48 ? RAYON : DEMI_VIEWBOX;
+  const vb = half;
+
+  const frozenTime = frozenAt ?? POSES[stateId];
+  // The expression the engine should hold: surprised while merely hovering a resting face.
+  const renderExpr = grok && hovering && stateId === "idle" && baseFace ? hoverExpr ?? baseExpr : baseExpr;
+
+  const stillFrame = (bot: BotEngine, at: number) => {
+    if (grok) bot.setLook(REST_LOOK, at - 0.02, 0.001);
+    else bot.setLook(null, at, 0.001);
+    return bot.sample(at);
+  };
+
+  const staticFrame = (): BotFrame => {
+    const bot = engine.current!;
+    if (grok) {
+      if (frozenAt !== undefined) {
+        bot.setLook(REST_LOOK, frozenAt - 0.02, 0.001);
+        return bot.sample(frozenAt);
+      }
+      if (!activeState && size < 48) return sharedIdleFrame(shape, shapes ?? [], color, scheme, renderExpr);
+      return stillFrame(bot, POSES[stateId]);
+    }
+    // Bloub's own palette: always the pose's own instant — byte-for-byte what the pixel suite renders.
+    bot.setLook(null, POSES[stateId], 0.001);
+    return bot.sample(POSES[stateId]);
+  };
+
+  const [frame, setFrame] = useState<BotFrame>(() => {
+    const bot = engine.current!;
+    if (grok) bot.setLook(REST_LOOK, frozenTime - 0.02, 0.001);
+    return bot.sample(frozenTime);
+  });
   const uid = useId().replace(/[:]/g, "");
   const clipId = `bloub-clip-${uid}`;
+  const maskId = `bloub-mask-${uid}`;
+  const gradId = `bloub-grad-${uid}`;
+  const grad = grok ? bloubGradient(color, scheme) : null;
 
-  // A new shape morphs (BloubBot.vue:408); a still frame redraws at once.
+  // Shape / expression / state, applied to the engine while live; a still frame redraws at once.
   useEffect(() => {
     const bot = engine.current!;
     bot.setShape(shapes, live ? clock : 0);
-    if (!live) setFrame(stillFrame(bot, POSES[stateId]));
+    if (!live) setFrame(staticFrame());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shape, live, stateId]);
 
   useEffect(() => {
     const bot = engine.current!;
-    bot.setExpression(expr, live ? clock : 0);
-    if (!live) setFrame(stillFrame(bot, POSES[stateId]));
-  }, [expression, live, stateId]);
+    bot.setExpression(renderExpr, live ? clock : 0);
+    if (!live) setFrame(staticFrame());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [renderExpr, live, stateId]);
 
   useEffect(() => {
     const bot = engine.current!;
@@ -298,17 +345,12 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       pendingState.current = null;
       lastSwitch.current = -BLOUB_MIN_BLOCK;
       if (bot.state !== stateId) bot.setState(stateId, 0);
-      aiming.current = false;
-      setFrame(stillFrame(bot, POSES[stateId]));
+      setFrame(staticFrame());
       return;
     }
-    // A switch inside MIN_BLOCK waits for the running block, so the morph finishes (Bloub's cycles.ts).
     const apply = (id: string, at: number) => { bot.setState(id as StateId, at); lastSwitch.current = at; };
     const delay = stateSwitchDelay(clock, lastSwitch.current);
-    if (delay === 0) {
-      apply(stateId, clock);
-      return;
-    }
+    if (delay === 0) { apply(stateId, clock); return; }
     pendingState.current = stateId;
     if (queueTimer.current) clearTimeout(queueTimer.current);
     queueTimer.current = setTimeout(() => {
@@ -317,94 +359,84 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       apply(id, clock);
     }, Math.max(10, delay * 1000));
     return () => { if (queueTimer.current) { clearTimeout(queueTimer.current); queueTimer.current = null; } };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stateId, live]);
 
-  // The animation: the hovered avatar runs every frame; a background state at the list rate.
+  // The frame loop: exponential follow + poke, no spring, settles to a still frame.
   useEffect(() => {
     if (!live) return;
     const bot = engine.current!;
-    const step = 1 / fps;
-    const baseFace = Boolean(STATE_BY_ID.get(stateId)?.baseFace);
+    const step = 1 / FPS;
     let firstFrame = true;
     return subscribeFrames((now) => {
       if (now - lastDraw.current < step - 0.0005) return;
-      // The first frame after a (re)start carries the whole idle gap; start it at one frame's worth so
-      // the springs never leap. The rest run at the real deltas, sub-stepped inside stepSpring.
-      const dt = firstFrame ? 1 / fps : Math.min(Math.max(now - lastDraw.current, 0.001), 0.064);
+      const dt = firstFrame ? 1 / FPS : Math.min(Math.max(now - lastDraw.current, 0.0001), 0.1);
       firstFrame = false;
       lastDraw.current = now;
 
-      // The whole body leans and drifts toward the pointer, on Bloub's spring.
+      const st = follow.current;
       const aim = hovering ? pointer.current : null;
-      const lean = canLean && aim;
-      const targetX = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.nx * DRIFT_PX)) * unitsPerPx : 0;
-      const targetY = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.ny * DRIFT_PX)) * unitsPerPx : 0;
-      const targetLean = lean ? aim!.nx * LEAN_DEG : 0;
-      const s = spring.current;
-      const k = hovering ? CHASE_K : HOME_K;
-      const c = hovering ? CHASE_C : HOME_C;
-      [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt, k, c);
-      [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt, k, c);
-      [s.lean, s.vLean] = stepSpring(s.lean, s.vLean, targetLean, dt, k, c);
-
-      // The gaze is a spring too, so the eyes GLIDE to the pointer instead of teleporting.
-      const g = gaze.current;
-      let gazeMoving = false;
-      if (grok) {
-        if (baseFace) {
-          const following = Boolean(aim);
-          const target = following ? followLook(aim!.nx, aim!.ny) : { yaw: baseYaw, pitch: basePitch };
-          const gk = following ? GAZE_CHASE_K : GAZE_HOME_K;
-          const gc = following ? GAZE_CHASE_C : GAZE_HOME_C;
-          [g.yaw, g.vYaw] = stepSpring(g.yaw, g.vYaw, target.yaw, dt, gk, gc);
-          [g.pitch, g.vPitch] = stepSpring(g.pitch, g.vPitch, target.pitch, dt, gk, gc);
-          // Set the look a hair in the past with a tiny morph so this very sample reads the spring's
-          // CURRENT value (no one-frame lag, no 0/0) and the spring alone owns the easing.
-          bot.setLook({ yaw: g.yaw, pitch: g.pitch, mix: 1, spin: 0, wander: 0 }, now - 0.001, 0.0001);
-          gazeMoving = following || Math.abs(g.yaw - baseYaw) > 0.1 || Math.abs(g.pitch - basePitch) > 0.1
-            || Math.abs(g.vYaw) > 0.15 || Math.abs(g.vPitch) > 0.15;
-        } else {
-          // An expression state owns its own gaze; get out of its way.
-          bot.setLook(null, now, 0.0001);
-        }
+      if (aim) {
+        const t = followTarget(kind, aim.nx, -aim.ny);
+        st.yaw = approach(st.yaw, t.yaw, dt);
+        st.pitch = approach(st.pitch, t.pitch, dt);
+        st.px = approach(st.px, t.px, dt);
+        st.py = approach(st.py, t.py, dt);
       }
-      aiming.current = gazeMoving;
+      // The hold factor snaps a hair early (0.02 ≈ 1.5°) so a released face is back to rest within 0.5 s.
+      st.hold = approach(st.hold, aim ? 1 : 0, dt, 0.02);
+      const h = st.hold;
 
-      const bodySettled = Math.abs(s.x) < 0.02 && Math.abs(s.y) < 0.02 && Math.abs(s.lean) < 0.02
-        && Math.abs(s.vx) < 0.02 && Math.abs(s.vy) < 0.02 && Math.abs(s.vLean) < 0.02;
-      if (!hovering && !gazeMoving && bodySettled) {
-        s.x = 0; s.y = 0; s.lean = 0; s.vx = 0; s.vy = 0; s.vLean = 0;
-        g.yaw = baseYaw; g.pitch = basePitch; g.vYaw = 0; g.vPitch = 0;
+      let yaw = REST_YAW + (st.yaw - REST_YAW) * h;
+      let pitch = REST_PITCH + (st.pitch - REST_PITCH) * h;
+      let tx = st.px * h * RAYON;
+      let ty = -st.py * h * RAYON;
+      let sx = 1;
+      let sy = 1;
+
+      const pk = poke.current;
+      if (pk) {
+        const e = Math.min(1, Math.max(0, (now - pk.start) / pk.dur));
+        if (pk.kind === "spin") yaw += 180 * pk.turns * (1 - Math.cos(Math.PI * e));
+        else if (pk.kind === "nod") pitch += 16 * Math.sin(Math.PI * e);
+        else {
+          const s = Math.sin(Math.PI * e);
+          ty -= 0.3 * RAYON * s;
+          sx = 1 + 0.18 * s;
+          sy = 1 - 0.22 * s;
+        }
+        if (e >= 1) { poke.current = null; setPokeActive(false); }
+      }
+
+      bot.setLook(grok ? { yaw, pitch, mix: 1, spin: 0, wander: 0 } : null, now - 0.001, grok ? 0.0001 : 0.001);
+      view.current = { tx, ty, roll: grok ? REST_ROLL * (1 - h) : 0, sx, sy };
+      setFrame(bot.sample(now));
+
+      if (!hovering && !poke.current && h < 0.001 && !(animated && activeState)) {
+        st.hold = 0; st.yaw = REST_YAW; st.pitch = REST_PITCH; st.px = 0; st.py = 0;
+        view.current = { tx: 0, ty: 0, roll: grok ? REST_ROLL : 0, sx: 1, sy: 1 };
         setSettling(false);
       }
-      setFrame(bot.sample(now));
     });
-  }, [live, fps, stateId, hovering, settling, unitsPerPx, canLean, grok, baseYaw, basePitch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [live, stateId, hovering, pokeActive, kind, grok, animated, activeState]);
 
-  // A still avatar blinks now and then, without running the morphs.
-  useEffect(() => {
-    if (live || frozenAt !== undefined || reduced) return;
-    const bot = engine.current!;
-    const settled = POSES[stateId];
-    const shut = closedEyeTime(settled + 0.5);
-    setFrame(stillFrame(bot, settled));
-    const timer = setInterval(() => {
-      setFrame(bot.sample(shut));
-      blinkOff.current = setTimeout(() => setFrame(bot.sample(settled)), 120);
-    }, 4200);
-    return () => {
-      clearInterval(timer);
-      if (blinkOff.current) clearTimeout(blinkOff.current);
-      blinkOff.current = null;
-    };
-  }, [live, frozenAt, reduced, stateId]);
+  // Nothing else: a resting face is a still frame — no blinking, no idle micro-motion (quiet rules).
+
+  const startPoke = (kindName?: PokeKind) => {
+    if (reduced) return;
+    const kind2 = kindName ?? POKE_ORDER[pokeCount.current % POKE_ORDER.length]!;
+    pokeCount.current += 1;
+    poke.current = { kind: kind2, start: clock, dur: POKE_DURATION[kind2], turns: kind2 === "spin" ? 2 : 1 };
+    setPokeActive(true);
+  };
 
   useImperativeHandle(ref, () => ({
     blink: () => {
       const bot = engine.current!;
       if (!live) {
         setFrame(bot.sample(closedEyeTime(frozenTime + 0.5)));
-        blinkOff.current = setTimeout(() => setFrame(bot.sample(frozenTime)), 120);
+        blinkOff.current = setTimeout(() => setFrame(staticFrame()), 120);
         return;
       }
       bot.setState("wink", clock);
@@ -416,38 +448,66 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       setTimeout(() => bot.setState(stateId, clock), durationMs);
     },
     setExpression: () => {},
-  }), [stateId, live, frozenTime]);
+    poke: () => startPoke(),
+  }));
 
-  // The whole tile is the target (the row, the header pill), not just the drawn face.
+  // The whole tile is the hover target; the gaze is normalised against the FACE's own rect.
   useEffect(() => {
     const element = hitRef?.current ?? svgRef.current;
     if (!element || typeof window === "undefined") return;
     const measure = (event: Event) => {
-      const pointerEvent = event as PointerEvent;
-      if (pointerEvent.pointerType === "touch") return;
-      const box = element.getBoundingClientRect();
-      if (box.width === 0) return;
+      const e = event as PointerEvent;
+      if (e.pointerType === "touch") return;
+      const face = (svgRef.current ?? element).getBoundingClientRect();
+      if (face.width === 0) return;
       pointer.current = {
-        nx: Math.max(-1, Math.min(1, (pointerEvent.clientX - (box.left + box.width / 2)) / (box.width / 2))),
-        ny: Math.max(-1, Math.min(1, (pointerEvent.clientY - (box.top + box.height / 2)) / (box.height / 2))),
+        nx: Math.max(-1, Math.min(1, (e.clientX - (face.left + face.width / 2)) / (face.width * 0.5))),
+        ny: Math.max(-1, Math.min(1, (e.clientY - (face.top + face.height / 2)) / (face.height * 0.5))),
       };
     };
     const enter = () => setHovering(true);
     const leave = () => { pointer.current = null; setHovering(false); setSettling(canAnimate); };
+    const onBlur = () => { pointer.current = null; setHovering(false); setSettling(canAnimate); };
     element.addEventListener("pointerenter", enter);
     element.addEventListener("pointermove", measure);
     element.addEventListener("pointerleave", leave);
+    window.addEventListener("blur", onBlur);
+    document.addEventListener("pointerleave", onBlur);
     return () => {
       element.removeEventListener("pointerenter", enter);
       element.removeEventListener("pointermove", measure);
       element.removeEventListener("pointerleave", leave);
+      window.removeEventListener("blur", onBlur);
+      document.removeEventListener("pointerleave", onBlur);
     };
   }, [hitRef, canAnimate]);
 
-  const s = spring.current;
-  // Each shape rests at its own tilt (baseRot); the hover lean adds ±6° on top of it.
-  const transform = `translate(${s.x.toFixed(2)} ${s.y.toFixed(2)}) rotate(${(baseRot + s.lean).toFixed(2)})`;
-  const vb = half;
+  // Off-screen or hidden → stop the loop (Grok's power saving).
+  useEffect(() => {
+    const el = svgRef.current;
+    let io: IntersectionObserver | null = null;
+    if (el && typeof IntersectionObserver !== "undefined") {
+      io = new IntersectionObserver((entries) => { for (const e of entries) setInView(e.isIntersecting); }, { rootMargin: "100px" });
+      io.observe(el);
+    }
+    const onVis = () => setDocHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    onVis();
+    return () => { io?.disconnect(); document.removeEventListener("visibilitychange", onVis); };
+  }, []);
+
+  const v = view.current;
+  const transform = (v.sx === 1 && v.sy === 1)
+    ? `translate(${v.tx.toFixed(2)} ${v.ty.toFixed(2)}) rotate(${v.roll.toFixed(2)})`
+    : `translate(${v.tx.toFixed(2)} ${v.ty.toFixed(2)}) rotate(${v.roll.toFixed(2)}) scale(${v.sx.toFixed(3)} ${v.sy.toFixed(3)})`;
+  const eyeFill = bloubEyeColor(palette) ?? surface;
+  const cutout = eyeMode === "cutout";
+
+  const onFaceClick = (event: React.MouseEvent) => {
+    if (!pokable) return;
+    event.stopPropagation();
+    startPoke();
+  };
 
   return (
     <svg
@@ -459,23 +519,32 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       aria-label={label}
       data-bloub-state={stateId}
       data-bloub-expression={expression}
-      style={{ width: cssSize, height: cssSize, overflow: "visible", shapeRendering: "geometricPrecision" }}
+      onClick={pokable ? onFaceClick : undefined}
+      style={{ width: cssSize, height: cssSize, overflow: "visible", shapeRendering: "geometricPrecision", cursor: pokable ? "pointer" : undefined }}
     >
       <defs>
-        {/* Clip, not a mask with a light under-layer: nothing light is ever painted outside the eyes. */}
-        <clipPath id={clipId}>
-          <path d={frame.bodyPath} />
-        </clipPath>
+        {grad && (
+          <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={grad.from} />
+            <stop offset="1" stopColor={grad.to} />
+          </linearGradient>
+        )}
+        {cutout ? (
+          <mask id={maskId} maskUnits="userSpaceOnUse" x={-vb} y={-vb} width={vb * 2} height={vb * 2}>
+            <path d={frame.bodyPath} fill="#ffffff" />
+            {frame.eyes.map((eye, index) => (
+              <path key={`m${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill="#000000" />
+            ))}
+            {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill="#000000" />}
+          </mask>
+        ) : (
+          <clipPath id={clipId}>
+            <path d={frame.bodyPath} />
+          </clipPath>
+        )}
         {frame.arcs.map((arc) => (
-          <linearGradient
-            key={arc.id}
-            id={`${uid}-${arc.id}`}
-            gradientUnits="userSpaceOnUse"
-            x1={arc.grad.x1}
-            y1={arc.grad.y1}
-            x2={arc.grad.x2}
-            y2={arc.grad.y2}
-          >
+          <linearGradient key={arc.id} id={`${uid}-${arc.id}`} gradientUnits="userSpaceOnUse"
+            x1={arc.grad.x1} y1={arc.grad.y1} x2={arc.grad.x2} y2={arc.grad.y2}>
             {arc.grad.stops.map((stop, index) => (
               <stop key={index} offset={index / Math.max(1, arc.grad.stops.length - 1)} stopColor={stop} />
             ))}
@@ -500,13 +569,17 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
           </g>
         )}
 
-        <g opacity={frame.bodyAlpha} clipPath={`url(#${clipId})`}>
-          <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
-          {frame.eyes.map((eye, index) => (
-            <path key={`e${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill={eyeFill ?? surface} />
-          ))}
-          {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill={surface} />}
-        </g>
+        {cutout ? (
+          <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={`url(#${gradId})`} mask={`url(#${maskId})`} opacity={frame.bodyAlpha} />
+        ) : (
+          <g opacity={frame.bodyAlpha} clipPath={`url(#${clipId})`}>
+            <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
+            {frame.eyes.map((eye, index) => (
+              <path key={`e${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill={eyeFill} />
+            ))}
+            {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill={surface} />}
+          </g>
+        )}
         {outlineColor && <path d={frame.bodyPath} fill="none" stroke={outlineColor} strokeWidth={1.5} />}
 
         {!frame.dotsBehind && (
