@@ -13,6 +13,7 @@ import { useStore } from "@/state/store";
 
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { UpdateIndicator } from "./UpdateIndicator";
+import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 
 
 function NavRow({
@@ -47,7 +48,7 @@ function NavRow({
       aria-current={active ? "page" : undefined}
       className={cn(
         "relative flex items-center rounded-xl transition-colors",
-        rail ? "size-9 shrink-0 justify-center" : iconsOnly ? "mx-auto size-[46px] shrink-0 justify-center" : "w-full min-h-9 gap-3 px-3 py-1.5 text-left",
+        rail ? "size-9 shrink-0 justify-center" : iconsOnly ? cn("mx-auto", SIDEBAR_ICON_BUTTON) : "w-full min-h-9 gap-3 px-3 py-1.5 text-left",
         active ? "bg-raised text-ink" : "text-ink hover:bg-raised/50",
       )}
     >
@@ -122,7 +123,8 @@ export function SidebarFooterNav({
   const iconsOnly = density === "icons";
   const toolsLayout = useSidebarToolsLayout();
   const toolbar = advanced && !iconsOnly && toolsLayout === "toolbar";
-  const iconSize = iconsOnly && !rail ? 20 : 18;
+  const iconSize = iconsOnly && !rail ? SIDEBAR_ICON_SIZE : 18;
+  const iconStroke = iconsOnly && !rail ? SIDEBAR_ICON_STROKE : undefined;
   const tone = (active: boolean) => (active ? "text-accent" : "text-ink-secondary");
   const automationsNeedYou = useAutomationsNeedYou();
   const automationsRow = <NavRow
@@ -132,7 +134,7 @@ export function SidebarFooterNav({
     iconsOnly={iconsOnly || toolbar}
     active={state.activeView === "routines"}
     attention={automationsNeedYou}
-    icon={(active) => <Zap size={iconSize} className={tone(active)} />}
+    icon={(active) => <Zap size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
     onClick={() => dispatch({ type: "showRoutines", view: "list" })}
   />;
   const filesRow = useCloudFilesReady() && <NavRow
@@ -141,7 +143,7 @@ export function SidebarFooterNav({
     iconsOnly={iconsOnly}
     rail={rail}
     active={state.activeView === "files"}
-    icon={(active) => <FolderOpen size={iconSize} className={tone(active)} />}
+    icon={(active) => <FolderOpen size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
     onClick={() => dispatch({ type: "showFiles" })}
   />;
   if (!advanced && !iconsOnly) return null;
@@ -152,7 +154,7 @@ export function SidebarFooterNav({
     iconsOnly={iconsOnly}
     rail={rail}
     active={state.pluginsOpen}
-    icon={(active) => <Puzzle size={iconSize} className={tone(active)} />}
+    icon={(active) => <Puzzle size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
     onClick={() => dispatch({ type: "togglePlugins", open: true })}
   />;
   if (rail) return <nav data-tour="tools" aria-label={t("sidebar.tools")} className="flex flex-col items-center gap-0.5">{appsRow}</nav>;
@@ -168,7 +170,7 @@ export function SidebarFooterNav({
           tourId="team-tools"
           iconsOnly={iconsOnly || toolbar}
           active={state.activeView === "team-map"}
-          icon={(active) => <UsersRound size={iconSize} className={tone(active)} />}
+          icon={(active) => <UsersRound size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
           onClick={() => dispatch({ type: "showTeamMap" })}
         />
       )}
@@ -180,7 +182,7 @@ export function SidebarFooterNav({
           label={panel.name}
           iconsOnly={iconsOnly || toolbar}
           active={state.activeView === "web-panel" && state.webPanelId === panel.id}
-          icon={(active) => <Globe size={iconSize} className={tone(active)} />}
+          icon={(active) => <Globe size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
           onClick={() => dispatch({ type: "showWebPanel", id: panel.id })}
         />
       ))}

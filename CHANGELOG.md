@@ -54,6 +54,19 @@ below are local customizations on top of upstream `v0.1.150`.
   - `SidebarInboxRow` gained `rail` for that round shape; its count badge and
     running dot stay in place.
 
+- **Advanced mode's collapsed sidebar centres on the window's traffic lights.** Collapsed to
+  icons, the sidebar was 80px wide, so its column of 46px buttons centred at
+  x = 39.75 while the traffic lights' yellow button, inset at 16,16, centres at
+  x = 46: every icon sat 6.25px left of the Simple rail's. The column now takes
+  the rail's 92px, and its hairline edge is an inset shadow instead of a right
+  border, so the border no longer takes 0.5px off the column and the boxes
+  centre on x = 46 (the Simple rail, keeping its border, on 45.75).
+  - The column's controls share one box and icon size —
+    `src/components/sidebar-icon-column.ts`: a 46px box holding a 20px icon at
+    `strokeWidth` 1.75 — instead of each component spelling the numbers out.
+  - Remix icons are filled paths, so the `strokeWidth` normalisation changes
+    nothing on screen; the rail toggle's hand-drawn strip icon is the only one
+    whose stroke gets heavier (1.5 → 1.75).
 - **Model picker removed from the chat header** (`ChatView.tsx`). The header no
   longer renders `ModelPicker`; the model is chosen from settings instead. This
   is a personal-build change and is not intended for upstream.

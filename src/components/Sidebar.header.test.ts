@@ -266,6 +266,21 @@ describe("sidebar top row", () => {
     expect(place).toBeLessThan(foot.indexOf("data-sidebar-inbox"));
     expect(foot.indexOf("data-sidebar-inbox")).toBeLessThan(foot.indexOf('aria-label="Search bots and messages"'));
   });
+
+  it("gives the column of icons the Simple rail's 92px and a shadow edge, so its boxes centre on the traffic lights' line", () => {
+    fixture.density = "icons";
+    fixture.windowChrome = "mac-inset";
+    desktop();
+    const html = render();
+    const aside = /<aside[^>]*\bclass="([^"]*)"/.exec(html)?.[1] ?? "";
+    expect(aside, "the rail's width, not a narrower column: 92px with 8px of padding centres a 46px box on x = 46").toContain("w-[92px]");
+    expect(aside, "a 0.5px border would take 0.5px off the column and pull its centre 0.25px left").not.toContain("border-r-[0.5px]");
+    expect(aside).toContain("shadow-[inset_-0.5px_0_0_var(--color-edge)]");
+    for (const label of ["Inbox", "Search bots and messages", "New or share", "Automations", "Apps", "Team map"]) {
+      const button = new RegExp(`<button[^>]*aria-label="${label}"[^>]*>`).exec(html)?.[0] ?? "";
+      expect(button, label).toContain("size-[46px]");
+    }
+  });
 });
 
 describe("the button that hides and shows the window's rail of places", () => {

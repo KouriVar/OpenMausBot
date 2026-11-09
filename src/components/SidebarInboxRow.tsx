@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { ELEVATED_OPEN } from "./elevated";
 import { SIMPLE_TOP_BUTTON } from "./SidebarSimpleTop";
+import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -37,8 +38,8 @@ export function SidebarInboxRow({ icons, large, running, onOpened, rail = false 
       <button type="button" data-sidebar-inbox={count} aria-label={label} title={label} aria-pressed={open} onClick={toggle}
         className={rail
           ? cn("relative", SIMPLE_TOP_BUTTON, open && cn(ELEVATED_OPEN, "text-ink"))
-          : cn("relative mx-auto mb-1 flex size-[46px] shrink-0 items-center justify-center rounded-xl text-ink-secondary hover:bg-raised hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", open && "bg-raised text-ink")}>
-        <Inbox size={rail ? 18 : 20} strokeWidth={1.5} aria-hidden="true" />
+          : cn("relative mx-auto mb-1", SIDEBAR_ICON_BUTTON, "text-ink-secondary hover:bg-raised hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", open && "bg-raised text-ink")}>
+        <Inbox size={rail ? 18 : SIDEBAR_ICON_SIZE} strokeWidth={rail ? 1.5 : SIDEBAR_ICON_STROKE} aria-hidden="true" />
         {count > 0 && <span aria-hidden="true" data-inbox-count className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-warning px-0.5 text-[10px] font-semibold leading-4 text-panel">{shown}</span>}
         {dot}
       </button>

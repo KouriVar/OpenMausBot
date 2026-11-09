@@ -8,6 +8,7 @@ import { cloudColor } from "@/lib/cloud-look";
 import { t } from "@/lib/i18n";
 import { railShown, usePlaces } from "@/lib/places";
 import { CloudTile } from "./cloud-buy/parts";
+import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 import { SIMPLE_RAIL_BUTTON } from "./SidebarSimpleTop";
 
 export function openServerMenu(bridge: { menu: (options?: { from?: "howto" }) => Promise<void> }, { howTo = false, onClosed }: { howTo?: boolean; onClosed?: () => void } = {}): Promise<void> {
@@ -109,8 +110,8 @@ function Switcher({ compact = false, inline = false, pill = false, rail = false,
       <span className={pill ? "min-w-0 truncate @max-[124px]/sidebar-top:hidden" : "min-w-0 truncate"}>{cloudName}</span>
       {(onLine || whose) && <span className="sr-only">{onLine ? ` · ${onLine}` : ""}{whose ? ` · ${whose}` : ""}</span>}
     </div>;
-    if (compact) return <div data-cloud-home-indicator title={label} className="flex size-[46px] shrink-0 items-center justify-center rounded-xl text-ink-secondary">
-      <Cloud size={20} aria-hidden="true" />
+    if (compact) return <div data-cloud-home-indicator title={label} className={cn(SIDEBAR_ICON_BUTTON, "text-ink-secondary")}>
+      <Cloud size={SIDEBAR_ICON_SIZE} strokeWidth={SIDEBAR_ICON_STROKE} aria-hidden="true" />
       <span className="sr-only">{label}</span>
     </div>;
     return <div data-cloud-home-indicator className="py-1.5 px-3">
@@ -153,9 +154,9 @@ function Switcher({ compact = false, inline = false, pill = false, rail = false,
     <button type="button" aria-label={label} aria-haspopup="menu" aria-expanded={open} data-cloud-home-indicator={cloudHome || undefined}
       data-tour="server-switcher" title={title}
       onClick={openMenu}
-      className="flex size-[46px] shrink-0 items-center justify-center rounded-xl text-ink-secondary transition-colors hover:bg-raised hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className={cn(SIDEBAR_ICON_BUTTON, "text-ink-secondary transition-colors hover:bg-raised hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus")}
       style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
-      {cloudColor(current?.color) ? <CloudTile color={current?.color} size={20} /> : <Icon size={20} aria-hidden="true" />}
+      {cloudColor(current?.color) ? <CloudTile color={current?.color} size={SIDEBAR_ICON_SIZE} /> : <Icon size={SIDEBAR_ICON_SIZE} strokeWidth={SIDEBAR_ICON_STROKE} aria-hidden="true" />}
     </button>
     {error && <p role="alert" className="absolute bottom-0 left-full z-40 ml-2 w-56 rounded-md bg-menu px-2 py-1 text-[11px] text-danger shadow-lg">{error}</p>}
     {waking && !error && <p role="status" data-cloud-waking className="absolute bottom-0 left-full z-40 ml-2 w-56 rounded-md bg-menu px-2 py-1 text-[11px] text-ink-secondary shadow-lg">{waking}</p>}
