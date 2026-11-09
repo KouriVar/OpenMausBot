@@ -151,6 +151,8 @@ export class BotEngine {
   private lookAt = -10
   /** duree de rattrapage en cours ; voir `LOOK_MORPH`, sa valeur par defaut */
   private lookMorph = 0.24
+  /** false = no spontaneous liveliness blink (interactive/hold return); forced state blinks still fire. */
+  private blinkOn = true
 
   /** duree du morph quand on change la forme du corps */
   static readonly SHAPE_MORPH = 0.45
@@ -333,6 +335,19 @@ export class BotEngine {
     )
   }
 
+  /** Drop any in-progress morph history so the next `sample` reads the current shape/expression/look
+   * exactly (no cross-time-base leakage). Used when a live face settles into a still snapshot. */
+  clearMorphs() {
+    this.shapePrev = null
+    this.exprPrev = null
+    this.lookPrev = this.look
+  }
+
+  /** Turn the spontaneous liveliness blink on/off (forced state blinks are unaffected). */
+  setLiveliness(on: boolean) {
+    this.blinkOn = on
+  }
+
   get state(): StateId {
     return this.cur
   }
@@ -460,7 +475,7 @@ export class BotEngine {
     // --- vie au repos -----------------------------------------------------
     const alive = pose.eyeAlpha > 0.01
     const look = this.lookAtTime(now)
-    const life = liveliness(now, { wander: alive ? look.wander : 0, blink: alive })
+    const life = liveliness(now, { wander: alive ? look.wander : 0, blink: alive && this.blinkOn })
 
     const gaze = {
       // Les deux visees REMPLACENT celles de la pose au lieu de s'y ajouter (voir
