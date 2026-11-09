@@ -354,7 +354,7 @@ describe("repaired tables", () => {
     const html = renderToStaticMarkup(createElement(ChatMarkdown, {
       text: "Pros | Cons\n---\n\n| a \\| b | c |\n| --- | --- |\n| 1 | 2 |",
     }));
-    expect(html).toContain('tracking-[-0.005em]">Pros | Cons</div>');
+    expect(html).toContain('tracking-[-0.006em]">Pros | Cons</div>');
     expect(html.match(/<table\b/g)).toHaveLength(1);
     expect(html).toContain(">a | b</span>");
     expect(html.match(/<th\b/g)).toHaveLength(2);
@@ -557,7 +557,7 @@ describe("#Title thread links in markdown", () => {
     const markup = render("`#QA PR 245` in code, [#QA PR 245](https://example.test) as a link, #123 an issue\n\n# QA PR 245\n\nplain");
     expect(markup).not.toContain("data-thread-link");
     expect(markup).toContain("<code");
-    expect(markup).toContain('tracking-[-0.01em]">QA PR 245</div>');
+    expect(markup).toContain('tracking-[-0.012em]">QA PR 245</div>');
   });
 
   it("does nothing without any visible threads", () => {
@@ -1253,7 +1253,7 @@ describe("bidi: message content carries its own direction", () => {
       ].join("\n"),
     }));
 
-    expect(html).toContain('<div dir="rtl" class="md-heading mt-3 text-[20px] font-semibold leading-[26px] tracking-[-0.01em]">');
+    expect(html).toContain('<div dir="rtl" class="md-heading mt-2 text-[22px] font-semibold leading-[28px] tracking-[-0.012em]">');
     expect(html).toContain('<p dir="rtl">');
     expect(html).toContain('<p dir="ltr">An English paragraph');
     expect(html).toContain('<blockquote dir="rtl"');
@@ -1284,7 +1284,7 @@ describe("bidi: message content carries its own direction", () => {
 
     expect(html).toContain("list-disc space-y-1 ps-5");
     expect(html).toContain("list-decimal space-y-1 ps-5");
-    expect(html).toContain("border-s-2 border-hairline ps-3");
+    expect(html).toContain("border-s-2 border-hairline py-0.5 ps-3");
     expect(html).toContain('scope="col"');
     expect(html).not.toMatch(/class="[^"]*\bpl-5\b/);
     expect(html).not.toMatch(/class="[^"]*\bborder-l-2\b/);

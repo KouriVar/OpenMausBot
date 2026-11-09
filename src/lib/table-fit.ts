@@ -16,8 +16,8 @@ export function columnMinimums(header: readonly string[], rows: readonly (readon
   });
 }
 
-/** A cell's left and right padding (px-3). */
-export const CELL_PADDING_PX = 24;
+/** A cell's left and right padding (px-2). */
+export const CELL_PADDING_PX = 16;
 
 /** A table that wraps and is short enough to draw whole fits its columns to the message when their narrowest widths
  * fit the room it has (`available`, unknown before the first measure). Otherwise it keeps roomy fixed columns and
