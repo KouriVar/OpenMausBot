@@ -28,7 +28,7 @@ describe("BloubAvatar", () => {
   it("draws one masked body in the bot's colour, with a frame per state", () => {
     const idle = render({ size: 44, colorId: "vert", state: "idle", animated: false });
     expect(idle).toContain("<svg");
-    expect(idle).toContain("<mask");
+    expect(idle).toContain("<clipPath");
     expect(idle).toContain("#3ecf8e");
     expect(idle).toContain("role=\"img\"");
     const alert = render({ size: 44, colorId: "vert", state: "alerting", animated: false });

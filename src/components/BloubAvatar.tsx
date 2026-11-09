@@ -14,7 +14,7 @@ import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
 import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
-import { TURN_TIME, lookTarget } from "@/fork/bloub-gaze";
+import { TURN_TIME, followLook } from "@/fork/bloub-gaze";
 
 /** The app's bot states on Bloub's own; anything else rests. */
 const STATE_BY_MAUS: Record<string, StateId> = {
@@ -47,9 +47,11 @@ const BACKGROUND_FPS = 30;
 /** Degrees the body leans and pixels it drifts toward the pointer (Grok's own little lean). */
 const LEAN_DEG = 6;
 const DRIFT_PX = 2.5;
-/** Bloub's spring, near critical so it settles with a small rebound. */
-const SPRING_K = 170;
-const SPRING_C = 18;
+/** Chasing: stiff, ~120-180ms to arrive. Coming home: softer, with a small rebound. */
+const CHASE_K = 260;
+const CHASE_C = 24;
+const HOME_K = 140;
+const HOME_C = 16;
 
 export type BloubAvatarHandle = {
   blink: () => void;
@@ -175,8 +177,8 @@ function dotFill(dot: DotRender, ink: string, paper: string): { fill: string; fi
 }
 
 /** One axis of a damped spring, stepped by the engine's own frame clock. */
-function stepSpring(position: number, velocity: number, target: number, dt: number): [number, number] {
-  const acceleration = SPRING_K * (target - position) - SPRING_C * velocity;
+function stepSpring(position: number, velocity: number, target: number, dt: number, k: number, c: number): [number, number] {
+  const acceleration = k * (target - position) - c * velocity;
   const nextVelocity = velocity + acceleration * dt;
   return [position + nextVelocity * dt, nextVelocity];
 }
@@ -230,7 +232,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const lastDraw = useRef(0);
   const blinkOff = useRef<ReturnType<typeof setTimeout> | null>(null);
   const uid = useId().replace(/[:]/g, "");
-  const maskId = `bloub-mask-${uid}`;
+  const clipId = `bloub-clip-${uid}`;
 
   // A new shape morphs (BloubBot.vue:408); a still frame redraws at once.
   useEffect(() => {
@@ -272,9 +274,11 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       const targetY = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.ny * DRIFT_PX)) * unitsPerPx : 0;
       const targetLean = lean ? aim!.nx * LEAN_DEG : 0;
       let s = spring.current;
-      [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt);
-      [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt);
-      [s.lean, s.vLean] = stepSpring(s.lean, s.vLean, targetLean, dt);
+      const k = hovering ? CHASE_K : HOME_K;
+      const c = hovering ? CHASE_C : HOME_C;
+      [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt, k, c);
+      [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt, k, c);
+      [s.lean, s.vLean] = stepSpring(s.lean, s.vLean, targetLean, dt, k, c);
       if (!hovering && Math.abs(s.x) < 0.02 && Math.abs(s.y) < 0.02 && Math.abs(s.lean) < 0.02
         && Math.abs(s.vx) < 0.02 && Math.abs(s.vy) < 0.02 && Math.abs(s.vLean) < 0.02) {
         s.x = 0; s.y = 0; s.lean = 0; s.vx = 0; s.vy = 0; s.vLean = 0;
@@ -283,7 +287,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
 
       // Bloub's own head turn: the eyes ride the sphere (yaw/pitch), not a flat shift.
       if (aim && baseFace) {
-        bot.setLook(lookTarget({ nx: aim.nx, ny: aim.ny, tour: 1, pointer: true }), now);
+        // One easing only: the engine's morph is near-instant, the spring does the smoothing.
+        bot.setLook(followLook(aim.nx, aim.ny), now, 0.001);
         aiming.current = true;
       } else if (aiming.current) {
         bot.setLook(null, now, TURN_TIME);
@@ -368,16 +373,15 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       viewBox={`${-vb} ${-vb} ${vb * 2} ${vb * 2}`}
       role="img"
       aria-label={label}
+      data-bloub-state={stateId}
+      data-bloub-expression={expression}
       style={{ width: cssSize, height: cssSize, overflow: "visible", shapeRendering: "geometricPrecision" }}
     >
       <defs>
-        <mask id={maskId} maskUnits="userSpaceOnUse" x={-vb} y={-vb} width={vb * 2} height={vb * 2}>
-          <path d={frame.bodyPath} fill="#fff" />
-          {frame.eyes.map((eye, index) => (
-            <path key={index} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill="#000" />
-          ))}
-          {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill="#000" />}
-        </mask>
+        {/* Clip, not a mask with a light under-layer: nothing light is ever painted outside the eyes. */}
+        <clipPath id={clipId}>
+          <path d={frame.bodyPath} />
+        </clipPath>
         {frame.arcs.map((arc) => (
           <linearGradient
             key={arc.id}
@@ -412,11 +416,12 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
           </g>
         )}
 
-        <g opacity={frame.bodyAlpha}>
-          <path d={frame.bodyPath} fill={surface} />
-          <g mask={`url(#${maskId})`}>
-            <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
-          </g>
+        <g opacity={frame.bodyAlpha} clipPath={`url(#${clipId})`}>
+          <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
+          {frame.eyes.map((eye, index) => (
+            <path key={`e${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill={surface} />
+          ))}
+          {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill={surface} />}
         </g>
 
         {!frame.dotsBehind && (

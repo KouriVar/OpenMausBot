@@ -221,6 +221,21 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Bloub follow direction, reach and edges fixed.** The head turned the wrong way because the gaze reused the
+  arrival rule (`yaw = -TURN + nx*16`, a –26° left turn at centre); following now uses `followLook` —
+  `yaw = nx*16`, `pitch = -ny*13` — so right/top look right/up in screen terms. The body lean/drift use the same
+  sign, the pointer is normalised to the tile's half width/height (±1 at the edge), the chase spring is stiff
+  (k=260/c=24, ~120-180ms) with a softer return (k=140/c=16), and the engine's look morph is ~0 (one easing, not
+  two). The white outline round a dark body came from a light paper path painted under the whole body; the eyes
+  are now drawn as surface-coloured shapes clipped to the body, so nothing light sits outside them. A resting
+  avatar keeps its chosen expression; the thin eyes were a short-lived blink/wink state not returning to open,
+  now always redrawn at the settled pose.
+  中文：**Bloub 跟随方向、幅度和边缘修好了。** 之前头转反，是因为复用了“入场”规则（`yaw=-TURN+nx*16`，中央即
+  -26° 左转）；跟随改用 `followLook`——`yaw=nx*16`、`pitch=-ny*13`——指针在右/上就看右/上。身体位移与倾斜用
+  同样符号；归一化按 tile 半宽半高（边缘 ±1）；追的弹簧更硬（k=260/c=24，约 120–180ms），回正更软
+  （k=140/c=16），引擎 look 的 morph 设到约 0（只留一层缓动）。深色身体外的白边来自身体下面垫了一整片浅色
+  纸；现在眼睛是按身体裁剪的纸色形状，眼睛外不再有任何浅色。静止头像保持选定表情；眼睛压成线是眨眼/眨眼
+  状态没回到睁眼的短帧，现在总会重画为静止姿态。
 - **Bloub no longer clips, and the whole tile is the hover target.** The sidebar face is drawn at 45px inside a
   60px tile with 7.5px of padding in its viewBox (and `overflow: visible`), so the 2.5px drift and ±6° lean stay
   inside; the body size is unchanged (45px Advanced / 40px Simple, 46.00px line). The tie to `translate(9.36)`
