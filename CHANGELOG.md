@@ -221,6 +221,19 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Bloub no longer clips, and the whole tile is the hover target.** The sidebar face is drawn at 45px inside a
+  60px tile with 7.5px of padding in its viewBox (and `overflow: visible`), so the 2.5px drift and ±6° lean stay
+  inside; the body size is unchanged (45px Advanced / 40px Simple, 46.00px line). The tie to `translate(9.36)`
+  was SVG user units, not pixels (9.36 units ≈ 2.1px) — the real cause was a zero-margin viewBox plus the SVG
+  clipping at its viewport; both fixed. The hover target is now the whole tile (row, header pill, avatar frame),
+  not just the drawn face; a small header face turns its head only (no lean) so the tight pill never clips.
+  `apply-ui-patch.sh` now waits for the old app, opens it, polls up to 15s, retries twice, and only then fails.
+  中文：**Bloub 不再被裁切，整个格子都是悬停热区。** 侧栏脸在 60px 格子里画 45px，viewBox 四面留 7.5px 余量
+  （并 `overflow: visible`），2.5px 位移与 ±6° 侧倾都留在里面；身体尺寸不变（高级 45px / 简易 40px，中线
+  46.00）。之前的 `translate(9.36)` 是 SVG 用户单位不是像素（约 2.1px），真正原因是 viewBox 没有余量、SVG 在
+  自身视口裁切——两处都修了。悬停热区改成整个格子（侧栏整行、头部胶囊整颗、资料卡头像框），不再只是画出来的
+  脸；头部小头像只转头不侧身，窄胶囊不会切。`apply-ui-patch.sh` 现在会等旧 App 退出、打开、轮询 15 秒、
+  重试两次，仍失败才报错。
 - **Bloub fixed against the Grok recording: hover-only gaze, spring lean, big faces, a real face at rest.**
   Only the avatar under the pointer follows — each face listens to its own pointerenter/move/leave,
   nothing global — and the whole body leans toward it (Bloub's yaw/pitch head turn plus a ~2.5px drift

@@ -1,6 +1,6 @@
 import { localizedTaskTitle } from "@/lib/task-title";
 import { ChevronRight, Lock, UserRound, Users } from "lucide-react";
-import type { ComponentProps } from "react";
+import { useRef, type ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -48,8 +48,10 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
   const conversation = !awayFromMainThread(bot, false) ? (privacy?.kind === "shared" ? t("task.sharedChat") : null)
     : !title || title === UNTITLED ? t("task.untitledChat") : localizedTaskTitle(title);
   const label = t("chat.openProfileAria", { name: bot.name });
+  const pillRef = useRef<HTMLButtonElement>(null);
   return (
     <button
+      ref={pillRef}
       type="button"
       data-chathead-pill
       data-tour="bot-pill"
@@ -60,7 +62,7 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
       aria-controls={open ? BOT_PANEL_ID : undefined}
       className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full py-[7.5px] pl-[7.5px] pr-[13.5px] text-ink", ELEVATED_FLOAT, ELEVATED_HOVER)}
     >
-      <BotAvatar bot={bot} size={24} {...avatar} />
+      <BotAvatar bot={bot} size={24} {...avatar} hitRef={pillRef} />
       <span dir="auto" className="min-w-0 truncate text-[14px] font-medium leading-5">{bot.name}</span>
       {conversation && (
         <>

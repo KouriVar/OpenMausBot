@@ -713,7 +713,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const simpleRow = !advanced && !showThreads && density === "comfortable";
   const simpleList = !advanced && !iconOnly;
   const railTile = iconOnly && !advanced;
-  const avatarSize = iconOnly ? (railTile ? SIDEBAR_AVATAR_RAIL : SIDEBAR_AVATAR_ADVANCED) : showThreads ? 32 : simpleRow ? 36 : 44;
+  const avatarSize = iconOnly ? (railTile ? SIDEBAR_AVATAR_RAIL : SIDEBAR_AVATAR_ADVANCED) : showThreads ? 32 : simpleRow ? 36 : 44; const tileRef = useRef<HTMLDivElement>(null);
   const tooltip = simpleList ? botTooltip(bot, instances) : undefined;
   const visible = useVisibleMessages(bot);
   const last = lastNonReceipt(visible);
@@ -722,7 +722,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const rowClass = cn(
     "flex w-full items-center rounded-xl text-left transition-colors duration-150", SIMPLE_ROW_FOCUS,
     iconOnly
-      ? railTile ? "h-[54px] justify-center" : "justify-center px-1 py-1.5"
+      ? railTile ? "h-[54px] justify-center" : "justify-center"
       : simpleRow ? "gap-2 rounded-[8px] py-2 pl-2 pr-2 md:h-[54px] md:py-0"
         : cn(showThreads ? "gap-2 py-2" : "gap-3 py-2", showThreads ? "pl-6 pr-9 group-hover:pr-[5.75rem] group-focus-within:pr-[5.75rem] max-md:pr-9 touch:pr-[5.75rem]" : "pl-2.5 pr-9"),
     !iconOnly && "max-md:rounded-2xl max-md:py-2.5",
@@ -739,7 +739,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
           size={simpleRow ? avatarSize + 6 : avatarSize}
-          messages={visible} fitBody={iconOnly}
+          messages={visible} fitBody={iconOnly} hitRef={iconOnly ? tileRef : undefined} frameSize={iconOnly ? (railTile ? 54 : 60) : undefined}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
@@ -873,7 +873,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         }
         aria-busy={deleting || undefined} aria-keyshortcuts={drag ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
         aria-current={selected && !expanded && !renaming ? "page" : undefined}
-        data-sidebar-bot-row={bot.id}
+        data-sidebar-bot-row={bot.id} ref={iconOnly ? tileRef : undefined}
         title={renaming ? undefined : tooltip}
         onClick={onSelect}
         onKeyDown={(event) => {
