@@ -32,8 +32,17 @@ rsync -a --delete "$REPO/dist/" "$UI/"
 
 echo "== 5/5 重启 App"
 osascript -e 'quit app "OpenMausBot"' 2>/dev/null || true
-sleep 2
-open -a "$APP"
+# 等旧实例真正退出再 open，否则 open 只会激活那个正在退出的实例：最多等 20 秒。
+BIN="$APP/Contents/MacOS/OpenMausBot"
+for _ in $(seq 1 20); do
+  pgrep -f "$BIN" >/dev/null 2>&1 || break
+  sleep 1
+done
+if pgrep -f "$BIN" >/dev/null 2>&1; then
+  echo "!! App 20 秒内没有退出，先没有重新打开。手动退出它后运行: open -a \"$APP\""
+else
+  open -a "$APP"
+fi
 
 echo
 echo "完成。备份在: $BACKUP"
