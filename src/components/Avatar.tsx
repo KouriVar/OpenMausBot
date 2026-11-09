@@ -19,6 +19,7 @@ import { t } from "@/lib/i18n";
 import { CarvedAvatar } from "./CarvedAvatar";
 import { steelBodyImage } from "@/lib/steel-body";
 import { useForkAvatarStyle } from "@/fork/avatar-style";
+import { useBloubSkin } from "@/fork/bloub-skin";
 import { BloubAvatar } from "./BloubAvatar";
 
 export const EYE_SCALE = 1.12;
@@ -99,13 +100,28 @@ export type MausAvatarProps = {
   bodyId?: BotBodyId;
   gradient?: [string, string, string];
   faceColor?: MascotFaceColor | null;
+  /** The bot this avatar stands for, so the fork's Bloub look can be kept per bot. */
+  botId?: string;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId } = props;
   // The fork's switch: Bloub replaces every built body, the festival ones included.
-  if (useForkAvatarStyle() === "bloub") {
-    return <BloubAvatar ref={ref} size={size} color={MAUS_COLORS[color] ?? MAUS_COLORS.green} state={state} animated={animated} label={label} />;
+  const avatarStyle = useForkAvatarStyle();
+  const bloubSkin = useBloubSkin(botId, color);
+  if (avatarStyle === "bloub") {
+    return (
+      <BloubAvatar
+        ref={ref}
+        size={size}
+        shape={bloubSkin.shape}
+        colorId={bloubSkin.color}
+        expression={bloubSkin.expression}
+        state={state}
+        animated={animated}
+        label={label}
+      />
+    );
   }
   if (isCarvedBody(bodyId)) {
     return (
@@ -224,6 +240,7 @@ export const MausAvatar = memo(forwardRef(MausAvatarComponent));
 export type BotAvatarProps = Omit<MausAvatarProps, "color" | "gradient"> & {
   readable?: boolean;
   bot: {
+    id?: string;
     name?: string;
     color: MausColor;
     avatarUrl?: string | null;
@@ -269,6 +286,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
       <MausAvatar
         bodyId={wornBody(bot.mascotBody, bot.color, festival)}
         {...mascotProps}
+        botId={bot.id}
         color={bot.color}
         faceColor={bot.mascotFaceColor}
         gradient={readable ? roomAvatarGradient(bot.color) : undefined}

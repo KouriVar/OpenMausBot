@@ -151,6 +151,32 @@ below are local customizations on top of upstream `v0.1.150`.
   is a personal-build change and is not intended for upstream.
   中文：**聊天顶栏移除模型选择器**（`ChatView.tsx`）。顶栏不再渲染 `ModelPicker`，模型改在设置里选。
   这是个人构建的改动，不打算进上游。
+- **Bloub, done properly: its own shapes, faces, colours, customizer and studio.**
+  Round two replaces the mascot body and palette with Bloub's: `BloubAvatar`
+  now takes `shape` / `colorId` / `expression` / `paper` and feeds the engine
+  Bloub's OWN shape radii, resting expression and ink, so an avatar drawn by it
+  is pixel-identical to the upstream Vue component (38 of 38 compared cells,
+  0.00 %). Each bot keeps its own look in `localStorage`
+  (`omb.fork.bloub.<botId>`, validated per field, OMB colour mapped onto Bloub's
+  palette), `botId` is threaded through `MausAvatarProps` from every `BotAvatar`
+  call site, and the avatar editor swaps the mascot's shape/face/colour/body for
+  a React port of Bloub's Customizer (8 shapes × 16 expressions × 12 colours,
+  each a frozen 1s thumbnail with its Chinese name). The App appearance row
+  gains "Open the Bloub studio", which opens the unmodified upstream studio
+  (built at `public/bloub/`, MIT, commit `b4bb3c1`) in a full-screen iframe;
+  `#planche` and `#etat=wide&stop` both work. Still avatars move to 40px and
+  above, list avatars animate at 30 fps, a lone large one at 60 fps
+  (14 animated sidebar avatars: ~12% renderer CPU against ~5% for the mascot).
+  中文：**Bloub 这次做对了：用它自己的形状、表情、颜色、定制面板和工作室。** 第二轮把吉祥物的身体和
+  配色换成 Bloub 的：`BloubAvatar` 现在接收 `shape` / `colorId` / `expression` / `paper`，把 Bloub
+  自己的形状半径、静止表情和墨色交给引擎，所以画出来的头像与上游 Vue 组件逐像素一致（38 个对照格全部
+  0.00%）。每个 bot 的外观存在 `localStorage`（`omb.fork.bloub.<botId>`，逐字段校验，OMB 颜色映射到
+  Bloub 色板），`botId` 从每个 `BotAvatar` 调用点经 `MausAvatarProps` 贯穿，头像编辑器把吉祥物的
+  形状/面部/颜色/身体换成 Bloub 定制面板的 React 移植（8 形状 × 16 表情 × 12 颜色，每格是用 1 秒定格
+  画的缩略图，带中文名）。设置外观行新增「打开 Bloub 工作室」，用全屏 iframe 打开未改动的上游工作室
+  （构建在 `public/bloub/`，MIT，commit `b4bb3c1`）；`#planche` 和 `#etat=wide&stop` 都可用。
+  静止帧阈值提到 40px，列表头像 30fps，单个大头像 60fps（侧栏 14 个动画头像：渲染进程约 12%，
+  吉祥物约 5%）。
 
 ### Tests / 测试
 
