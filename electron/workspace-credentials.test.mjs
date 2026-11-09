@@ -47,6 +47,18 @@ describe("workspace credential migration", () => {
     expect(config.xai.key).toBe("xai-secret");
   });
 
+  it("keeps the voice keys apart, MiMo's own included", () => {
+    const result = migrateWorkspaceCredentials({
+      tts: { provider: "mimo", voice: "narrator", geminiKey: "gemini-secret", mimoKey: "mimo-secret" },
+    }, {});
+    expect(result.credentials).toEqual({ geminiTtsKey: "gemini-secret", mimoTtsKey: "mimo-secret" });
+    expect(result.config.tts).toEqual({ provider: "mimo", voice: "narrator" });
+    expect(workspaceCredentialEnv(result.credentials)).toEqual({
+      OMB_GEMINI_API_KEY: "gemini-secret",
+      OMB_MIMO_API_KEY: "mimo-secret",
+    });
+  });
+
   it("keeps the Jev and OpenRouter decision keys apart, with the model and provider left in the file", () => {
     const result = migrateWorkspaceCredentials({
       decider: { provider: "openrouter", openrouterModel: "openai/gpt-4o-mini", key: "jev-secret", openrouterKey: "sk-or-secret", enabled: true },
@@ -130,6 +142,7 @@ describe("workspace credential env", () => {
         boxToken: "boat-secret",
         ttsKey: "tts-secret",
         fishAudioKey: "fish-secret",
+        mimoTtsKey: "mimo-secret",
         opencodeGoApiKey: "ocg-secret",
         openaiImageApiKey: "image-secret",
         composioApiKey: "ak_handled-separately",
@@ -139,6 +152,7 @@ describe("workspace credential env", () => {
       BOX_TOKEN: "boat-secret",
       OMB_TTS_KEY: "tts-secret",
       OMB_FISH_AUDIO_API_KEY: "fish-secret",
+      OMB_MIMO_API_KEY: "mimo-secret",
       OPENCODE_API_KEY: "ocg-secret",
       OMB_OPENAI_IMAGE_KEY: "image-secret",
     });

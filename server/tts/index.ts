@@ -6,9 +6,10 @@ import * as openai from "./openai.ts";
 import * as grok from "./grok.ts";
 import * as fish from "./fish.ts";
 import * as gemini from "./gemini.ts";
+import * as mimo from "./mimo.ts";
 import * as systemVoices from "./system-voices.ts";
 
-export type VoiceProvider = "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai";
+export type VoiceProvider = "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai" | "mimo";
 
 export class NoVoiceConfigured extends Error {
   // Not a parameter property: the harness runs under strip-only `node --experimental-strip-types`, which rejects one at load.
@@ -34,7 +35,7 @@ const elevenLabs = (cfg: AppConfig) => voiceCredential(cfg.tts?.key);
  */
 export function voiceProvider(cfg: AppConfig): VoiceProvider {
   const provider = cfg.tts?.provider;
-  return provider === "gemini" || provider === "openai" || provider === "xai" || provider === "fish" || provider === "system" || provider === "chatterbox" ? provider : "elevenlabs";
+  return provider === "gemini" || provider === "openai" || provider === "xai" || provider === "fish" || provider === "system" || provider === "chatterbox" || provider === "mimo" ? provider : "elevenlabs";
 }
 
 /**
@@ -50,6 +51,7 @@ export function providerConfigured(cfg: AppConfig): boolean {
   if (provider === "system") return systemVoices.systemVoicesAvailable();
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim());
   if (provider === "fish") return Boolean(cfg.tts?.fishKey);
+  if (provider === "mimo") return Boolean(cfg.tts?.mimoKey);
   return Boolean(elevenLabs(cfg));
 }
 
@@ -68,6 +70,7 @@ export function voiceConfigured(cfg: AppConfig): boolean {
   }
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim() && cfg.tts?.voice);
   if (provider === "fish") return Boolean(cfg.tts?.fishKey && cfg.tts?.voice);
+  if (provider === "mimo") return Boolean(cfg.tts?.mimoKey && mimo.isMimoVoice(cfg.tts?.voice));
   return Boolean(elevenLabs(cfg) && cfg.tts?.voice);
 }
 
@@ -87,6 +90,7 @@ export function voiceReady(cfg: AppConfig, voiceId?: string): boolean {
   }
   if (provider === "chatterbox") return Boolean(cfg.tts?.baseUrl?.trim() && (voiceId || cfg.tts?.voice));
   if (provider === "fish") return Boolean(cfg.tts?.fishKey && (voiceId || cfg.tts?.voice));
+  if (provider === "mimo") return Boolean(cfg.tts?.mimoKey && mimo.isMimoVoice(voiceId || cfg.tts?.voice));
   return Boolean(elevenLabs(cfg) && (voiceId || cfg.tts?.voice));
 }
 
@@ -113,13 +117,14 @@ export function describeVoice(cfg: AppConfig) {
 
 /**
  * Verifies an API key with the corresponding speech provider before saving.
- * @param provider The TTS provider name ("elevenlabs" | "fish" | "gemini").
+ * @param provider The TTS provider name ("elevenlabs" | "fish" | "gemini" | "mimo").
  * @param key The API key to test.
  * @returns Result indicating whether the key is valid.
  */
-export function verifyKey(provider: "elevenlabs" | "fish" | "gemini", key: string) {
+export function verifyKey(provider: "elevenlabs" | "fish" | "gemini" | "mimo", key: string) {
   if (provider === "fish") return fish.verifyKey(key);
   if (provider === "gemini") return gemini.verifyKey(key);
+  if (provider === "mimo") return mimo.verifyKey(key);
   return elevenlabs.verifyKey(key);
 }
 
@@ -148,6 +153,7 @@ export async function listVoices(
     const key = cfg.tts?.fishKey;
     return key ? fish.listVoices(key, search) : [];
   }
+  if (provider === "mimo") return cfg.tts?.mimoKey ? mimo.listVoices() : [];
   const credential = elevenLabs(cfg);
   if (!credential) return [];
   return elevenlabs.listVoices(credential.token, credential.api, search);
@@ -221,6 +227,13 @@ export function speak(cfg: AppConfig, text: string, voiceId?: string, run?: syst
     const voice = voiceId || cfg.tts?.voice;
     if (!voice) throw new NoVoiceConfigured("voice");
     return fish.synthesize(text, voice, key, cfg.tts?.fishModel);
+  }
+  if (provider === "mimo") {
+    const key = cfg.tts?.mimoKey;
+    if (!key) throw new NoVoiceConfigured("key", "Add a MiMo key in Settings on the computer to turn on voice.");
+    const voice = voiceId || cfg.tts?.voice;
+    if (!voice) throw new NoVoiceConfigured("voice");
+    return mimo.synthesize(text, voice, key, signal);
   }
   const credential = elevenLabs(cfg);
   if (!credential) throw new NoVoiceConfigured("key");
