@@ -104,12 +104,12 @@ export type MausAvatarProps = {
   faceColor?: MascotFaceColor | null;
   /** The bot this avatar stands for, so the fork's Bloub look can be kept per bot. */
   botId?: string;
-  /** How far past its box the pointer wakes a Bloub avatar, as a multiple of `size`. */
-  followScale?: number;
+  /** Draw a Bloub body to the edges of its box (the small sidebar faces). */
+  fitBody?: boolean;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, followScale } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody } = props;
   // The fork's switch: Bloub replaces every built body, the festival ones included.
   const avatarStyle = useForkAvatarStyle();
   const bloubSkin = useBloubSkin(botId, color);
@@ -124,7 +124,7 @@ function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHa
         state={state}
         animated={animated}
         label={label}
-        followScale={followScale}
+        fitBody={fitBody}
       />
     );
   }
