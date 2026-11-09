@@ -221,6 +221,25 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Grok's Bloub, round four: 2.5D resting gaze, 13 shapes, 60fps session animation, black eyes.** A stored
+  avatar rests on Grok's upper-right look (yaw +11°, pitch +7°) and hover offsets from it, returning there;
+  `palette="bloub"` keeps the flat face for the pixel suite. Grok's 11 colours have no black: both `encre`
+  and `creme` show white, `gris` the grey, and every body gets near-black #0b0b0c eyes (all 11 clear 3:1;
+  lowest grey 4.39). Five new parameterised shapes — four-point star, four-petal flower, heart, scalloped
+  cloud, five-point star — join Bloub's eight for 13, in the panel as 5 + 5 + 3 with no expression grid and a
+  thin grey outline that follows the selected body. Session states now run on each avatar's one long-lived
+  engine: a switch waits out Bloub's MIN_BLOCK (0.6s) so morphs finish, long tool work plays orbit with a
+  play/comet block every ~7s, and everything animated shares one rAF clock at 60fps (idle alone is a still
+  frame). Controlled sequence thinking → orbit → play → orbit → comet → orbit → wink → idle → exclaim → idle
+  captured frame by frame; rAF intervals median 11.7ms / p95 13.8 / max 14.3.
+  中文：**Grok 版 Bloub 第四轮：2.5D 静止视线、13 形状、60fps 会话动画、黑眼睛。** 静止时用 Grok 的右上视线
+  （yaw +11°、pitch +7°），悬停在其上叠加、离开回到这里；`palette="bloub"` 保持正面用于像素对比。Grok 的
+  11 色没有黑色：`encre` 与 `creme` 都显示白，`gris` 显示灰，所有身体都用近黑 #0b0b0c 的眼睛（11 色对黑
+  都过 3:1，最低灰 4.39）。新增 5 个参数化形状——四角星、四瓣花、心形、花边云、尖角星——与 Bloub 原 8 个共
+  13 个，面板按 5+5+3 排列、去掉表情网格，选中是跟随身体轮廓的细灰描边。会话状态跑在每个头像唯一的长期
+  engine 上：切换会等满 Bloub 的 MIN_BLOCK（0.6s）让过渡完成，长工具任务在 orbit 中每约 7 秒插一个
+  play/comet 块，所有动画共用一个 rAF 时钟跑 60fps（只有纯 idle 是静态帧）。受控序列 thinking→orbit→play→
+  orbit→comet→orbit→wink→idle→exclaim→idle 已逐帧记录；rAF 间隔中位 11.7ms / p95 13.8 / 最大 14.3。
 - **Bloub wears Grok's palette.** A fork constant (`FORK_BLOUB_PALETTE = "grok"`) switches the colour table:
   white #ffffff, brown #a16c39, red #f62c3e, orange #f7670d, amber #f79410, green #38c470, teal #36b8a2,
   blue #2c84fc, purple #9159fb, pink #f73399, grey #777777 — Bloub's own 12 stay in `src/vendor/bloub`.

@@ -9,6 +9,11 @@ export const SHAPE_LABELS: Record<string, string> = {
   hexagone: "六边形",
   nuage: "云朵",
   goutte: "水滴",
+  etoile4: "四角星",
+  fleur: "四瓣花",
+  coeur: "心形",
+  nuageFest: "花边云",
+  etoile5: "尖角星",
 };
 
 export const EXPRESSION_LABELS: Record<string, string> = {

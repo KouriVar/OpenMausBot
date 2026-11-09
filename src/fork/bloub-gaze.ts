@@ -42,11 +42,11 @@ export function lookTarget({ nx, ny, tour, pointer }: Aim): Look {
 }
 
 /** Pointer following, not the arrival view: right/left and up/down in screen terms, no left-turn offset. */
-export function followLook(nx: number, ny: number): Look {
+export function followLook(nx: number, ny: number, baseYaw = 0, basePitch = 0): Look {
   return {
-    yaw: nx * YAW_MAX,
+    yaw: baseYaw + nx * YAW_MAX,
     // screen y grows downward; Bloub's pitch is positive looking up
-    pitch: -ny * PITCH_MAX,
+    pitch: basePitch - ny * PITCH_MAX,
     mix: 1,
     spin: 0,
     wander: 0,

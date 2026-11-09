@@ -12,10 +12,12 @@ import { BotEngine, type BotFrame } from "@/vendor/bloub/engine";
 import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from "@/vendor/bloub/expressions";
 import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
-import { DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID, mixHex } from "@/vendor/bloub/skins";
+import { DEFAULT_COLOR, DEFAULT_SHAPE, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
 import { TURN_TIME, followLook } from "@/fork/bloub-gaze";
-import { bloubColorHex } from "@/fork/bloub-skin";
+import { bloubColorHex, bloubEyeColor, GROK_DEFAULT_YAW, GROK_DEFAULT_PITCH } from "@/fork/bloub-skin";
+import { bloubShapeRadii } from "@/fork/bloub-shapes";
+import { BLOUB_MIN_BLOCK, stateSwitchDelay } from "@/fork/bloub-session";
 
 /** The app's bot states on Bloub's own; anything else rests. */
 const STATE_BY_MAUS: Record<string, StateId> = {
@@ -41,9 +43,8 @@ export function bloubState(mausState: string | undefined): StateId {
   return STATE_BY_MAUS[mausState] || "idle";
 }
 
-/** A lone large avatar gets the full frame rate; a background state animates at the list rate. */
+/** A lone large avatar gets the full frame rate; everything animated runs at 60fps now. */
 export const BLOUB_SINGLE_SIZE = 96;
-const BACKGROUND_FPS = 30;
 
 /** Degrees the body leans and pixels it drifts toward the pointer (Grok's own little lean). */
 const LEAN_DEG = 6;
@@ -80,6 +81,8 @@ export type BloubAvatarProps = {
   hitRef?: React.RefObject<HTMLElement | null>;
   /** Palette override: the comparison suite renders Bloub's own colours, the app uses Grok's. */
   palette?: "grok" | "bloub";
+  /** A thin outline following the body, for the selected tile in the panel. */
+  outlineColor?: string;
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -201,14 +204,18 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     frameSize,
     hitRef,
     palette,
+    outlineColor,
   },
   ref,
 ) {
   const reduced = useReducedMotion();
   const stateId = bloubState(state);
-  const shapes = SHAPE_BY_ID.get(shape)?.radii ?? null;
+  const shapes = bloubShapeRadii(shape);
   const expr = EXPRESSION_BY_ID.get(expression) ?? null;
   const ink = bloubColorHex(colorId, palette);
+  const eyeFill = bloubEyeColor(palette) ?? null;
+  const baseYaw = palette === "grok" ? GROK_DEFAULT_YAW : 0;
+  const basePitch = palette === "grok" ? GROK_DEFAULT_PITCH : 0;
   const surface = usePaper(paper, ink);
 
   const engine = useRef<BotEngine | null>(null);
@@ -220,11 +227,14 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const pointer = useRef<{ nx: number; ny: number } | null>(null);
   const aiming = useRef(false);
   const spring = useRef({ x: 0, y: 0, vx: 0, vy: 0, lean: 0, vLean: 0 });
+  const lastSwitch = useRef(-BLOUB_MIN_BLOCK);
+  const pendingState = useRef<string | null>(null);
+  const queueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeState = stateId !== "idle";
   const canAnimate = frozenAt === undefined && !reduced;
   const live = canAnimate && (hovering || settling || (animated && activeState));
-  const fps = (hovering || settling) ? 60 : BACKGROUND_FPS;
+  const fps = 60;
   // A small face may lean only when it has room to (the sidebar tile); in a tight pill it just turns its head.
   const canLean = fitBody || size >= 48;
   const cssSize = fitBody ? (frameSize ?? size) : size;
@@ -232,6 +242,13 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const unitsPerPx = (half * 2) / Math.max(1, cssSize);
 
   const frozenTime = frozenAt ?? POSES[stateId];
+  const defaultLook = () => followLook(0, 0, baseYaw, basePitch);
+  const stillFrame = (bot: BotEngine, at: number) => {
+    // Grok rests on its 2.5D gaze; Bloub's own palette keeps the expression's own gaze (for the pixel suite).
+    if (palette !== "grok") return bot.sample(at);
+    bot.setLook(defaultLook(), at - 0.02, 0.001);
+    return bot.sample(at);
+  };
   const [frame, setFrame] = useState<BotFrame>(() => engine.current!.sample(frozenTime));
   const lastDraw = useRef(0);
   const blinkOff = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,22 +259,41 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   useEffect(() => {
     const bot = engine.current!;
     bot.setShape(shapes, live ? clock : 0);
-    if (!live) setFrame(bot.sample(POSES[stateId]));
+    if (!live) setFrame(stillFrame(bot, POSES[stateId]));
   }, [shape, live, stateId]);
 
   useEffect(() => {
     const bot = engine.current!;
     bot.setExpression(expr, live ? clock : 0);
-    if (!live) setFrame(bot.sample(POSES[stateId]));
+    if (!live) setFrame(stillFrame(bot, POSES[stateId]));
   }, [expression, live, stateId]);
 
   useEffect(() => {
     const bot = engine.current!;
-    if (live) { bot.setState(stateId, clock); return; }
-    if (bot.state !== stateId) bot.setState(stateId, 0);
-    bot.setLook(null, POSES[stateId] - TURN_TIME - 0.01, TURN_TIME);
-    aiming.current = false;
-    setFrame(bot.sample(POSES[stateId]));
+    if (!live) {
+      if (queueTimer.current) { clearTimeout(queueTimer.current); queueTimer.current = null; }
+      pendingState.current = null;
+      lastSwitch.current = -BLOUB_MIN_BLOCK;
+      if (bot.state !== stateId) bot.setState(stateId, 0);
+      aiming.current = false;
+      setFrame(stillFrame(bot, POSES[stateId]));
+      return;
+    }
+    // A switch inside MIN_BLOCK waits for the running block, so the morph finishes (Bloub's cycles.ts).
+    const apply = (id: string, at: number) => { bot.setState(id as StateId, at); lastSwitch.current = at; };
+    const delay = stateSwitchDelay(clock, lastSwitch.current);
+    if (delay === 0) {
+      apply(stateId, clock);
+      return;
+    }
+    pendingState.current = stateId;
+    if (queueTimer.current) clearTimeout(queueTimer.current);
+    queueTimer.current = setTimeout(() => {
+      const id = pendingState.current ?? stateId;
+      pendingState.current = null;
+      apply(id, clock);
+    }, Math.max(10, delay * 1000));
+    return () => { if (queueTimer.current) { clearTimeout(queueTimer.current); queueTimer.current = null; } };
   }, [stateId, live]);
 
   // The animation: the hovered avatar runs every frame; a background state at the list rate.
@@ -292,10 +328,11 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       // Bloub's own head turn: the eyes ride the sphere (yaw/pitch), not a flat shift.
       if (aim && baseFace) {
         // One easing only: the engine's morph is near-instant, the spring does the smoothing.
-        bot.setLook(followLook(aim.nx, aim.ny), now, 0.001);
+        bot.setLook(followLook(aim.nx, aim.ny, baseYaw, basePitch), now, 0.001);
         aiming.current = true;
       } else if (aiming.current) {
-        bot.setLook(null, now, TURN_TIME);
+        // Come home to the 2.5D look (Grok) or a flat front face (Bloub's own palette).
+        bot.setLook(palette === "grok" ? defaultLook() : null, now, palette === "grok" ? 0.2 : TURN_TIME);
         aiming.current = false;
       }
       setFrame(bot.sample(now));
@@ -308,7 +345,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     const bot = engine.current!;
     const settled = POSES[stateId];
     const shut = closedEyeTime(settled + 0.5);
-    setFrame(bot.sample(settled));
+    setFrame(stillFrame(bot, settled));
     const timer = setInterval(() => {
       setFrame(bot.sample(shut));
       blinkOff.current = setTimeout(() => setFrame(bot.sample(settled)), 120);
@@ -423,10 +460,11 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
         <g opacity={frame.bodyAlpha} clipPath={`url(#${clipId})`}>
           <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
           {frame.eyes.map((eye, index) => (
-            <path key={`e${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill={surface} />
+            <path key={`e${index}`} d={eye.d} transform={eye.matrix} opacity={eye.alpha} fill={eyeFill ?? surface} />
           ))}
           {frame.notch && <circle cx={frame.notch.x} cy={frame.notch.y} r={frame.notch.r} fill={surface} />}
         </g>
+        {outlineColor && <path d={frame.bodyPath} fill="none" stroke={outlineColor} strokeWidth={1.5} />}
 
         {!frame.dotsBehind && (
           <g>

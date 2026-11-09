@@ -8,8 +8,16 @@ export type BloubSessionState =
   | "idle" | "thinking" | "orbit" | "play" | "comet"
   | "alert" | "notify" | "wink" | "exclaim" | "sleep";
 
+/** Bloub cycles.ts MIN_BLOCK: the longest morph, so a switch waits for the block to finish. */
+export const BLOUB_MIN_BLOCK = 0.6;
 const LONG_TASK_EVERY_MS = 7000;
 const PLAY_MS = 900;
+
+/** Seconds still to wait before a queued switch may replace the running block (0 = switch now). */
+export function stateSwitchDelay(now: number, lastSwitch: number): number {
+  const since = now - lastSwitch;
+  return since >= BLOUB_MIN_BLOCK - 1e-9 ? 0 : BLOUB_MIN_BLOCK - since;
+}
 
 function toolRunning(last: Message | undefined, busy: boolean): boolean {
   if (!busy || !last || last.kind !== "activity" || !last.tool) return false;

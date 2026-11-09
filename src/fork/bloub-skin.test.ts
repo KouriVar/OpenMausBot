@@ -74,7 +74,7 @@ describe("the Grok palette", () => {
   it("keeps Bloub's own table but shows Grok's 11 colours in its order", () => {
     expect(bloubColorHex("vert", "bloub")).toBe("#3ecf8e");
     expect(bloubColorHex("vert", "grok")).toBe("#38c470");
-    expect(bloubColorHex("encre", "grok")).toBe("#777777");
+    expect(bloubColorHex("encre", "grok")).toBe("#ffffff");
     expect(bloubColorHex("creme", "grok")).toBe("#ffffff");
     const choices = bloubColorChoices("grok");
     expect(choices).toHaveLength(11);

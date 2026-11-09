@@ -120,12 +120,21 @@ const GROK_HEX: Record<string, string> = {
   bleu: "#2c84fc",
   violet: "#9159fb",
   rose: "#f73399",
-  // encre (black) and gris both read as Grok's grey in the new palette.
-  encre: "#777777",
+  // Black has no place in Grok's palette: both a stored encre and creme read as white.
+  encre: "#ffffff",
   gris: "#777777",
 };
 
-/** The 11 swatches the panel shows, Grok's order; `encre` stands for the grey, `creme` for white. */
+/** Grok's eyes are near-black on every body; Bloub's own palette keeps its paper holes. */
+export const GROK_EYE_COLOR = "#0b0b0c";
+/** The resting 2.5D look: eyes up and to the right, body slightly turned. */
+export const GROK_DEFAULT_YAW = 11;
+export const GROK_DEFAULT_PITCH = 7;
+export function bloubEyeColor(palette: "grok" | "bloub" = FORK_BLOUB_PALETTE): string | null {
+  return palette === "grok" ? GROK_EYE_COLOR : null;
+}
+
+/** The 11 swatches the panel shows, Grok's order; `creme` is white, `gris` the grey. */
 export const GROK_COLOR_CHOICES: ReadonlyArray<{ id: string; hex: string }> = [
   { id: "creme", hex: "#ffffff" },
   { id: "brun", hex: "#a16c39" },
@@ -137,7 +146,7 @@ export const GROK_COLOR_CHOICES: ReadonlyArray<{ id: string; hex: string }> = [
   { id: "bleu", hex: "#2c84fc" },
   { id: "violet", hex: "#9159fb" },
   { id: "rose", hex: "#f73399" },
-  { id: "encre", hex: "#777777" },
+  { id: "gris", hex: "#777777" },
 ];
 
 /** A colour id's hex under the chosen palette; Bloub's own table stays in `src/vendor/bloub`. */
@@ -151,3 +160,6 @@ export function bloubColorChoices(palette: "grok" | "bloub" = FORK_BLOUB_PALETTE
   if (palette === "grok") return GROK_COLOR_CHOICES;
   return COLORS.map((colour) => ({ id: colour.id, hex: colour.hex }));
 }
+
+/** The fork hides the expression grid in the avatar panel; expressions stay in code, idle uses neutre. */
+export const FORK_HIDE_EXPRESSIONS_IN_PANEL = true;
