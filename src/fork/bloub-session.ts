@@ -89,3 +89,16 @@ export function useBloubSessionState(bot: Bot, messages: readonly Message[] | un
   if (override && override.until > Date.now()) return override.state;
   return base;
 }
+
+/** The states that are a FACE rather than an animation: they keep the resting 3/4 pose and the pointer
+ * follow, because turning the head does not upset them. Every other state (the thinking dots, orbit,
+ * comet, burst, swirl…) plays in the front coordinate system, so its rest roll/yaw/pitch eases to 0
+ * first — otherwise the three dots of `thinking` come out on a tilted line. */
+const REST_POSE_STATES: ReadonlySet<string> = new Set([
+  "idle", "wink", "wide", "alert", "notify", "exclaim",
+]);
+
+/** Takes any Bloub state id (the engine's own set is wider than the session subset). */
+export function bloubStateKeepsRestPose(id: string): boolean {
+  return REST_POSE_STATES.has(id);
+}
