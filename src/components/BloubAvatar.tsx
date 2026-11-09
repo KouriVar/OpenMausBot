@@ -291,7 +291,12 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const live = canAnimate && inView && !docHidden && (hovering || settling || pokeActive || (animated && activeState));
 
   const cssSize = fitBody ? (frameSize ?? size) : size;
-  const half = fitBody ? (RAYON * cssSize) / Math.max(1, size) : size < 48 ? RAYON : DEMI_VIEWBOX;
+  // A small face drawn without the ring's padding has only ±RAYON to live in, and a body profile can
+  // reach past 1 body radius (a rounded square's diagonal, a triangle's corner). Leave the box room for
+  // whatever THIS shape actually reaches, so a rotated body is never clipped by the viewBox.
+  const bodyPeak = Math.max(1, ...(shapes ?? []));
+  const tight = RAYON * bodyPeak;
+  const half = fitBody ? (RAYON * cssSize) / Math.max(1, size) : size < 48 ? tight : DEMI_VIEWBOX;
   const vb = half;
 
   const frozenTime = frozenAt ?? POSES[stateId];

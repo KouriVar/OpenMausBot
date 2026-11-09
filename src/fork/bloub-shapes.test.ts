@@ -4,6 +4,7 @@ import { PROFILE_SAMPLES } from "@/vendor/bloub/profiles";
 import {
   BLOUB_SHAPE_COUNT,
   GROK_SHAPE_ORDER,
+  SHAPE_PEAK,
   bloubShapeChoices,
   bloubShapeRadii,
   isBloubShape,
@@ -51,12 +52,29 @@ describe("Grok's canonical shape catalog", () => {
     expect(bloubShapeRadii("etoile5")).toEqual(bloubShapeRadii("star"));
   });
 
-  it("builds a sane house profile: house-shaped, normalised near 1.02", () => {
-    const house = bloubShapeRadii("house");
+  it("builds a sane house profile: a plump house, peak just under one radius", () => {
+    const house = bloubShapeRadii("house")!;
     expect(isSane(house)).toBe(true);
-    expect(Math.max(...house!)).toBeGreaterThan(0.99);
+    expect(Math.max(...house)).toBeCloseTo(SHAPE_PEAK, 3);
     const circle = bloubShapeRadii("blob")!;
-    expect(house!.some((r, i) => Math.abs(r - circle[i]!) > 0.05)).toBe(true);
+    expect(house.some((r, i) => Math.abs(r - circle[i]!) > 0.05)).toBe(true);
+  });
+
+  it("keeps every authored shape fat, round and soft (no sharp tips, no thin waist)", () => {
+    // The three rules from the picker comparison: shallow valleys, a full body, round corners.
+    for (const id of ["sparkle", "clover", "heart", "flower", "teardrop", "wedge", "star", "house", "tablet"]) {
+      const radii = bloubShapeRadii(id)!;
+      const n = radii.length;
+      const peak = Math.max(...radii);
+      const valley = Math.min(...radii);
+      const dTheta = (Math.PI * 2) / n;
+      const area = radii.reduce((sum, r) => sum + 0.5 * r * r * dTheta, 0) / (Math.PI * peak * peak);
+      // A house pentagon and a 1.45:1 tablet cannot reach the valley rule (their shortest ray is the
+      // flat side, not a concavity); every lobed shape must.
+      if (id !== "house" && id !== "tablet") expect(valley / peak, `${id} valley`).toBeGreaterThanOrEqual(0.72);
+      if (id !== "house") expect(area, `${id} area`).toBeGreaterThanOrEqual(0.72);
+      expect(peak, `${id} peak`).toBeLessThanOrEqual(SHAPE_PEAK + 1e-6);
+    }
   });
 
   it("normalises legacy ids and passes unknown ids through", () => {

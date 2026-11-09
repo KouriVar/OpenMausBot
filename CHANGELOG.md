@@ -221,6 +221,31 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Grok's Bloub, round-six patch three: every shape is fat, round and soft.** The picker now reads like Grok's: a
+  `softLobes` family (a cosine crest, so a "tip" is a wide round bump with no cusp at all) drives sparkle (four plump
+  petals, valley 0.76 of the peak), clover (valley 0.82, a big solid centre the eyes sit on), star (five short round
+  points, valley 0.74) and flower (eight shallow bumps, valley 0.93); heart and teardrop are unions of circles —
+  a round bottom instead of a point, two plumper lobes, and a short round tip whose bottom is ~0.9 of the width —
+  softened so their waists read as round rather than pinched (valleys 0.73 / 0.79); tablet is a filleted capsule at
+  about 1.45:1; wedge is a three-lobed round triangle (valley 0.72) whose apex is an arc, so no sharp corner exists;
+  house keeps its flat base, upright sides and triangular roof but every corner is a tangent arc. Corners are filleted
+  with a tangent-arc routine whose radius is clamped to what the edges can spare (a Minkowski push-out overlaps once the
+  radius nears half an edge, which is what turned the house into a star). Every authored shape now measures area ≥ 0.72
+  of the circle of its peak radius and a valley ≥ 0.72 — except the house pentagon and the 1.45:1 tablet, whose shortest
+  ray is a flat side rather than a concavity (area 0.35 / 0.74). All authored shapes peak at 0.98 body radii, which also
+  fixes clipping: a small face drawn without the ring's padding used to have only ±1 radius to live in, so a rounded
+  square's diagonal or a triangle's corner was cut off by the viewBox — the box now allows for whatever the current
+  shape actually reaches. Typecheck, lint and the suites are green.
+  中文：**Grok 版 Bloub 第六轮修补三：所有形状变得胖、圆、软。** 选择面板现在和 Grok 一样厚实：新增 `softLobes`（余弦
+  波峰，所以"尖"是宽而圆的包、根本没有尖点）驱动四角星（四个圆鼓短瓣，谷值 0.76）、四瓣花（谷值 0.82，中心很大足够放
+  眼睛）、星形（五个短圆胖尖，谷值 0.74）、花朵（八个浅起伏，谷值 0.93）；心形与水滴改为圆并集——底部是圆头不是尖角、
+  上瓣更胖、水滴底圆直径约为宽度的 0.9 且顶尖短而圆——再做柔化，让腰看起来是圆的而不是被掐住（谷值 0.73 / 0.79）；
+  胶囊加厚到约 1.45:1；三角改为三瓣圆角形（谷值 0.72），顶角是圆弧，不存在尖角；房子保持平底、竖直两侧与三角屋顶，但
+  所有角都是切线圆弧。圆角用切线圆弧算法，半径会按边长夹紧（Minkowski 外推在半径接近半边长时会让圆弧自交——之前房子
+  被渲染成星形正是这个原因）。现在自绘形状的面积都 ≥ 峰半径圆的 0.72、谷值 ≥ 0.72——只有房子五边形和 1.45:1 的胶囊
+  例外，它们最短的射线落在平边上而不是凹处（面积 0.35 / 0.74）。自绘形状峰值统一为 0.98 身体半径，顺带修掉裁切：小尺寸
+  头像没有外环留白时只有 ±1 半径可用，圆角方形的对角、三角形的角会被 viewBox 切掉——现在按当前形状实际到达的范围留余量。
+  类型检查、lint、测试全绿。
 - **Grok's Bloub, round-six patch two: the rest gaze really looks up, animations play front-on, and the shapes are symmetric.** The resting pitch is 26° (up), not the authored 18.06: the two engines use opposite pitch signs (Grok negates y when it projects the sphere, so its −18.061 is "up"; this engine's screen coordinates make positive pitch "up"), and at 18.06 the outer eye landed on the centre line, which read as level-or-down at 40–45px. Measured on the render: +18.06 gives (+38%, −16%) of the radius, i.e. upper right, while −18.06 gives (+11%, +40%), lower right — so the sign stays positive and the angle is lifted until both eyes clear the centre line. Any state that is an ANIMATION (thinking's three dots, orbit, comet, burst, play, swirl…) now eases the rest pose and the pointer follow to 0 over that state's own morph and plays in the front coordinate system, so its dots are horizontal; face states (idle, wink, wide, alert, notify, exclaim) keep the 3/4 pose and the follow, and returning to idle eases back. A fork constant `FORK_BLOUB_SESSION_ANIMATION` decides where session animation plays: the sidebar tile and the progress avatar above the composer animate, while the chat header's profile pill always keeps the bot's resting face (it still turns to the pointer and still shows `surprised` on hover). `sparkle` is now an analytic four-point star (tips exactly up/down/left/right on the 64-sample grid: measured width/height 1.000 and tip-length spread 0.00px), `star` a five-arm star (tips every 72°, rounded, point up, tip-length spread 0.5% = sub-pixel), and `house` a rounded pentagon about 1.0 wide by 1.05 tall with a flat base, vertical sides and a triangular roof. Every shape measures mirror-symmetric in the front view (up = down, left = right), so the only lean at rest is the shared +25.64° roll. Typecheck, lint and the suites are green.
   中文：**Grok 版 Bloub 第六轮修补二：静止视线真的抬头、状态动画正面播放、形状对称。** 静止 pitch 取 26°（向上），不是原来的 18.06：两套引擎的 pitch 符号相反（Grok 投影球面时把 y 取反，所以它的 −18.061 才是「抬头」；本引擎用屏幕坐标，正 pitch 就是「抬头」），而 18.06 时外侧那只眼正好压在中线上，40–45px 下看起来就是平视甚至低头。渲染实测：+18.06 落在半径 (+38%,−16%)＝右上，−18.06 落在 (+11%,+40%)＝右下，所以符号保持为正、把角度抬高到两眼都明确高于中线。任何「动画类」状态（thinking 三点、orbit、comet、burst、play、swirl…）现在会按该状态自身的 morph 时长把休息姿态和跟随一起过渡到 0，并在正面坐标系播放，三点于是水平；「表情类」状态（idle、wink、wide、alert、notify、exclaim）保留 3/4 姿态与跟随，回 idle 时再平滑过渡回去。新增 fork 常量 `FORK_BLOUB_SESSION_ANIMATION` 决定会话动画在哪播：侧栏格子和输入框上方的进度头像播，聊天顶部的资料胶囊始终是 bot 自己的静止脸（仍会跟随指针、悬停仍切惊讶）。`sparkle` 改为解析式四角星（尖正好落在 64 采样网格的上下左右：实测宽高比 1.000、四尖长度差 0.00px），`star` 改为五臂星（每 72° 一尖、尖端圆角、尖朝上，尖长差 0.5%＝亚像素），`house` 改为约宽 1.0、高 1.05 的圆角五边形（底边水平、两侧竖直、三角屋顶）。正面视角下 13 个形状全部实测镜像对称（up=down、left=right），静止时唯一的歪斜只来自统一的 +25.64° roll。类型检查、lint、测试全绿。
 - **Grok's Bloub, round-six polish: clean expression revert on leave, and three redrawn shapes.** Leaving a hovered face now morphs `surprised → neutral` with the normal expression morph, and never blinks: the spontaneous liveliness blink is turned off while a Grok face is live (forced state blinks like wink still fire), and settling drops any stale morph history (`clearMorphs`) so the resting face is byte-identical to an untouched one (same-avatar screenshot diff 0). `sparkle` is now a proper 4-point star (tips up/down/left/right, concave sides, fat ~0.58R centre where the eyes sit — no notch), `star` a rounded 5-point star (point up, chunky centre), and `flower` a puffy 8-bump scalloped cloud (low amplitude, no spikes) — all parametric radial profiles, all keeping the eyes inside the solid body. The rest pose (roll +25.64°) and the rest of round six are unchanged. Typecheck, lint and the suites are green.
