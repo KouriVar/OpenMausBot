@@ -204,9 +204,7 @@ export function quoteSurface(inset: string, background: string): string {
   return mixSrgb(inset, background, 0.7);
 }
 
-/** `flat`: Simple mode's one even fill, the tone's background with no gradient over it. */
-export function userBubbleStyle(color: MausColor, { flat = false }: { flat?: boolean } = {}): CSSProperties {
-  const tone = userBubbleTone(color);
+function toneStyle(tone: UserBubbleTone, flat: boolean): CSSProperties {
   return {
     backgroundColor: tone.background,
     backgroundImage: flat ? "none" : tone.gradient,
@@ -232,4 +230,16 @@ export function userBubbleStyle(color: MausColor, { flat = false }: { flat?: boo
     "--bubble-selection": tone.selection,
     "--bubble-selection-ink": tone.selectionInk,
   } as CSSProperties;
+}
+
+/** `flat`: Simple mode's one even fill, the tone's background with no gradient over it. */
+export function userBubbleStyle(color: MausColor, { flat = false }: { flat?: boolean } = {}): CSSProperties {
+  return toneStyle(userBubbleTone(color), flat);
+}
+
+/** The same tone from any hex (the fork's Bloub colours), keeping both ends of the gradient at AA. */
+export function userBubbleStyleHex(hex: string, { flat = false }: { flat?: boolean } = {}): CSSProperties {
+  const { h } = toOklch(hex);
+  const tone = h >= YELLOW_HUES.from && h <= YELLOW_HUES.to ? darkInkTone(hex) : whiteInkTone(hex);
+  return toneStyle(tone, flat);
 }

@@ -221,6 +221,26 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Bloub, finished for daily use.** The fork's Bloub avatar now follows the
+  pointer within a tight range (about one avatar size; 1.5× in the sidebar), with
+  only the avatar nearest the pointer turning — no cross-talk between avatars —
+  and comes home smoothly when the pointer leaves (`prefers-reduced-motion` off).
+  The sidebar's bot face is 37px of its 46px box in both modes, its
+  chief-crown and model badge are hidden, and a group shows a 2×2 of its first
+  four members' own Bloub faces. A bot's turn plays Bloub's states: thinking
+  before a tool, orbit while one runs (a play/comet interlude every ~7s), alert
+  when it needs you, notify for unread, a wink when a turn finishes, exclaim on
+  error, sleep after ten idle minutes — same mapping on the sidebar, chat header
+  and profile card, live at 30fps while it runs. Your own message bubble takes
+  the bot's Bloub colour (white or near-black text chosen for AA), neutral in a
+  group chat; the mascot avatar keeps the old look.
+  中文：**Bloub 完成日常可用。** 本 fork 的 Bloub 头像现在在很窄的范围内跟随鼠标（约一个头像大小，
+  侧栏 1.5 倍），只有离鼠标最近的那个头像会转头、彼此不联动，鼠标离开后平滑回正
+  （`prefers-reduced-motion` 时关闭）。侧栏 bot 头像在两种模式下都是 46px 盒子里的 37px，主 bot 皇冠
+  和模型角标隐藏，群头像显示前四个成员各自 Bloub 脸的 2×2。一个 turn 会播 Bloub 的状态：调用工具前
+  thinking、工具运行中 orbit（约每 7 秒穿插 play/comet）、需要你时 alert、未读 notify、完成眨眼一次、
+  出错 exclaim（2 秒）、空闲十分钟 sleep——侧栏、聊天头部、资料卡同一套映射，运行中 30fps 实时渲染。
+  你发的消息气泡取 bot 的 Bloub 颜色（自动选白或近黑文字，满足 AA），群聊保持中性；吉祥物头像维持原样。
 - **Optional Bloub avatar (Grok-style), vendored from `jeremy-prt/bloub`.**
   Settings → Appearance gains "Grok-style avatar (Bloub)": with it on, every bot
   avatar is drawn by the vendored engine (`src/vendor/bloub`, MIT, commit

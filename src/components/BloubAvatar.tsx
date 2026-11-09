@@ -73,6 +73,8 @@ export type BloubAvatarProps = {
   /** The surface behind the eye holes; falls back to the page's own colour. */
   paper?: string;
   label?: string;
+  /** How far past its box the pointer wakes and turns the avatar, as a multiple of `size`. */
+  followScale?: number;
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -108,25 +110,52 @@ function subscribeFrames(listener: (clock: number) => void): () => void {
 /* ----------------------------------------------------------- one pointer */
 
 let pointer: { x: number; y: number } | null = null;
-const pointerSubs = new Set<() => void>();
+type Measurer = () => { dist: number; range: number };
+const measurers = new Map<string, Measurer>();
+const ownerSubs = new Set<(owner: string | null) => void>();
+let owner: string | null = null;
 let pointerBound = false;
 
-/** One pointermove for every avatar on the page; each reads it against its own box. */
-function subscribePointer(listener: () => void): () => void {
-  pointerSubs.add(listener);
-  if (!pointerBound && typeof window !== "undefined") {
-    pointerBound = true;
-    window.addEventListener("pointermove", (event) => {
-      if (event.pointerType === "touch") return;
-      pointer = { x: event.clientX, y: event.clientY };
-      for (const sub of pointerSubs) sub();
-    }, { passive: true });
-    document.addEventListener("pointerleave", () => {
-      pointer = null;
-      for (const sub of pointerSubs) sub();
-    });
+/** Only the avatar closest to the pointer (within its own range) follows; the rest rest. */
+function computeOwner() {
+  let best: string | null = null;
+  let bestRatio = Infinity;
+  if (pointer) {
+    for (const [id, measure] of measurers) {
+      const box = measure();
+      if (!box || box.dist > box.range) continue;
+      const ratio = box.dist / Math.max(1, box.range);
+      if (ratio < bestRatio) { bestRatio = ratio; best = id; }
+    }
   }
-  return () => { pointerSubs.delete(listener); };
+  if (best !== owner) {
+    owner = best;
+    for (const sub of ownerSubs) sub(owner);
+  }
+}
+
+function ensurePointer() {
+  if (pointerBound || typeof window === "undefined") return;
+  pointerBound = true;
+  window.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
+    pointer = { x: event.clientX, y: event.clientY };
+    computeOwner();
+  }, { passive: true });
+  document.addEventListener("pointerleave", () => { pointer = null; computeOwner(); });
+}
+
+/** One pointermove for the whole page; each avatar registers how far the pointer is, and one owner follows. */
+function subscribeFollow(id: string, measure: Measurer, onChange: (owner: string | null) => void): () => void {
+  ensurePointer();
+  measurers.set(id, measure);
+  ownerSubs.add(onChange);
+  computeOwner();
+  return () => {
+    measurers.delete(id);
+    ownerSubs.delete(onChange);
+    computeOwner();
+  };
 }
 
 function clamp(value: number, low: number, high: number): number {
@@ -208,6 +237,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     frozenAt,
     paper,
     label,
+    followScale = 1,
   },
   ref,
 ) {
@@ -221,17 +251,17 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const engine = useRef<BotEngine | null>(null);
   if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, expr);
 
-  const [near, setNear] = useState(false);
+  const [following, setFollowing] = useState(false);
   const [hover, setHover] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
-  const nearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aimId = useId();
   const aiming = useRef(false);
 
   const activeState = stateId !== "idle";
   const canAnimate = frozenAt === undefined && !reduced;
   // Small and idle: still, until the pointer comes near or a real state plays.
   // The pointer wakes even an idle avatar the caller marked not-animated; a real state playing runs live.
-  const live = canAnimate && (near || hover || (animated && (size >= BLOUB_STILL_SIZE || activeState)));
+  const live = canAnimate && (following || hover || (animated && (size >= BLOUB_STILL_SIZE || activeState)));
   const half = size < BLOUB_CROP_BELOW ? RAYON : DEMI_VIEWBOX;
 
   const frozenTime = frozenAt ?? POSES[stateId];
@@ -241,21 +271,14 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const uid = useId().replace(/[:]/g, "");
   const maskId = `bloub-mask-${uid}`;
 
-  const settleNear = (inside: boolean) => {
-    if (nearTimer.current) { clearTimeout(nearTimer.current); nearTimer.current = null; }
-    if (inside) { setNear(true); return; }
-    // Let the eyes come home before the still frame takes over.
-    nearTimer.current = setTimeout(() => setNear(false), 450);
-  };
-
-  // One pointermove listener for the page; this avatar only measures its own box.
-  useEffect(() => subscribePointer(() => {
+  // This avatar measures its own distance; only the closest one (within its range) follows.
+  useEffect(() => subscribeFollow(aimId, () => {
     const box = svgRef.current?.getBoundingClientRect();
-    if (!pointer || !box || box.width === 0) { settleNear(false); return; }
+    if (!pointer || !box || box.width === 0) return { dist: Infinity, range: 1 };
     const dx = Math.max(box.left - pointer.x, 0, pointer.x - box.right);
     const dy = Math.max(box.top - pointer.y, 0, pointer.y - box.bottom);
-    settleNear(Math.hypot(dx, dy) <= BLOUB_NEAR_PX);
-  }), []);
+    return { dist: Math.hypot(dx, dy), range: size * followScale };
+  }, (next) => setFollowing(next === aimId)), [aimId, size, followScale]);
 
   // A new shape morphs (BloubBot.vue:408); still frames redraw at once.
   useEffect(() => {
@@ -292,7 +315,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       if (now - lastDraw.current < step - 0.0005) return;
       lastDraw.current = now;
       const box = svgRef.current?.getBoundingClientRect();
-      if (pointer && box && box.width > 0 && baseFace) {
+      if (following && pointer && box && box.width > 0 && baseFace) {
         const nx = clamp((pointer.x - (box.left + box.width / 2)) / Math.max(1, window.innerWidth / 2), -1, 1);
         const ny = clamp((pointer.y - (box.top + box.height / 2)) / Math.max(1, window.innerHeight / 2), -1, 1);
         bot.setLook(lookTarget({ nx, ny, tour: 1, pointer: true }), now);
@@ -303,7 +326,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       }
       setFrame(bot.sample(now));
     });
-  }, [live, size, stateId]);
+  }, [live, size, stateId, following]);
 
   // A still avatar blinks now and then, without running the morphs.
   useEffect(() => {
@@ -322,8 +345,6 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       blinkOff.current = null;
     };
   }, [live, frozenAt, reduced, stateId]);
-
-  useEffect(() => () => { if (nearTimer.current) clearTimeout(nearTimer.current); }, []);
 
   useImperativeHandle(ref, () => ({
     blink: () => {

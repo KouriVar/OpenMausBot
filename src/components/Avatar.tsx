@@ -20,6 +20,8 @@ import { CarvedAvatar } from "./CarvedAvatar";
 import { steelBodyImage } from "@/lib/steel-body";
 import { useForkAvatarStyle } from "@/fork/avatar-style";
 import { useBloubSkin } from "@/fork/bloub-skin";
+import { useBloubSessionState } from "@/fork/bloub-session";
+import type { Bot, Message } from "@/state/store";
 import { BloubAvatar } from "./BloubAvatar";
 
 export const EYE_SCALE = 1.12;
@@ -102,10 +104,12 @@ export type MausAvatarProps = {
   faceColor?: MascotFaceColor | null;
   /** The bot this avatar stands for, so the fork's Bloub look can be kept per bot. */
   botId?: string;
+  /** How far past its box the pointer wakes a Bloub avatar, as a multiple of `size`. */
+  followScale?: number;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, followScale } = props;
   // The fork's switch: Bloub replaces every built body, the festival ones included.
   const avatarStyle = useForkAvatarStyle();
   const bloubSkin = useBloubSkin(botId, color);
@@ -120,6 +124,7 @@ function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHa
         state={state}
         animated={animated}
         label={label}
+        followScale={followScale}
       />
     );
   }
@@ -239,6 +244,8 @@ export const MausAvatar = memo(forwardRef(MausAvatarComponent));
 
 export type BotAvatarProps = Omit<MausAvatarProps, "color" | "gradient"> & {
   readable?: boolean;
+  /** The bot's visible transcript, so the fork's Bloub can read its session state. */
+  messages?: readonly Message[];
   bot: {
     id?: string;
     name?: string;
@@ -268,7 +275,9 @@ export function resolveBotAvatarOutcome(params: {
   return "flatImage";
 }
 
-export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotProps }: BotAvatarProps) {
+export function BotAvatar({ bot, size = 44, label, readable = false, messages, ...mascotProps }: BotAvatarProps) {
+  const bloubStyle = useForkAvatarStyle() === "bloub";
+  const sessionState = useBloubSessionState(bot as unknown as Bot, messages, bloubStyle);
   const profile = botAvatarProfile(bot);
   const festival = useFestivalDress();
   const [imageFailed, setImageFailed] = useState(false);
@@ -287,6 +296,7 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
         bodyId={wornBody(bot.mascotBody, bot.color, festival)}
         {...mascotProps}
         botId={bot.id}
+        state={bloubStyle ? (sessionState as unknown as MausState) : mascotProps.state}
         color={bot.color}
         faceColor={bot.mascotFaceColor}
         gradient={readable ? roomAvatarGradient(bot.color) : undefined}
