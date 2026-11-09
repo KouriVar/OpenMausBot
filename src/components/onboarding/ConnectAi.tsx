@@ -3,6 +3,7 @@ import { Check, ChevronDown, LoaderCircle, RefreshCw, X } from "lucide-react";
 import { EngineSetup } from "@/components/EngineSetup";
 import { engineReady } from "@/components/EngineLibrary";
 import { InstanceProviderMark } from "@/components/ProviderIcons";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { engineDisplayName } from "@/lib/engine-name";
@@ -126,7 +127,7 @@ export function ConnectAi({ hosted = false, tested }: { hosted?: boolean; tested
 
       {(organisation || others.length > 0) && (
         <div className="mt-3 w-full divide-y divide-hairline/40 overflow-hidden rounded-2xl bg-card text-left">
-          {organisation && (
+          {organisation && !FORK_LOCAL_ONLY && (
             <OrganisationRow
               bridge={organisation}
               onOpenSettings={() => dispatch({ type: "toggleAppSettings", open: true, section: "organization" })}

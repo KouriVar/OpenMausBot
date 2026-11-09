@@ -2,6 +2,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import type { ManagedDesktopBridge } from "../../../electron/managed-desktop.mjs";
 import { setLocale } from "@/lib/i18n";
 import type { InstanceInfo } from "@/state/store";
@@ -211,7 +212,7 @@ describe("connecting an AI on the first screen", () => {
     expect(host.querySelector("[data-ai-recommended]")?.getAttribute("data-ai-recommended")).toBe("claude");
   });
 
-  it("offers the organization sign-in under Other ways on this computer's own window only", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("offers the organization sign-in under Other ways on this computer's own window only", async () => {
     await show();
     await otherWays();
     expect(f.row).toBeNull();

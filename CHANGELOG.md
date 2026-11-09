@@ -54,6 +54,30 @@ below are local customizations on top of upstream `v0.1.150`.
   - `SidebarInboxRow` gained `rail` for that round shape; its count badge and
     running dot stay in place.
 
+- **This fork is local-only: MausBot Cloud and organization entries are
+  hidden.** `src/fork/local-only.ts` holds `FORK_LOCAL_ONLY = true`, the one
+  switch every hiding reads; nothing is deleted and flipping it brings every
+  entry back.
+  - Settings: the Cloud account and Organization pages leave the rail (both
+    modes), and Simple's Usage & billing page keeps usage only
+    (`SettingsModal.tsx`).
+  - MausBot's first messages drop the "Try Cloud" step and chip
+    (`HelperSetup.tsx`).
+  - Remote access keeps Same Wi-Fi, Tailscale and the relay; only the hosted
+    HTTPS address row is hidden (`PhoneDevicesSection.tsx`).
+  - Untouched, as required: logins, usage, remote access, model providers, API
+    keys, the bot desktop, backups and import.
+
+- **The remaining Cloud prompts are gone too.** Same switch:
+  remote access keeps Same Wi-Fi and Tailscale only (the relay row goes with
+  the HTTPS one); Settings' General page loses the `ProSettingsCard` and
+  Simple's General the Cloud plan row; no Cloud trial, Cloud notice or
+  what's-new buy action, no Cloud welcome or first-run sign-in
+  (`cloudSignInDue` is never due); the account menu loses its Cloud account
+  row and its "My Cloud" place rows; the menu's "Add a Cloud…" and the
+  `?desktop-settings=cloud*` links do nothing; "Add a Cloud" in a routine's
+  schedule note, the two "more pages" upgrade buttons and the organization
+  sign-in row in Connect AI are hidden.
 - **Advanced mode's collapsed sidebar centres on the window's traffic lights.** Collapsed to
   icons, the sidebar was 80px wide, so its column of 46px buttons centred at
   x = 39.75 while the traffic lights' yellow button, inset at 16,16, centres at
@@ -73,6 +97,11 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Tests
 
+- The Cloud-only settings tests and the two Cloud/Organization bridge cases are
+  skipped under `FORK_LOCAL_ONLY` (`it.skipIf`), and `HelperIntro.test.ts`,
+  `SettingsModal.groups.test.ts` and `SettingsModal.simple.test.ts` read the
+  constant for the lists it changes. The Cloud plan suite
+  (`SettingsModal.cloudPlan.test.ts`) is skipped whole.
 - Updated upstream tests that asserted the old layout:
   `ChatView.controls.test.ts` (header no longer shows the model picker) and
   `Sidebar.header.test.ts` / `Sidebar.simple-layout.test.ts` (search and `+` at

@@ -3,6 +3,7 @@ import { Rocket, Star } from "lucide-react";
 import type { CloudAccountState } from "../../electron/cloud-account.mjs";
 import type { CloudOffer } from "../../electron/cloud-home.mjs";
 import { api, useStore } from "@/state/store";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { APP_REPOSITORY } from "@/lib/app-links";
 import { track } from "@/lib/analytics";
 import { boatOfferRuns } from "@/lib/boat-offer";
@@ -261,7 +262,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   if (notice === WHATS_NEW_NOTICE && whatsNew && desktop) {
     const report = (action: WhatsNewAction, slide: WhatsNewSlide) => reportWhatsNew(action, slide, whatsNew);
     const done = () => { close(); save(WHATS_NEW_NOTICE); void desktop.seen(WHATS_NEW_NOTICE).catch(() => {}); };
-    return <WhatsNewPopup view={whatsNew} report={report} onDone={done} onBuy={slide => dispatch({ type: "openCloudAdd", source: WHATS_NEW_SOURCES[slide] })} />;
+    return <WhatsNewPopup view={whatsNew} report={report} onDone={done} onBuy={FORK_LOCAL_ONLY ? undefined : slide => dispatch({ type: "openCloudAdd", source: WHATS_NEW_SOURCES[slide] })} />;
   }
 
   if (notice === UPDATES_CONSENT_NOTICE && consent.state) {
@@ -270,7 +271,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       onYes={async email => { await consent.choose("opted_in", email); done(); }}
       onNo={() => { done(); void consent.choose("declined").catch(() => {}); }} />;
   }
-  if (notice === CLOUD_INTRO && offer) {
+  if (notice === CLOUD_INTRO && offer && !FORK_LOCAL_ONLY) {
     const done = (action: string) => { track("cloud_card_action", { action }); close(); save(CLOUD_INTRO); };
     return <CloudTrialIntroCard offer={offer}
       onStart={() => { done("start"); dispatch({ type: "openCloudAdd", source: "app_card" }); }}
@@ -279,12 +280,12 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
       onNotNow={() => { done("not_now"); setToast(t("cloudIntro.later")); }}
       onDismiss={() => { done("close"); setToast(t("cloudIntro.later")); }} />;
   }
-  if (notice === CLOUD_TRIAL_NOTICE && trial) {
+  if (notice === CLOUD_TRIAL_NOTICE && trial && !FORK_LOCAL_ONLY) {
     const shown = cloudTrialView(trial, plan?.credit);
     const act = () => { setFailed(false); void planBridge?.manage().then(close, () => setFailed(true)); };
     return <CloudTrialNoticeCard view={shown} failed={failed} onAction={act} onClose={close} />;
   }
-  if (notice === CLOUD_NOTICE && kind && bridge) {
+  if (notice === CLOUD_NOTICE && kind && bridge && !FORK_LOCAL_ONLY) {
     const act = () => {
       if (busy) return;
       setFailed(false); setBusy(true);

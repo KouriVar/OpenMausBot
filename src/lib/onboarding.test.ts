@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import {
   aiChoices,
   aiWorks,
@@ -106,7 +107,7 @@ describe("first run on an OMB Cloud home", () => {
   const signedOut = [engine("claude", false), engine("codex", false), engine("opencodeGo", undefined, "unavailable")];
 
   it("routes the connected app to the engine sign-in, not the welcome flow", () => {
-    expect(cloudSignInDue(connected, { connected: true, instances: signedOut }, ready)).toBe(true);
+    expect(cloudSignInDue(connected, { connected: true, instances: signedOut }, ready)).toBe(!FORK_LOCAL_ONLY);
     expect(welcomeDue({ onboarding: EMPTY_ONBOARDING }, { remoteClient: false, legacyDone: false, ...connected })).toBe(false);
   });
 
