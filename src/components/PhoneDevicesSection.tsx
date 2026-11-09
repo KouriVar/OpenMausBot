@@ -22,6 +22,7 @@ import { PairedPhones } from "./PairedPhones";
 import { Card, Switch } from "./SettingsPrimitives";
 import { productName } from "../lib/brand";
 import { useStore } from "@/state/store";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 
 export {
   companionAccountActionError,
@@ -421,7 +422,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
                 </div>
               </div>
             )}
-            <div className="flex items-start justify-between gap-4 border-t border-hairline/30 pt-4" data-route-row="https">
+            {!FORK_LOCAL_ONLY && <div className="flex items-start justify-between gap-4 border-t border-hairline/30 pt-4" data-route-row="https">
               <div className="min-w-0">
                 <div className="text-[13px] text-ink">{t("devices.route.https")}</div>
                 <div className="mt-0.5 text-[12px] leading-relaxed text-ink-secondary">
@@ -439,7 +440,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
                 <button type="button" className={button} disabled={c.busy || c.accountBusy || Boolean(managedBy)}
                   onClick={() => setPairing("https")}>{t("devices.route.setUp")}</button>
               )}
-            </div>
+            </div>}
           </div>
         </details>
       </section>

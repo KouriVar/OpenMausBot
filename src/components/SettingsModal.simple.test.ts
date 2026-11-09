@@ -2,6 +2,7 @@ import { createElement, type ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setLocale, t } from "@/lib/i18n";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import type { AppSettingsSection } from "@/state/store";
 import type { Switch } from "./SettingsPrimitives";
 import { SECTIONS, SIMPLE_FOLDED, SIMPLE_HIDDEN_SECTIONS, SIMPLE_PAGES, SettingsModal, revealSettingsBlock } from "./SettingsModal";
@@ -158,7 +159,9 @@ describe("Settings in Simple mode", () => {
   it("files every Advanced page under one Simple page, or hides it", () => {
     const placed = SIMPLE_PAGES.flatMap((page) => page.sections);
     expect(new Set(placed).size).toBe(placed.length);
-    const hidden = SECTIONS.map((entry) => entry.id).filter((id) => !placed.includes(id));
+    // The fork never offers these, so they need no Simple page at all.
+    const hidden = SECTIONS.map((entry) => entry.id).filter((id) => !placed.includes(id))
+      .filter((id) => !FORK_LOCAL_ONLY || (id !== "cloudAccount" && id !== "organization"));
     expect(hidden).toEqual(["decisionModel", "imageGeneration", "skills", "backups", "workspaces", "experimental"]);
     for (const id of hidden) expect(SIMPLE_HIDDEN_SECTIONS).toContain(id);
   });
@@ -166,7 +169,9 @@ describe("Settings in Simple mode", () => {
   it("opens General on Account, then Appearance, Language and typing, Notifications, System and Import, with More settings and Advanced mode last as plain rows", () => {
     const html = render();
     expect(currentPage(html)).toBe("general");
-    expect(groupLabels(html)).toEqual(["Account", "Appearance", "Language and typing", "Notifications", "System", "Import", "Organization"]);
+    expect(groupLabels(html)).toEqual(FORK_LOCAL_ONLY
+      ? ["Account", "Appearance", "Language and typing", "Notifications", "System", "Import"]
+      : ["Account", "Appearance", "Language and typing", "Notifications", "System", "Import", "Organization"]);
     expect(blocks(html).slice(-2)).toEqual(["more", "advanced-mode"]);
     expect(html).toContain(">More settings<");
     expect([...html.matchAll(/<button[^>]*role="switch"[^>]*>/g)].at(-1)?.[0]).toContain('aria-label="Advanced mode"');
@@ -281,7 +286,7 @@ describe("Settings in Simple mode", () => {
     expect(html).toContain('aria-label="Enable the built-in browser"');
   });
 
-  it("leads Usage & billing with one usage block, folds the limits, then shows the plan", () => {
+  it.skipIf(FORK_LOCAL_ONLY)("leads Usage & billing with one usage block, folds the limits, then shows the plan", () => {
     fixture.section = "cloudAccount";
     const html = render();
     expect(currentPage(html)).toBe("billing");
@@ -323,7 +328,7 @@ describe("Settings in Simple mode", () => {
     ["general", "general"],
     ["appearance", "general"],
     ["import", "general"],
-    ["organization", "general"],
+    ...(FORK_LOCAL_ONLY ? [] : [["organization", "general"] as [AppSettingsSection, string]]),
     ["engines", "ai"],
     ["connections", "ai"],
     ["companion", "computer"],
@@ -332,7 +337,7 @@ describe("Settings in Simple mode", () => {
     ["computer", "computer"],
     ["logins", "computer"],
     ["usage", "billing"],
-    ["cloudAccount", "billing"],
+    ...(FORK_LOCAL_ONLY ? [] : [["cloudAccount", "billing"] as [AppSettingsSection, string]]),
     ["updates", "updates"],
   ])("lands a deep link to %s on %s", (section, page) => {
     fixture.section = section;

@@ -4,6 +4,7 @@ import { useStore, type AppSettingsSection } from "@/state/store";
 import { skillsLibraryEnabled } from "@/lib/feature-flags";
 import { type LocaleKey } from "@/locales";
 import { t } from "@/lib/i18n";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { AdminOnly } from "./AdminOnly";
 import { KeysPage } from "./keys/KeysPage";
 import { KEY_CATALOG, keyMatches, keySection, type KeyEntry } from "./keys/key-catalog";
@@ -125,7 +126,7 @@ export const SIMPLE_PAGES: SimpleSettingsPage[] = [
   { id: "botAccess", labelKey: "settings.section.botAccess", icon: Users, sections: ["botAccess"] },
   { id: "ai", labelKey: "settings.group.ai", icon: Sparkles, sections: ["engines", "connections"], keywords: ["new bots", "defaults", "effort"] },
   { id: "computer", labelKey: "settings.simple.page.computer", icon: Monitor, sections: ["companion", "desktopWorkspaces", "computer", "logins"] },
-  { id: "billing", labelKey: "settings.simple.page.billing", icon: Gauge, sections: ["usage", "cloudAccount"], keywords: ["billing", "included", "allowance", "cloud hours", "voice"] },
+  { id: "billing", labelKey: "settings.simple.page.billing", icon: Gauge, sections: FORK_LOCAL_ONLY ? ["usage"] : ["usage", "cloudAccount"], keywords: ["billing", "included", "allowance", "cloud hours", "voice"] },
   { id: "updates", labelKey: "settings.simple.page.updates", icon: CloudDownload, sections: ["updates"],
     keywords: ["update", "version", "release", "product updates", "newsletter", "email updates", "welcome", "tour", "diagnostics", "logs", "support"] },
 ];
@@ -202,7 +203,8 @@ export function SettingsModal() {
   const sectionsHere = SECTIONS.map((entry) => entry.id === "companion"
     ? { ...entry, labelKey: thisComputer ? "settings.section.phoneDevices" as const : "settings.section.thisServer" as const }
     : entry);
-  const baseSections = sectionsHere.filter((entry) => !remoteActive || entry.id === "companion" || entry.id === "appearance" || entry.id === "desktopWorkspaces")
+  const baseSections = sectionsHere.filter((entry) => !FORK_LOCAL_ONLY || (entry.id !== "cloudAccount" && entry.id !== "organization"))
+    .filter((entry) => !remoteActive || entry.id === "companion" || entry.id === "appearance" || entry.id === "desktopWorkspaces")
     .filter((entry) => entry.id !== "desktopWorkspaces" || Boolean(window.ogb?.environments))
     .filter((entry) => entry.id !== "organization" || Boolean(window.ogb?.organization))
     .filter((entry) => entry.id !== "cloudAccount" || Boolean(window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true)))

@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppSettingsSection } from "@/state/store";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { SettingsModal } from "./SettingsModal";
 
 const fixture = vi.hoisted(() => ({ section: "cloudAccount" as AppSettingsSection, config: undefined as { cloudHome?: boolean } | undefined, advanced: false }));
@@ -24,7 +25,7 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); });
 const render = () => renderToStaticMarkup(createElement(SettingsModal));
 
-describe.each(["Simple", "Advanced"] as const)("%s Settings → OMB Cloud on a server open in the app's window", (mode) => {
+(FORK_LOCAL_ONLY ? describe.skip : describe).each(["Simple", "Advanced"] as const)("%s Settings → OMB Cloud on a server open in the app's window", (mode) => {
   beforeEach(() => { fixture.advanced = mode === "Advanced"; });
   const reachable = () => fixture.advanced ? 'data-settings-section="cloudAccount"' : 'data-settings-block="cloudAccount"';
   it("is not offered on a server that is not an OMB Cloud home", () => {
