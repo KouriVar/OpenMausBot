@@ -237,9 +237,13 @@ export function userBubbleStyle(color: MausColor, { flat = false }: { flat?: boo
   return toneStyle(userBubbleTone(color), flat);
 }
 
-/** The same tone from any hex (the fork's Bloub colours), keeping both ends of the gradient at AA. */
-export function userBubbleStyleHex(hex: string, { flat = false }: { flat?: boolean } = {}): CSSProperties {
+/** The tone of any hex (the fork's Bloub colours); its ink keeps AA at both ends of the gradient. */
+export function userBubbleToneHex(hex: string): UserBubbleTone {
   const { h } = toOklch(hex);
-  const tone = h >= YELLOW_HUES.from && h <= YELLOW_HUES.to ? darkInkTone(hex) : whiteInkTone(hex);
-  return toneStyle(tone, flat);
+  return h >= YELLOW_HUES.from && h <= YELLOW_HUES.to ? darkInkTone(hex) : whiteInkTone(hex);
+}
+
+/** The same tone from any hex, as a bubble's inline style. */
+export function userBubbleStyleHex(hex: string, { flat = false }: { flat?: boolean } = {}): CSSProperties {
+  return toneStyle(userBubbleToneHex(hex), flat);
 }
