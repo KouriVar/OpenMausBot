@@ -35,7 +35,7 @@ import { ProfileSummaryRow } from "./ProfileSettings";
 import { ImportSettings } from "./ImportSettings";
 import { NotificationRows } from "./NotificationSettingsRows";
 import { useServerUpdateItem } from "./SidebarProfileMenu";
-import { AdvancedModeRow, BrowserProfilesRow, ColorUserBubblesRow, FollowUpRow, LanguageRow, ReplayTourRow, SendKeyRow, ToolCallsRow, UpdatesRow } from "./AppSettingsRows";
+import { AdvancedModeRow, BrowserProfilesRow, ColorUserBubblesRow, FollowUpRow, ForkAvatarStyleRow, LanguageRow, ReplayTourRow, SendKeyRow, ToolCallsRow, UpdatesRow } from "./AppSettingsRows";
 import { RoomTurnTimeoutSettings } from "./RoomTurnTimeoutSettings";
 import { McpCallTimeoutSettings } from "./McpCallTimeoutSettings";
 import { ThreadConcurrencySettings } from "./ThreadConcurrencySettings";
@@ -83,6 +83,7 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
             <ChromeRailRow />
             <WindowFrameRow />
             <ColorUserBubblesRow simple />
+            <ForkAvatarStyleRow />
           </SettingsRows>
         </SettingsGroup>
       )}
