@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { schedulePlace } from "./RoutineScheduleNote";
 
 describe("where a routine runs, said where it is scheduled", () => {
@@ -8,8 +9,8 @@ describe("where a routine runs, said where it is scheduled", () => {
     expect(schedulePlace({ cloudHome: false, local: false, plan: free, ready: false, offersAllowed: true })).toEqual({ kind: "server" });
   });
   it("This computer: Add a Cloud for someone who may buy where it is offered, Open the Cloud once it is ready, else the note alone", () => {
-    expect(schedulePlace({ cloudHome: false, local: true, plan: free, ready: false, offersAllowed: true })).toEqual({ kind: "local", next: "add-cloud" });
-    expect(schedulePlace({ cloudHome: false, local: true, plan: { kind: "signed-out" }, ready: false, offersAllowed: true })).toEqual({ kind: "local", next: "add-cloud" });
+    expect(schedulePlace({ cloudHome: false, local: true, plan: free, ready: false, offersAllowed: true })).toEqual({ kind: "local", next: FORK_LOCAL_ONLY ? null : "add-cloud" });
+    expect(schedulePlace({ cloudHome: false, local: true, plan: { kind: "signed-out" }, ready: false, offersAllowed: true })).toEqual({ kind: "local", next: FORK_LOCAL_ONLY ? null : "add-cloud" });
     expect(schedulePlace({ cloudHome: false, local: true, plan: free, ready: false, offersAllowed: false })).toEqual({ kind: "local", next: null });
     expect(schedulePlace({ cloudHome: false, local: true, plan: paid, ready: true, offersAllowed: true })).toEqual({ kind: "local", next: "open-cloud" });
     expect(schedulePlace({ cloudHome: false, local: true, plan: paid, ready: false, offersAllowed: true })).toEqual({ kind: "local", next: null });

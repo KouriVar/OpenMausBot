@@ -353,7 +353,7 @@ export function SettingsModal() {
             <DefaultBotSidebarRow />
             <TalkShortcutRow />
 
-            <ProSettingsCard />
+            {!FORK_LOCAL_ONLY && <ProSettingsCard />}
             <CloudUsageSettings />
             <Card title={t("settings.profile.title")} subtitle={t("settings.profile.sharedSubtitle")}>
               <ProfileFields />

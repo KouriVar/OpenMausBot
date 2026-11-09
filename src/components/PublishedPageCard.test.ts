@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { createElement } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
@@ -107,7 +108,7 @@ describe("a published page's card", () => {
     } finally { root.unmount(); }
   });
 
-  it("at the free limit, says so in the person's words and opens the app's Get Cloud flow", () => {
+  it.skipIf(FORK_LOCAL_ONLY)("at the free limit, says so in the person's words and opens the app's Get Cloud flow", () => {
     desktop({ cloudAccount: {} });
     const { container, root } = render(page({ state: "limit", title: "Bake sale", plan: "free", upgrade: true, usage: { pages: 5, limit: 5 }, message: "server words" }));
     try {

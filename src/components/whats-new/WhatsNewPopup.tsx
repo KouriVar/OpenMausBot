@@ -46,7 +46,7 @@ function Picture({ slide, active }: { slide: WhatsNewSlide; active: boolean }) {
  * would only tell to write in.
  */
 export function WhatsNewPopup({ view, report, onBuy, onDone }: {
-  view: WhatsNewView; report: (action: WhatsNewAction, slide: WhatsNewSlide) => void; onBuy: (slide: WhatsNewSlide) => void; onDone: () => void;
+  view: WhatsNewView; report: (action: WhatsNewAction, slide: WhatsNewSlide) => void; onBuy?: (slide: WhatsNewSlide) => void; onDone: () => void;
 }) {
   const [at, setAt] = useState(0);
   const slide = view.slides[at] ?? view.slides[0]!, count = view.slides.length;
@@ -89,8 +89,8 @@ export function WhatsNewPopup({ view, report, onBuy, onDone }: {
     return () => window.removeEventListener("keydown", onKey, true);
   });
 
-  const buy = (of: WhatsNewSlide) => { report(of === "pro" ? "get_pro" : "start_team", of); onBuy(of); onDone(); };
-  const actions = (of: WhatsNewSlide): ReactNode => of === "pro"
+  const buy = (of: WhatsNewSlide) => { report(of === "pro" ? "get_pro" : "start_team", of); onBuy?.(of); onDone(); };
+  const actions = (of: WhatsNewSlide): ReactNode => !onBuy ? null : of === "pro"
     ? <>
       <button type="button" className={cn(PRIMARY, "ui-button-lg")} onClick={() => buy("pro")}>{t("cloudBuy.card.get", { plan: view.plans.pro?.name ?? "Pro" })}</button>
       <LinkButton url={newCloudUrl(view.staging)} label={t("whatsNew.cloud.see")} className={cn(QUIET, "ui-button-lg gap-1.5")} onOpened={() => end("see_cloud")} />

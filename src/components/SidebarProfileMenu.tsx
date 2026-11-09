@@ -45,6 +45,7 @@ import type { CloudAccountBridge, CloudAccountState } from "../../electron/cloud
 import { updaterMessage, useUpdaterState, type UpdaterState } from "@/lib/updater";
 import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { cn } from "@/lib/cn";
 import { meterPercent, resetLine } from "@/lib/usage-meter";
 import type { CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
@@ -377,6 +378,7 @@ export function placeMenuItems(place: Pick<WorkspacePlace, "bridge" | "current" 
 }): SidebarMenuItem[] {
   const here = <Check size={15} aria-hidden="true" className="shrink-0 text-ink-secondary" />;
   if (!place.switchable) {
+    if (FORK_LOCAL_ONLY) return [];
     if (!place.cloudHome && !place.current?.home) return [];
     const subtitle = [place.onLine, owner ? t("sidebar.cloudOwner", { email: owner }) : ""].filter(Boolean).join(" · ");
     return [{ key: "place", label: name || t("cloudSetup.myCloud"), ...(subtitle ? { subtitle } : {}), icon: <Cloud size={16} />, trailing: here, onSelect: onCloudSettings }];
@@ -586,7 +588,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const remote = window.ogb?.remoteClient?.active === true;
   const besideRail = railShown(usePlaces());
   const filesReady = useCloudFilesReady();
-  const cloudAccount = !remote && Boolean(window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true));
+  const cloudAccount = !FORK_LOCAL_ONLY && !remote && Boolean(window.ogb?.cloudAccount || (window.ogb?.cloudPlan && state.config?.cloudHome === true));
   const openCloudAccount = () => dispatch({ type: "toggleAppSettings", open: true, section: "cloudAccount" });
   const move = useAccountMove(state.config?.cloudHome === true, { onOpen: openCloudAccount, onPairPhone: () => dispatch(phonePairingSettingsAction()) });
   const accounts = useAccounts();

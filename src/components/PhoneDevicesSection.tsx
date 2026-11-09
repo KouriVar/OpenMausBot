@@ -382,7 +382,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
       <section className="flex flex-col rounded-xl border border-hairline/40 bg-card px-4" data-devices-block="routes">
         <div className="pt-3 text-[13px] font-medium text-ink">{t("devices.howTheyReach")}</div>
         <RouteRow c={c} state={state} route="wifi" blocked={managedBy} />
-        <div className="border-t border-hairline/30"><RouteRow c={c} state={state} route="relay" blocked={managedBy} /></div>
+        {!FORK_LOCAL_ONLY && <div className="border-t border-hairline/30"><RouteRow c={c} state={state} route="relay" blocked={managedBy} /></div>}
         <details className="border-t border-hairline/30 py-3" open={tailscaleOn || httpsOn || undefined}>
           <summary className="cursor-pointer text-[13px] text-ink">{t("devices.moreWays")}</summary>
           <div className="mt-3 flex flex-col gap-4" data-route-row="tailscale">

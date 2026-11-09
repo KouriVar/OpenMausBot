@@ -24,6 +24,8 @@ export interface WelcomeViewer {
   cloudHome?: boolean;
 }
 
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
+
 export const LOCAL_VIEWER: WelcomeViewer = { hosted: false, canSave: true };
 
 export function hostedMember(viewer: WelcomeViewer | null): boolean {
@@ -207,6 +209,7 @@ export function cloudSignInDue<Instance>(
   state: { connected: boolean; instances: readonly Instance[] },
   ready: (instance: Instance) => boolean,
 ): boolean {
+  if (FORK_LOCAL_ONLY) return false;
   return Boolean(viewer?.cloudHome && viewer.canSave) && state.connected && state.instances.length > 0 && !state.instances.some(ready);
 }
 

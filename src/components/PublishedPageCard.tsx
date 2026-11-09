@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowUpRight, Check, Copy, Globe, Loader2, X } from "lucide-react";
 import type { PublishedPageCard as Card } from "../../shared/published-page";
 import { cloudPlanLabel } from "@/lib/cloud-plan";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { cn } from "@/lib/cn";
 import { useCopyFeedback } from "@/lib/copy-text";
 import { usePageOpener } from "@/lib/page-open";
@@ -65,7 +66,7 @@ export function PublishedPageCard({ message }: { message: Message }) {
       {card.state === "unpublished" && <p className="mt-1 text-[13px] text-ink-secondary">{t("chat.page.unpublished")}</p>}
       {card.state === "limit" && <>
         <p dir="auto" className="mt-1 text-[13px] leading-snug text-ink-secondary">{limitLine(card)}</p>
-        {card.upgrade && bridge && <button type="button" className={cn(ASK_PRIMARY_BUTTON, "mt-2")}
+        {card.upgrade && bridge && !FORK_LOCAL_ONLY && <button type="button" className={cn(ASK_PRIMARY_BUTTON, "mt-2")}
           onClick={() => dispatch({ type: "openCloudAdd", source: "app_pages" })}>{t("chat.page.morePages")}</button>}
       </>}
     </div>

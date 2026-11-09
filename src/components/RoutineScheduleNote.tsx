@@ -1,5 +1,6 @@
 import { brandStatus } from "@/lib/brand";
 import { buyOfferAllowed, type CloudPlanView } from "@/lib/cloud-plan";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { t } from "@/lib/i18n";
 import { useStore } from "@/state/store";
 import { localDesktopPage } from "./onboarding/WelcomeGate";
@@ -13,7 +14,7 @@ export function schedulePlace({ cloudHome, local, plan, ready, offersAllowed }: 
   if (cloudHome) return { kind: "cloud" };
   if (!local) return { kind: "server" };
   if (plan?.kind === "paid") return { kind: "local", next: ready ? "open-cloud" : null };
-  return { kind: "local", next: plan && offersAllowed && buyOfferAllowed(plan) ? "add-cloud" : null };
+  return { kind: "local", next: !FORK_LOCAL_ONLY && plan && offersAllowed && buyOfferAllowed(plan) ? "add-cloud" : null };
 }
 
 export function RoutineScheduleNote() {

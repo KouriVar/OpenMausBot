@@ -67,6 +67,17 @@ below are local customizations on top of upstream `v0.1.150`.
     HTTPS address row is hidden (`PhoneDevicesSection.tsx`).
   - Untouched, as required: logins, usage, remote access, model providers, API
     keys, the bot desktop, backups and import.
+
+- **The remaining Cloud prompts are gone too.** Same switch:
+  remote access keeps Same Wi-Fi and Tailscale only (the relay row goes with
+  the HTTPS one); Settings' General page loses the `ProSettingsCard` and
+  Simple's General the Cloud plan row; no Cloud trial, Cloud notice or
+  what's-new buy action, no Cloud welcome or first-run sign-in
+  (`cloudSignInDue` is never due); the account menu loses its Cloud account
+  row and its "My Cloud" place rows; the menu's "Add a Cloud…" and the
+  `?desktop-settings=cloud*` links do nothing; "Add a Cloud" in a routine's
+  schedule note, the two "more pages" upgrade buttons and the organization
+  sign-in row in Connect AI are hidden.
 - **Advanced mode's collapsed sidebar centres on the window's traffic lights.** Collapsed to
   icons, the sidebar was 80px wide, so its column of 46px buttons centred at
   x = 39.75 while the traffic lights' yellow button, inset at 16,16, centres at
