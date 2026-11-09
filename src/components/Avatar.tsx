@@ -106,10 +106,13 @@ export type MausAvatarProps = {
   botId?: string;
   /** Draw a Bloub body to the edges of its box (the small sidebar faces). */
   fitBody?: boolean;
+  /** The tile the Bloub body sits in, and the element whose whole rectangle is the hover target. */
+  frameSize?: number;
+  hitRef?: React.RefObject<HTMLElement | null>;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody, frameSize, hitRef } = props;
   // The fork's switch: Bloub replaces every built body, the festival ones included.
   const avatarStyle = useForkAvatarStyle();
   const bloubSkin = useBloubSkin(botId, color);
@@ -125,6 +128,8 @@ function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHa
         animated={animated}
         label={label}
         fitBody={fitBody}
+        frameSize={frameSize}
+        hitRef={hitRef}
       />
     );
   }

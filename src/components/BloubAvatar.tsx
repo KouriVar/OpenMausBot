@@ -5,7 +5,6 @@ import {
   useImperativeHandle,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { NOTIF_BLUE, type DotRender } from "@/vendor/bloub/decor";
@@ -72,6 +71,10 @@ export type BloubAvatarProps = {
   label?: string;
   /** Draw the body to the edges of the box (the small sidebar/composer faces), not the ring's framing. */
   fitBody?: boolean;
+  /** The tile the body sits in, so the body is `size` and the box `frameSize`; also the hit area. */
+  frameSize?: number;
+  /** The element whose whole rectangle is the hover target (the row tile, the header pill). */
+  hitRef?: React.RefObject<HTMLElement | null>;
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -190,6 +193,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     paper,
     label,
     fitBody = false,
+    frameSize,
+    hitRef,
   },
   ref,
 ) {
@@ -214,9 +219,11 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const canAnimate = frozenAt === undefined && !reduced;
   const live = canAnimate && (hovering || settling || (animated && activeState));
   const fps = (hovering || settling) ? 60 : BACKGROUND_FPS;
-  const cropBody = fitBody || size < 48;
-  const half = cropBody ? RAYON : DEMI_VIEWBOX;
-  const unitsPerPx = (half * 2) / Math.max(1, size);
+  // A small face may lean only when it has room to (the sidebar tile); in a tight pill it just turns its head.
+  const canLean = fitBody || size >= 48;
+  const cssSize = fitBody ? (frameSize ?? size) : size;
+  const half = fitBody ? (RAYON * cssSize) / Math.max(1, size) : size < 48 ? RAYON : DEMI_VIEWBOX;
+  const unitsPerPx = (half * 2) / Math.max(1, cssSize);
 
   const frozenTime = frozenAt ?? POSES[stateId];
   const [frame, setFrame] = useState<BotFrame>(() => engine.current!.sample(frozenTime));
@@ -260,9 +267,10 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
 
       // The whole body leans and drifts toward the pointer, on Bloub's spring.
       const aim = hovering ? pointer.current : null;
-      const targetX = aim ? aim.nx * DRIFT_PX * unitsPerPx : 0;
-      const targetY = aim ? aim.ny * DRIFT_PX * unitsPerPx : 0;
-      const targetLean = aim ? aim.nx * LEAN_DEG : 0;
+      const lean = canLean && aim;
+      const targetX = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.nx * DRIFT_PX)) * unitsPerPx : 0;
+      const targetY = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.ny * DRIFT_PX)) * unitsPerPx : 0;
+      const targetLean = lean ? aim!.nx * LEAN_DEG : 0;
       let s = spring.current;
       [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt);
       [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt);
@@ -283,7 +291,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       }
       setFrame(bot.sample(now));
     });
-  }, [live, fps, stateId, hovering, settling, unitsPerPx]);
+  }, [live, fps, stateId, hovering, settling, unitsPerPx, canLean]);
 
   // A still avatar blinks now and then, without running the morphs.
   useEffect(() => {
@@ -322,15 +330,31 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     setExpression: () => {},
   }), [stateId, live, frozenTime]);
 
-  const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
-    if (event.pointerType === "touch" || reduced) return;
-    const box = event.currentTarget.getBoundingClientRect();
-    if (box.width === 0) return;
-    pointer.current = {
-      nx: Math.max(-1, Math.min(1, ((event.clientX - (box.left + box.width / 2)) / (box.width / 2)))),
-      ny: Math.max(-1, Math.min(1, ((event.clientY - (box.top + box.height / 2)) / (box.height / 2)))),
+  // The whole tile is the target (the row, the header pill), not just the drawn face.
+  useEffect(() => {
+    const element = hitRef?.current ?? svgRef.current;
+    if (!element || typeof window === "undefined") return;
+    const measure = (event: Event) => {
+      const pointerEvent = event as PointerEvent;
+      if (pointerEvent.pointerType === "touch") return;
+      const box = element.getBoundingClientRect();
+      if (box.width === 0) return;
+      pointer.current = {
+        nx: Math.max(-1, Math.min(1, (pointerEvent.clientX - (box.left + box.width / 2)) / (box.width / 2))),
+        ny: Math.max(-1, Math.min(1, (pointerEvent.clientY - (box.top + box.height / 2)) / (box.height / 2))),
+      };
     };
-  };
+    const enter = () => setHovering(true);
+    const leave = () => { pointer.current = null; setHovering(false); setSettling(canAnimate); };
+    element.addEventListener("pointerenter", enter);
+    element.addEventListener("pointermove", measure);
+    element.addEventListener("pointerleave", leave);
+    return () => {
+      element.removeEventListener("pointerenter", enter);
+      element.removeEventListener("pointermove", measure);
+      element.removeEventListener("pointerleave", leave);
+    };
+  }, [hitRef, canAnimate]);
 
   const s = spring.current;
   const transform = `translate(${s.x.toFixed(2)} ${s.y.toFixed(2)}) rotate(${s.lean.toFixed(2)})`;
@@ -339,15 +363,12 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   return (
     <svg
       ref={svgRef}
-      width={size * 2}
-      height={size * 2}
+      width={cssSize * 2}
+      height={cssSize * 2}
       viewBox={`${-vb} ${-vb} ${vb * 2} ${vb * 2}`}
       role="img"
       aria-label={label}
-      style={{ width: size, height: size, shapeRendering: "geometricPrecision" }}
-      onPointerEnter={() => setHovering(true)}
-      onPointerMove={onPointerMove}
-      onPointerLeave={() => { pointer.current = null; setHovering(false); setSettling(canAnimate); }}
+      style={{ width: cssSize, height: cssSize, overflow: "visible", shapeRendering: "geometricPrecision" }}
     >
       <defs>
         <mask id={maskId} maskUnits="userSpaceOnUse" x={-vb} y={-vb} width={vb * 2} height={vb * 2}>

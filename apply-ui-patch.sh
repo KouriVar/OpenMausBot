@@ -32,16 +32,30 @@ rsync -a --delete "$REPO/dist/" "$UI/"
 
 echo "== 5/5 重启 App"
 osascript -e 'quit app "OpenMausBot"' 2>/dev/null || true
-# 等旧实例真正退出再 open，否则 open 只会激活那个正在退出的实例：最多等 20 秒。
 BIN="$APP/Contents/MacOS/OpenMausBot"
+# 等旧实例真正退出，否则 open 只会激活那个正在退出的实例：最多等 20 秒。
 for _ in $(seq 1 20); do
   pgrep -f "$BIN" >/dev/null 2>&1 || break
   sleep 1
 done
 if pgrep -f "$BIN" >/dev/null 2>&1; then
-  echo "!! App 20 秒内没有退出，先没有重新打开。手动退出它后运行: open -a \"$APP\""
-else
-  open -a "$APP"
+  echo "!! App 20 秒内没有退出，无法重新打开；请手动退出后再运行本脚本。" >&2
+  exit 1
+fi
+# open 后轮询确认新进程真的起来了；最多重试 2 次，每次间隔 2 秒。
+launched=0
+for attempt in 1 2 3; do
+  env -u ELECTRON_RUN_AS_NODE open -a "$APP" 2>/dev/null || true
+  for _ in $(seq 1 15); do
+    pgrep -f "$BIN" >/dev/null 2>&1 && { launched=1; break; }
+    sleep 1
+  done
+  [ "$launched" = "1" ] && break
+  [ "$attempt" -lt 3 ] && sleep 2
+done
+if [ "$launched" != "1" ]; then
+  echo "!! App 没有自动起来，请手动打开 OpenMausBot。" >&2
+  exit 1
 fi
 
 echo
