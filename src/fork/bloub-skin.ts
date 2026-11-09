@@ -127,9 +127,35 @@ const GROK_HEX: Record<string, string> = {
 
 /** Grok's eyes are near-black on every body; Bloub's own palette keeps its paper holes. */
 export const GROK_EYE_COLOR = "#0b0b0c";
-/** The resting 2.5D look: eyes up and to the right, body slightly turned. */
-export const GROK_DEFAULT_YAW = 11;
-export const GROK_DEFAULT_PITCH = 7;
+/** The resting 2.5D look: a clear 3/4 turn, eyes in the upper-right of the body, a little above the
+ * centre line and well out toward the right edge (≈44% of the radius from centre at 24°/13°). Kept as
+ * its own constant, NOT limited by the pointer-follow range. */
+export const GROK_DEFAULT_YAW = 27;
+export const GROK_DEFAULT_PITCH = 19;
+
+/** Each shape rests at a tilt, so the body reads as a head turned 3/4 (Grok's screenshots) rather than
+ * an upright icon. Degrees; the hover lean (±6°) adds on top. Symmetric blobs stay at 0. */
+export const GROK_SHAPE_ROTATION: Record<string, number> = {
+  cercle: 0,
+  galet: -7,
+  squircle: 0,
+  capsule: -8,
+  triangle: 12,
+  hexagone: -17,
+  nuage: -10,
+  goutte: -8,
+  etoile4: 0,
+  fleur: 0,
+  coeur: 0,
+  nuageFest: -8,
+  etoile5: 0,
+};
+
+/** A shape's resting tilt in degrees (0 for anything unknown). */
+export function bloubShapeRotation(id: string): number {
+  return GROK_SHAPE_ROTATION[id] ?? 0;
+}
+
 export function bloubEyeColor(palette: "grok" | "bloub" = FORK_BLOUB_PALETTE): string | null {
   return palette === "grok" ? GROK_EYE_COLOR : null;
 }
