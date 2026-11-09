@@ -19,16 +19,15 @@ function toolRunning(last: Message | undefined, busy: boolean): boolean {
 }
 
 /** What a bot is doing, on Bloub's words. `messages`: its visible transcript, newest last. */
-export function bloubSessionState(bot: Bot, messages: readonly Message[] | undefined, now = Date.now()): BloubSessionState {
+export function bloubSessionState(bot: Bot, messages: readonly Message[] | undefined, _now = Date.now()): BloubSessionState {
   if (bot.activity === "waiting-on-you") return "alert";
   if (bot.activity === "dead") return "exclaim";
   const last = lastNonReceipt((messages ?? []) as Message[]);
   if (last?.kind === "activity" && last.tool?.ok === false) return "exclaim";
   if (bot.busy) return toolRunning(last, true) ? "orbit" : "thinking";
   if (bot.unread) return "notify";
-  // Sleep only for a bot the server itself says is idle (old conversations stay awake and show their face).
-  const lastAt = last?.at ?? bot.turnStartedAt ?? 0;
-  if (bot.activity === "idle" && lastAt && now - lastAt > 10 * 60_000) return "sleep";
+  // Bloub's `sleep` is a 16%-wide bouncing ball with no face, so a resting bot stays idle and keeps
+  // its expression instead. (Sleep is never shown for an avatar; it would be the "one dot".)
   return "idle";
 }
 
