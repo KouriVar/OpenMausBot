@@ -9,6 +9,11 @@ export const TURN = 26;
 export const SPIN = 360;
 export const TURN_TIME = 1.1;
 
+/** How far the eyes swing from dead centre toward the cursor, in degrees. Absolute, not an offset
+ * from the resting look: the pointer picks the direction, the resting look is a separate constant. */
+export const FOLLOW_YAW = 26;
+export const FOLLOW_PITCH = 19;
+
 export interface Aim {
   /** horizontal gap from the bot's centre, -1..1 (right positive) */
   nx: number;
@@ -41,12 +46,13 @@ export function lookTarget({ nx, ny, tour, pointer }: Aim): Look {
   };
 }
 
-/** Pointer following, not the arrival view: right/left and up/down in screen terms, no left-turn offset. */
-export function followLook(nx: number, ny: number, baseYaw = 0, basePitch = 0): Look {
+/** Pointer following: the cursor sets an ABSOLUTE gaze direction (centre = look straight ahead),
+ * so moving to the lower-left of the tile really sends the eyes to the lower-left. */
+export function followLook(nx: number, ny: number): Look {
   return {
-    yaw: baseYaw + nx * YAW_MAX,
+    yaw: nx * FOLLOW_YAW,
     // screen y grows downward; Bloub's pitch is positive looking up
-    pitch: basePitch - ny * PITCH_MAX,
+    pitch: -ny * FOLLOW_PITCH,
     mix: 1,
     spin: 0,
     wander: 0,

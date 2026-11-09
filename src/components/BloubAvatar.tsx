@@ -14,8 +14,8 @@ import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
 import { DEFAULT_COLOR, DEFAULT_SHAPE, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
-import { TURN_TIME, followLook } from "@/fork/bloub-gaze";
-import { bloubColorHex, bloubEyeColor, GROK_DEFAULT_YAW, GROK_DEFAULT_PITCH } from "@/fork/bloub-skin";
+import { followLook } from "@/fork/bloub-gaze";
+import { bloubColorHex, bloubEyeColor, bloubShapeRotation, GROK_DEFAULT_YAW, GROK_DEFAULT_PITCH } from "@/fork/bloub-skin";
 import { bloubShapeRadii } from "@/fork/bloub-shapes";
 import { BLOUB_MIN_BLOCK, stateSwitchDelay } from "@/fork/bloub-session";
 
@@ -54,6 +54,12 @@ const CHASE_K = 260;
 const CHASE_C = 24;
 const HOME_K = 140;
 const HOME_C = 16;
+/** The gaze (yaw/pitch) is a spring in its own right, so the eyes GLIDE to the pointer instead of
+ * teleporting: chasing ~200ms, easing back home ~350ms with a soft settle. */
+const GAZE_CHASE_K = 170;
+const GAZE_CHASE_C = 20;
+const GAZE_HOME_K = 120;
+const GAZE_HOME_C = 14;
 
 export type BloubAvatarHandle = {
   blink: () => void;
@@ -182,11 +188,21 @@ function dotFill(dot: DotRender, ink: string, paper: string): { fill: string; fi
   return { fill: safeMix(paper, ink, dot.depth) };
 }
 
-/** One axis of a damped spring, stepped by the engine's own frame clock. */
+/** One axis of a damped spring, stepped by the engine's own frame clock. Sub-stepped to ≤1/120 s so a
+ * long gap (a throttled frame, a tab regaining focus) can never make a stiff spring overshoot or leap. */
 function stepSpring(position: number, velocity: number, target: number, dt: number, k: number, c: number): [number, number] {
-  const acceleration = k * (target - position) - c * velocity;
-  const nextVelocity = velocity + acceleration * dt;
-  return [position + nextVelocity * dt, nextVelocity];
+  const H = 1 / 120;
+  let p = position;
+  let v = velocity;
+  let remaining = dt;
+  while (remaining > 1e-9) {
+    const h = Math.min(H, remaining);
+    const acceleration = k * (target - p) - c * v;
+    v += acceleration * h;
+    p += v * h;
+    remaining -= h;
+  }
+  return [p, v];
 }
 
 export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(function BloubAvatar(
@@ -214,8 +230,12 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const expr = EXPRESSION_BY_ID.get(expression) ?? null;
   const ink = bloubColorHex(colorId, palette);
   const eyeFill = bloubEyeColor(palette) ?? null;
-  const baseYaw = palette === "grok" ? GROK_DEFAULT_YAW : 0;
-  const basePitch = palette === "grok" ? GROK_DEFAULT_PITCH : 0;
+  // The app leaves `palette` unset, which IS Grok (see FORK_BLOUB_PALETTE); only the comparison suite
+  // passes "bloub" explicitly. Treat anything but "bloub" as the Grok look.
+  const grok = palette !== "bloub";
+  const baseYaw = grok ? GROK_DEFAULT_YAW : 0;
+  const basePitch = grok ? GROK_DEFAULT_PITCH : 0;
+  const baseRot = grok ? bloubShapeRotation(shape) : 0;
   const surface = usePaper(paper, ink);
 
   const engine = useRef<BotEngine | null>(null);
@@ -227,6 +247,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const pointer = useRef<{ nx: number; ny: number } | null>(null);
   const aiming = useRef(false);
   const spring = useRef({ x: 0, y: 0, vx: 0, vy: 0, lean: 0, vLean: 0 });
+  // The gaze is its own spring (degrees), starting at the resting 3/4 look and chasing the pointer.
+  const gaze = useRef({ yaw: baseYaw, pitch: basePitch, vYaw: 0, vPitch: 0 });
   const lastSwitch = useRef(-BLOUB_MIN_BLOCK);
   const pendingState = useRef<string | null>(null);
   const queueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -242,10 +264,11 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const unitsPerPx = (half * 2) / Math.max(1, cssSize);
 
   const frozenTime = frozenAt ?? POSES[stateId];
-  const defaultLook = () => followLook(0, 0, baseYaw, basePitch);
+  // The resting 2.5D look: a fixed direction (mix = 1 so it overrides the pose's own gaze).
+  const defaultLook = () => ({ yaw: baseYaw, pitch: basePitch, mix: 1, spin: 0, wander: 0 });
   const stillFrame = (bot: BotEngine, at: number) => {
     // Grok rests on its 2.5D gaze; Bloub's own palette keeps the expression's own gaze (for the pixel suite).
-    if (palette !== "grok") return bot.sample(at);
+    if (!grok) return bot.sample(at);
     bot.setLook(defaultLook(), at - 0.02, 0.001);
     return bot.sample(at);
   };
@@ -302,9 +325,13 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     const bot = engine.current!;
     const step = 1 / fps;
     const baseFace = Boolean(STATE_BY_ID.get(stateId)?.baseFace);
+    let firstFrame = true;
     return subscribeFrames((now) => {
       if (now - lastDraw.current < step - 0.0005) return;
-      const dt = Math.min(Math.max(now - lastDraw.current, 0.001), 0.064);
+      // The first frame after a (re)start carries the whole idle gap; start it at one frame's worth so
+      // the springs never leap. The rest run at the real deltas, sub-stepped inside stepSpring.
+      const dt = firstFrame ? 1 / fps : Math.min(Math.max(now - lastDraw.current, 0.001), 0.064);
+      firstFrame = false;
       lastDraw.current = now;
 
       // The whole body leans and drifts toward the pointer, on Bloub's spring.
@@ -313,31 +340,46 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       const targetX = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.nx * DRIFT_PX)) * unitsPerPx : 0;
       const targetY = lean ? Math.max(-DRIFT_PX, Math.min(DRIFT_PX, aim!.ny * DRIFT_PX)) * unitsPerPx : 0;
       const targetLean = lean ? aim!.nx * LEAN_DEG : 0;
-      let s = spring.current;
+      const s = spring.current;
       const k = hovering ? CHASE_K : HOME_K;
       const c = hovering ? CHASE_C : HOME_C;
       [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt, k, c);
       [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt, k, c);
       [s.lean, s.vLean] = stepSpring(s.lean, s.vLean, targetLean, dt, k, c);
-      if (!hovering && Math.abs(s.x) < 0.02 && Math.abs(s.y) < 0.02 && Math.abs(s.lean) < 0.02
-        && Math.abs(s.vx) < 0.02 && Math.abs(s.vy) < 0.02 && Math.abs(s.vLean) < 0.02) {
-        s.x = 0; s.y = 0; s.lean = 0; s.vx = 0; s.vy = 0; s.vLean = 0;
-        setSettling(false);
-      }
 
-      // Bloub's own head turn: the eyes ride the sphere (yaw/pitch), not a flat shift.
-      if (aim && baseFace) {
-        // One easing only: the engine's morph is near-instant, the spring does the smoothing.
-        bot.setLook(followLook(aim.nx, aim.ny, baseYaw, basePitch), now, 0.001);
-        aiming.current = true;
-      } else if (aiming.current) {
-        // Come home to the 2.5D look (Grok) or a flat front face (Bloub's own palette).
-        bot.setLook(palette === "grok" ? defaultLook() : null, now, palette === "grok" ? 0.2 : TURN_TIME);
-        aiming.current = false;
+      // The gaze is a spring too, so the eyes GLIDE to the pointer instead of teleporting.
+      const g = gaze.current;
+      let gazeMoving = false;
+      if (grok) {
+        if (baseFace) {
+          const following = Boolean(aim);
+          const target = following ? followLook(aim!.nx, aim!.ny) : { yaw: baseYaw, pitch: basePitch };
+          const gk = following ? GAZE_CHASE_K : GAZE_HOME_K;
+          const gc = following ? GAZE_CHASE_C : GAZE_HOME_C;
+          [g.yaw, g.vYaw] = stepSpring(g.yaw, g.vYaw, target.yaw, dt, gk, gc);
+          [g.pitch, g.vPitch] = stepSpring(g.pitch, g.vPitch, target.pitch, dt, gk, gc);
+          // Set the look a hair in the past with a tiny morph so this very sample reads the spring's
+          // CURRENT value (no one-frame lag, no 0/0) and the spring alone owns the easing.
+          bot.setLook({ yaw: g.yaw, pitch: g.pitch, mix: 1, spin: 0, wander: 0 }, now - 0.001, 0.0001);
+          gazeMoving = following || Math.abs(g.yaw - baseYaw) > 0.1 || Math.abs(g.pitch - basePitch) > 0.1
+            || Math.abs(g.vYaw) > 0.15 || Math.abs(g.vPitch) > 0.15;
+        } else {
+          // An expression state owns its own gaze; get out of its way.
+          bot.setLook(null, now, 0.0001);
+        }
+      }
+      aiming.current = gazeMoving;
+
+      const bodySettled = Math.abs(s.x) < 0.02 && Math.abs(s.y) < 0.02 && Math.abs(s.lean) < 0.02
+        && Math.abs(s.vx) < 0.02 && Math.abs(s.vy) < 0.02 && Math.abs(s.vLean) < 0.02;
+      if (!hovering && !gazeMoving && bodySettled) {
+        s.x = 0; s.y = 0; s.lean = 0; s.vx = 0; s.vy = 0; s.vLean = 0;
+        g.yaw = baseYaw; g.pitch = basePitch; g.vYaw = 0; g.vPitch = 0;
+        setSettling(false);
       }
       setFrame(bot.sample(now));
     });
-  }, [live, fps, stateId, hovering, settling, unitsPerPx, canLean]);
+  }, [live, fps, stateId, hovering, settling, unitsPerPx, canLean, grok, baseYaw, basePitch]);
 
   // A still avatar blinks now and then, without running the morphs.
   useEffect(() => {
@@ -403,7 +445,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   }, [hitRef, canAnimate]);
 
   const s = spring.current;
-  const transform = `translate(${s.x.toFixed(2)} ${s.y.toFixed(2)}) rotate(${s.lean.toFixed(2)})`;
+  // Each shape rests at its own tilt (baseRot); the hover lean adds ±6° on top of it.
+  const transform = `translate(${s.x.toFixed(2)} ${s.y.toFixed(2)}) rotate(${(baseRot + s.lean).toFixed(2)})`;
   const vb = half;
 
   return (

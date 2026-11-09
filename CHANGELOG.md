@@ -221,6 +221,31 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Grok's Bloub, round five: the resting 3/4 turn actually shows, and the eyes glide to the pointer.** Two fixes.
+  First, the gaze is now its own spring: `yaw`/`pitch` are spring variables (chase k≈170/c≈20, home k≈120/c≈14)
+  and every frame the spring's current value is fed to `setLook` (morph ≈0), so the eyes travel from the resting
+  look to the cursor and back over ~200–350 ms instead of teleporting — round four set the engine morph to 0.001
+  but only sprung the body's translate/rotate, never yaw/pitch, so the gaze jumped. Second, the resting look is
+  bigger and each body rests at its own tilt so it reads as a head turned 3/4: default `yaw +27° / pitch +19°`
+  (its own constant, not limited by the follow range) puts the eye centres ≈44% of the radius up-right, near the
+  outline edge; `hexagon −17°`, `triangle +12°`, `cloud −10°`, plus `galet −7°`, `capsule −8°`, `droplet −8°`,
+  `scalloped cloud −8°` (circle and the symmetric stars stay upright), with the ±6° hover lean added on top. The
+  follow direction is now absolute (the cursor picks it), so a pointer at the lower-left really sends the eyes to
+  the lower-left. Eyes keep their sphere projection at rest (the edge eye narrower and more slanted), and at
+  40/45 px the narrowest eye stays ≈2.6 px wide, never a dash. Verified: a 20-frame screencast of entering the
+  tile shows the eyes glide upper-right → lower-left with no jump; the per-frame eye-centre trajectory is smooth
+  and monotonic. `palette="bloub"` (原样) renders byte-identical to round four — all 13 shape SVGs are the same —
+  so the 38/38 pixel suite holds. Typecheck, lint and the suite are green.
+  中文：**Grok 版 Bloub 第五轮：静止的 3/4 朝向真的看得出来，视线会平滑滑向指针。** 两处修正。其一，视线本身改成
+  弹簧：`yaw`/`pitch` 作为弹簧变量（追 k≈170/c≈20、回 k≈120/c≈14），每帧把弹簧当前值喂给 `setLook`（morph≈0），
+  眼睛约 200–350ms 从静止视线滑到指针再滑回，不再瞬移——第四轮把 engine morph 设成 0.001，但只给身体的平移/旋转
+  上了弹簧，没管 yaw/pitch，所以视线会跳。其二，静止视线加大、且每个身体各有静止倾角，读起来像头转了个 3/4：
+  默认 `yaw +27° / pitch +19°`（单独常量，不受跟随上限约束），眼睛中心落在半径约 44% 的右上、靠近轮廓边缘；
+  `六边形 −17°`、`三角 +12°`、`云朵 −10°`，另有 `卵石 −7°`、`胶囊 −8°`、`水滴 −8°`、`花边云 −8°`（圆形与对称的星形
+  保持端正），悬停的 ±6° 侧倾叠加其上。跟随方向改为绝对值（由指针定方向），所以指针在左下时眼睛真的滑向左下。
+  静止时眼睛仍有球面投影（靠边那只更窄更斜），40/45px 下最窄眼睛约 2.6px 宽，不会压成短横线。验证：进入 tile 的
+  20 帧录屏显示眼睛从右上平滑滑到左下、无跳变；逐帧眼心轨迹平滑且单调。`palette="bloub"`（原样）与第四轮逐字节
+  一致——13 个形状 SVG 全同——所以 38/38 像素对比不退化。类型检查、lint、测试全绿。
 - **Grok's Bloub, round four: 2.5D resting gaze, 13 shapes, 60fps session animation, black eyes.** A stored
   avatar rests on Grok's upper-right look (yaw +11°, pitch +7°) and hover offsets from it, returning there;
   `palette="bloub"` keeps the flat face for the pixel suite. Grok's 11 colours have no black: both `encre`
