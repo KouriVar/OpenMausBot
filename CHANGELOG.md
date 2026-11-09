@@ -1,17 +1,24 @@
-# Changelog
+# Changelog 变更日志
 
 All notable changes to this fork are documented here. This fork tracks
 [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot); entries
 below are local customizations on top of upstream `v0.1.150`.
 
-## Unreleased
+本文件记录这个 fork 的所有主要改动。本 fork 跟随
+[milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot)，下面每条都是
+在上游 `v0.1.150` 之上的本地定制。英文在前，中文紧随其后（以「中文：」开头）。
 
-### Changed
+## Unreleased / 未发布
+
+### Changed / 变更
 
 - **Merged upstream `v0.1.150`** (`origin/main` at `a7cf31902`) into the fork.
   The merge was clean; both new lucide names the release imports,
   `PhoneCall` and `RadioTower` (`src/lib/hosted-mcp-apps.ts`), are now in
   `src/lib/icons.tsx` (drawn with `RiPhoneLine` and `RiSignalTowerLine`).
+  中文：**合并上游 `v0.1.150`**（`origin/main` 在 `a7cf31902`）进 fork。合并无冲突；该版本新引入的两个
+  lucide 图标名 `PhoneCall`、`RadioTower`（`src/lib/hosted-mcp-apps.ts`）已补进
+  `src/lib/icons.tsx`（分别用 `RiPhoneLine`、`RiSignalTowerLine` 绘制）。
 - **Every icon in the app is now Remix Icon.** `src/lib/icons.tsx` re-exports
   the 265 names the code imports from `lucide-react` as `@remixicon/react`
   components; a Vite `app-icons` plugin resolves `lucide-react` to that file
@@ -22,51 +29,85 @@ below are local customizations on top of upstream `v0.1.150`.
   before them. Lucide still draws the sandboxed JSX-page frame (`shared/
   app-frame/jsx-page.ts`), which loads it from jsDelivr. `NOTICE` carries the
   Remix Icon attribution.
+  中文：**应用里的所有图标改用 Remix Icon。** `src/lib/icons.tsx` 把代码里从 `lucide-react`
+  引入的 265 个名字重新导出为 `@remixicon/react` 组件；Vite 的 `app-icons` 插件把 `src/` 下的
+  `lucide-react` 解析到该文件，`tsconfig.json` 的路径映射让类型检查器也走同一份，所以 shim 里漏了
+  某个名字 `pnpm typecheck` 会直接报错。包装组件保留 `lucide lucide-<name>` 类名（样式和测试按它
+  选取）、`size` 与 `currentColor`；Remix 会在其前面加自己的 `remixicon` 类。沙箱 JSX 页面的外框
+  （`shared/app-frame/jsx-page.ts`）仍用 lucide，从 jsDelivr 加载；`NOTICE` 里加了 Remix Icon 的署名。
   - Visual difference: Remix line icons are filled paths, so a call site's
     `strokeWidth` no longer changes their weight, and the CSS rule that
     lightened lucide's default 2px stroke (`svg.lucide[stroke-width="2"]`) has
     nothing left to affect.
+    中文：视觉差异：Remix 线性图标是填充路径，所以调用处的 `strokeWidth` 不再改变线条粗细；
+    之前用来把 lucide 默认 2px 描边变淡的那条 CSS（`svg.lucide[stroke-width="2"]`）也没有作用对象了。
   - Two markup assertions that compared an icon's class string exactly now
     expect the `remixicon` prefix (`BrowserPanel.dom.test.ts`,
     `DesktopWorkspaceSwitcher.test.ts`).
+    中文：两处按完整类名字符串比对图标的断言，现在期望带 `remixicon` 前缀
+    （`BrowserPanel.dom.test.ts`、`DesktopWorkspaceSwitcher.test.ts`）。
 - **Sidebar: search and new-chat buttons moved to the bottom.** The search
   button and the `+` button now sit at the bottom of the sidebar, just above
   the tools/plugins button, instead of at the top.
+  中文：**侧边栏：搜索和新建聊天按钮移到底部。** 搜索按钮和 `+` 按钮从顶部移到侧边栏底部、
+  工具/插件按钮的正上方。
   - Icon sidebar (`density === "icons"`): search and `+` move into a new
     `SidebarBottomActions` component (`data-sidebar-bottom-actions`) rendered
     above the footer, outside the scrolling list. The `+` menu now opens
     upward (`bottom-full`) so it stays inside the window. The block lives in
     its own file to keep `Sidebar.tsx` under the repo's file-size ratchet.
+    中文：图标侧边栏（`density === "icons"`）：搜索和 `+` 移进新的 `SidebarBottomActions`
+    组件（`data-sidebar-bottom-actions`），渲染在页脚之上、滚动列表之外。`+` 的菜单改为向上弹
+    （`bottom-full`），避免超出窗口。这块拆成独立文件，让 `Sidebar.tsx` 不超仓库的文件行数上限。
   - Avatar rail / compact mode (`SidebarSimpleRail.tsx`): `SimpleRailFooter`
     gained an optional `topActions` slot, and the rail renders search and `+`
     there, above the Connect apps and profile buttons. The top of the rail now
     holds only the avatar list. The `+` menu still opens to the right
     (`left-full`), the only direction with room in a narrow rail.
+    中文：头像 rail / 紧凑模式（`SidebarSimpleRail.tsx`）：`SimpleRailFooter` 新增可选的
+    `topActions` 插槽，rail 在里面渲染搜索和 `+`，位置在「连接应用」和头像按钮之上。rail 顶部现在
+    只剩头像列表。`+` 的菜单仍向右弹（`left-full`）——窄 rail 里只有这个方向放得下。
   - The full (non-icon) sidebar list keeps its buttons at the top.
+    中文：完整（非图标）侧边栏的按钮仍留在顶部。
   - Search still opens the command palette; no behaviour change.
+    中文：搜索仍然打开命令面板，行为不变。
 - **Sidebar: the Inbox entry follows the collapsed layout.** In the full
   sidebar the Inbox row stays at the top; collapsed to icons it now sits at the
   foot, directly above search.
+  中文：**侧边栏：收件箱入口跟随折叠布局。** 完整侧边栏里收件箱行仍在顶部；折叠成图标后它落在
+  底部、搜索的正上方。
   - Icon sidebar: `SidebarBottomActions` gained an optional `inbox` slot, and
     `Sidebar.tsx` passes the row in there.
+    中文：图标侧边栏：`SidebarBottomActions` 新增可选的 `inbox` 插槽，`Sidebar.tsx` 把这一行传进去。
   - Avatar rail (Simple): the row uses the same round `SIMPLE_TOP_BUTTON` control
     as the search button below it, so the rail keeps its Inbox entry too.
+    中文：头像 rail（简易模式）：这一行用与下方搜索按钮相同的圆形 `SIMPLE_TOP_BUTTON`，所以 rail
+    也保留了收件箱入口。
   - `SidebarInboxRow` gained `rail` for that round shape; its count badge and
     running dot stay in place.
+    中文：`SidebarInboxRow` 新增 `rail` 参数来用圆形样式；它的计数徽标和运行中的小圆点位置不变。
 
 - **This fork is local-only: MausBot Cloud and organization entries are
   hidden.** `src/fork/local-only.ts` holds `FORK_LOCAL_ONLY = true`, the one
   switch every hiding reads; nothing is deleted and flipping it brings every
   entry back.
+  中文：**本 fork 仅本地：隐藏 MausBot Cloud 和组织的入口。** `src/fork/local-only.ts`
+  里的 `FORK_LOCAL_ONLY = true` 是唯一开关，所有隐藏都读它；什么都没删，把它翻回 false 所有入口就回来。
   - Settings: the Cloud account and Organization pages leave the rail (both
     modes), and Simple's Usage & billing page keeps usage only
     (`SettingsModal.tsx`).
+    中文：设置：Cloud 账户页和组织页从两侧栏（简易/高级）里去掉；简易模式的「用量与账单」页只留用量
+    （`SettingsModal.tsx`）。
   - MausBot's first messages drop the "Try Cloud" step and chip
     (`HelperSetup.tsx`).
+    中文：MausBot 的开场消息去掉「试用 Cloud」步骤和 chip（`HelperSetup.tsx`）。
   - Remote access keeps Same Wi-Fi and Tailscale: the relay and the hosted
     HTTPS address rows are hidden (`PhoneDevicesSection.tsx`).
+    中文：远程访问只留「同一 Wi-Fi」和 Tailscale：relay 行和官方托管的 HTTPS 地址行都隐藏
+    （`PhoneDevicesSection.tsx`）。
   - Untouched, as required: logins, usage, remote access, model providers, API
     keys, the bot desktop, backups and import.
+    中文：按要求未动：登录、用量、远程访问、模型提供方、API 密钥、机器人桌面、备份、导入。
 
 - **The remaining Cloud prompts are gone too.** Same switch:
   remote access keeps Same Wi-Fi and Tailscale only (the relay row goes with
@@ -78,6 +119,12 @@ below are local customizations on top of upstream `v0.1.150`.
   `?desktop-settings=cloud*` links do nothing; "Add a Cloud" in a routine's
   schedule note, the two "more pages" upgrade buttons and the organization
   sign-in row in Connect AI are hidden.
+  中文：**剩下所有 Cloud 引导也去掉了。** 同一个开关：远程访问只留「同一 Wi-Fi」和 Tailscale
+  （relay 行随 HTTPS 行一起隐藏）；设置「通用」页去掉 `ProSettingsCard`，简易模式「通用」页去掉
+  Cloud 方案行；Cloud 试用卡、Cloud 通知卡、what's-new 的购买按钮都不再出现；没有 Cloud 欢迎流程、
+  也没有首轮登录（`cloudSignInDue` 恒为 false）；账户菜单去掉 Cloud 账户行和「我的 Cloud」位置行；
+  菜单里的「Add a Cloud…」和 `?desktop-settings=cloud*` 深链点了没反应；例行任务排程提示里的
+  「添加 Cloud」、两个「更多页面」升级按钮、以及「连接 AI」对话框里的组织登录行都隐藏。
 - **Advanced mode's collapsed sidebar centres on the window's traffic lights.** Collapsed to
   icons, the sidebar was 80px wide, so its column of 46px buttons centred at
   x = 39.75 while the traffic lights' yellow button, inset at 16,16, centres at
@@ -85,37 +132,58 @@ below are local customizations on top of upstream `v0.1.150`.
   the rail's 92px, and its hairline edge is an inset shadow instead of a right
   border, so the border no longer takes 0.5px off the column and the boxes
   centre on x = 46 (the Simple rail, keeping its border, on 45.75).
+  中文：**高级模式折叠侧边栏对齐窗口红绿灯。** 折叠成图标时侧边栏宽 80px，那一列 46px 按钮的中心
+  在 x = 39.75，而红绿灯（inset 16,16）黄灯中心在 x = 46：每个图标都比简易 rail 靠左 6.25px。
+  现在这一列采用 rail 的 92px 宽，且细边改为 inset 阴影而不是右边框，边框不再吃掉 0.5px，于是盒子
+  中心落在 x = 46（简易 rail 保留边框，中心 45.75）。
   - The column's controls share one box and icon size —
     `src/components/sidebar-icon-column.ts`: a 46px box holding a 20px icon at
     `strokeWidth` 1.75 — instead of each component spelling the numbers out.
+    中文：这一列的控件共用一套盒子与图标尺寸 —— `src/components/sidebar-icon-column.ts`：
+    46px 盒子装 20px 图标、`strokeWidth` 1.75 —— 不再由各组件各自写数字。
   - Remix icons are filled paths, so the `strokeWidth` normalisation changes
     nothing on screen; the rail toggle's hand-drawn strip icon is the only one
     whose stroke gets heavier (1.5 → 1.75).
+    中文：Remix 图标是填充路径，所以 `strokeWidth` 归一在屏幕上没有变化；只有 rail 开关那个手绘
+    条纹图标真的变粗了一点（1.5 → 1.75）。
 - **Model picker removed from the chat header** (`ChatView.tsx`). The header no
   longer renders `ModelPicker`; the model is chosen from settings instead. This
   is a personal-build change and is not intended for upstream.
+  中文：**聊天顶栏移除模型选择器**（`ChatView.tsx`）。顶栏不再渲染 `ModelPicker`，模型改在设置里选。
+  这是个人构建的改动，不打算进上游。
 
-### Tests
+### Tests / 测试
 
 - The Cloud-only settings tests and the two Cloud/Organization bridge cases are
   skipped under `FORK_LOCAL_ONLY` (`it.skipIf`), and `HelperIntro.test.ts`,
   `SettingsModal.groups.test.ts` and `SettingsModal.simple.test.ts` read the
   constant for the lists it changes. The Cloud plan suite
   (`SettingsModal.cloudPlan.test.ts`) is skipped whole.
+  中文：只测 Cloud 的设置用例、以及 Cloud/组织桥的两条用例，在 `FORK_LOCAL_ONLY` 下用
+  `it.skipIf` 跳过；`HelperIntro.test.ts`、`SettingsModal.groups.test.ts`、
+  `SettingsModal.simple.test.ts` 读同一个常量来做「二选一」断言。Cloud 方案那一整个套件
+  （`SettingsModal.cloudPlan.test.ts`）整体跳过。
 - Updated upstream tests that asserted the old layout:
   `ChatView.controls.test.ts` (header no longer shows the model picker) and
   `Sidebar.header.test.ts` / `Sidebar.simple-layout.test.ts` (search and `+` at
   the foot of the rail). `pnpm typecheck` passes and the affected suites
   (`ChatView*`, `Sidebar*`) are green.
+  中文：更新了断言旧布局的上游测试：`ChatView.controls.test.ts`（顶栏不再有模型选择器）、
+  `Sidebar.header.test.ts` / `Sidebar.simple-layout.test.ts`（搜索和 `+` 在 rail 底部）。
+  `pnpm typecheck` 通过，相关套件（`ChatView*`、`Sidebar*`）全绿。
 
-### Added
+### Added / 新增
 
 - `apply-ui-patch.sh` — builds the renderer and copies `dist/` into the
   installed `/Applications/OpenMausBot.app/Contents/Resources/ui/`, with a
   timestamped backup of the previous UI. Re-run it after an app auto-update
   overwrites the patched interface files.
+  中文：`apply-ui-patch.sh` —— 重新构建前端，把 `dist/` 覆盖进已安装的
+  `/Applications/OpenMausBot.app/Contents/Resources/ui/`，并把旧界面备份成带时间戳的目录。
+  App 自动更新覆盖界面文件后，重跑一次即可。
 
-### Notes
+### Notes / 说明
 
 - `.ui-backup-*/` directories are ignored by git; they are local snapshots made
   by `apply-ui-patch.sh`.
+  中文：`.ui-backup-*/` 目录被 git 忽略，它们是 `apply-ui-patch.sh` 在本地做的快照。
