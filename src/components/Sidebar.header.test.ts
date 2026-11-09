@@ -248,18 +248,23 @@ describe("sidebar top row", () => {
     expect(html.match(/aria-label="New or share"/g)).toHaveLength(1);
   });
 
-  it("stacks the icons rail unchanged and keeps the icon-only switcher beneath it", () => {
+  it("stacks the icons rail and puts the place switcher in the foot, above the inbox and search", () => {
     fixture.density = "icons";
     fixture.windowChrome = "mac-inset";
     desktop();
     const html = render();
-    const row = topRow(html);
+    const row = html.slice(html.indexOf("data-sidebar-top-row"), html.indexOf('<div role="separator"'));
     expect(row).not.toContain("data-workspace-switcher");
     expect(row).not.toContain("data-sidebar-top-spacer");
     expect(classesOf(row, "data-sidebar-top-row")).toEqual(["flex", "items-center", "flex-col", "gap-1", "px-2", "pt-3.5", "pb-1"]);
     expect(row).not.toContain("data-traffic-light-space");
     expect(classesOf(row, "data-sidebar-top-buttons")).toEqual(["relative", "flex", "shrink-0", "items-center", "flex-col", "gap-1"]);
     expect(html.match(/Switch server:/g)).toHaveLength(1);
+    const foot = html.slice(html.indexOf("data-sidebar-bottom-actions"));
+    const place = foot.indexOf('data-workspace-switcher="compact"');
+    expect(place).toBeGreaterThan(-1);
+    expect(place).toBeLessThan(foot.indexOf("data-sidebar-inbox"));
+    expect(foot.indexOf("data-sidebar-inbox")).toBeLessThan(foot.indexOf('aria-label="Search bots and messages"'));
   });
 });
 
