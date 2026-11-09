@@ -4,7 +4,7 @@ import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import type { Bot } from "@/state/store";
 import { useForkAvatarStyle } from "@/fork/avatar-style";
 import { useBloubSkin } from "@/fork/bloub-skin";
-import { SIDEBAR_AVATAR_SIZE } from "./sidebar-icon-column";
+import { SIDEBAR_AVATAR_ADVANCED } from "./sidebar-icon-column";
 import { BotAvatar } from "./Avatar";
 import { BloubAvatar } from "./BloubAvatar";
 
@@ -18,7 +18,7 @@ export function StackedMauses({ members, density, large = false }: { members: Bo
   const bloub = useForkAvatarStyle() === "bloub";
   const iconOnly = density === "icons";
   const slotSize = iconOnly ? "size-12" : large ? "size-9" : "size-8";
-  const singleSize = bloub ? (iconOnly ? SIDEBAR_AVATAR_SIZE : large ? 36 : 32) : iconOnly ? 44 : large ? 36 : 32;
+  const singleSize = bloub ? (iconOnly ? SIDEBAR_AVATAR_ADVANCED : large ? 36 : 32) : iconOnly ? 44 : large ? 36 : 32;
   if (members.length <= 1) {
     const b = members[0];
     return (

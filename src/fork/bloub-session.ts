@@ -26,8 +26,9 @@ export function bloubSessionState(bot: Bot, messages: readonly Message[] | undef
   if (last?.kind === "activity" && last.tool?.ok === false) return "exclaim";
   if (bot.busy) return toolRunning(last, true) ? "orbit" : "thinking";
   if (bot.unread) return "notify";
+  // Sleep only for a bot the server itself says is idle (old conversations stay awake and show their face).
   const lastAt = last?.at ?? bot.turnStartedAt ?? 0;
-  if (lastAt && now - lastAt > 10 * 60_000) return "sleep";
+  if (bot.activity === "idle" && lastAt && now - lastAt > 10 * 60_000) return "sleep";
   return "idle";
 }
 

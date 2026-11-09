@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initialState, type AppState, type Bot, type Group } from "@/state/store";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
-import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_SIZE } from "./sidebar-icon-column";
+import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL } from "./sidebar-icon-column";
 
 const fixture = vi.hoisted(() => ({ advanced: false, showThreads: true, admin: true as boolean | null, state: {} as Partial<AppState>, dispatch: vi.fn() }));
 vi.mock("@/lib/interface-mode", async (original) => ({
@@ -88,10 +88,10 @@ describe("bot-first sidebar", () => {
 
   it.each([
     { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-6"] },
-    { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_SIZE, spacing: ["justify-center", "px-1", "py-1.5"] },
+    { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_ADVANCED, spacing: ["justify-center", "px-1", "py-1.5"] },
     { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-2.5", "pr-9"] },
     { advanced: false, enabled: false, density: "comfortable", size: 42, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"] },
-    { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_SIZE, spacing: ["h-[54px]", "justify-center"] },
+    { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
   ] as const)("sizes bot portraits and row spacing in $density density with threads $enabled (advanced $advanced)", ({ advanced, enabled, density, size, spacing }) => {
     fixture.advanced = advanced;
     fixture.showThreads = enabled;
@@ -105,7 +105,7 @@ describe("bot-first sidebar", () => {
         ? `width="${size}" height="${size}"`
         : `width="${size}px" height="${size}px"`);
       // Simple draws its mascot larger than the 36px it takes in the row, so the text stays where it was.
-      if (!advanced && density === "comfortable") expect(markup).toContain('<span class="relative flex shrink-0 -m-[3px]">');
+      if (!advanced && density === "comfortable") expect(markup).toContain('<span class="relative flex shrink-0 transition-transform duration-150 ease-out -m-[3px]">');
     }
   });
 

@@ -5,6 +5,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { NOTIF_BLUE, type DotRender } from "@/vendor/bloub/decor";
@@ -36,21 +37,20 @@ const STATE_BY_MAUS: Record<string, StateId> = {
 
 export function bloubState(mausState: string | undefined): StateId {
   if (!mausState) return "idle";
-  // A Bloub id passed straight through is already one.
   if (STATE_BY_ID.has(mausState as StateId)) return mausState as StateId;
   return STATE_BY_MAUS[mausState] || "idle";
 }
 
-/** Below this an avatar is a still frame with the odd blink, unless the pointer comes near. */
-export const BLOUB_STILL_SIZE = 40;
-/** Small avatars crop to the body so the face fills the tile; from here up the rings have room. */
-const BLOUB_CROP_BELOW = 48;
-/** How close the pointer wakes a still avatar. */
-export const BLOUB_NEAR_PX = 120;
-/** A lone large avatar gets the full frame rate; the rest of a list is throttled. */
+/** A lone large avatar gets the full frame rate; a background state animates at the list rate. */
 export const BLOUB_SINGLE_SIZE = 96;
-const LIST_FPS = 30;
-const SINGLE_FPS = 60;
+const BACKGROUND_FPS = 30;
+
+/** Degrees the body leans and pixels it drifts toward the pointer (Grok's own little lean). */
+const LEAN_DEG = 6;
+const DRIFT_PX = 2.5;
+/** Bloub's spring, near critical so it settles with a small rebound. */
+const SPRING_K = 170;
+const SPRING_C = 18;
 
 export type BloubAvatarHandle = {
   blink: () => void;
@@ -60,11 +60,8 @@ export type BloubAvatarHandle = {
 
 export type BloubAvatarProps = {
   size?: number;
-  /** A Bloub shape id (`cercle`, `galet`, …). */
   shape?: string;
-  /** A Bloub colour id (`encre`, `vert`, …). */
   colorId?: string;
-  /** A Bloub resting expression id (`neutre`, …). */
   expression?: string;
   state?: string;
   animated?: boolean;
@@ -73,8 +70,8 @@ export type BloubAvatarProps = {
   /** The surface behind the eye holes; falls back to the page's own colour. */
   paper?: string;
   label?: string;
-  /** How far past its box the pointer wakes and turns the avatar, as a multiple of `size`. */
-  followScale?: number;
+  /** Draw the body to the edges of the box (the small sidebar/composer faces), not the ring's framing. */
+  fitBody?: boolean;
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -105,61 +102,6 @@ function subscribeFrames(listener: (clock: number) => void): () => void {
       raf = 0;
     }
   };
-}
-
-/* ----------------------------------------------------------- one pointer */
-
-let pointer: { x: number; y: number } | null = null;
-type Measurer = () => { dist: number; range: number };
-const measurers = new Map<string, Measurer>();
-const ownerSubs = new Set<(owner: string | null) => void>();
-let owner: string | null = null;
-let pointerBound = false;
-
-/** Only the avatar closest to the pointer (within its own range) follows; the rest rest. */
-function computeOwner() {
-  let best: string | null = null;
-  let bestRatio = Infinity;
-  if (pointer) {
-    for (const [id, measure] of measurers) {
-      const box = measure();
-      if (!box || box.dist > box.range) continue;
-      const ratio = box.dist / Math.max(1, box.range);
-      if (ratio < bestRatio) { bestRatio = ratio; best = id; }
-    }
-  }
-  if (best !== owner) {
-    owner = best;
-    for (const sub of ownerSubs) sub(owner);
-  }
-}
-
-function ensurePointer() {
-  if (pointerBound || typeof window === "undefined") return;
-  pointerBound = true;
-  window.addEventListener("pointermove", (event) => {
-    if (event.pointerType === "touch") return;
-    pointer = { x: event.clientX, y: event.clientY };
-    computeOwner();
-  }, { passive: true });
-  document.addEventListener("pointerleave", () => { pointer = null; computeOwner(); });
-}
-
-/** One pointermove for the whole page; each avatar registers how far the pointer is, and one owner follows. */
-function subscribeFollow(id: string, measure: Measurer, onChange: (owner: string | null) => void): () => void {
-  ensurePointer();
-  measurers.set(id, measure);
-  ownerSubs.add(onChange);
-  computeOwner();
-  return () => {
-    measurers.delete(id);
-    ownerSubs.delete(onChange);
-    computeOwner();
-  };
-}
-
-function clamp(value: number, low: number, high: number): number {
-  return Math.max(low, Math.min(high, value));
 }
 
 function useReducedMotion(): boolean {
@@ -226,6 +168,13 @@ function dotFill(dot: DotRender, ink: string, paper: string): { fill: string; fi
   return { fill: safeMix(paper, ink, dot.depth) };
 }
 
+/** One axis of a damped spring, stepped by the engine's own frame clock. */
+function stepSpring(position: number, velocity: number, target: number, dt: number): [number, number] {
+  const acceleration = SPRING_K * (target - position) - SPRING_C * velocity;
+  const nextVelocity = velocity + acceleration * dt;
+  return [position + nextVelocity * dt, nextVelocity];
+}
+
 export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(function BloubAvatar(
   {
     size = 44,
@@ -237,7 +186,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     frozenAt,
     paper,
     label,
-    followScale = 1,
+    fitBody = false,
   },
   ref,
 ) {
@@ -251,18 +200,20 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const engine = useRef<BotEngine | null>(null);
   if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, expr);
 
-  const [following, setFollowing] = useState(false);
-  const [hover, setHover] = useState(false);
+  const [hovering, setHovering] = useState(false);
+  const [settling, setSettling] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
-  const aimId = useId();
+  const pointer = useRef<{ nx: number; ny: number } | null>(null);
   const aiming = useRef(false);
+  const spring = useRef({ x: 0, y: 0, vx: 0, vy: 0, lean: 0, vLean: 0 });
 
   const activeState = stateId !== "idle";
   const canAnimate = frozenAt === undefined && !reduced;
-  // Small and idle: still, until the pointer comes near or a real state plays.
-  // The pointer wakes even an idle avatar the caller marked not-animated; a real state playing runs live.
-  const live = canAnimate && (following || hover || (animated && (size >= BLOUB_STILL_SIZE || activeState)));
-  const half = size < BLOUB_CROP_BELOW ? RAYON : DEMI_VIEWBOX;
+  const live = canAnimate && (hovering || settling || (animated && activeState));
+  const fps = (hovering || settling) ? 60 : BACKGROUND_FPS;
+  const cropBody = fitBody || size < 48;
+  const half = cropBody ? RAYON : DEMI_VIEWBOX;
+  const unitsPerPx = (half * 2) / Math.max(1, size);
 
   const frozenTime = frozenAt ?? POSES[stateId];
   const [frame, setFrame] = useState<BotFrame>(() => engine.current!.sample(frozenTime));
@@ -271,30 +222,19 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const uid = useId().replace(/[:]/g, "");
   const maskId = `bloub-mask-${uid}`;
 
-  // This avatar measures its own distance; only the closest one (within its range) follows.
-  useEffect(() => subscribeFollow(aimId, () => {
-    const box = svgRef.current?.getBoundingClientRect();
-    if (!pointer || !box || box.width === 0) return { dist: Infinity, range: 1 };
-    const dx = Math.max(box.left - pointer.x, 0, pointer.x - box.right);
-    const dy = Math.max(box.top - pointer.y, 0, pointer.y - box.bottom);
-    return { dist: Math.hypot(dx, dy), range: size * followScale };
-  }, (next) => setFollowing(next === aimId)), [aimId, size, followScale]);
-
-  // A new shape morphs (BloubBot.vue:408); still frames redraw at once.
+  // A new shape morphs (BloubBot.vue:408); a still frame redraws at once.
   useEffect(() => {
     const bot = engine.current!;
     bot.setShape(shapes, live ? clock : 0);
     if (!live) setFrame(bot.sample(POSES[stateId]));
   }, [shape, live, stateId]);
 
-  // A new resting expression morphs too (BloubBot.vue:415).
   useEffect(() => {
     const bot = engine.current!;
     bot.setExpression(expr, live ? clock : 0);
     if (!live) setFrame(bot.sample(POSES[stateId]));
   }, [expression, live, stateId]);
 
-  // A new state is dated now; a still frame draws its settled pose at once.
   useEffect(() => {
     const bot = engine.current!;
     if (live) { bot.setState(stateId, clock); return; }
@@ -304,21 +244,35 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     setFrame(bot.sample(POSES[stateId]));
   }, [stateId, live]);
 
-  // The animation, with Bloub's gaze on top; one shared clock, throttled for a list.
+  // The animation: the hovered avatar runs every frame; a background state at the list rate.
   useEffect(() => {
     if (!live) return;
     const bot = engine.current!;
-    const fps = size >= BLOUB_SINGLE_SIZE ? SINGLE_FPS : LIST_FPS;
     const step = 1 / fps;
     const baseFace = Boolean(STATE_BY_ID.get(stateId)?.baseFace);
     return subscribeFrames((now) => {
       if (now - lastDraw.current < step - 0.0005) return;
+      const dt = Math.min(Math.max(now - lastDraw.current, 0.001), 0.064);
       lastDraw.current = now;
-      const box = svgRef.current?.getBoundingClientRect();
-      if (following && pointer && box && box.width > 0 && baseFace) {
-        const nx = clamp((pointer.x - (box.left + box.width / 2)) / Math.max(1, window.innerWidth / 2), -1, 1);
-        const ny = clamp((pointer.y - (box.top + box.height / 2)) / Math.max(1, window.innerHeight / 2), -1, 1);
-        bot.setLook(lookTarget({ nx, ny, tour: 1, pointer: true }), now);
+
+      // The whole body leans and drifts toward the pointer, on Bloub's spring.
+      const aim = hovering ? pointer.current : null;
+      const targetX = aim ? aim.nx * DRIFT_PX * unitsPerPx : 0;
+      const targetY = aim ? aim.ny * DRIFT_PX * unitsPerPx : 0;
+      const targetLean = aim ? aim.nx * LEAN_DEG : 0;
+      let s = spring.current;
+      [s.x, s.vx] = stepSpring(s.x, s.vx, targetX, dt);
+      [s.y, s.vy] = stepSpring(s.y, s.vy, targetY, dt);
+      [s.lean, s.vLean] = stepSpring(s.lean, s.vLean, targetLean, dt);
+      if (!hovering && Math.abs(s.x) < 0.02 && Math.abs(s.y) < 0.02 && Math.abs(s.lean) < 0.02
+        && Math.abs(s.vx) < 0.02 && Math.abs(s.vy) < 0.02 && Math.abs(s.vLean) < 0.02) {
+        s.x = 0; s.y = 0; s.lean = 0; s.vx = 0; s.vy = 0; s.vLean = 0;
+        setSettling(false);
+      }
+
+      // Bloub's own head turn: the eyes ride the sphere (yaw/pitch), not a flat shift.
+      if (aim && baseFace) {
+        bot.setLook(lookTarget({ nx: aim.nx, ny: aim.ny, tour: 1, pointer: true }), now);
         aiming.current = true;
       } else if (aiming.current) {
         bot.setLook(null, now, TURN_TIME);
@@ -326,7 +280,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       }
       setFrame(bot.sample(now));
     });
-  }, [live, size, stateId, following]);
+  }, [live, fps, stateId, hovering, settling, unitsPerPx]);
 
   // A still avatar blinks now and then, without running the morphs.
   useEffect(() => {
@@ -365,17 +319,32 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     setExpression: () => {},
   }), [stateId, live, frozenTime]);
 
+  const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (event.pointerType === "touch" || reduced) return;
+    const box = event.currentTarget.getBoundingClientRect();
+    if (box.width === 0) return;
+    pointer.current = {
+      nx: Math.max(-1, Math.min(1, ((event.clientX - (box.left + box.width / 2)) / (box.width / 2)))),
+      ny: Math.max(-1, Math.min(1, ((event.clientY - (box.top + box.height / 2)) / (box.height / 2)))),
+    };
+  };
+
+  const s = spring.current;
+  const transform = `translate(${s.x.toFixed(2)} ${s.y.toFixed(2)}) rotate(${s.lean.toFixed(2)})`;
   const vb = half;
+
   return (
     <svg
       ref={svgRef}
-      width={size}
-      height={size}
+      width={size * 2}
+      height={size * 2}
       viewBox={`${-vb} ${-vb} ${vb * 2} ${vb * 2}`}
       role="img"
       aria-label={label}
-      onPointerEnter={() => setHover(true)}
-      onPointerLeave={() => setHover(false)}
+      style={{ width: size, height: size, shapeRendering: "geometricPrecision" }}
+      onPointerEnter={() => setHovering(true)}
+      onPointerMove={onPointerMove}
+      onPointerLeave={() => { pointer.current = null; setHovering(false); setSettling(canAnimate); }}
     >
       <defs>
         <mask id={maskId} maskUnits="userSpaceOnUse" x={-vb} y={-vb} width={vb * 2} height={vb * 2}>
@@ -402,45 +371,47 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
         ))}
       </defs>
 
-      <g fill="none" strokeLinecap="round">
-        {frame.arcs.map((arc) => (
-          <path key={`b${arc.id}`} d={arc.back} stroke={`url(#${uid}-${arc.id})`} strokeWidth={arc.width} opacity={arc.opacity} />
-        ))}
-      </g>
-
-      {frame.dotsBehind && (
-        <g>
-          {frame.dots.map((dot, index) => dot.d ? (
-            <path key={`pb${index}`} d={dot.d} transform={`translate(${dot.x} ${dot.y}) rotate(${dot.rot ?? 0}) scale(${RAYON})`} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
-          ) : (
-            <circle key={`pb${index}`} cx={dot.x} cy={dot.y} r={dot.r} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+      <g transform={transform}>
+        <g fill="none" strokeLinecap="round">
+          {frame.arcs.map((arc) => (
+            <path key={`b${arc.id}`} d={arc.back} stroke={`url(#${uid}-${arc.id})`} strokeWidth={arc.width} opacity={arc.opacity} />
           ))}
         </g>
-      )}
 
-      <g opacity={frame.bodyAlpha}>
-        <path d={frame.bodyPath} fill={surface} />
-        <g mask={`url(#${maskId})`}>
-          <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
+        {frame.dotsBehind && (
+          <g>
+            {frame.dots.map((dot, index) => dot.d ? (
+              <path key={`pb${index}`} d={dot.d} transform={`translate(${dot.x} ${dot.y}) rotate(${dot.rot ?? 0}) scale(${RAYON})`} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+            ) : (
+              <circle key={`pb${index}`} cx={dot.x} cy={dot.y} r={dot.r} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+            ))}
+          </g>
+        )}
+
+        <g opacity={frame.bodyAlpha}>
+          <path d={frame.bodyPath} fill={surface} />
+          <g mask={`url(#${maskId})`}>
+            <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />
+          </g>
         </g>
-      </g>
 
-      {!frame.dotsBehind && (
-        <g>
-          {frame.dots.map((dot, index) => dot.d ? (
-            <path key={`pf${index}`} d={dot.d} transform={`translate(${dot.x} ${dot.y}) rotate(${dot.rot ?? 0}) scale(${RAYON})`} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
-          ) : (
-            <circle key={`pf${index}`} cx={dot.x} cy={dot.y} r={dot.r} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+        {!frame.dotsBehind && (
+          <g>
+            {frame.dots.map((dot, index) => dot.d ? (
+              <path key={`pf${index}`} d={dot.d} transform={`translate(${dot.x} ${dot.y}) rotate(${dot.rot ?? 0}) scale(${RAYON})`} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+            ) : (
+              <circle key={`pf${index}`} cx={dot.x} cy={dot.y} r={dot.r} opacity={dot.opacity} {...dotFill(dot, ink, surface)} />
+            ))}
+          </g>
+        )}
+
+        {frame.notif && <circle cx={frame.notif.x} cy={frame.notif.y} r={frame.notif.r} fill={NOTIF_BLUE} />}
+
+        <g fill="none" strokeLinecap="round">
+          {frame.arcs.map((arc) => (
+            <path key={`f${arc.id}`} d={arc.front} stroke={`url(#${uid}-${arc.id})`} strokeWidth={arc.width} opacity={arc.opacity} />
           ))}
         </g>
-      )}
-
-      {frame.notif && <circle cx={frame.notif.x} cy={frame.notif.y} r={frame.notif.r} fill={NOTIF_BLUE} />}
-
-      <g fill="none" strokeLinecap="round">
-        {frame.arcs.map((arc) => (
-          <path key={`f${arc.id}`} d={arc.front} stroke={`url(#${uid}-${arc.id})`} strokeWidth={arc.width} opacity={arc.opacity} />
-        ))}
       </g>
     </svg>
   );
