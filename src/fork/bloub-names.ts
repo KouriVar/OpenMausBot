@@ -1,6 +1,21 @@
-/** Bloub's own names, copied verbatim from its `zh.ts` (do not re-translate). */
+/** Bloub's own names, copied verbatim from its `zh.ts` (do not re-translate).
+ * Keys cover the 13 new Grok ids + "pebble" first, then Bloub's legacy ids for old stored data. */
 
 export const SHAPE_LABELS: Record<string, string> = {
+  blob: "圆形",
+  cloud: "云朵",
+  square: "方块",
+  sparkle: "四角星",
+  clover: "四瓣花",
+  heart: "心形",
+  flower: "花朵",
+  teardrop: "水滴",
+  tablet: "横胶囊",
+  wedge: "三角",
+  house: "房子",
+  star: "星形",
+  hex: "六边形",
+  pebble: "卵石",
   cercle: "圆形",
   galet: "卵石",
   squircle: "圆角方形",
@@ -36,16 +51,25 @@ export const EXPRESSION_LABELS: Record<string, string> = {
 };
 
 export const COLOR_LABELS: Record<string, string> = {
+  black: "黑色",
+  brown: "棕色",
+  red: "红色",
+  orange: "橙色",
+  yellow: "黄色",
+  green: "绿色",
+  cyan: "青色",
+  blue: "蓝色",
+  violet: "紫色",
+  magenta: "品红",
+  gray: "灰色",
   encre: "墨黑",
   creme: "奶油白",
   brun: "棕色",
   rouge: "红色",
-  orange: "橙色",
   ambre: "琥珀色",
   vert: "绿色",
   turquoise: "青绿色",
   bleu: "蓝色",
-  violet: "紫色",
   rose: "粉色",
   gris: "灰色",
 };

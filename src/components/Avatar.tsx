@@ -109,10 +109,12 @@ export type MausAvatarProps = {
   /** The tile the Bloub body sits in, and the element whose whole rectangle is the hover target. */
   frameSize?: number;
   hitRef?: React.RefObject<HTMLElement | null>;
+  /** Let a click on the (already-selected) face cycle spin/bounce/nod. */
+  pokable?: boolean;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody, frameSize, hitRef } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody, frameSize, hitRef, pokable } = props;
   // The fork's switch: Bloub replaces every built body, the festival ones included.
   const avatarStyle = useForkAvatarStyle();
   const bloubSkin = useBloubSkin(botId, color);
@@ -130,6 +132,7 @@ function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHa
         fitBody={fitBody}
         frameSize={frameSize}
         hitRef={hitRef}
+        pokable={pokable}
       />
     );
   }

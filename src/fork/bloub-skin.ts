@@ -1,40 +1,44 @@
 import { useSyncExternalStore } from "react";
 
+import { isBloubShape } from "@/fork/bloub-shapes";
 import type { MausColor } from "@/lib/mascot";
-import { EXPRESSION_BY_ID } from "@/vendor/bloub/expressions";
-import { COLOR_BY_ID, COLORS, SHAPE_BY_ID, type ColorId, type ShapeId } from "@/vendor/bloub/skins";
-import { DEFAULT_EXPRESSION } from "@/vendor/bloub/expressions";
+import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from "@/vendor/bloub/expressions";
+import { COLOR_BY_ID, COLORS, mixHex } from "@/vendor/bloub/skins";
 
 /** One bot's Bloub look, kept per bot id. */
 export interface BloubSkin {
-  shape: ShapeId;
-  color: ColorId;
+  shape: string;
+  color: string;
   expression: string;
 }
 
 export const BLOUB_SKIN_PREFIX = "omb.fork.bloub.";
 
-/** A bot's OMB colour on Bloub's own palette. */
-const COLOR_BY_MAUS: Partial<Record<MausColor, ColorId>> = {
-  green: "vert",
-  teal: "turquoise",
-  cyan: "turquoise",
-  blue: "bleu",
+/** A bot's OMB colour on the new Grok palette. */
+const COLOR_BY_MAUS: Partial<Record<MausColor, string>> = {
+  green: "green",
+  teal: "cyan",
+  cyan: "cyan",
+  blue: "blue",
   purple: "violet",
-  pink: "rose",
-  coral: "rose",
-  red: "rouge",
+  pink: "magenta",
+  coral: "magenta",
+  red: "red",
   orange: "orange",
-  yellow: "ambre",
-  silver: "gris",
-  chrome: "gris",
+  yellow: "yellow",
+  silver: "gray",
+  chrome: "gray",
 };
 
-export const BLOUB_DEFAULT_SHAPE: ShapeId = "cercle";
+export const BLOUB_DEFAULT_SHAPE = "blob";
 export const BLOUB_DEFAULT_EXPRESSION = DEFAULT_EXPRESSION;
 
 export function defaultBloubSkin(color: MausColor | string | undefined): BloubSkin {
-  return { shape: BLOUB_DEFAULT_SHAPE, color: COLOR_BY_MAUS[color as MausColor] ?? "encre", expression: BLOUB_DEFAULT_EXPRESSION };
+  return {
+    shape: BLOUB_DEFAULT_SHAPE,
+    color: COLOR_BY_MAUS[color as MausColor] ?? "black",
+    expression: BLOUB_DEFAULT_EXPRESSION,
+  };
 }
 
 /** A stored value read back: every field checked, each bad one falling back on its own. */
@@ -49,8 +53,8 @@ export function parseBloubSkin(raw: string | null | undefined, fallback: BloubSk
   if (!value || typeof value !== "object") return fallback;
   const record = value as Record<string, unknown>;
   return {
-    shape: typeof record.shape === "string" && SHAPE_BY_ID.has(record.shape) ? (record.shape as ShapeId) : fallback.shape,
-    color: typeof record.color === "string" && COLOR_BY_ID.has(record.color) ? (record.color as ColorId) : fallback.color,
+    shape: typeof record.shape === "string" && isBloubShape(record.shape) ? record.shape : fallback.shape,
+    color: typeof record.color === "string" && isRecognizedBloubColor(record.color) ? normalizeBloubColor(record.color) : fallback.color,
     expression: typeof record.expression === "string" && EXPRESSION_BY_ID.has(record.expression) ? record.expression : fallback.expression,
   };
 }
@@ -106,35 +110,98 @@ export function useBloubSkin(botId: string | undefined, color: MausColor | strin
 
 /* ------------------------------------------------------------- the palette */
 
-/** Grok's sidebar palette, sampled from its dark screenshot. Ids are Bloub's, values Grok's. */
-export const FORK_BLOUB_PALETTE: "grok" | "bloub" = "grok";
+/** Grok's measured palette, with pure solids plus a light and a dark gradient (from → to, 135°). */
+export const FORK_BLOUB_PALETTE: BloubPalette = "grok";
 
-const GROK_HEX: Record<string, string> = {
-  creme: "#ffffff",
-  brun: "#a16c39",
-  rouge: "#f62c3e",
-  orange: "#f7670d",
-  ambre: "#f79410",
-  vert: "#38c470",
-  turquoise: "#36b8a2",
-  bleu: "#2c84fc",
-  violet: "#9159fb",
-  rose: "#f73399",
-  // Black has no place in Grok's palette: both a stored encre and creme read as white.
-  encre: "#ffffff",
-  gris: "#777777",
+export type BloubPalette = "grok" | "bloub";
+
+export interface BloubColorDef {
+  id: string;
+  solid: string;
+  light: [string, string];
+  dark: [string, string];
+}
+
+/** The 11 measured Grok colours, in the panel's order (black … gray). */
+export const GROK_COLORS: readonly BloubColorDef[] = [
+  { id: "black", solid: "#000000", light: ["#585858", "#000000"], dark: ["#FFFFFF", "#C2C2C2"] },
+  { id: "brown", solid: "#936439", light: ["#AE8968", "#855C36"], dark: ["#A27952", "#604227"] },
+  { id: "red", solid: "#FF263C", light: ["#FF5667", "#E02135"], dark: ["#FF3E51", "#A21826"] },
+  { id: "orange", solid: "#FF6700", light: ["#FF8838", "#E05B00"], dark: ["#FF781C", "#C24E00"] },
+  { id: "yellow", solid: "#FF9800", light: ["#FFAF38", "#E08600"], dark: ["#FFA31C", "#C27400"] },
+  { id: "green", solid: "#00C972", light: ["#1CCF82", "#009957"], dark: ["#00C972", "#008048"] },
+  { id: "cyan", solid: "#00BCA6", light: ["#58D3C5", "#00A592"], dark: ["#1CC3B0", "#007769"] },
+  { id: "blue", solid: "#1084FE", light: ["#459FFE", "#0E74E0"], dark: ["#2A92FE", "#0C64C1"] },
+  { id: "violet", solid: "#9159FE", light: ["#B792FE", "#804EE0"], dark: ["#9159FE", "#5C39A1"] },
+  { id: "magenta", solid: "#FF309B", light: ["#FF77BE", "#E02A88"], dark: ["#FF47A6", "#A21E62"] },
+  { id: "gray", solid: "#777777", light: ["#A6A6A6", "#696969"], dark: ["#B7B7B7", "#777777"] },
+];
+
+const GROK_COLOR_BY_ID = new Map<string, BloubColorDef>(GROK_COLORS.map((colour) => [colour.id, colour]));
+
+/** Bloub's old colour ids, folded onto the new Grok ids so stored skins keep working. */
+const LEGACY_COLOR_ID: Record<string, string> = {
+  encre: "black",
+  creme: "black",
+  brun: "brown",
+  rouge: "red",
+  orange: "orange",
+  ambre: "yellow",
+  vert: "green",
+  turquoise: "cyan",
+  bleu: "blue",
+  violet: "violet",
+  rose: "magenta",
+  gris: "gray",
 };
 
-/** Grok's eyes are near-black on every body; Bloub's own palette keeps its paper holes. */
+/** Any old or new colour id → a new Grok colour id (unknown → black). */
+export function normalizeBloubColor(id: string): string {
+  if (GROK_COLOR_BY_ID.has(id)) return id;
+  return LEGACY_COLOR_ID[id] ?? "black";
+}
+
+function isRecognizedBloubColor(id: string): boolean {
+  return GROK_COLOR_BY_ID.has(id) || id in LEGACY_COLOR_ID;
+}
+
+function colorDef(id: string): BloubColorDef {
+  return GROK_COLOR_BY_ID.get(normalizeBloubColor(id)) ?? GROK_COLOR_BY_ID.get("black")!;
+}
+
+/** A colour's light/dark gradient stops (135°); unknown → black. */
+export function bloubGradient(id: string, scheme: "light" | "dark"): { from: string; to: string } {
+  const def = colorDef(id);
+  const [from, to] = scheme === "light" ? def.light : def.dark;
+  return { from, to };
+}
+
+/** A colour's pure solid; black inverts (dark → white, light → black), others stay their solid. */
+export function bloubSolid(id: string, scheme: "light" | "dark" = "dark"): string {
+  const def = colorDef(id);
+  if (def.id === "black") return scheme === "dark" ? "#FFFFFF" : "#000000";
+  return def.solid;
+}
+
+/** The midpoint of a colour's scheme gradient. */
+export function bloubMid(id: string, scheme: "light" | "dark"): string {
+  const { from, to } = bloubGradient(id, scheme);
+  return mixHex(from, to, 0.5);
+}
+
+/** A CSS value painting the colour's scheme gradient at 135°. */
+export function bloubSwatch(id: string, scheme: "light" | "dark"): string {
+  const { from, to } = bloubGradient(id, scheme);
+  return `linear-gradient(135deg, ${from}, ${to})`;
+}
+
+/* ---- legacy Grok gaze constants still consumed by the avatar ---- */
+
+/** Kept for callers that still read the old painted-eye colour. */
 export const GROK_EYE_COLOR = "#0b0b0c";
-/** The resting 2.5D look: a clear 3/4 turn, eyes in the upper-right of the body, a little above the
- * centre line and well out toward the right edge (≈44% of the radius from centre at 24°/13°). Kept as
- * its own constant, NOT limited by the pointer-follow range. */
 export const GROK_DEFAULT_YAW = 27;
 export const GROK_DEFAULT_PITCH = 19;
 
-/** Each shape rests at a tilt, so the body reads as a head turned 3/4 (Grok's screenshots) rather than
- * an upright icon. Degrees; the hover lean (±6°) adds on top. Symmetric blobs stay at 0. */
 export const GROK_SHAPE_ROTATION: Record<string, number> = {
   cercle: 0,
   galet: -7,
@@ -156,34 +223,32 @@ export function bloubShapeRotation(id: string): number {
   return GROK_SHAPE_ROTATION[id] ?? 0;
 }
 
-export function bloubEyeColor(palette: "grok" | "bloub" = FORK_BLOUB_PALETTE): string | null {
-  return palette === "grok" ? GROK_EYE_COLOR : null;
+/** Eyes are cutouts now, so no palette paints them. */
+export function bloubEyeColor(_palette: BloubPalette = FORK_BLOUB_PALETTE): string | null {
+  return null;
 }
 
-/** The 11 swatches the panel shows, Grok's order; `creme` is white, `gris` the grey. */
-export const GROK_COLOR_CHOICES: ReadonlyArray<{ id: string; hex: string }> = [
-  { id: "creme", hex: "#ffffff" },
-  { id: "brun", hex: "#a16c39" },
-  { id: "rouge", hex: "#f62c3e" },
-  { id: "orange", hex: "#f7670d" },
-  { id: "ambre", hex: "#f79410" },
-  { id: "vert", hex: "#38c470" },
-  { id: "turquoise", hex: "#36b8a2" },
-  { id: "bleu", hex: "#2c84fc" },
-  { id: "violet", hex: "#9159fb" },
-  { id: "rose", hex: "#f73399" },
-  { id: "gris", hex: "#777777" },
-];
+/** Grok cuts the eyes out of the body; Bloub's own palette keeps its paper holes. */
+export function bloubEyeMode(palette: BloubPalette = FORK_BLOUB_PALETTE): "cutout" | "paper" {
+  return palette === "bloub" ? "paper" : "cutout";
+}
 
 /** A colour id's hex under the chosen palette; Bloub's own table stays in `src/vendor/bloub`. */
-export function bloubColorHex(id: string, palette: "grok" | "bloub" = FORK_BLOUB_PALETTE): string {
-  if (palette === "grok") return GROK_HEX[id] ?? COLOR_BY_ID.get(id)?.hex ?? "#0a0a0c";
-  return COLOR_BY_ID.get(id)?.hex ?? "#0a0a0c";
+/** Bloub's own vendor colour ids, so a Grok colour id still renders when the fork is switched back. */
+const NEW_TO_VENDOR: Record<string, string> = {
+  black: "encre", brown: "brun", red: "rouge", orange: "orange", yellow: "ambre",
+  green: "vert", cyan: "turquoise", blue: "bleu", violet: "violet", magenta: "rose", gray: "gris",
+};
+
+export function bloubColorHex(id: string, palette: BloubPalette = FORK_BLOUB_PALETTE): string {
+  if (palette === "grok") return bloubSolid(id, "light");
+  const vendor = NEW_TO_VENDOR[id] ?? id;
+  return COLOR_BY_ID.get(vendor)?.hex ?? "#0a0a0c";
 }
 
 /** The swatches for the panel: 11 in Grok's palette, or Bloub's 12 when switched back. */
-export function bloubColorChoices(palette: "grok" | "bloub" = FORK_BLOUB_PALETTE): ReadonlyArray<{ id: string; hex: string }> {
-  if (palette === "grok") return GROK_COLOR_CHOICES;
+export function bloubColorChoices(palette: BloubPalette = FORK_BLOUB_PALETTE): ReadonlyArray<{ id: string; hex: string }> {
+  if (palette === "grok") return GROK_COLORS.map((colour) => ({ id: colour.id, hex: colour.solid }));
   return COLORS.map((colour) => ({ id: colour.id, hex: colour.hex }));
 }
 
