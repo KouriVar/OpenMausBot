@@ -221,6 +221,18 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Bloub wears Grok's palette.** A fork constant (`FORK_BLOUB_PALETTE = "grok"`) switches the colour table:
+  white #ffffff, brown #a16c39, red #f62c3e, orange #f7670d, amber #f79410, green #38c470, teal #36b8a2,
+  blue #2c84fc, purple #9159fb, pink #f73399, grey #777777 — Bloub's own 12 stay in `src/vendor/bloub`.
+  Stored ids keep working: `encre` shows grey, `creme` shows white, the rest map one-to-one; no data migration.
+  White bodies get dark eyes from the same luminance rule, and the message bubble's contrast is computed from
+  the new hex. The settings colour panel shows the 11 swatches in two rows (6 + 5, the second centred) with a
+  thin grey ring on the selection.
+  中文：**Bloub 改用 Grok 的调色板。** 一个 fork 常量（`FORK_BLOUB_PALETTE = "grok"`）切换色表：白 #ffffff、棕
+  #a16c39、红 #f62c3e、橙 #f7670d、琥珀 #f79410、绿 #38c470、青 #36b8a2、蓝 #2c84fc、紫 #9159fb、
+  粉 #f73399、灰 #777777；Bloub 原 12 色仍留在 `src/vendor/bloub`。已存的 id 继续可用：`encre` 显示灰、
+  `creme` 显示白，其余一一对应，localStorage 不用迁移。白色身体按同一亮度规则自动用深色眼睛，消息气泡的
+  对比度也按新色值算。设置的颜色面板显示 11 个色块，两行（6+5，第二行居中），选中外面一圈细灰环。
 - **Bloub follow direction, reach and edges fixed.** The head turned the wrong way because the gaze reused the
   arrival rule (`yaw = -TURN + nx*16`, a –26° left turn at centre); following now uses `followLook` —
   `yaw = nx*16`, `pitch = -ny*13` — so right/top look right/up in screen terms. The body lean/drift use the same

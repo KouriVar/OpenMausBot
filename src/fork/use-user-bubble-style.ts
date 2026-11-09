@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties } from "react";
 
 import type { Bot } from "@/state/store";
 import { userBubbleStyle, userBubbleStyleHex } from "@/lib/user-bubble-tone";
-import { COLOR_BY_ID } from "@/vendor/bloub/skins";
+import { bloubColorHex } from "./bloub-skin";
 import { useForkAvatarStyle } from "./avatar-style";
 import { useBloubSkin } from "./bloub-skin";
 
@@ -19,7 +19,7 @@ export function useUserBubbleStyle({ bot, advanced, colorMine, sharedChat }: {
   return useMemo(() => {
     if (forkBloub) {
       if (sharedChat) return undefined;
-      const hex = COLOR_BY_ID.get(skin.color)?.hex;
+      const hex = bloubColorHex(skin.color);
       return hex ? userBubbleStyleHex(hex, { flat: !advanced }) : undefined;
     }
     return colorMine ? userBubbleStyle(bot.color, { flat: !advanced }) : undefined;
