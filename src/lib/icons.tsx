@@ -192,6 +192,7 @@ import {
   RiShieldCheckLine,
   RiShieldLine,
   RiShutDownLine,
+  RiSignalTowerLine,
   RiSlackLine,
   RiSmartphoneLine,
   RiSparklingLine,
@@ -429,6 +430,7 @@ export const Pause = icon(RiPauseLine, "Pause");
 export const Pencil = icon(RiPencilLine, "Pencil");
 export const PencilLine = icon(RiPencilLine, "PencilLine");
 export const Phone = icon(RiPhoneLine, "Phone");
+export const PhoneCall = icon(RiPhoneLine, "PhoneCall");
 export const PhoneOff = icon(RiPhoneLine, "PhoneOff");
 export const Pin = icon(RiPushpinLine, "Pin");
 export const PinOff = icon(RiUnpinLine, "PinOff");
@@ -440,6 +442,7 @@ export const Power = icon(RiShutDownLine, "Power");
 export const Puzzle = icon(RiPuzzleLine, "Puzzle");
 export const QrCode = icon(RiQrCodeLine, "QrCode");
 export const Quote = icon(RiDoubleQuotesL, "Quote");
+export const RadioTower = icon(RiSignalTowerLine, "RadioTower");
 export const RefreshCw = icon(RiRefreshLine, "RefreshCw");
 export const Repeat = icon(RiRepeatLine, "Repeat");
 export const Repeat2 = icon(RiRepeat2Line, "Repeat2");

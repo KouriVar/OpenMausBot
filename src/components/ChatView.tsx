@@ -1,4 +1,4 @@
-import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch } from "react";
+import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch } from "react";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
@@ -116,6 +116,7 @@ import { webhookMessageView } from "@/lib/webhook-message";
 import { splitTranscriptAttachments } from "@/lib/composer-attachments";
 import { useComposerDockPad } from "@/lib/composer-dock";
 import { GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
+import { PagePaneContext } from "./app/PageTools";
 import { useTranscriptViewport } from "@/hooks/use-transcript-viewport";
 import { useUnreadDivider } from "@/hooks/use-unread-divider";
 import { NewMessagesDivider } from "./NewMessagesDivider";
@@ -816,6 +817,8 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
   const { dragProps: headerDragProps, noDragStyle: headerNoDragStyle } = useCaptionChrome();
   const composerDockRef = useRef<HTMLDivElement>(null);
   const composerDock = useComposerDockPad(composerDockRef);
+  // An opened page fills the messages area, between the header and the message box, which stays usable.
+  const [pagePane, setPagePane] = useState<HTMLDivElement | null>(null);
   const advanced = useAdvancedMode();
   const phone = useMediaQuery(PHONE_LAYOUT);
   const phoneMenu = phone && !remoteClient;
@@ -1180,7 +1183,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
             <div ref={topSentinelRef} className="h-2 w-full pointer-events-none" aria-hidden="true" />
           ) : null}
           {windowedMessages.length === 0 && !bot.busy && <EmptyChat bot={bot} />}
-          <ChatRowsContext.Provider value={rows}><LiveToolsContext value={liveTools}><ChatBusyContext value={busy}>
+          <ChatRowsContext.Provider value={rows}><LiveToolsContext value={liveTools}><ChatBusyContext value={busy}><PagePaneContext value={pagePane}>
             <MessagesList
               messages={windowedMessages}
               transcript={messages}
@@ -1201,7 +1204,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
               onRegenerate={regenerate}
               onReply={selectReply}
             />
-          </ChatBusyContext></LiveToolsContext></ChatRowsContext.Provider>
+          </PagePaneContext></ChatBusyContext></LiveToolsContext></ChatRowsContext.Provider>
           {stopNoticeDue(messages, stoppedAt, busy) && <CancelledTurnRow name={PERSON_STOPPED_TURN_NAME} />}
           {laterCount > 0 && (
             <div className="flex justify-center">
@@ -1246,6 +1249,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
       </div>
 
       <TranscriptAnnouncer threadKey={transcriptKey} snapshot={announcement} />
+      <div ref={setPagePane} data-page-pane-slot className="contents" style={{ "--page-pane-bottom": `${composerDock.height}px` } as CSSProperties} />
 
       <div ref={composerDockRef} className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] chat-column-dock">
       {advanced && lastRunStep && showRun(recordedRun) && showRunCard && runDismissed.get(transcriptKey) !== lastRunStep.id && (

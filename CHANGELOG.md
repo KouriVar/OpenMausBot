@@ -2,14 +2,18 @@
 
 All notable changes to this fork are documented here. This fork tracks
 [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot); entries
-below are local customizations on top of upstream `v0.1.149`.
+below are local customizations on top of upstream `v0.1.150`.
 
 ## Unreleased
 
 ### Changed
 
+- **Merged upstream `v0.1.150`** (`origin/main` at `a7cf31902`) into the fork.
+  The merge was clean; both new lucide names the release imports,
+  `PhoneCall` and `RadioTower` (`src/lib/hosted-mcp-apps.ts`), are now in
+  `src/lib/icons.tsx` (drawn with `RiPhoneLine` and `RiSignalTowerLine`).
 - **Every icon in the app is now Remix Icon.** `src/lib/icons.tsx` re-exports
-  the 263 names the code imports from `lucide-react` as `@remixicon/react`
+  the 265 names the code imports from `lucide-react` as `@remixicon/react`
   components; a Vite `app-icons` plugin resolves `lucide-react` to that file
   for files under `src/`, and the `tsconfig.json` path does the same for the
   type checker, so a name missing from the shim fails `pnpm typecheck`. The

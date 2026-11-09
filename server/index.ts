@@ -413,7 +413,7 @@ import {
   ROUTINE_EXECUTION_PROMPT, READ_ONLY_ROUTINE_EXECUTION_PROMPT,
   WEBHOOK_PROMPT, BOT_API_PROMPT, AUTOMATION_REPLY_PROMPT,
   resolveComputerPromptKind,
-  savedLoginsPrompt,
+  savedLoginsPrompt, heavyPrompt,
   teamAvailabilityPart,
 } from "./system-prompt.ts";
 import { shellTimeoutHookResult } from "./shell-timeout-hint.ts";
@@ -440,14 +440,14 @@ import { CalendarCallManager, type CalendarCall } from "./calendar-calls.ts";
 import { BROWSER_UPLOAD_TOOL, browserRuntimeEnv } from "./browser-runtime.ts";
 import { BrowserUploadRefusal, uploadableFiles } from "./browser-upload.ts";
 import { listSignedInSites, signOutOfSites } from "./browser-sites.ts";
-import { HeldSecrets, LoginStore } from "./login-store.ts";
+import { HeldSecrets, VaultStore } from "./vault-store.ts";
 import { OnePasswordLogins, onePasswordUnavailable, sdkOnePasswordClient, type OnePasswordSdk } from "./onepassword.ts";
 import { nativeRequire } from "./data/engine.ts";
 import { createFillLoginTurn } from "./host/fill-login-turn.ts";
 import { BotLogins, cardLoginPlace, cardSignInElsewhere, observeSignInPage, type ObservedPage } from "./bot-logins.ts";
 import { relayFrame } from "./browser-relay.ts";
 import { browserEvidence, stepContext } from "./browser-steps.ts";
-import { parseLoginFields, parseTotpField, createLoginRoutes } from "./routes/logins.ts";
+import { parseLoginFields, parseTotpField, createLoginRoutes } from "./routes/logins.ts"; import { createVaultRoutes } from "./routes/vault.ts";
 import { loginSite } from "../shared/logins.ts";
 import { browserRestartRefusal } from "./browser-live.ts";
 import { browserEngineStatus } from "./browser-engine.ts";
@@ -470,7 +470,7 @@ import { ModelRequestService } from "./model-requests.ts";
 import { TeamSetupError, TeamSetupRequestService } from "./team-setup-requests.ts";
 import type { TeamSetupRequest } from "../shared/team-setup.ts";
 import { profileRevision, profileSnapshot } from "./profile-revision.ts";
-import { flushAllProfileHistory, flushProfileHistory, readHistory, recordProfileChange } from "./profile-versions.ts";
+import { flushAllProfileHistory, flushProfileHistory, readHistory, recordProfileChange, soulChanges } from "./profile-versions.ts";
 import { TeamMemory, TEAM_MEMORY_KINDS, type TeamMemoryKind } from "./team-memory.ts";
 import { describeTool } from "./activity.ts";
 import { OutboundRequestService } from "./outbound-requests.ts";
@@ -628,7 +628,7 @@ import { createComputerRoutes } from "./routes/computers.ts";
 import { createStatusRoutes } from "./routes/status.ts";
 import { findAntigravityLeftovers, removeAntigravityLeftovers } from "./drivers/antigravity-temp.ts";
 import { createLiveRoutes } from "./routes/live.ts";
-import { createNotificationRoutes } from "./routes/notifications.ts";
+import { createNotificationRoutes, notificationListedFor } from "./routes/notifications.ts";
 import { createTodayRoutes } from "./routes/today.ts"; import { createInboxRoutes } from "./routes/inbox.ts"; import { createSidebarSectionRoutes } from "./routes/sidebar-sections.ts";
 import { createToolTimingRoute, createUsageRoutes } from "./routes/usage.ts";
 import { createBotMessageRoutes } from "./routes/bot-messages.ts";
@@ -733,8 +733,8 @@ if (CLOUD_HOME && Object.keys(CLOUD_SECRETS).length === 0) {
 }
 const threadStarters = new ThreadStarters(join(DATA_DIR, "thread-starters.json"));
 const commandAllowlist = new CommandAllowlistStore(join(DATA_DIR, "command-allowlist.json"));
-// Every saved login value is scrubbed from whatever a bot or a transcript can read.
-const logins = new LoginStore({ dataDir: DATA_DIR });
+// Every value saved in the Vault is scrubbed from whatever a bot or a transcript can read.
+const logins = new VaultStore({ dataDir: DATA_DIR });
 removeRetiredAppFiles(DATA_DIR); const emailService = createEmailService({ dataDir: DATA_DIR, publicOnly: Boolean(CLOUD_HOME), refusal: CLOUD_TEAM ? "Email isn't on a Team Cloud yet: every bot there would read the same mailbox." : null }); addHeldSecretScrubber((text) => emailService.scrub(text));
 const heldSecrets = new HeldSecrets(logins);
 addHeldSecretScrubber((text) => heldSecrets.scrub(text));
@@ -1139,7 +1139,7 @@ async function answeringCardAs(auth: RequestAuth, threadId: string, requestId: s
 }
 
 const { viewerFor, threadOwner, visibleTo, forgetVisibility, threadShown, subjectVisible, hiddenRoutineTarget, roomFeedsBot, settleRoomFloor } = createVisibilityHost({ store: () => store, routines: () => routines,
-  team: Boolean(CLOUD_TEAM), audiencesFor: (viewer) => teamHost.audiencesFor(viewer), threadsReferencing }); if (CLOUD_TEAM) hideOthersSyncFolders(() => store.bots, threadShown); const botAccess = createBotAccessHost({ visibleFor: (auth) => visibleTo(viewerFor(auth)), store: () => store, routines: () => routines, threadOwner, routineWriter: (id) => cloudRoutineAuthors?.writer(id) }), { levelOf } = botAccess; const accessRequests = createAccessRequests({ team: CLOUD_TEAM, store: () => store, people: () => teamOwners.people?.list() ?? [], profileName: (email) => teamHost.people.profile(personKey({ id: "", email })).name, inbox: () => teamMessages.inbox, visibleTo, levelOf, writeAccess: (bot, access) => writeAccess({ store, publicGroupState, broadcast, audienceChanged }, bot, access), record: (row, by) => appendAdminAction(DATA_DIR, { ...row, actor: { kind: "session", sessionId: "", label: by, email: by } }) });
+  team: Boolean(CLOUD_TEAM), audiencesFor: (viewer) => teamHost.audiencesFor(viewer), threadsReferencing }); if (CLOUD_TEAM) hideOthersSyncFolders(() => store.bots, threadShown); const notificationListed = notificationListedFor(threadShown, CLOUD_TEAM ? (auth, entry) => teamOwners.routing.notificationReaches(teamOwners.viewer(auth), entry) : undefined); const botAccess = createBotAccessHost({ visibleFor: (auth) => visibleTo(viewerFor(auth)), store: () => store, routines: () => routines, threadOwner, routineWriter: (id) => cloudRoutineAuthors?.writer(id) }), { levelOf } = botAccess; const accessRequests = createAccessRequests({ team: CLOUD_TEAM, store: () => store, people: () => teamOwners.people?.list() ?? [], profileName: (email) => teamHost.people.profile(personKey({ id: "", email })).name, inbox: () => teamMessages.inbox, visibleTo, levelOf, writeAccess: (bot, access) => writeAccess({ store, publicGroupState, broadcast, audienceChanged }, bot, access), record: (row, by) => appendAdminAction(DATA_DIR, { ...row, actor: { kind: "session", sessionId: "", label: by, email: by } }) });
 
 function recentWorkFilter(threadId: string): { include?: (threadId: string) => boolean; privateThread?: (threadId: string) => boolean } {
   const include = CLOUD_TEAM ? (id: string) => teamHost.readableFrom(threadId)(id) && outsideLineage.mayReach(id, threadId) : CLOUD_HOME ? cloudOwnerOnlyThread : () => true; return { include: (id) => !botApiThread(id) && include(id), ...(CLOUD_TEAM ? { privateThread: (id: string) => teamHost.privateTo(id) !== null } : {}) };
@@ -2996,12 +2996,12 @@ function previewSystemPrompt(bot: BotRecord) {
     teamAvailabilityPart(agentsMounted && coordination ? peers : []),
     { id: "memory", label: "Memory", text: memorySystemPrompt(bot.id, { managedWrites: agentsMounted, fileTools: Boolean(privateWorkspace), enabled: bot.memoryEnabled !== false }) },
     { id: "skills", label: "Skills index", text: privateWorkspace ? skillsHost.skillsIndex(bot, undefined, instance) : "" },
-  ], agentsMounted ? { env: agentsToolBridgeEnv(cfg, bot, instance && turnEngine(instance, providerConfigs(), registry.lastSnapshot(instance.instanceId), bot.cwd ?? undefined)) } : undefined, { replyStyle: bot.replyStyle });
+  ], agentsMounted ? { env: agentsToolBridgeEnv(cfg, bot, instance && turnEngine(instance, providerConfigs(), registry.lastSnapshot(instance.instanceId), bot.cwd ?? undefined)) } : undefined, { replyStyle: bot.replyStyle, rules: cfg.everyBotRules });
   const totalBytes = built.sections.reduce((n, s) => n + s.bytes, 0);
   return {
     sections: built.sections,
     totalBytes,
-    approxTokens: Math.ceil(totalBytes / 4),
+    approxTokens: Math.ceil(totalBytes / 4), heavy: heavyPrompt(built.sections),
     note:
       "Preview from current bot settings, not the exact prompt of a running task. Task folders, notes, recall, selected skills and available connections can change the dispatched prompt. Token count is an estimate.",
   };
@@ -7844,7 +7844,7 @@ async function beginTurn(
       const unseen = handed && handedStateUsable(handed, cursor, contextOrder) ? unseenMessages(replayable, contextOrder, handed) : undefined;
       const externalUpdate = Boolean(opts?.coordination?.resumed || unseen?.some((m) => m.keep));
       // What a resumed session keeps from its launch; Codex reasserts model and provider on resume, but an in-flight turn and an omitted effort keep the prior selection.
-      const persistentConfig = [bot.name, bot.title, bot.description, sectionContextSystemPrompt(bot.section),
+      const persistentConfig = [bot.name, bot.title, bot.description, sectionContextSystemPrompt(bot.section), ...(cfg.everyBotRules?.trim() ? [cfg.everyBotRules.trim()] : []),
         ...(instance.driverKind === "codex" ? [model, effort ?? null] : [])];
       const sessionConfig = (soul: string | undefined) =>
         createHash("sha256").update(JSON.stringify([...persistentConfig, soul])).digest("hex").slice(0, 16);
@@ -8419,7 +8419,7 @@ async function beginTurn(
         { id: "webhook", label: "Webhook provenance", text: opts?.automationSource === "webhook" ? WEBHOOK_PROMPT : opts?.automationSource === "api" ? BOT_API_PROMPT : "" },
         { id: "automation-reply", label: "Automation reply", text: opts?.automationSource && automationReports.reportsElsewhere(threadId) ? AUTOMATION_REPLY_PROMPT : "" },
         { id: "mentions", label: "Mentions", text: (tagged.length ? `The user named these existing teammates: ${tagged.map(b => `${peerName(b.name)} (${b.id})`).join(", ")}. Use coordinate_bots when their contribution is needed; do not substitute native helper agents for these bots.` : "") + placesElsewhere.mentioned(providerText, store.bots) },
-      ].filter((part) => (apiFenced ? BOT_API_PARTS.has(part.id) : !confined || READ_AND_DRAFT_PARTS.has(part.id))), integrations.agents, { replyStyle: liveBot?.replyStyle ?? bot.replyStyle });
+      ].filter((part) => (apiFenced ? BOT_API_PARTS.has(part.id) : !confined || READ_AND_DRAFT_PARTS.has(part.id))), integrations.agents, { replyStyle: liveBot?.replyStyle ?? bot.replyStyle, rules: cfg.everyBotRules });
       turnPromptBytes.set(threadId, { stable: Buffer.byteLength(prompt.stable), volatile: Buffer.byteLength(prompt.volatile) });
       // Recall rides in front of this turn's message, never the system prompt, whose volatile half is re-sent whole on any change.
       const recalled = autoRecallPrompt(bot, threadId, resolvedImages.text, {
@@ -10217,7 +10217,7 @@ async function runClaimedGroupMemberTurn(
     { id: "skills", label: "Skills index", text: workspace ? skillsHost.skillsIndex(bot, threadId, instance) : "" },
     { id: "skill-instructions", label: "Skill instructions", text: renderSkillInstructions(selectedSkills, { includeRoot: Boolean(workspace) }) },
     { id: "playbooks", label: "Playbooks", text: installedPlaybookInstructions(text, bot.playbooks) },
-  ], integrations.agents);
+  ], integrations.agents, { rules: cfg.everyBotRules });
 
   // Claim /learn only after setup succeeded, so a failed first responder does not consume it.
   if (skillAuthoring) skillAuthoringClaim.claimed = true;
@@ -11542,7 +11542,7 @@ function claimPhoneSecretBotDeletion(botId: string): (() => void) | null {
   };
 }
 
-const secretCards = createSecretCards({ store, cfg, botLogins, phoneSecrets, phoneSecretSubmissions, connectorThread, answerCardNode, followCard: (threadId, from, to) => coordinator.followCard(threadId, from, to), threadLanguage, email: { connect: (request, reading) => emailService.connect(request, reading), refusal: () => emailService.status().reason, connected: (address) => { const one = emailService.store.get(address); return Boolean(one && !one.problem); }, sendingProblem: (address) => emailService.sendingProblem(address), account: (address) => emailService.status().accounts.find((one) => one.address.toLowerCase() === address.toLowerCase()), checkOutgoing: (address, fields) => emailService.checkOutgoing(address, fields), profileAddress: () => cfg.profile?.email?.trim() || undefined }, dataDir: DATA_DIR, providerKeysRefused: Boolean(hostedModels), layerFolder: (botId, threadId) => workspaceDir(teamHost.layer(botId, threadId)), turnVm: (threadId) => localVmThreadTargets.get(threadId)?.key });
+const secretCards = createSecretCards({ store, cfg, botLogins, vaultStore: logins, phoneSecrets, phoneSecretSubmissions, connectorThread, answerCardNode, followCard: (threadId, from, to) => coordinator.followCard(threadId, from, to), threadLanguage, email: { connect: (request, reading) => emailService.connect(request, reading), refusal: () => emailService.status().reason, connected: (address) => { const one = emailService.store.get(address); return Boolean(one && !one.problem); }, sendingProblem: (address) => emailService.sendingProblem(address), account: (address) => emailService.status().accounts.find((one) => one.address.toLowerCase() === address.toLowerCase()), checkOutgoing: (address, fields) => emailService.checkOutgoing(address, fields), profileAddress: () => cfg.profile?.email?.trim() || undefined }, dataDir: DATA_DIR, providerKeysRefused: Boolean(hostedModels), layerFolder: (botId, threadId) => workspaceDir(teamHost.layer(botId, threadId)), turnVm: (threadId) => localVmThreadTargets.get(threadId)?.key });
 ROUTES.push(createSecretCardRoutes({ cards: secretCards, phoneSecretSubmissions, threadVisible: (auth, threadId) => visibleTo(viewerFor(auth)).thread(threadId), answerContext: (auth, botId, threadId) => ({ personalCloud: Boolean(CLOUD_PERSONAL), shared: sharedMembership(), owner: (CLOUD_TEAM ? teamOwners.routing.askedPerson(botId, threadId) : null) ?? threadStarters.get(threadId) ?? null, person: auth.kind === "session" ? personKey(auth.session) : null }) }));
 
 // By design OpenMausBot never receives a website password: the person signs in where the bot works, and the bot uses that session.
@@ -11779,7 +11779,7 @@ function configStatus() {
     profile: CLOUD_TEAM ? NOBODY_PROFILE : { name: cfg.profile?.name ?? "", email: cfg.profile?.email ?? "", aboutMe: cfg.profile?.aboutMe ?? "", ...(cfg.profile?.avatarUrl ? { avatarUrl: cfg.profile.avatarUrl } : {}) },
     managedPolicy: managedPolicy.summary(),
     ...(CLOUD_HOME ? { cloudHome: true } : {}), ...(CLOUD_TEAM ? { team: { id: CLOUD_TEAM.id, name: CLOUD_TEAM.name, ...(CLOUD_HOME ? { cloudPage: `${CLOUD_HOME.adminOrigin}/cloud` } : {}) } } : {}),
-    language: appLanguage() ?? "", computerName: cfg.computerName ?? "",
+    language: appLanguage() ?? "", computerName: cfg.computerName ?? "", everyBotRules: cfg.everyBotRules ?? "",
     rooms: { turnTimeoutMinutes: roomTurnTimeoutMinutes(cfg) },
     mcp: { callTimeoutMinutes: mcpCallTimeoutMinutes(cfg) },
     automaticRecovery: cfg.automaticRecovery ?? { enabled: false },
@@ -11835,7 +11835,7 @@ function configForAccess(status: ReturnType<typeof configStatus>, admin: boolean
   return {
     ...withoutKeyHints(status),
     edition: { edition: status.edition.edition, features: status.edition.features },
-    signIn: { admins: [], members: [] }, live: liveSettingsForClient(status.live),
+    signIn: { admins: [], members: [] }, live: liveSettingsForClient(status.live), everyBotRules: undefined,
     vps: { configured: status.vps.configured, sshAlias: "" },
     opencodeGo: { configured: status.opencodeGo.configured, providerKeys: [] },
     profile: CLOUD_TEAM ? profile : { name: profile.name, email: "", ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}) },
@@ -12165,7 +12165,7 @@ ROUTES.push(createBotCreateRoutes({
 ROUTES.push(createBotSettingsRoutes({
   store, cfg, registry, commandAllowlist, commandAllowlistDrivers: COMMAND_ALLOWLIST_DRIVERS,
   cloudHome: Boolean(CLOUD_HOME), cloudOwnerProfileFields: CLOUD_OWNER_PROFILE_FIELDS,
-  hostedModels, supportsApprovalMode, directTurnBots, broadcast, wireBot, cloudOwnerSession, storedAvatarExists,
+  hostedModels, supportsApprovalMode, directTurnBots, broadcast, notificationListed, wireBot, cloudOwnerSession, storedAvatarExists,
   requestedTaskBot, threadBusy, activeGroupTurnForBot, checkedModelSelection, engineSwitchNeedsAsk, readCursor,
   canManageCommandAllowlist, commandAllowlistResponse, cardAnswerRefusal, threadRead: teamMessages.seen, levelOf,
 }));
@@ -12219,7 +12219,7 @@ ROUTES.push(createBotMemoryRoutes({
     broadcast({ kind: "config", ...configStatus() });
   },
 }));
-const teamMoveIn = CLOUD_TEAM ? createTeamMoveIn({ team: CLOUD_TEAM, dataDir: DATA_DIR, sessions, store, routines: () => routines, library: () => readSkillLibraryIndex(), starters: threadStarters }) : null; const cloudSendOwner = (auth: RequestAuth) => teamMoveIn ? teamMoveIn.owner(auth) : (CLOUD_HOME && auth.kind === "session" && auth.scopes.includes("admin")) || ownHome.owner(auth) ? { person: actorKey(auth as RequestAuth & { kind: "session" }), name: cfg.profile?.name?.trim() || "User" } : null; const botMoves = CLOUD_PERSONAL ? createBotMoves({ store, routines: () => routines, webhooks: () => webhooks, appEvents: () => appTriggers.manager, waits: () => botWaits, busy: (id) => botHasActiveTurn(id) || Boolean(routines?.activeRunForBot(id)) }) : null; ROUTES.push(createBotMoveRoutes({ moves: botMoves, enabled: CLOUD_PERSONAL })); if (teamMoveIn) { ROUTES.unshift(teamMoveIn.guard); ROUTES.push(teamMoveIn.routes); teamOwners.backfill(teamMoveIn.list()); } ROUTES.push(createDeciderRoutes({ decider, extractor, config: () => cfg }), createImageSettingsRoutes({ config: () => cfg }), createTtsRoutes({ config: () => cfg }), createHelperSuggestionRoutes({ notNow: proactive.suggestionNotNow }), createSetupRequestRoutes({ store, language: () => appLanguage() ?? Intl.DateTimeFormat().resolvedOptions().locale, sendRefusal: cloudGuestSendRefusal, presser: (auth) => setupPresser(sharedMembership(), auth, messageSender(auth)), canSetUp: (botId, threadId) => registry.get(store.projectBotForTask(botId, threadId)?.modelSelection.instanceId ?? "")?.adapter.capabilities.agentsMcp === true, send: (auth, botId, threadId, text) => acceptDirectSend({ botId, threadId, text, sender: messageSender(auth), trigger: usageTriggerFor(auth), personPresent: auth.kind === "session" || DESKTOP_MANAGED }) }), createNotificationRoutes(undefined, threadShown, CLOUD_TEAM ? (auth, entry) => teamOwners.routing.notificationReaches(teamOwners.viewer(auth), entry) : undefined), createUpdateCheckRoutes({ check: serverUpdateChecker({ desktopManaged: DESKTOP_MANAGED, managed: Boolean(CLOUD_HOME || HOSTED_WORKSPACE) }) }), createTimeZoneRoutes({ adopts: Boolean(CLOUD_HOME), dataDir: DATA_DIR, changed: () => routines?.rescheduleLocalTimes() }), createCloudSendRoutes({ appVersion: serverVersion(), ...(CLOUD_TEAM ? { refusal: personalMoveRefusal(CLOUD_TEAM), scope: (auth) => teamMoveIn?.scope(auth) ?? null } : {}), bots: () => store.bots, messagesTail: (threadId, limit) => store.messagesTail(threadId, limit), skills: (bot) => listSkills(bot.id), logins, config: () => cfg, lineLanguage: personLanguages.forLine, chats: { store, dataDir: DATA_DIR, owner: cloudSendOwner, ...(CLOUD_OWNER_KEY ? { ownerKey: CLOUD_OWNER_KEY } : {}), stamped: (threadId) => ownerOnlyCache.delete(threadId), instanceExists: (id) => Boolean(registry.get(id)), approvalSupported: (selection, mode) => supportsApprovalMode(selection, mode) }, cloudHome: Boolean(CLOUD_HOME), ownHome: ownHome.owner, automations: { routines: () => routines, calls: () => calendarCalls, webhooks: () => webhooks, appEvents: () => appTriggers.manager, waits: () => botWaits }, connectionsMoved: (language) => cloudConnections.moved(language), connections: () => cloudConnections.connections(), connectionFingerprints: (nonce) => cloudConnections.fingerprints(nonce), move: { dataDir: DATA_DIR, store, routines: () => routines, calls: () => calendarCalls, webhooks: () => webhooks, appEvents: () => appTriggers.manager, claudeCodeSkills: () => (claudeUserSkillsEnabled(cfg) ? claudeCodeSkillInputs() : []), instanceExists: (id) => Boolean(registry.get(id)), owner: cloudSendOwner, ownRoutine: (routine, person) => { cloudRoutineAuthors?.record(routine.id, routine); cloudRoutineAuthors?.wrote(routine.id, person); }, arrived: () => ownerOnlyCache.clear(), teamMemory, aboutMe: () => cfg.profile?.aboutMe ?? "", saveAboutMe: (text) => { saveConfig({ profile: { ...cfg.profile, aboutMe: text } }); Object.assign(cfg, loadConfig()); broadcast({ kind: "config", ...configStatus() }); } } }), cloudConnections.routes, createTodayRoutes({ visibleFor: (auth) => visibleTo(viewerFor(auth)), ...(teamOwners.asks ? { asks: teamOwners.asks, messages: teamMessages.needsYou } : {}), sources: () => ({ bots: store.bots, groups: store.groups, routines, parked: coordinator.active(), engines: registry.instances().map((instance) => ({ instanceId: instance.instanceId, snapshot: registry.lastSnapshot(instance.instanceId) })) }) }), createInboxRoutes(teamMessages));
+const teamMoveIn = CLOUD_TEAM ? createTeamMoveIn({ team: CLOUD_TEAM, dataDir: DATA_DIR, sessions, store, routines: () => routines, library: () => readSkillLibraryIndex(), starters: threadStarters }) : null; const cloudSendOwner = (auth: RequestAuth) => teamMoveIn ? teamMoveIn.owner(auth) : (CLOUD_HOME && auth.kind === "session" && auth.scopes.includes("admin")) || ownHome.owner(auth) ? { person: actorKey(auth as RequestAuth & { kind: "session" }), name: cfg.profile?.name?.trim() || "User" } : null; const botMoves = CLOUD_PERSONAL ? createBotMoves({ store, routines: () => routines, webhooks: () => webhooks, appEvents: () => appTriggers.manager, waits: () => botWaits, busy: (id) => botHasActiveTurn(id) || Boolean(routines?.activeRunForBot(id)) }) : null; ROUTES.push(createBotMoveRoutes({ moves: botMoves, enabled: CLOUD_PERSONAL })); if (teamMoveIn) { ROUTES.unshift(teamMoveIn.guard); ROUTES.push(teamMoveIn.routes); teamOwners.backfill(teamMoveIn.list()); } ROUTES.push(createDeciderRoutes({ decider, extractor, config: () => cfg }), createImageSettingsRoutes({ config: () => cfg }), createTtsRoutes({ config: () => cfg }), createHelperSuggestionRoutes({ notNow: proactive.suggestionNotNow }), createSetupRequestRoutes({ store, language: () => appLanguage() ?? Intl.DateTimeFormat().resolvedOptions().locale, sendRefusal: cloudGuestSendRefusal, presser: (auth) => setupPresser(sharedMembership(), auth, messageSender(auth)), canSetUp: (botId, threadId) => registry.get(store.projectBotForTask(botId, threadId)?.modelSelection.instanceId ?? "")?.adapter.capabilities.agentsMcp === true, send: (auth, botId, threadId, text) => acceptDirectSend({ botId, threadId, text, sender: messageSender(auth), trigger: usageTriggerFor(auth), personPresent: auth.kind === "session" || DESKTOP_MANAGED }) }), createNotificationRoutes(undefined, notificationListed), createUpdateCheckRoutes({ check: serverUpdateChecker({ desktopManaged: DESKTOP_MANAGED, managed: Boolean(CLOUD_HOME || HOSTED_WORKSPACE) }) }), createTimeZoneRoutes({ adopts: Boolean(CLOUD_HOME), dataDir: DATA_DIR, changed: () => routines?.rescheduleLocalTimes() }), createCloudSendRoutes({ appVersion: serverVersion(), ...(CLOUD_TEAM ? { refusal: personalMoveRefusal(CLOUD_TEAM), scope: (auth) => teamMoveIn?.scope(auth) ?? null } : {}), bots: () => store.bots, messagesTail: (threadId, limit) => store.messagesTail(threadId, limit), skills: (bot) => listSkills(bot.id), logins, config: () => cfg, lineLanguage: personLanguages.forLine, chats: { store, dataDir: DATA_DIR, owner: cloudSendOwner, ...(CLOUD_OWNER_KEY ? { ownerKey: CLOUD_OWNER_KEY } : {}), stamped: (threadId) => ownerOnlyCache.delete(threadId), instanceExists: (id) => Boolean(registry.get(id)), approvalSupported: (selection, mode) => supportsApprovalMode(selection, mode) }, cloudHome: Boolean(CLOUD_HOME), ownHome: ownHome.owner, automations: { routines: () => routines, calls: () => calendarCalls, webhooks: () => webhooks, appEvents: () => appTriggers.manager, waits: () => botWaits }, connectionsMoved: (language) => cloudConnections.moved(language), connections: () => cloudConnections.connections(), connectionFingerprints: (nonce) => cloudConnections.fingerprints(nonce), move: { dataDir: DATA_DIR, store, routines: () => routines, calls: () => calendarCalls, webhooks: () => webhooks, appEvents: () => appTriggers.manager, claudeCodeSkills: () => (claudeUserSkillsEnabled(cfg) ? claudeCodeSkillInputs() : []), instanceExists: (id) => Boolean(registry.get(id)), owner: cloudSendOwner, ownRoutine: (routine, person) => { cloudRoutineAuthors?.record(routine.id, routine); cloudRoutineAuthors?.wrote(routine.id, person); }, arrived: () => ownerOnlyCache.clear(), teamMemory, aboutMe: () => cfg.profile?.aboutMe ?? "", saveAboutMe: (text) => { saveConfig({ profile: { ...cfg.profile, aboutMe: text } }); Object.assign(cfg, loadConfig()); broadcast({ kind: "config", ...configStatus() }); } } }), cloudConnections.routes, createTodayRoutes({ visibleFor: (auth) => visibleTo(viewerFor(auth)), ...(teamOwners.asks ? { asks: teamOwners.asks, messages: teamMessages.needsYou } : {}), sources: () => ({ bots: store.bots, groups: store.groups, routines, parked: coordinator.active(), engines: registry.instances().map((instance) => ({ instanceId: instance.instanceId, snapshot: registry.lastSnapshot(instance.instanceId) })) }) }), createInboxRoutes(teamMessages));
 if (CLOUD_TEAM) teamHost.adoptServerProfile(sessions.list().flatMap((session) => session.email ? [session.email] : []));
 ROUTES.push(createSidebarSectionRoutes({ store, teamComputers, maxBots: MAX_WORKSPACE_BOTS, assertTeamComputerChangeIdle, wireBot }), createPresenceRoutes({ isOwner: ownerOrAdmin, heard: (auth, language) => personLanguages.heard(auth.kind === "session" ? actorKey(auth) : THIS_COMPUTER, language), sawChat: (auth, threadId) => { if (ownerOrAdmin(auth) && store.botByThread(threadId)) sawThread(threadId); }, active: async (source, zone, language) => { const answer = await proactive.brief.active(source, zone, language); firstHourHooks.arrived(); return answer; }, ...(CLOUD_TEAM ? { member: (auth) => { noAiNotice.flush(); return teamMessages.arrived(auth); } } : {}) }), createMeRoutes({ team: CLOUD_TEAM, session: (auth) => (auth.kind === "session" ? auth.session : null), profile: teamHost.memberProfile, save: teamHost.saveMemberProfile, seed: teamHost.seedMemberProfile, seeded: teamHost.seededFields, changed: () => broadcast({ kind: "config", ...configStatus() }) }), createTeamPhoneRoutes({ team: CLOUD_TEAM, sessions, publicBase: (req, auth) => pairingLinkBase(publicUrl(), auth.kind === "session" ? requestOrigin(req) : null) }),
   createTeamConnectionRoutes({ host: teamConnections, cfg: () => cfg, composio, policy: managedPolicy, publicOrigin: CLOUD_HOME?.publicOrigin ?? null, record: (auth, row) => appendAdminAction(DATA_DIR, { ...row, actor: decisionActorFor(auth) }) }), createSignInCardRoutes({ settle: signInSettle.settle, saveLogin: (botId, threadId, messageId, body, auth) => CLOUD_TEAM && !auth.scopes.includes("admin") ? Promise.resolve({ status: 403 as const, body: memberLoginRefusal(CLOUD_TEAM) }) : saveLoginFromCard(botId, threadId, messageId, body), saveTarget: signInSaveTarget, threadVisible: (auth, threadId) => visibleTo(viewerFor(auth)).thread(threadId) }));
@@ -12250,7 +12250,7 @@ ROUTES.push(createChannelRoutes({
   userName: userNameFor,
   desktopManaged: DESKTOP_MANAGED,
   routines: () => routines,
-  broadcast,
+  broadcast, notificationListed,
   actorKey,
   threadStarters,
   phoneSecretSubmissions,
@@ -12303,7 +12303,7 @@ const taskRoutes = createTaskRoutes({
   cloudThreadRefusal,
   sharedWorkspaceFullAccessEnabled,
   supportsApprovalMode,
-  threadBusy, broadcast,
+  threadBusy, broadcast, notificationListed,
   publicBot,
   wireBot,
   wireTask,
@@ -12341,7 +12341,7 @@ ROUTES.push(createBrowserSiteRoutes({
   signOut: (target, site) => signOutOfSites(target, site),
 }));
 ROUTES.push(createBrowserEvidenceRoutes({ evidence: browserEvidence.attach({ onChange: (listener) => store.onChange(listener), threadExists: (id) => Boolean(threadOwner(id)) }), threadExists: (id) => Boolean(threadOwner(id)) }));
-ROUTES.push(createLoginRoutes(botLogins.routes((id) => Boolean(store.bot(id)))));
+const loginRoutes = botLogins.routes((id) => Boolean(store.bot(id))); ROUTES.push(createLoginRoutes(loginRoutes), createVaultRoutes({ logins: loginRoutes, secrets: logins }));
 ROUTES.push(createUsageRoutes({
   dataDir: DATA_DIR, prices: operatorPrices,
   budget: () => spendState(cfg, DATA_DIR),
@@ -14990,7 +14990,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
       await flushProfileHistory(m[1]);
       const limit = Math.min(500, Math.max(1, Number(url.searchParams.get("limit")) || 100));
       const full = url.searchParams.get("full") === "1";
-      const rows = readHistory(m[1], limit).map((row) => {
+      const rows = url.searchParams.get("view") === "changes" ? soulChanges(m[1], readHistory(m[1], limit)) : readHistory(m[1], limit).map((row) => {
         if (full || row.field !== "soul") return row;
         const rest: typeof row = { ...row };
         delete rest.before;
