@@ -63,8 +63,8 @@ below are local customizations on top of upstream `v0.1.150`.
     (`SettingsModal.tsx`).
   - MausBot's first messages drop the "Try Cloud" step and chip
     (`HelperSetup.tsx`).
-  - Remote access keeps Same Wi-Fi, Tailscale and the relay; only the hosted
-    HTTPS address row is hidden (`PhoneDevicesSection.tsx`).
+  - Remote access keeps Same Wi-Fi and Tailscale: the relay and the hosted
+    HTTPS address rows are hidden (`PhoneDevicesSection.tsx`).
   - Untouched, as required: logins, usage, remote access, model providers, API
     keys, the bot desktop, backups and import.
 
