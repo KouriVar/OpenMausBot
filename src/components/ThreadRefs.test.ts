@@ -265,9 +265,9 @@ describe("ThreadRefText with mention peers", () => {
   it("highlights the @mention and links the #thread in one line", () => {
     const markup = inProvider(createElement(ThreadRefText, {
       text: "@Scout please look at #QA PR 245 today",
-      peers: [{ name: "Scout", color: "green" }],
+      peers: [{ name: "Scout", color: "green", botId: "s1" }],
     }));
-    expect(markup).toContain('class="mention-highlight"');
+    expect(markup).toContain('class="mention-chip"');
     expect(markup).toContain("@Scout");
     expect(markup).toContain('data-thread-link="qa-245"');
     expect(markup).toContain(">#QA PR 245</button>");

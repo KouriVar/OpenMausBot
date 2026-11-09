@@ -10,6 +10,7 @@ import { t } from "@/lib/i18n";
 import { cn } from "@/lib/cn";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { remarkMentions, sameMentionPerson, type MentionPeer, type MentionPerson } from "@/lib/mentions";
+import { MentionChip } from "./BloubIdentity";
 import { createMarkdownRenderCache } from "@/lib/markdown-render-cache";
 
 import { parseFenceInfo } from "../lib/code-block";
@@ -678,8 +679,15 @@ const MARKDOWN_COMPONENTS: Components = {
   },
   span(props) {
     // SAFETY: react-markdown hands hast data-* attributes through as string props
-    const link = threadLinkFromProps(props as Record<string, unknown>);
+    const raw = props as Record<string, unknown>;
+    const link = threadLinkFromProps(raw);
     if (link) return <ThreadLink target={link.target} ambiguous={link.ambiguous}>{props.children}</ThreadLink>;
+    if (String(raw.className ?? "").includes("mention-chip")) {
+      return <MentionChip name={String(raw["data-mention-name"] ?? "")}
+        botId={raw["data-mention-bot"] as string | undefined}
+        fallbackColor={raw["data-mention-fallback"] as string | undefined}
+        you={Boolean(raw["data-mention-you"])} person={Boolean(raw["data-mention-person"])} />;
+    }
     const { node: _node, children, ...rest } = props;
     return <span {...rest}>{children}</span>;
   },

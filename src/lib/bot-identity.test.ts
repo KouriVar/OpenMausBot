@@ -37,7 +37,7 @@ describe("room speaker colors", () => {
       sheet.replaceSync(css);
       const selectors = Array.from(sheet.cssRules).flatMap((rule) => "selectorText" in rule ? [rule.selectorText] : []);
       expect(selectors).toContain('.bot-identity[data-bot-color="blue"]');
-      expect(selectors).toContain(".user-bubble-colored .mention-highlight");
+      expect(selectors).toContain(".user-bubble-colored .mention-chip:not(.mention-chip-bare)");
     } finally {
       await window.happyDOM.close();
     }
