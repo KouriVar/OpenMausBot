@@ -9915,5 +9915,10 @@
   "phone.code.typeIntro": "Open the {app} app and type this pairing code.",
   "phone.signIn.emailCode": "Sign-in code from your email",
   "settings.simple.account.noNameHint": "Not set yet",
-  "settings.simple.account.yourName": "Your name"
+  "settings.simple.account.yourName": "Your name",
+  "voice.mimo.label": "MiMo (Xiaomi)",
+  "voice.mimo.keyPlaceholder": "Paste your MiMo API key",
+  "voice.mimo.freeNotice": "MiMo speech is free for a limited time. Once Xiaomi starts charging, you pay as you go, and the app tells you when the balance is low.",
+  "keys.label.mimoTts": "MiMo speech API key",
+  "keys.purpose.mimoTts": "MiMo voices for spoken replies, voice notes and calls"
 }

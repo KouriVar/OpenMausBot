@@ -221,6 +221,8 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **MiMo (Xiaomi) joins the voice engines.** Settings → Voice gains a MiMo provider that reads replies, voice notes and call speech with `mimo-v2.5-tts`: the key is saved per installation like the other voice keys (Settings → API keys → MiMo speech API key, env `OMB_MIMO_API_KEY`), and the voice list is the nine documented presets (冰糖 default, 茉莉, 苏打, 白桦, Mia, Chloe, Milo, Dean, `mimo_default`). MiMo's speech is OpenAI-chat-shaped — `POST /v1/chat/completions` with the words as an assistant message, answering base64 audio — not `/v1/audio/speech`. Long text is split at sentence boundaries and joined again; a refused key, an empty balance, rate limiting or the end of the limited-time free period, a content refusal, an outage and a missing network each speak a plain Chinese sentence instead of staying silent. Typecheck, lint and the suites are green.
+  中文：**语音引擎新增 MiMo（小米）。** 设置 → 语音里多了 MiMo 提供方，用 `mimo-v2.5-tts` 朗读回复、语音留言和通话；密钥和其他语音提供方一样由整台安装共用（设置 → API 密钥 → MiMo 语音合成 API 密钥，环境变量 `OMB_MIMO_API_KEY`），音色是文档里的九个预设（默认冰糖，另有茉莉、苏打、白桦、Mia、Chloe、Milo、Dean、`mimo_default`）。MiMo 的语音接口是 OpenAI Chat 形状：`POST /v1/chat/completions`，把要读的文字放进 assistant 消息，返回 base64 音频——不是 `/v1/audio/speech`。长文本按句切开再拼回去；密钥被拒、余额不足、限流或限时免费结束、内容拦截、服务异常、断网，都会给出一句清楚的中文提示，不会静默不出声。类型检查、lint、测试全绿。
 - **Grok's Bloub, round-six patch three: every shape is fat, round and soft.** The picker now reads like Grok's: a
   `softLobes` family (a cosine crest, so a "tip" is a wide round bump with no cusp at all) drives sparkle (four plump
   petals, valley 0.76 of the peak), clover (valley 0.82, a big solid centre the eyes sit on), star (five short round

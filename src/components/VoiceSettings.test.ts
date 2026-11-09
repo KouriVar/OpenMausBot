@@ -83,13 +83,13 @@ describe("VoiceSettings", () => {
     expect(onPatch).not.toHaveBeenCalled();
   });
 
-  it("lays the seven voice services out four to a row, OpenAI beside the other online services", async () => {
+  it("lays the eight voice services out four to a row, OpenAI beside the other online services", async () => {
     fixture.api.mockResolvedValue({ voices: [] });
     await render(bot("pepper"), vi.fn());
     const radios = [...host.querySelectorAll<HTMLElement>('[role="radiogroup"] [role="radio"]')];
-    expect(radios.map((radio) => radio.textContent)).toEqual(["ElevenLabs", "Fish Audio", "OpenAI", "Grok (xAI)", "Gemini", "Built-in Mac voices", "Chatterbox (local)"]);
+    expect(radios.map((radio) => radio.textContent)).toEqual(["ElevenLabs", "Fish Audio", "OpenAI", "Grok (xAI)", "Gemini", "MiMo (Xiaomi)", "Built-in Mac voices", "Chatterbox (local)"]);
     expect(radios.map((radio) => radio.className.match(/col-span-\d/)?.[0])).toEqual([
-      "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1",
+      "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1", "col-span-1",
     ]);
   });
 });
@@ -167,4 +167,45 @@ it("keeps a voice selected before the pending provider save completes, even befo
   await act(async () => { picker.value = "cedar"; picker.dispatchEvent(new Event("change", { bubbles: true })); });
   await act(async () => resolve({ tts: { provider: "openai", configured: true } }));
   expect(onPatch).toHaveBeenCalledExactlyOnceWith({ voice: "cedar" });
+});
+
+describe("MiMo voice settings", () => {
+  const mimoRadio = () => [...host.querySelectorAll<HTMLButtonElement>('[role="radio"]')].find((radio) => radio.textContent === "MiMo (Xiaomi)")!;
+
+  it("asks for the MiMo key, links its console and says the voice is free for now", async () => {
+    fixture.config = { tts: { provider: "mimo", configured: false } };
+    fixture.api.mockResolvedValue({ voices: [] });
+    await render(bot("pepper"), vi.fn());
+    expect(host.querySelector('input[type="password"]')).not.toBeNull();
+    const link = [...host.querySelectorAll("a")].find((anchor) => anchor.getAttribute("href") === "https://mimo.mi.com/");
+    expect(link?.textContent).toContain("MiMo");
+    expect(host.textContent).toContain("free for a limited time");
+  });
+
+  it("selects 冰糖 when the bot's voice is not a MiMo preset voice", async () => {
+    fixture.api.mockImplementation((path: string) => path === "/api/config" ? Promise.resolve({ tts: { provider: "mimo", configured: true } }) : Promise.resolve({ voices: [] }));
+    const onPatch = vi.fn();
+    await render({ ...bot("pepper"), voice: "elevenlabs-voice" }, onPatch);
+    await act(async () => mimoRadio().click());
+    expect(fixture.api).toHaveBeenCalledWith("/api/config", { method: "PUT", body: JSON.stringify({ tts: { provider: "mimo" } }) });
+    expect(onPatch).toHaveBeenCalledExactlyOnceWith({ voice: "冰糖" });
+  });
+
+  it("keeps a voice that is already a MiMo preset", async () => {
+    fixture.api.mockResolvedValue({ voices: [] });
+    const onPatch = vi.fn();
+    await render({ ...bot("pepper"), voice: "茉莉" }, onPatch);
+    await act(async () => mimoRadio().click());
+    expect(onPatch).not.toHaveBeenCalled();
+  });
+
+  it("lists MiMo's presets in the voice dropdown once the key is saved, not a search picker", async () => {
+    fixture.config = { tts: { provider: "mimo", configured: true, voice: "冰糖" } };
+    fixture.api.mockResolvedValue({ voices: [{ id: "冰糖", label: "冰糖 · 中文女声", description: "温和自然的中文女声" }] });
+    await render({ ...bot("pepper"), voice: "冰糖" }, vi.fn());
+    const picker = host.querySelector<HTMLSelectElement>("select[data-voice-picker]")!;
+    expect(picker).not.toBeNull();
+    expect([...picker.options].map((option) => option.textContent)).toContain("冰糖 · 中文女声");
+    expect(host.textContent).toContain("温和自然的中文女声");
+  });
 });
