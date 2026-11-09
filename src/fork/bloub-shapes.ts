@@ -39,6 +39,29 @@ const house = (): number[] => {
   return normalise(profileFromPolygon(pts, 0, 0), 1.02);
 };
 
+/** An n-point star profile: sharp tips at `phase` (tip up when phase = −90°), valleys at `inner` radius,
+ * with a light smoothing pass so the tips read as rounded. */
+const starProfile = (points: number, inner: number, phase: number, smoothPasses: number): number[] => {
+  const poly: Array<{ x: number; y: number }> = [];
+  const step = Math.PI / points;
+  for (let k = 0; k < points; k += 1) {
+    const tip = phase + k * 2 * step;
+    const val = tip + step;
+    poly.push({ x: Math.cos(tip), y: Math.sin(tip) });
+    poly.push({ x: Math.cos(val) * inner, y: Math.sin(val) * inner });
+  }
+  let r = profileFromPolygon(poly, 0, 0);
+  for (let p = 0; p < smoothPasses; p += 1) {
+    const n = r.length;
+    r = r.map((v, i) => (r[(i - 1 + n) % n]! + 2 * v + r[(i + 1) % n]!) / 4);
+  }
+  return normalise(r, 1.02);
+};
+
+/** A puffy flower: `lobes` gentle rounded bumps, low amplitude — a fat scalloped cloud, no spikes. */
+const puffs = (lobes: number, depth: number): number[] =>
+  normalise(ANGLES.map((a) => 1 - depth + depth * Math.cos(lobes * a)), 1.02);
+
 /** Vendor radii, looked up by Bloub's own id (the shapes the engine already ships). */
 const vendorRadii = (id: string): number[] => {
   const shape = SHAPE_BY_ID.get(id);
@@ -51,15 +74,15 @@ const CATALOG: ReadonlyMap<string, number[]> = new Map<string, number[]>([
   ["blob", vendorRadii("cercle")],
   ["cloud", vendorRadii("nuage")],
   ["square", vendorRadii("squircle")],
-  ["sparkle", lobed(4, 0.45, 0)],
+  ["sparkle", starProfile(4, 0.56, 0, 0)],
   ["clover", lobed(4, 0.3, Math.PI / 4)],
   ["heart", heart()],
-  ["flower", lobed(9, 0.18, 0)],
+  ["flower", puffs(8, 0.08)],
   ["teardrop", vendorRadii("goutte")],
   ["tablet", vendorRadii("capsule")],
   ["wedge", vendorRadii("triangle")],
   ["house", house()],
-  ["star", lobed(5, 0.42, -Math.PI / 2)],
+  ["star", starProfile(5, 0.58, -Math.PI / 2, 1)],
   ["hex", vendorRadii("hexagone")],
   ["pebble", vendorRadii("galet")],
 ]);

@@ -292,6 +292,10 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const renderExpr = grok && hovering && stateId === "idle" && baseFace ? hoverExpr ?? baseExpr : baseExpr;
 
   const stillFrame = (bot: BotEngine, at: number) => {
+    // A settled face is a clean snapshot: no in-progress morph leaking across the live clock, and the
+    // spontaneous liveliness blink on (so it matches an untouched face pixel-for-pixel).
+    bot.setLiveliness(true);
+    bot.clearMorphs();
     if (grok) bot.setLook(REST_LOOK, at - 0.02, 0.001);
     else bot.setLook(null, at, 0.001);
     return bot.sample(at);
@@ -301,6 +305,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     const bot = engine.current!;
     if (grok) {
       if (frozenAt !== undefined) {
+        bot.setLiveliness(true);
+        bot.clearMorphs();
         bot.setLook(REST_LOOK, frozenAt - 0.02, 0.001);
         return bot.sample(frozenAt);
       }
@@ -308,6 +314,8 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       return stillFrame(bot, POSES[stateId]);
     }
     // Bloub's own palette: always the pose's own instant — byte-for-byte what the pixel suite renders.
+    bot.setLiveliness(true);
+    bot.clearMorphs();
     bot.setLook(null, POSES[stateId], 0.001);
     return bot.sample(POSES[stateId]);
   };
@@ -408,6 +416,9 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
         if (e >= 1) { poke.current = null; setPokeActive(false); }
       }
 
+      // A Grok face never does the spontaneous liveliness blink while it is live (hover/return/poke);
+      // forced state blinks (wink) still run. Bloub's own palette keeps it for the pixel suite.
+      bot.setLiveliness(!grok);
       bot.setLook(grok ? { yaw, pitch, mix: 1, spin: 0, wander: 0 } : null, now - 0.001, grok ? 0.0001 : 0.001);
       view.current = { tx, ty, roll: grok ? REST_ROLL * (1 - h) : 0, sx, sy };
       setFrame(bot.sample(now));
