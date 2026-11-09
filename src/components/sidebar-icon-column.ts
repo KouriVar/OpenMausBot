@@ -7,6 +7,11 @@ export const SIDEBAR_ICON_COLUMN_WIDTH_CLASS = "w-[92px]";
 export const SIDEBAR_ICON_SIZE = 20;
 export const SIDEBAR_ICON_STROKE = 1.75;
 
+/** The 46px control's own size, so the avatar below can be a fraction of it. */
+export const SIDEBAR_ICON_BUTTON_SIZE = 46;
+/** A bot's avatar in the collapsed column: ~80% of that box, so the face fills the tile (Bloub crops to the body). */
+export const SIDEBAR_AVATAR_SIZE = Math.round(SIDEBAR_ICON_BUTTON_SIZE * 0.8);
+
 /** The column's one control, before the colour, hover and focus look each control has of its own. */
 export const SIDEBAR_ICON_BUTTON = "flex size-[46px] shrink-0 items-center justify-center rounded-xl";
 

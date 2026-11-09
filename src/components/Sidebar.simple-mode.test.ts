@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initialState, type AppState, type Bot, type Group } from "@/state/store";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
+import { SIDEBAR_AVATAR_SIZE } from "./sidebar-icon-column";
 
 const fixture = vi.hoisted(() => ({ advanced: false, showThreads: true, admin: true as boolean | null, state: {} as Partial<AppState>, dispatch: vi.fn() }));
 vi.mock("@/lib/interface-mode", async (original) => ({
@@ -87,10 +88,10 @@ describe("bot-first sidebar", () => {
 
   it.each([
     { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-6"] },
-    { advanced: true, enabled: true, density: "icons", size: 44, spacing: ["justify-center", "px-1", "py-1.5"] },
+    { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_SIZE, spacing: ["justify-center", "px-1", "py-1.5"] },
     { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-2.5", "pr-9"] },
     { advanced: false, enabled: false, density: "comfortable", size: 42, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"] },
-    { advanced: false, enabled: false, density: "icons", size: 36, spacing: ["h-[54px]", "justify-center"] },
+    { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_SIZE, spacing: ["h-[54px]", "justify-center"] },
   ] as const)("sizes bot portraits and row spacing in $density density with threads $enabled (advanced $advanced)", ({ advanced, enabled, density, size, spacing }) => {
     fixture.advanced = advanced;
     fixture.showThreads = enabled;

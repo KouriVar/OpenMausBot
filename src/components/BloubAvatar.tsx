@@ -14,6 +14,7 @@ import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
 import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
+import { TURN_TIME, lookTarget } from "@/fork/bloub-gaze";
 
 /** The app's bot states on Bloub's own; anything else rests. */
 const STATE_BY_MAUS: Record<string, StateId> = {
@@ -40,10 +41,13 @@ export function bloubState(mausState: string | undefined): StateId {
   return STATE_BY_MAUS[mausState] || "idle";
 }
 
-/** Below this an avatar is a still frame with the odd blink: the morphs would be invisible anyway. */
+/** Below this an avatar is a still frame with the odd blink, unless the pointer comes near. */
 export const BLOUB_STILL_SIZE = 40;
-
-/** One large avatar (the profile card) gets the full frame rate; the rest of a list is throttled. */
+/** Small avatars crop to the body so the face fills the tile; from here up the rings have room. */
+const BLOUB_CROP_BELOW = 48;
+/** How close the pointer wakes a still avatar. */
+export const BLOUB_NEAR_PX = 120;
+/** A lone large avatar gets the full frame rate; the rest of a list is throttled. */
 export const BLOUB_SINGLE_SIZE = 96;
 const LIST_FPS = 30;
 const SINGLE_FPS = 60;
@@ -79,7 +83,6 @@ let raf = 0;
 let last = 0;
 
 function tick(now: number) {
-  // A hidden tab resumes without jumping forward: rAF is suspended while hidden.
   const dt = last ? Math.min((now - last) / 1000, 0.064) : 0;
   last = now;
   clock += dt;
@@ -87,7 +90,6 @@ function tick(now: number) {
   raf = requestAnimationFrame(tick);
 }
 
-/** One requestAnimationFrame for every Bloub avatar on the page. */
 function subscribeFrames(listener: (clock: number) => void): () => void {
   frameListeners.add(listener);
   if (!raf) {
@@ -101,6 +103,34 @@ function subscribeFrames(listener: (clock: number) => void): () => void {
       raf = 0;
     }
   };
+}
+
+/* ----------------------------------------------------------- one pointer */
+
+let pointer: { x: number; y: number } | null = null;
+const pointerSubs = new Set<() => void>();
+let pointerBound = false;
+
+/** One pointermove for every avatar on the page; each reads it against its own box. */
+function subscribePointer(listener: () => void): () => void {
+  pointerSubs.add(listener);
+  if (!pointerBound && typeof window !== "undefined") {
+    pointerBound = true;
+    window.addEventListener("pointermove", (event) => {
+      if (event.pointerType === "touch") return;
+      pointer = { x: event.clientX, y: event.clientY };
+      for (const sub of pointerSubs) sub();
+    }, { passive: true });
+    document.addEventListener("pointerleave", () => {
+      pointer = null;
+      for (const sub of pointerSubs) sub();
+    });
+  }
+  return () => { pointerSubs.delete(listener); };
+}
+
+function clamp(value: number, low: number, high: number): number {
+  return Math.max(low, Math.min(high, value));
 }
 
 function useReducedMotion(): boolean {
@@ -117,7 +147,6 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-/** The page's surface colour, as a hex, so the eye holes and the particles' depth read right. */
 function resolvePaper(given: string | undefined): string {
   if (given && /^#[0-9a-f]{3,8}$/i.test(given)) return given;
   if (typeof document !== "undefined") {
@@ -139,7 +168,6 @@ function usePaper(given: string | undefined): string {
   return paper;
 }
 
-/** `mixHex` reads hex only; a CSS variable that reached it must not produce `NaN`. */
 function safeMix(from: string, to: string, t: number): string {
   try {
     const out = mixHex(from, to, t);
@@ -149,7 +177,6 @@ function safeMix(from: string, to: string, t: number): string {
   }
 }
 
-/** A time in `[from, from + span]` where Bloub's eyes are shut. */
 function closedEyeTime(from: number, span = 6): number {
   let best = from;
   let lowest = 1;
@@ -186,7 +213,6 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
 ) {
   const reduced = useReducedMotion();
   const stateId = bloubState(state);
-  const still = frozenAt !== undefined || !animated || reduced || size < BLOUB_STILL_SIZE;
   const shapes = SHAPE_BY_ID.get(shape)?.radii ?? null;
   const expr = EXPRESSION_BY_ID.get(expression) ?? null;
   const ink = COLOR_BY_ID.get(colorId)?.hex ?? "#0a0a0c";
@@ -195,6 +221,19 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const engine = useRef<BotEngine | null>(null);
   if (!engine.current) engine.current = new BotEngine(RAYON, stateId, shapes, expr);
 
+  const [near, setNear] = useState(false);
+  const [hover, setHover] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const nearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aiming = useRef(false);
+
+  const activeState = stateId !== "idle";
+  const canAnimate = frozenAt === undefined && !reduced;
+  // Small and idle: still, until the pointer comes near or a real state plays.
+  // The pointer wakes even an idle avatar the caller marked not-animated; a real state playing runs live.
+  const live = canAnimate && (near || hover || (animated && (size >= BLOUB_STILL_SIZE || activeState)));
+  const half = size < BLOUB_CROP_BELOW ? RAYON : DEMI_VIEWBOX;
+
   const frozenTime = frozenAt ?? POSES[stateId];
   const [frame, setFrame] = useState<BotFrame>(() => engine.current!.sample(frozenTime));
   const lastDraw = useRef(0);
@@ -202,51 +241,73 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const uid = useId().replace(/[:]/g, "");
   const maskId = `bloub-mask-${uid}`;
 
-  // A new shape morphs, dated now (BloubBot.vue:408).
+  const settleNear = (inside: boolean) => {
+    if (nearTimer.current) { clearTimeout(nearTimer.current); nearTimer.current = null; }
+    if (inside) { setNear(true); return; }
+    // Let the eyes come home before the still frame takes over.
+    nearTimer.current = setTimeout(() => setNear(false), 450);
+  };
+
+  // One pointermove listener for the page; this avatar only measures its own box.
+  useEffect(() => subscribePointer(() => {
+    const box = svgRef.current?.getBoundingClientRect();
+    if (!pointer || !box || box.width === 0) { settleNear(false); return; }
+    const dx = Math.max(box.left - pointer.x, 0, pointer.x - box.right);
+    const dy = Math.max(box.top - pointer.y, 0, pointer.y - box.bottom);
+    settleNear(Math.hypot(dx, dy) <= BLOUB_NEAR_PX);
+  }), []);
+
+  // A new shape morphs (BloubBot.vue:408); still frames redraw at once.
   useEffect(() => {
     const bot = engine.current!;
-    bot.setShape(shapes, still ? 0 : clock);
-    if (still) setFrame(bot.sample(frozenTime));
-  }, [shape, still, frozenTime]);
+    bot.setShape(shapes, live ? clock : 0);
+    if (!live) setFrame(bot.sample(POSES[stateId]));
+  }, [shape, live, stateId]);
 
   // A new resting expression morphs too (BloubBot.vue:415).
   useEffect(() => {
     const bot = engine.current!;
-    bot.setExpression(expr, still ? 0 : clock);
-    if (still) setFrame(bot.sample(frozenTime));
-  }, [expression, still, frozenTime]);
+    bot.setExpression(expr, live ? clock : 0);
+    if (!live) setFrame(bot.sample(POSES[stateId]));
+  }, [expression, live, stateId]);
 
-  // A new state: dated now, then the frame at once if we are not animating.
+  // A new state is dated now; a still frame draws its settled pose at once.
   useEffect(() => {
     const bot = engine.current!;
-    if (!still) {
-      bot.setState(stateId, clock);
-      return;
-    }
-    if (bot.state === stateId) {
-      setFrame(bot.sample(frozenTime));
-      return;
-    }
-    bot.setState(stateId, 0);
-    setFrame(bot.sample(frozenTime));
-  }, [stateId, still, frozenTime]);
+    if (live) { bot.setState(stateId, clock); return; }
+    if (bot.state !== stateId) bot.setState(stateId, 0);
+    bot.setLook(null, POSES[stateId] - TURN_TIME - 0.01, TURN_TIME);
+    aiming.current = false;
+    setFrame(bot.sample(POSES[stateId]));
+  }, [stateId, live]);
 
-  // The animation: one subscription to the shared clock, throttled for a list.
+  // The animation, with Bloub's gaze on top; one shared clock, throttled for a list.
   useEffect(() => {
-    if (still) return;
+    if (!live) return;
     const bot = engine.current!;
     const fps = size >= BLOUB_SINGLE_SIZE ? SINGLE_FPS : LIST_FPS;
     const step = 1 / fps;
+    const baseFace = Boolean(STATE_BY_ID.get(stateId)?.baseFace);
     return subscribeFrames((now) => {
       if (now - lastDraw.current < step - 0.0005) return;
       lastDraw.current = now;
+      const box = svgRef.current?.getBoundingClientRect();
+      if (pointer && box && box.width > 0 && baseFace) {
+        const nx = clamp((pointer.x - (box.left + box.width / 2)) / Math.max(1, window.innerWidth / 2), -1, 1);
+        const ny = clamp((pointer.y - (box.top + box.height / 2)) / Math.max(1, window.innerHeight / 2), -1, 1);
+        bot.setLook(lookTarget({ nx, ny, tour: 1, pointer: true }), now);
+        aiming.current = true;
+      } else if (aiming.current) {
+        bot.setLook(null, now, TURN_TIME);
+        aiming.current = false;
+      }
       setFrame(bot.sample(now));
     });
-  }, [still, size]);
+  }, [live, size, stateId]);
 
   // A still avatar blinks now and then, without running the morphs.
   useEffect(() => {
-    if (!still || frozenAt !== undefined || !animated || reduced) return;
+    if (live || frozenAt !== undefined || reduced) return;
     const bot = engine.current!;
     const settled = POSES[stateId];
     const shut = closedEyeTime(settled + 0.5);
@@ -260,12 +321,14 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       if (blinkOff.current) clearTimeout(blinkOff.current);
       blinkOff.current = null;
     };
-  }, [still, frozenAt, animated, reduced, stateId]);
+  }, [live, frozenAt, reduced, stateId]);
+
+  useEffect(() => () => { if (nearTimer.current) clearTimeout(nearTimer.current); }, []);
 
   useImperativeHandle(ref, () => ({
     blink: () => {
       const bot = engine.current!;
-      if (still) {
+      if (!live) {
         setFrame(bot.sample(closedEyeTime(frozenTime + 0.5)));
         blinkOff.current = setTimeout(() => setFrame(bot.sample(frozenTime)), 120);
         return;
@@ -279,13 +342,21 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       setTimeout(() => bot.setState(stateId, clock), durationMs);
     },
     setExpression: () => {},
-  }), [stateId, still, frozenTime]);
+  }), [stateId, live, frozenTime]);
 
-  const vb = DEMI_VIEWBOX;
+  const vb = half;
   return (
-    <svg width={size} height={size} viewBox={`${-vb} ${-vb} ${vb * 2} ${vb * 2}`} role="img" aria-label={label}>
+    <svg
+      ref={svgRef}
+      width={size}
+      height={size}
+      viewBox={`${-vb} ${-vb} ${vb * 2} ${vb * 2}`}
+      role="img"
+      aria-label={label}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+    >
       <defs>
-        {/* Eyes are real holes in the body, so they stay clipped by the silhouette. */}
         <mask id={maskId} maskUnits="userSpaceOnUse" x={-vb} y={-vb} width={vb * 2} height={vb * 2}>
           <path d={frame.bodyPath} fill="#fff" />
           {frame.eyes.map((eye, index) => (
@@ -327,7 +398,6 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
       )}
 
       <g opacity={frame.bodyAlpha}>
-        {/* The surface colour behind the holes, so the arcs drawn behind the body stay hidden. */}
         <path d={frame.bodyPath} fill={surface} />
         <g mask={`url(#${maskId})`}>
           <rect x={-vb} y={-vb} width={vb * 2} height={vb * 2} fill={ink} />

@@ -151,6 +151,27 @@ below are local customizations on top of upstream `v0.1.150`.
   is a personal-build change and is not intended for upstream.
   中文：**聊天顶栏移除模型选择器**（`ChatView.tsx`）。顶栏不再渲染 `ModelPicker`，模型改在设置里选。
   这是个人构建的改动，不打算进上游。
+- **Bloub follows the pointer, and its sidebar face is bigger.** BloubAvatar
+  ports Bloub's `follow`/`aim` and `src/ui/gaze.ts` unchanged (±16°/±13°, the
+  turn, the loop easing), so the eyes and head turn toward the pointer on the
+  sidebar, the chat header and the profile card, and come home when it leaves;
+  `prefers-reduced-motion` turns it off, and one `pointermove` serves every
+  avatar. An avatar under 40px switches to live rendering (30fps) while the
+  pointer is within 120px or hovering, and a bot whose state is playing
+  (thinking/working…) renders live too; otherwise it rests as a still frame
+  with the odd blink. The collapsed sidebar's bot face now fills its tile — 37px
+  of the 46px box (80%), the body cropped to the tile — with the column kept at
+  92px and both modes centred on the traffic-light line (advanced 46.00px,
+  Simple 45.75px with its hairline); the crown/star/status dots follow the
+  larger face. Measured on the dev renderer with 14 avatars: ~0.3% CPU at rest,
+  ~13% while the pointer sweeps the column.
+  中文：**Bloub 会跟随鼠标，侧栏头像也放大了。** BloubAvatar 原样移植了 Bloub 的 `follow`/`aim`
+  和 `src/ui/gaze.ts`（±16°/±13°、转头、循环缓动），侧栏、聊天头部、资料卡上的眼睛和头都会朝鼠标看，
+  移开就回位；`prefers-reduced-motion` 下关闭，全局只挂一个 `pointermove`。小于 40px 的头像在鼠标
+  进入约 120px 或悬停时切到实时渲染（30fps），状态在播放（thinking/working…）时也实时渲染，否则为
+  静止帧加偶尔眨眼。折叠侧栏的 bot 头像几乎占满方块——46px 盒子里画 37px（80%），身体裁到方块——列宽
+  仍是 92px，两种模式都对在红绿灯中线（高级 46.00px，简易 45.75px，含其细边框）；皇冠/星标/状态点跟着
+  放大后的脸重新定位。dev 渲染进程实测 14 个头像：静止约 0.3% CPU，鼠标扫过侧栏时约 13%。
 - **Bloub, done properly: its own shapes, faces, colours, customizer and studio.**
   Round two replaces the mascot body and palette with Bloub's: `BloubAvatar`
   now takes `shape` / `colorId` / `expression` / `paper` and feeds the engine

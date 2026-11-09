@@ -107,7 +107,7 @@ import { archiveBotWithNotice, onArchiveNotice } from "./bot-archive";
 import { ArchivedBotsPanel, botConfirmProps, type BotConfirmKind } from "./ArchivedBotsPanel"; import { MovedBotRows } from "./MoveToTeam";
 import { NewRoomPanel } from "./SidebarNewRoomPanel";
 import { SectionPicker } from "./SidebarSectionPicker";
-import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
+import { SIDEBAR_AVATAR_SIZE, SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -713,7 +713,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const simpleRow = !advanced && !showThreads && density === "comfortable";
   const simpleList = !advanced && !iconOnly;
   const railTile = iconOnly && !advanced;
-  const avatarSize = iconOnly ? (railTile ? 36 : 44) : showThreads ? 32 : simpleRow ? 36 : 44;
+  const avatarSize = iconOnly ? SIDEBAR_AVATAR_SIZE : showThreads ? 32 : simpleRow ? 36 : 44;
   const tooltip = simpleList ? botTooltip(bot, instances) : undefined;
   const visible = useVisibleMessages(bot);
   const last = lastNonReceipt(visible);
@@ -1365,7 +1365,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
       {!collapseToIcons && !phone && <SidebarResizeHandle sizing={sizing} sidebarRef={sidebarRef} avatars={density === "icons"} avatarsWidth={SIDEBAR_ICON_COLUMN_WIDTH}
         onAvatars={(avatars) => setSidebarDensity(avatars ? "icons" : "comfortable")} style={windowNoDragStyle} />}
 
-      <GlassScroller className={rail ? "[scrollbar-gutter:stable_both-edges]" : simpleDesk ? "px-3" : "px-2"}>
+      <GlassScroller className={rail ? "[scrollbar-gutter:stable_both-edges]" : simpleDesk ? "px-3" : density === "icons" ? "px-2 [scrollbar-gutter:stable_both-edges]" : "px-2"}>
         <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced ? "gap-0.5" : "gap-1 pb-2 pt-2")}>
           {matchingBots.length === 0 && visibleGroups.length === 0 && q && q.length < MIN_QUERY && (
             <div className="px-3 py-6 text-center text-[13px] text-ink-secondary">{t("sidebar.noMatch", { query })}</div>
