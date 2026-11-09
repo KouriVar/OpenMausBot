@@ -29,7 +29,7 @@ describe("BloubAvatar", () => {
     const idle = render({ size: 44, colorId: "vert", state: "idle", animated: false });
     expect(idle).toContain("<svg");
     expect(idle).toContain("<clipPath");
-    expect(idle).toContain("#3ecf8e");
+    expect(idle).toContain("#38c470");
     expect(idle).toContain("role=\"img\"");
     const alert = render({ size: 44, colorId: "vert", state: "alerting", animated: false });
     expect(alert).not.toBe(idle);

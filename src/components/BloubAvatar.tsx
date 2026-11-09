@@ -12,9 +12,10 @@ import { BotEngine, type BotFrame } from "@/vendor/bloub/engine";
 import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from "@/vendor/bloub/expressions";
 import { liveliness } from "@/vendor/bloub/face";
 import { DEMI_VIEWBOX, RAYON } from "@/vendor/bloub/repere";
-import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID, mixHex } from "@/vendor/bloub/skins";
+import { DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID, mixHex } from "@/vendor/bloub/skins";
 import { POSES, STATE_BY_ID, type StateId } from "@/vendor/bloub/states";
 import { TURN_TIME, followLook } from "@/fork/bloub-gaze";
+import { bloubColorHex } from "@/fork/bloub-skin";
 
 /** The app's bot states on Bloub's own; anything else rests. */
 const STATE_BY_MAUS: Record<string, StateId> = {
@@ -77,6 +78,8 @@ export type BloubAvatarProps = {
   frameSize?: number;
   /** The element whose whole rectangle is the hover target (the row tile, the header pill). */
   hitRef?: React.RefObject<HTMLElement | null>;
+  /** Palette override: the comparison suite renders Bloub's own colours, the app uses Grok's. */
+  palette?: "grok" | "bloub";
 };
 
 /* ------------------------------------------------------------ one clock */
@@ -197,6 +200,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
     fitBody = false,
     frameSize,
     hitRef,
+    palette,
   },
   ref,
 ) {
@@ -204,7 +208,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
   const stateId = bloubState(state);
   const shapes = SHAPE_BY_ID.get(shape)?.radii ?? null;
   const expr = EXPRESSION_BY_ID.get(expression) ?? null;
-  const ink = COLOR_BY_ID.get(colorId)?.hex ?? "#0a0a0c";
+  const ink = bloubColorHex(colorId, palette);
   const surface = usePaper(paper, ink);
 
   const engine = useRef<BotEngine | null>(null);

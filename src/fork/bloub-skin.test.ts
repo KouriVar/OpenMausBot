@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BLOUB_SKIN_PREFIX, defaultBloubSkin, loadBloubSkin, parseBloubSkin, saveBloubSkin } from "./bloub-skin";
+import { BLOUB_SKIN_PREFIX, bloubColorChoices, bloubColorHex, defaultBloubSkin, loadBloubSkin, parseBloubSkin, saveBloubSkin } from "./bloub-skin";
 
 const store = new Map<string, string>();
 
@@ -67,5 +67,21 @@ describe("keeping a look", () => {
   it("gives a bot with no id, or nothing stored, the colour's default", () => {
     expect(loadBloubSkin(undefined, "yellow")).toEqual({ shape: "cercle", color: "ambre", expression: "neutre" });
     expect(loadBloubSkin("never-saved", "red")).toEqual({ shape: "cercle", color: "rouge", expression: "neutre" });
+  });
+});
+
+describe("the Grok palette", () => {
+  it("keeps Bloub's own table but shows Grok's 11 colours in its order", () => {
+    expect(bloubColorHex("vert", "bloub")).toBe("#3ecf8e");
+    expect(bloubColorHex("vert", "grok")).toBe("#38c470");
+    expect(bloubColorHex("encre", "grok")).toBe("#777777");
+    expect(bloubColorHex("creme", "grok")).toBe("#ffffff");
+    const choices = bloubColorChoices("grok");
+    expect(choices).toHaveLength(11);
+    expect(choices.map((c) => c.hex)).toEqual([
+      "#ffffff", "#a16c39", "#f62c3e", "#f7670d", "#f79410", "#38c470",
+      "#36b8a2", "#2c84fc", "#9159fb", "#f73399", "#777777",
+    ]);
+    expect(bloubColorChoices("bloub")).toHaveLength(12);
   });
 });

@@ -1,9 +1,9 @@
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
-import { useBloubSkin, saveBloubSkin, type BloubSkin } from "@/fork/bloub-skin";
+import { useBloubSkin, saveBloubSkin, bloubColorChoices, type BloubSkin } from "@/fork/bloub-skin";
 import { EXPRESSION_LABELS, COLOR_LABELS, SHAPE_LABELS } from "@/fork/bloub-names";
 import type { MausColor } from "@/lib/mascot";
-import { COLORS, SHAPES } from "@/vendor/bloub/skins";
+import { SHAPES } from "@/vendor/bloub/skins";
 import { EXPRESSIONS } from "@/vendor/bloub/expressions";
 import { BloubAvatar } from "./BloubAvatar";
 
@@ -63,24 +63,30 @@ export function BloubCustomizer({ botId, color }: { botId: string | undefined; c
       </div>
 
       <div className={heading}>{t("bloubCustomizer.color")}</div>
-      <div className="grid grid-cols-6 gap-1.5">
-        {COLORS.map((entry) => (
+      {(() => {
+        const choices = bloubColorChoices();
+        const swatch = (entry: { id: string; hex: string }) => (
           <button
             key={entry.id}
             type="button"
             aria-label={COLOR_LABELS[entry.id] ?? entry.id}
             aria-pressed={skin.color === entry.id}
-            onClick={() => update({ color: entry.id })}
+            onClick={() => update({ color: entry.id as never })}
             className={cn(
-              "flex aspect-square items-center justify-center rounded-full border-2 transition-colors",
-              skin.color === entry.id ? "border-ink" : "border-transparent hover:border-hairline",
+              "flex size-7 shrink-0 items-center justify-center rounded-full transition-shadow",
+              skin.color === entry.id ? "ring-1 ring-ink-tertiary ring-offset-2 ring-offset-panel" : "hover:ring-1 hover:ring-hairline",
             )}
           >
-            {/* An inner ring so the cream dot stays visible on a light panel. */}
             <span className="block h-[78%] w-[78%] rounded-full ring-1 ring-inset ring-black/10" style={{ background: entry.hex }} />
           </button>
-        ))}
-      </div>
+        );
+        return (
+          <>
+            <div className="grid grid-cols-6 gap-1.5">{choices.slice(0, 6).map(swatch)}</div>
+            <div className="mt-1.5 flex justify-center gap-1.5">{choices.slice(6).map(swatch)}</div>
+          </>
+        );
+      })()}
     </div>
   );
 }
