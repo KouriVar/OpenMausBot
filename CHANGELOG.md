@@ -151,6 +151,53 @@ below are local customizations on top of upstream `v0.1.150`.
   is a personal-build change and is not intended for upstream.
   中文：**聊天顶栏移除模型选择器**（`ChatView.tsx`）。顶栏不再渲染 `ModelPicker`，模型改在设置里选。
   这是个人构建的改动，不打算进上游。
+- **Bloub follows the pointer, and its sidebar face is bigger.** BloubAvatar
+  ports Bloub's `follow`/`aim` and `src/ui/gaze.ts` unchanged (±16°/±13°, the
+  turn, the loop easing), so the eyes and head turn toward the pointer on the
+  sidebar, the chat header and the profile card, and come home when it leaves;
+  `prefers-reduced-motion` turns it off, and one `pointermove` serves every
+  avatar. An avatar under 40px switches to live rendering (30fps) while the
+  pointer is within 120px or hovering, and a bot whose state is playing
+  (thinking/working…) renders live too; otherwise it rests as a still frame
+  with the odd blink. The collapsed sidebar's bot face now fills its tile — 37px
+  of the 46px box (80%), the body cropped to the tile — with the column kept at
+  92px and both modes centred on the traffic-light line (advanced 46.00px,
+  Simple 45.75px with its hairline); the crown/star/status dots follow the
+  larger face. Measured on the dev renderer with 14 avatars: ~0.3% CPU at rest,
+  ~13% while the pointer sweeps the column.
+  中文：**Bloub 会跟随鼠标，侧栏头像也放大了。** BloubAvatar 原样移植了 Bloub 的 `follow`/`aim`
+  和 `src/ui/gaze.ts`（±16°/±13°、转头、循环缓动），侧栏、聊天头部、资料卡上的眼睛和头都会朝鼠标看，
+  移开就回位；`prefers-reduced-motion` 下关闭，全局只挂一个 `pointermove`。小于 40px 的头像在鼠标
+  进入约 120px 或悬停时切到实时渲染（30fps），状态在播放（thinking/working…）时也实时渲染，否则为
+  静止帧加偶尔眨眼。折叠侧栏的 bot 头像几乎占满方块——46px 盒子里画 37px（80%），身体裁到方块——列宽
+  仍是 92px，两种模式都对在红绿灯中线（高级 46.00px，简易 45.75px，含其细边框）；皇冠/星标/状态点跟着
+  放大后的脸重新定位。dev 渲染进程实测 14 个头像：静止约 0.3% CPU，鼠标扫过侧栏时约 13%。
+- **Bloub, done properly: its own shapes, faces, colours, customizer and studio.**
+  Round two replaces the mascot body and palette with Bloub's: `BloubAvatar`
+  now takes `shape` / `colorId` / `expression` / `paper` and feeds the engine
+  Bloub's OWN shape radii, resting expression and ink, so an avatar drawn by it
+  is pixel-identical to the upstream Vue component (38 of 38 compared cells,
+  0.00 %). Each bot keeps its own look in `localStorage`
+  (`omb.fork.bloub.<botId>`, validated per field, OMB colour mapped onto Bloub's
+  palette), `botId` is threaded through `MausAvatarProps` from every `BotAvatar`
+  call site, and the avatar editor swaps the mascot's shape/face/colour/body for
+  a React port of Bloub's Customizer (8 shapes × 16 expressions × 12 colours,
+  each a frozen 1s thumbnail with its Chinese name). The App appearance row
+  gains "Open the Bloub studio", which opens the unmodified upstream studio
+  (built at `public/bloub/`, MIT, commit `b4bb3c1`) in a full-screen iframe;
+  `#planche` and `#etat=wide&stop` both work. Still avatars move to 40px and
+  above, list avatars animate at 30 fps, a lone large one at 60 fps
+  (14 animated sidebar avatars: ~12% renderer CPU against ~5% for the mascot).
+  中文：**Bloub 这次做对了：用它自己的形状、表情、颜色、定制面板和工作室。** 第二轮把吉祥物的身体和
+  配色换成 Bloub 的：`BloubAvatar` 现在接收 `shape` / `colorId` / `expression` / `paper`，把 Bloub
+  自己的形状半径、静止表情和墨色交给引擎，所以画出来的头像与上游 Vue 组件逐像素一致（38 个对照格全部
+  0.00%）。每个 bot 的外观存在 `localStorage`（`omb.fork.bloub.<botId>`，逐字段校验，OMB 颜色映射到
+  Bloub 色板），`botId` 从每个 `BotAvatar` 调用点经 `MausAvatarProps` 贯穿，头像编辑器把吉祥物的
+  形状/面部/颜色/身体换成 Bloub 定制面板的 React 移植（8 形状 × 16 表情 × 12 颜色，每格是用 1 秒定格
+  画的缩略图，带中文名）。设置外观行新增「打开 Bloub 工作室」，用全屏 iframe 打开未改动的上游工作室
+  （构建在 `public/bloub/`，MIT，commit `b4bb3c1`）；`#planche` 和 `#etat=wide&stop` 都可用。
+  静止帧阈值提到 40px，列表头像 30fps，单个大头像 60fps（侧栏 14 个动画头像：渲染进程约 12%，
+  吉祥物约 5%）。
 
 ### Tests / 测试
 
@@ -174,6 +221,44 @@ below are local customizations on top of upstream `v0.1.150`.
 
 ### Added / 新增
 
+- **Bloub, finished for daily use.** The fork's Bloub avatar now follows the
+  pointer within a tight range (about one avatar size; 1.5× in the sidebar), with
+  only the avatar nearest the pointer turning — no cross-talk between avatars —
+  and comes home smoothly when the pointer leaves (`prefers-reduced-motion` off).
+  The sidebar's bot face is 37px of its 46px box in both modes, its
+  chief-crown and model badge are hidden, and a group shows a 2×2 of its first
+  four members' own Bloub faces. A bot's turn plays Bloub's states: thinking
+  before a tool, orbit while one runs (a play/comet interlude every ~7s), alert
+  when it needs you, notify for unread, a wink when a turn finishes, exclaim on
+  error, sleep after ten idle minutes — same mapping on the sidebar, chat header
+  and profile card, live at 30fps while it runs. Your own message bubble takes
+  the bot's Bloub colour (white or near-black text chosen for AA), neutral in a
+  group chat; the mascot avatar keeps the old look.
+  中文：**Bloub 完成日常可用。** 本 fork 的 Bloub 头像现在在很窄的范围内跟随鼠标（约一个头像大小，
+  侧栏 1.5 倍），只有离鼠标最近的那个头像会转头、彼此不联动，鼠标离开后平滑回正
+  （`prefers-reduced-motion` 时关闭）。侧栏 bot 头像在两种模式下都是 46px 盒子里的 37px，主 bot 皇冠
+  和模型角标隐藏，群头像显示前四个成员各自 Bloub 脸的 2×2。一个 turn 会播 Bloub 的状态：调用工具前
+  thinking、工具运行中 orbit（约每 7 秒穿插 play/comet）、需要你时 alert、未读 notify、完成眨眼一次、
+  出错 exclaim（2 秒）、空闲十分钟 sleep——侧栏、聊天头部、资料卡同一套映射，运行中 30fps 实时渲染。
+  你发的消息气泡取 bot 的 Bloub 颜色（自动选白或近黑文字，满足 AA），群聊保持中性；吉祥物头像维持原样。
+- **Optional Bloub avatar (Grok-style), vendored from `jeremy-prt/bloub`.**
+  Settings → Appearance gains "Grok-style avatar (Bloub)": with it on, every bot
+  avatar is drawn by the vendored engine (`src/vendor/bloub`, MIT, commit
+  `b4bb3c1`) through `src/components/BloubAvatar.tsx`, in the bot's own colour,
+  and the choice is kept in `localStorage` (`omb.fork.avatarStyle`). The
+  engine's measurements are untouched; every avatar shares one
+  `requestAnimationFrame` clock, below 28px it is a still frame with the odd
+  blink, and `prefers-reduced-motion` stops the animation. The ref handle still
+  works: `blink` and `spin` play Bloub's wink and swirl, `setExpression` is a
+  no-op. CPU with 15 animated avatars in the collapsed sidebar: ~22% of the
+  renderer against ~11% for the mascot.
+  中文：**可选 Bloub（Grok 风）头像，内置自 `jeremy-prt/bloub`。** 设置 → 外观新增
+  「Grok 风头像（Bloub）」开关：打开后所有机器人头像由内置引擎（`src/vendor/bloub`，MIT，
+  commit `b4bb3c1`）经 `src/components/BloubAvatar.tsx` 绘制，用机器人自己的颜色；选择存在
+  `localStorage` 的 `omb.fork.avatarStyle`。引擎里的测量常量一个没改；所有头像共用一个
+  `requestAnimationFrame` 时钟，小于 28px 时只画静态帧加偶尔眨眼，`prefers-reduced-motion`
+  下完全不动画。ref 句柄保留：`blink` 和 `spin` 分别播 Bloub 的 wink 和 swirl，
+  `setExpression` 暂为空实现。侧栏 15 个动画头像时，渲染进程 CPU 约 22%（原版吉祥物约 11%）。
 - `apply-ui-patch.sh` — builds the renderer and copies `dist/` into the
   installed `/Applications/OpenMausBot.app/Contents/Resources/ui/`, with a
   timestamped backup of the previous UI. Re-run it after an app auto-update
