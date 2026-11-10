@@ -401,6 +401,11 @@ const Bubble = memo(function Bubble({
   const hasAttachments = Boolean(cited?.citations.length || (attachments && (attachments.images.length || attachments.files.length)));
   const attachmentsOnly = !webhookView && !replyTarget && !visibleText.trim() &&
     (user ? hasAttachments : generatedPaths.length + linkedFiles.length > 0);
+  // A text bubble that also carries pictures: a picture at its end must sit clear of the bottom edge by
+  // exactly the bubble's horizontal padding, so the last picture is not closer to the bottom than to the
+  // sides. The gap between the words and the picture is the gallery's own margin and stays as it was.
+  const hasImages = Boolean((user ? attachments?.images.length : generatedPaths.length) ?? 0);
+  const mixedImages = hasImages && Boolean(visibleText.trim()) && !attachmentsOnly;
   const collapsible =
     user && !webhookView && !expanded && (visibleText.length > USER_COLLAPSE_CHARS || visibleText.split("\n").length > USER_COLLAPSE_LINES);
   useEffect(() => {
@@ -469,6 +474,7 @@ const Bubble = memo(function Bubble({
                   : formatted
                     ? cn(formattedReplyWidth(text), "px-1 text-ink")
                     : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
+            mixedImages && !split && !tabled && (formatted ? "pb-1" : "pb-3"),
             simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}
