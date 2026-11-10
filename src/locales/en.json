@@ -6820,7 +6820,7 @@
   "botAccess.cloud.vpsDescription": "Your own server, connected over SSH.",
   "botAccess.cloud.hostedDescription": "A hosted computer managed by Boat.",
   "botAccess.cloud.vpsAutoDescription": "Auto reuses a running desktop on your VPS. Turn on Start VPS automatically to let Auto create or wake it, or choose Cloud to do it explicitly. Open the live desktop securely from the computer panel.",
-  "botAccess.cloud.hostedBackendDescription": "Boat is the default hosted computer. Choose Simular Box to use your own Simular desktop, or Self-hosted VPS for your SSH-configured Linux Docker host.",
+  "botAccess.cloud.hostedBackendDescription": "Boat is the default hosted computer. Choose Self-hosted VPS to use your SSH-configured Linux Docker host.",
   "botAccess.cloud.selfHostedVps": "Self-hosted VPS",
   "botAccess.cloud.simular": "Simular Box",
   "botAccess.cloud.simularDescription": "Your own Simular desktop, through the Simular server you connected in Plugins.",
