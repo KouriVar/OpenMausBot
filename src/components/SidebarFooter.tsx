@@ -3,6 +3,8 @@ import { useRef } from "react";
 import { cn } from "@/lib/cn";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { useStore } from "@/state/store";
+import type { ReactNode } from "react";
+import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
 
 import { AccountMoveStatus, useAccountMoveLine } from "./AccountMove";
 import { CloudRoomCard } from "./CloudRoomCard";
@@ -25,7 +27,7 @@ export function SidebarPlaceStatus({ place, className }: { place: WorkspacePlace
   return null;
 }
 
-function SimpleSidebarFooter({ owner, archived }: { owner: string | null; archived?: ArchivedBots }) {
+function SimpleSidebarFooter({ owner, archived, actions }: { owner: string | null; archived?: ArchivedBots; actions?: ReactNode }) {
   const { state } = useStore();
   const place = useSimplePlace();
   const account = useSimpleAccount(place, owner, archived);
@@ -41,23 +43,26 @@ function SimpleSidebarFooter({ owner, archived }: { owner: string | null; archiv
       <AccountMoveStatus kind={move.kind} place={move.place} retry={move.retry} onOpen={openAccount} className="ps-1" />
       <div className="flex items-center gap-2 not-first:mt-2">
         <SidebarProfileMenu simple={account} />
-        <SidebarConnectApps />
+        {!FOOTER_ACTIONS && <SidebarConnectApps />}
         <UpdateIndicator className="size-9" />
+        {actions && <div data-simple-footer-actions className="ms-auto flex items-center gap-2">{actions}</div>}
       </div>
     </div>
   );
 }
 
-export function SidebarFooter({ density, simple = false, owner = null, archived, toolsCollapsed, onToggleTools }: {
+export function SidebarFooter({ density, simple = false, owner = null, archived, toolsCollapsed, onToggleTools, footerActions }: {
   density: SidebarDensity;
   simple?: boolean;
   owner?: string | null;
   archived?: ArchivedBots;
   toolsCollapsed: boolean;
   onToggleTools?: () => void;
+  /** Simple's collapsed footer row: search, inbox and + sit on the account's own row. */
+  footerActions?: ReactNode;
 }) {
   const { dispatch } = useStore();
-  if (simple) return <SimpleSidebarFooter owner={owner} archived={archived} />;
+  if (simple) return <SimpleSidebarFooter owner={owner} archived={archived} actions={footerActions} />;
   return (
     <div className={cn("pb-3 pt-2", density === "icons" ? "flex flex-col items-center gap-1 px-2" : "px-3")}>
       <SidebarFooterNav density={density} collapsed={toolsCollapsed} onToggleCollapsed={onToggleTools} />

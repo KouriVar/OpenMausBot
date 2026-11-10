@@ -84,7 +84,8 @@ export { TeamMenuItems };
 import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
-import { SidebarRailSeparator, SimpleRailFooter } from "./SidebarSimpleRail";
+import { SimpleRailFooter } from "./SidebarSimpleRail";
+import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
 import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -744,7 +745,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const body = (
     <>
       <span className={cn("relative flex shrink-0", simpleRow && "-m-[3px]")} title={iconOnly || simpleList ? undefined : [bot.name, ...details].join(" · ")}>
-        <span className={cn("relative flex items-center justify-center", simpleRow && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
+        <span className={cn("relative flex items-center justify-center", simpleRow && bot.chiefOfStaff && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow && bot.chiefOfStaff ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
@@ -943,10 +944,12 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   );
 });
 
-export function Sidebar({ open, onClose, collapseToIcons = false }: {
+export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false }: {
   open: boolean;
   onClose: () => void;
   collapseToIcons?: boolean;
+  /** Fork: the bar was just brought back by the edge handle; slide it in once. */
+  reveal?: boolean;
 }) {
   const { state, dispatch } = useStore();
   const now = useRelativeNow();
@@ -1282,6 +1285,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
         "max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:w-full max-md:bg-app",
         "max-md:transition-transform max-md:duration-200",
         open ? "max-md:translate-x-0" : "max-md:-translate-x-full",
+        reveal && "motion-safe:animate-[sidebar-reveal_180ms_ease-out]",
       )}
     >
       <GlassScrollFrame className="flex-1" fade><PlaceTint />
@@ -1317,9 +1321,9 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
           className={cn("relative flex shrink-0 items-center", density === "icons" ? "flex-col gap-1" : corner ? "pointer-events-auto" : simpleDesk ? "gap-2" : simple ? "gap-1 pl-0.5" : "ml-0.5 gap-0.5")}
           style={windowNoDragStyle}
         >
-          {simpleDesk && <SidebarSearchToggle ref={searchToggleRef} corner={corner} open={searchShown} onToggle={() => (searchShown ? closeSearch() : setSearchOpen(true))} />}
+          {simpleDesk && !FOOTER_ACTIONS && <SidebarSearchToggle ref={searchToggleRef} corner={corner} open={searchShown} onToggle={() => (searchShown ? closeSearch() : setSearchOpen(true))} />}
           {advanced && inboxSupport === "no" && <SidebarActiveThreads entries={attention} icons={density === "icons"} phone={phone} dispatch={dispatch} />}
-          {!bottomActions && plusControl}
+          {!bottomActions && !(simpleDesk && FOOTER_ACTIONS) && plusControl}
         </div>}
       </div>
 
@@ -1337,7 +1341,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
           />
         </div>
       </div>}
-      {!q && density !== "icons" && <SidebarInboxRow icons={false} large={!advanced} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
+      {!q && density !== "icons" && !(simpleDesk && FOOTER_ACTIONS) && <SidebarInboxRow icons={false} large={!advanced} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
       {universalPins && pinnedBots.length > 0 && !simpleDesk && (
         <div
           data-sidebar-universal-pins=""
@@ -1441,7 +1445,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
                   density !== "icons" && index > 0 && !simple && "pt-3",
                 )}
               >
-                {rail && index > 0 && <SidebarRailSeparator />}
                 {layout.dropLine(id, "before")}
                 {density !== "icons" && !headless && (
                   <SidebarSectionHeader
@@ -1537,7 +1540,14 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
             <div className="relative flex">{plusControl}</div>
           </div>}
         />
-      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
+      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined}
+        footerActions={simpleDesk && FOOTER_ACTIONS ? <>
+          <button type="button" onClick={searchShown ? closeSearch : () => setSearchOpen(true)} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
+            <Search size={18} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
+          <div className="relative flex">{plusControl}</div>
+        </> : undefined} />}
       </GlassBar>
       </GlassScrollFrame>
 

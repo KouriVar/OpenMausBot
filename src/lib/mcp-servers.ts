@@ -79,8 +79,10 @@ export function mcpSwitch(servers: McpServerSummary[], own: string[] | null | un
 }
 
 /** Whether the person's Simular Box can be used here: its MCP server is listed, on, and signed in. */
+/** The Simular MCP as this install lists it: the canonical name, or whatever the person called the
+ * connection (the hosted one arrives as `simular-cloud`), as long as it is on and signed in. */
 export function simularBoxReady(servers: readonly McpServerSummary[] | null): boolean {
-  const server = servers?.find((entry) => entry.name === SIMULAR_SERVER);
+  const server = servers?.find((entry) => entry.name === SIMULAR_SERVER || entry.name.toLowerCase().includes("simular"));
   return Boolean(server && server.enabled && server.auth === "signed-in");
 }
 

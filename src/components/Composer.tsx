@@ -66,6 +66,8 @@ import {
 import { goalCoordinatorForComposer, jevRoomRoutingOn, openTaskWorking, roomRouteForComposer } from "@/lib/group-routing";
 import { composerPlaceholder, sendLabels, SIMPLE_COMPOSER, SIMPLE_CONTROL, slotColors } from "./composer-simple"; import { ComposerSendButton } from "./ComposerSendButton";
 import { BOT_BUTTON } from "@/lib/bot-button";
+import { useColorScheme } from "@/lib/color-scheme";
+import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
 import { COMPOSER_BOTTOM_FADE, FORK_UI_1110B } from "@/fork/ui-batch-1110b";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
@@ -526,6 +528,10 @@ export function Composer({
   const callShown = !simpleDock || (!hasContent && !stopInSlot);
   // One colour for everything that belongs to this bot: its avatars, your bubble, and these buttons.
   const accent = useBloubAccent({ id: group ? undefined : bot?.id, color: bot?.color });
+  // Fork: a white avatar in dark mode takes the grey voice buttons, same as the bubble.
+  const scheme = useColorScheme();
+  const whiteVoice = FORK_WHITE_BUBBLE && !group && scheme === "dark" && isWhiteAccent(accent);
+  const voiceStyle = whiteVoice ? { backgroundColor: WHITE_BUBBLE_BG, color: WHITE_BUBBLE_INK } : undefined;
   const slot = slotColors(accent, bot?.color, Boolean(group));
   // A one-to-one bot at work: Enter does the chosen follow-up and Ctrl/⌘ with it the other one. Rooms keep their own queue.
   const followUpFor = (alternate: boolean) => resolveFollowUp({ running: busy && !group && Boolean(bot), alternate, preferred: followUpDefault, canSteer }) ?? undefined;
@@ -776,17 +782,17 @@ export function Composer({
           onEdit={locked ? undefined : editQueued}
         />
         <div className="relative">
-          {/* Plain canvas behind the composer and the strip below it, so the transcript ends at the composer
-              with no fade. Simple mode starts it at the composer's top edge, Advanced at its middle. */}
-          <div
-            aria-hidden
-            data-composer-backdrop
-            className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
-          />
-          {/* The same melt the chat head draws at the top, upside down: the strip under the composer fades
-              into the canvas instead of ending on a hard line. */}
-          {COMPOSER_BOTTOM_FADE && (
-            <div aria-hidden data-fork-composer-fade className={cn("pointer-events-none absolute -left-5 -right-5", advanced ? "-bottom-3" : simpleDock ? "-bottom-4" : "-bottom-3")} />
+          {/* Fork: the transcript runs on to the window's bottom edge and the fade layer behind the composer
+              melts it into the canvas, instead of one opaque block cutting it off at the input's top. The
+              layer sits under the composer (which keeps its own opaque pill) and over the bubbles. */}
+          {COMPOSER_BOTTOM_FADE ? (
+            <div aria-hidden data-fork-composer-fade className="pointer-events-none absolute -left-5 -right-5 top-0 -bottom-3" />
+          ) : (
+            <div
+              aria-hidden
+              data-composer-backdrop
+              className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
+            />
           )}
         <div ref={shellRef} data-tour="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(SIMPLE_COMPOSER, multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
         {singleRow && !locked && (
@@ -978,13 +984,13 @@ export function Composer({
                 : accent ? BOT_BUTTON
                   : advanced || singleRow ? "text-ink-secondary hover:bg-raised hover:text-ink" : SIMPLE_CONTROL,
             )}
-            style={!recording && accent ? slot.button.style : undefined}
+            style={whiteVoice ? voiceStyle : !recording && accent ? slot.button.style : undefined}
             title={recording ? t("composer.dictation.stopHint") : t("composer.dictation.hint")}
           >
             <Mic size={16} strokeWidth={1.75} absoluteStrokeWidth className="[&_rect]:fill-current" />
           </button>
         )}
-        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={advanced || singleRow ? undefined : slot.fill} ink={slot.ink} inverse={singleRow} />}
+        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={whiteVoice ? WHITE_BUBBLE_BG : advanced || singleRow ? undefined : slot.fill} ink={whiteVoice ? WHITE_BUBBLE_INK : slot.ink} inverse={singleRow} />}
         {callShown && group && !advanced && <GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} />}
         {hasContent && !locked && (
           <ComposerSendButton compact={simpleDock} waits={busy && !steersNow} label={sendNames.label} title={sendNames.title} look={slot.button}

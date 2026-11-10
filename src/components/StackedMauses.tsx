@@ -9,6 +9,7 @@ import { BotAvatar } from "./Avatar";
 import { BloubAvatar } from "./BloubAvatar";
 import { GroupFaceCluster, clusterFaceSize, type GroupFaceClusterLayout } from "./GroupFaceStack";
 import { FORK_UI_1110 } from "@/fork/ui-batch-1110";
+import { GROUP_AVATAR_SCALE } from "@/fork/ui-batch-1110b";
 
 /** One member in the stack, in its own Bloub look, drawn to the edge of its face so the cut ring never
  * leaves a see-through gap over the face it covers. */
@@ -42,7 +43,9 @@ export function StackedMauses({ members, density, large = false, surface = "var(
   const layout: GroupFaceClusterLayout = FORK_UI_1110
     ? members.length === 2 ? "pair" : members.length === 3 ? "triad" : "quad"
     : members.length === 2 ? "pair" : "triad";
-  const square = iconOnly ? 48 : large ? 36 : 32;
+  // The whole group draws larger than a single face's slot; the row's own box keeps its size, so the
+  // cluster is centred in it and the selected/hover square stays exactly the single bot's.
+  const square = Math.round((iconOnly ? 48 : large ? 36 : 32) * GROUP_AVATAR_SCALE);
   const face = clusterFaceSize(square, layout);
   const shown = members.slice(0, layout === "quad" ? 4 : layout === "triad" ? 3 : 2);
   return (
@@ -51,6 +54,7 @@ export function StackedMauses({ members, density, large = false, surface = "var(
         layout={layout}
         size={square}
         surface={surface}
+        ringWidth={2 * GROUP_AVATAR_SCALE}
         faces={shown.map((b) => (bloub
           ? <BloubMember key={b.id} bot={b} size={face} />
           : <BotAvatar key={b.id} bot={b} state="happy" size={face} animated={false} />))}

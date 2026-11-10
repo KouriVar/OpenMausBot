@@ -51,6 +51,7 @@ import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
+import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -623,7 +624,11 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
     { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
   ] : [];
-  const items = railItems.length ? [...railItems, ...profileMenuItems({
+  const [, setHiddenSidebar] = useHiddenSidebar();
+  const hideItems: SidebarMenuItem[] = FORK_HIDDEN_SIDEBAR
+    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <ArrowDownToLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
+    : [];
+  const items = railItems.length ? [...hideItems, ...railItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -660,7 +665,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  })] : profileMenuItems({
+  })] : [...hideItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -697,7 +702,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  });
+  })];
   const noteworthy = update && updateNoteworthy(update.phase, update.pending) && !updateHasButton(update.phase);
   const needsYou = account?.automationsNeedYou === true;
   const initials = profileInitials(profile);

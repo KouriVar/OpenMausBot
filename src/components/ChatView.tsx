@@ -401,6 +401,11 @@ const Bubble = memo(function Bubble({
   const hasAttachments = Boolean(cited?.citations.length || (attachments && (attachments.images.length || attachments.files.length)));
   const attachmentsOnly = !webhookView && !replyTarget && !visibleText.trim() &&
     (user ? hasAttachments : generatedPaths.length + linkedFiles.length > 0);
+  // A text bubble that also carries pictures: a picture at its end must sit clear of the bottom edge by
+  // exactly the bubble's horizontal padding, so the last picture is not closer to the bottom than to the
+  // sides. The gap between the words and the picture is the gallery's own margin and stays as it was.
+  const hasImages = Boolean((user ? attachments?.images.length : generatedPaths.length) ?? 0);
+  const mixedImages = hasImages && Boolean(visibleText.trim()) && !attachmentsOnly;
   const collapsible =
     user && !webhookView && !expanded && (visibleText.length > USER_COLLAPSE_CHARS || visibleText.split("\n").length > USER_COLLAPSE_LINES);
   useEffect(() => {
@@ -463,12 +468,13 @@ const Bubble = memo(function Bubble({
             user && webhookView
               ? cn("overflow-hidden border border-accent/25 bg-card text-ink", simple ? cn("rounded-[18px]", SIMPLE_BUBBLE_TEXT) : "shadow-[0_10px_30px_rgba(0,0,0,0.18)]")
               : attachmentsOnly || split || tabled
-                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT)
+                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, (attachmentsOnly || split) && "p-1.5")
                 : user
                   ? cn("whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]", ownBubbleStyle && "user-bubble-colored", simple && ownBubbleStyle && "antialiased")
                   : formatted
                     ? cn(formattedReplyWidth(text), "px-1 text-ink")
                     : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
+            mixedImages && !split && !tabled && (formatted ? "pb-1" : "pb-3"),
             simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}
@@ -502,7 +508,7 @@ const Bubble = memo(function Bubble({
             </div>
           ) : user ? (
             <>
-              {attachments && <AttachmentGallery images={attachments.images} files={attachments.files} message={{ threadId, messageId: message.id }} eager={eagerAttachments} className={!visibleText ? "mb-0" : undefined} />}
+              {attachments && <AttachmentGallery images={attachments.images} files={attachments.files} message={{ threadId, messageId: message.id }} eager={eagerAttachments} className={!visibleText ? "mb-0 mt-0" : undefined} />}
               {visibleText && (
                 <div
                   className={cn("chat-text", collapsible && "max-h-40 overflow-hidden [mask-image:linear-gradient(to_bottom,black_60%,transparent)]")}
@@ -549,7 +555,7 @@ const Bubble = memo(function Bubble({
                   ))}
                 </div>
               )}
-              {!group && <AttachmentGallery images={generatedPaths} files={linkedFiles} originals={attached.originals} message={{ threadId, messageId: message.id }} className={text ? undefined : "mb-0"} eager={eagerAttachments} />}
+              {!group && <AttachmentGallery images={generatedPaths} files={linkedFiles} originals={attached.originals} message={{ threadId, messageId: message.id }} className={text ? undefined : "mb-0 mt-0"} eager={eagerAttachments} />}
               {split ? (
                 <ConversationalReply simple={simple} join={join} segments={reply.segments} firstNew={reply.firstNew} citation={{ messageId: message.id, botId, threadId }}
                   renderSegment={(segment) => <ChatMarkdown text={segment} mentionPeers={mentionPeers} mentionPerson={mentionPerson} message={{ threadId, messageId: message.id }} delivered={group?.delivered} originals={group?.originals} />} />
@@ -696,6 +702,9 @@ const MessagesList = memo(function MessagesList({
   const layout = useMemo(() => simple ? simpleRowLayout(items, { botId, showToolCalls, unreadIds }) : null, [simple, items, unreadIds, showToolCalls, botId]);
   const joins = layout?.joins;
   const durations = useMemo(() => simple ? turnDurations(messages) : null, [messages, simple]);
+  // Fork: one notice per turn is enough. A rescue can arrive as two rows (the row with its buttons and
+  // the plain notice without them); the second used to print the stored English sentence again.
+  const shownNotices = new Set<string>();
   const dividerAbove = (rows: readonly Message[]) => {
     if (!unreadIds || dividerPlaced || !rows.some((row) => unreadIds.has(row.id))) return null;
     dividerPlaced = true;
@@ -750,7 +759,12 @@ const MessagesList = memo(function MessagesList({
               return m.call ? <CallRecordRow message={m} transcript={transcript} botName={botName} threadId={threadId} busy={busy} hasMore={hasMore} /> : null;
             case "activity": {
               if (m.dataResult) return <DataResultChip message={m} />;
-              if (isStatusActivity(m)) return <StatusActivityRow message={m} />;
+              if (isStatusActivity(m)) {
+                const noticeKey = `${m.turnId ?? ""}|${m.tool?.name ?? ""}`;
+                if (shownNotices.has(noticeKey)) return null;
+                shownNotices.add(noticeKey);
+                return <StatusActivityRow message={m} />;
+              }
               if (m.tool && failedTurnCause(m.tool.name) !== null) {
                 return (
                   <FailedTurnRow

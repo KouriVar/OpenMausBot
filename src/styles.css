@@ -28,7 +28,12 @@
   font-size: inherit;
   line-height: inherit;
   text-decoration: none;
-  vertical-align: baseline;
+  /* The chip keeps its own height: its 15px face plus the paragraph's leading makes it exactly one
+     Simple-mode line (22px), and its baseline sits on the bottom of the face, so `baseline` rode 2px
+     high over the words. Aligning its box to the line box's top (same 22px) puts the two centres on
+     one line without touching the chip's padding, radius or the paragraph's leading — and the line
+     box is unchanged, so no bubble grows. `bare` (the textarea mirror) keeps its own metrics. */
+  vertical-align: top;
   white-space: nowrap;
   max-width: 100%;
 }
@@ -3452,27 +3457,30 @@ button:disabled.bg-danger {
   font-weight: 650;
 }
 
-/* Fork UI batch B: the composer's bottom edge melts the transcript into the canvas the way the chat head's
-   top edge does, only upside down. It copies the fading top bar exactly (solid canvas over the band, no
-   tint, no blur) and flips the gradient and its masks, so both skins and forced colours behave the same. */
+/* Fork: the composer's bottom edge fades the transcript into the canvas the way the chat head's top edge
+   does, only upside down. The layer sits behind the composer (pointer-events: none) and reaches the
+   window's bottom edge; it is transparent where the composer starts and becomes the canvas below, so
+   messages melt away as they pass under the input and nothing above the composer is covered. */
 [data-fork-composer-fade] {
-  height: 60px;
-  overflow: hidden;
-}
-[data-fork-composer-fade]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(to top, var(--color-app), var(--color-app) calc(100% - 60px), transparent);
+  background: linear-gradient(to bottom, transparent, var(--color-app) 85%);
 }
 @media (prefers-reduced-transparency: reduce) {
-  [data-fork-composer-fade]::before {
-    background: Canvas;
+  [data-fork-composer-fade] {
+    background: linear-gradient(to bottom, transparent, Canvas 85%);
   }
 }
 @media (forced-colors: active) {
-  [data-fork-composer-fade]::before {
+  [data-fork-composer-fade] {
     background: Canvas;
   }
+}
+
+/* Fork: the collapsed bar slides back in when the edge handle brings it; the handle itself is a 5px
+   sliver on the window's left edge, clearer on hover. */
+@keyframes sidebar-reveal {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-hidden-sidebar-edge] span { transition: none; }
 }

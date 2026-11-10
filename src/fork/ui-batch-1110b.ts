@@ -10,3 +10,9 @@ export const COMPOSER_BOTTOM_FADE = FORK_UI_1110B;
 
 /** Simple's collapsed rail moves inbox/search/new/plugins into the profile menu. */
 export const RAIL_ACTIONS_IN_MENU = FORK_UI_1110B;
+
+/** Group avatars in the sidebar draw 1.2x larger inside the same row slot: faces, overlap and rings scale. */
+export const GROUP_AVATAR_SCALE = 1.2;
+
+/** Simple's expanded footer carries search, inbox and + on the avatar's row instead of the header. */
+export const FOOTER_ACTIONS = true;
