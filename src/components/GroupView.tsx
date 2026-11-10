@@ -17,6 +17,7 @@ import {
   type Message,
 } from "@/state/store";
 import { BotAvatar } from "./Avatar";
+import { GroupFaceStack } from "./GroupFaceStack";
 import { ScreenFrame } from "./ScreenFrame";
 import { RoomHoldsBanner } from "./RoomHoldsBanner";
 import { ThreadChip } from "./ThreadChip";
@@ -1105,8 +1106,12 @@ export function GroupView({ group }: { group: Group }) {
         >
           {group.messages.length === 0 && (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
-              <div className="flex -space-x-2">
-                {members.slice(0, 3).map((b) => (
+              <GroupFaceStack
+                face={44}
+                overlap={18}
+                surface="var(--color-app)"
+                total={members.length}
+                faces={members.slice(0, 3).map((b) => (
                   <BotAvatar
                     key={b.id}
                     bot={b}
@@ -1117,7 +1122,7 @@ export function GroupView({ group }: { group: Group }) {
                     animated={false}
                   />
                 ))}
-              </div>
+              />
               <div className="text-[17px] font-semibold text-ink">{group.name}</div>
               <div className="max-w-[380px] text-[14px] text-ink-secondary">
                 {groupResponseHint(group, members, { jevOn: jevRoomRoutingOn(state.config) })}
