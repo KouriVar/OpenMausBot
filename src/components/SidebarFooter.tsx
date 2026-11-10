@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { useStore } from "@/state/store";
 import type { ReactNode } from "react";
+import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
 
 import { AccountMoveStatus, useAccountMoveLine } from "./AccountMove";
 import { CloudRoomCard } from "./CloudRoomCard";
@@ -42,7 +43,7 @@ function SimpleSidebarFooter({ owner, archived, actions }: { owner: string | nul
       <AccountMoveStatus kind={move.kind} place={move.place} retry={move.retry} onOpen={openAccount} className="ps-1" />
       <div className="flex items-center gap-2 not-first:mt-2">
         <SidebarProfileMenu simple={account} />
-        <SidebarConnectApps />
+        {!FOOTER_ACTIONS && <SidebarConnectApps />}
         <UpdateIndicator className="size-9" />
         {actions && <div data-simple-footer-actions className="ms-auto flex items-center gap-2">{actions}</div>}
       </div>
