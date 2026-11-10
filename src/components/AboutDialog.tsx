@@ -13,6 +13,7 @@ import {
 import { productName } from "@/lib/brand";
 import { t } from "@/lib/i18n";
 import { useOtherServerName } from "@/lib/other-server";
+import { displayAppVersion } from "@/fork/version-label";
 
 /** The app's own version first; `server` (useOtherServerName: set only when the app's window shows another server) adds a
  * line naming it with the version its page runs. A browser, or an app too old to say, keeps the page's version on one line. */
@@ -22,9 +23,9 @@ export function aboutVersionLines({ app, bundle, platform, server }: {
   platform: string | null;
   server: string | null;
 }): string[] {
-  const line = (version: string) => `${t("about.version", { version })}${platform ? ` · ${platform}` : ""}`;
+  const line = (version: string) => `${t("about.version", { version: displayAppVersion(version) })}${platform ? ` · ${platform}` : ""}`;
   if (!app?.version) return [line(bundle)];
-  return server ? [line(app.version), t("about.connectedTo", { name: server, version: bundle })] : [line(app.version)];
+  return server ? [line(app.version), t("about.connectedTo", { name: server, version: displayAppVersion(bundle) })] : [line(app.version)];
 }
 
 export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => void }) {

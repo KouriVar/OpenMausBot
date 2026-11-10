@@ -11,7 +11,7 @@ import { createAndroidDeviceController } from "./android-device.mjs";
 import { finishSpeech, speechBusy, startSpeech, stopSpeech } from "./speech.mjs";
 import { installTalk, isTalkPanel } from "./talk-main.mjs";
 import { openBlankTerminal } from "./terminal-launch.mjs";
-import { linuxDisablesGpu } from "./linux-gpu.mjs";
+import { linuxDisablesGpu, SOFTWARE_RENDERING_ARG } from "./linux-gpu.mjs";
 import { pasteMenuItem } from "./paste-menu-item.mjs";
 import { attachUpdaterWindow, startUpdater, registerUpdaterIpc, sendUpdaterState, reopenedOutOfSight, quietSignals } from "./updater.mjs";
 import {
@@ -42,7 +42,7 @@ import { missingPermissions } from "./lent-screen-failures.mjs";
 import { createScreenControl } from "./screen-control.mjs"; import { createAskPrompt } from "./ask-prompt.mjs";
 let startupScreen = null;
 let desktopTray = null;
-import { collisionFreeDownloadPath, defaultSaveName, openHtmlCopy, openLogsFolder, revealDownloadWhenDone, revealInFolder, withSavableFile } from "./save-file.mjs";
+import { collisionFreeDownloadPath, defaultSaveName, openFolder, openHtmlCopy, openLogsFolder, revealDownloadWhenDone, revealInFolder, withSavableFile } from "./save-file.mjs";
 import { desktopViewerPermissionAllowed } from "./desktop-viewer-permissions.mjs";
 import { appPermissionHandlers, externalLinkUrl } from "./app-permissions.mjs";
 import { appFrameNavigationAllowed } from "./app-frame-guard.mjs";
@@ -77,7 +77,7 @@ import {
   withoutDesktopCompanionAccess,
 } from "./desktop-companion-client.mjs";
 import { isKnownSkin, skinChrome } from "./skin-overlay.cjs";
-import { readSecureCredentials } from "./secure-credentials.mjs";
+import { installCredentialStoreIpc, readSecureCredentials } from "./secure-credentials.mjs";
 import { createControlPlaneClient } from "./control-plane-client.mjs";
 import {
   companionAccountCleanupPending,
@@ -178,10 +178,10 @@ function applyUnreadBadge(win = mainWindow) {
 }
 
 // GNOME groups the window with its desktop entry only when both identities match; set before ready.
-if (process.platform === "linux") {
-  if (linuxDisablesGpu()) app.disableHardwareAcceleration();
-  app.setDesktopName("com.openmausbot.app.desktop");
-}
+// A launch with --disable-gpu (a desktop entry or a user workaround) renders on the CPU too.
+const linuxSoftwareRendering = process.platform === "linux" && (linuxDisablesGpu() || app.commandLine.hasSwitch("disable-gpu"));
+if (linuxSoftwareRendering) app.disableHardwareAcceleration();
+if (process.platform === "linux") app.setDesktopName("com.openmausbot.app.desktop");
 
 if (!app.requestSingleInstanceLock()) {
   console.log("[desktop] OpenMausBot is already running — focusing that window");
@@ -1980,7 +1980,7 @@ function createWindow({ deferNavigation = false } = {}) {
       contextIsolation: true,
       preload: path.join(__dirname, "preload.cjs"),
       additionalArguments: [...desktopCompanionRendererArguments(rendererOrigin(), desktopRemoteAccess),
-        ...(app.isPackaged && !desktopRemoteAccess ? ["--omb-company-desktop=1"] : []), `--omb-app-version=${app.getVersion()}`],
+        ...(app.isPackaged && !desktopRemoteAccess ? ["--omb-company-desktop=1"] : []), `--omb-app-version=${app.getVersion()}`, ...(linuxSoftwareRendering ? [SOFTWARE_RENDERING_ARG] : [])],
     },
   });
   mainWindow = win; hiddenStart = false; chromeRail.attach(win);
@@ -2276,10 +2276,8 @@ ipcMain.handle("desktop:save-file", localOnly("desktop:save-file", async (event,
     return choice.filePath;
   });
 }));
-ipcMain.handle("desktop:reveal-file", localOnly("desktop:reveal-file", async (_event, rawPath) => {
-  if (desktopRemoteAccess) throw new Error("That file is on the computer this app is connected to");
-  return revealInFolder(rawPath, { reveal: (target) => shell.showItemInFolder(target) });
-}));
+ipcMain.handle("desktop:reveal-file", localOnly("desktop:reveal-file", async (_event, rawPath) => { if (desktopRemoteAccess) throw new Error("That file is on the computer this app is connected to"); return revealInFolder(rawPath, { reveal: (target) => shell.showItemInFolder(target) }); }));
+ipcMain.handle("desktop:open-folder", localOnly("desktop:open-folder", async (_event, rawPath) => { if (desktopRemoteAccess) throw new Error("That folder is on the computer this app is connected to"); return openFolder(rawPath, { open: (target) => shell.openPath(target) }); }));
 ipcMain.handle("desktop:open-html", localOnly("desktop:open-html", (_event, source, name) => openHtmlCopy(source, name, { dir: path.join(app.getPath("userData"), "open-html"), t: nativeT, open: (file) => shell.openPath(file) })));
 ipcMain.handle("desktop:open-logs", localOrHome("desktop:open-logs", () => openLogsFolder(LOG_DIR, { open: (folder) => shell.openPath(folder) })));
 ipcMain.handle("desktop:skin", (event, skin) => {
@@ -2777,9 +2775,8 @@ async function saveWorkspaceCredential(name, value) {
   );
 }
 
-ipcMain.handle("credential:set", localOnly("credential:set", (_event, name, value) =>
-  saveWorkspaceCredential(name, value),
-));
+installCredentialStoreIpc({ ipcMain, localOnly, dialog, windowFor: (sender) => BrowserWindow.fromWebContents(sender), t: nativeT, appName: () => app.name, unreadable: () => credentialStoreUnavailable, quitting: () => desktopShutdownStarted, moveAside: () => fs.renameSync(CREDENTIALS_FILE, `${CREDENTIALS_FILE}.unreadable-${Date.now()}`), log: slog, relaunch: relaunchAfterDesktopRemoteChange });
+ipcMain.handle("credential:set", localOnly("credential:set", (_event, name, value) => saveWorkspaceCredential(name, value)));
 
 ipcMain.handle("approvals:set-trusted-mode", localOnly("approvals:set-trusted-mode", (_event, botId, mode, options) => {
   // A separately launched dev server is outside this trust path: never degrade this grant to loopback HTTP.
@@ -2819,6 +2816,8 @@ setCuaStateListener((connection) => {
 });
 
 app.whenReady().then(async () => {
+  // Fork: the app menu's About panel shows this build's own label (V0.1) rather than the bare bundle version.
+  app.setAboutPanelOptions({ applicationVersion: "V0.1" });
   await evictStartupCacheOnce({
     userData: app.getPath("userData"),
     currentVersion: app.getVersion(),
@@ -3088,7 +3087,11 @@ app.whenReady().then(async () => {
       return credentials;
     }).finally(syncManagedComposioCredentials);
   }
-  startUpdater(quietSignals({ powerMonitor, window: () => mainWindow, lastInput: oneHome.lastInput, local: localServerRequest, place: () => homeWindow.placeOrigin(), cloudFetch: (...args) => session.defaultSession.fetch(...args), asleep: origin => homeWindow.asleepAt(origin), busy: () => ((oneHome.oneHome.busy() || ownHome?.busy()) && "move") || (computerSharing?.busy() && "lending") || (talk.busy() && "talk") || (companyBackupController || companyRestoreCommitting ? "backup" : null) }));
+  // Fork build (Sully): auto-update is off. This build hides MausBot Cloud and ships the fork's own UI, so following the
+  // upstream release feed (milind-soni/OpenMausBot, baked into app-update.yml) would silently replace it with the official
+  // build. The updater never starts, so nothing checks, downloads, or installs on quit; the update IPC stays registered and
+  // answers from the idle state, and the feed file is left in place but never read. OMB_FOLLOW_UPSTREAM_UPDATES=1 opts back in.
+  if (process.env.OMB_FOLLOW_UPSTREAM_UPDATES === "1") startUpdater(quietSignals({ powerMonitor, window: () => mainWindow, lastInput: oneHome.lastInput, local: localServerRequest, place: () => homeWindow.placeOrigin(), cloudFetch: (...args) => session.defaultSession.fetch(...args), asleep: origin => homeWindow.asleepAt(origin), busy: () => ((oneHome.oneHome.busy() || ownHome?.busy()) && "move") || (computerSharing?.busy() && "lending") || (talk.busy() && "talk") || (companyBackupController || companyRestoreCommitting ? "backup" : null) }));
   refreshApplicationMenu();
   openWindowForLink = () => {
     if (!mainWindow || mainWindow.isDestroyed()) createWindow({ deferNavigation: homeWindow.current().kind !== "computer" });

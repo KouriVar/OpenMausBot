@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { appVersion } from "@/lib/app-links";
 import { setLocale } from "@/lib/i18n";
 import { AboutDialog, aboutVersionLines } from "./AboutDialog";
+import { displayAppVersion } from "@/fork/version-label";
 
 function about(page: object): string {
   vi.stubGlobal("window", page);
@@ -26,18 +27,19 @@ describe("About", () => {
   it("in the app on another server, shows the app's own version and names that server with the version it runs", () => {
     const html = about({ ogb: { platform: "darwin", app: { version: "0.1.127", ownPage: false } }, location: { host: "bots.example.test" } });
     expect(html).toContain(">Version 0.1.127 · macOS</p>");
-    expect(html).toContain(`>Connected to bots.example.test · version ${appVersion()}</p>`);
+    expect(html).toContain(`>Connected to bots.example.test · version ${displayAppVersion(appVersion())}</p>`);
   });
 
   it("in a browser, keeps the page's version on one line", () => {
     const html = about({ location: { host: "bots.example.test" } });
-    expect(html).toContain(`>Version ${appVersion()}</p>`);
+    // The personal build shows its own label for the 0.1.0 bundle (src/fork/version-label.ts).
+    expect(html).toContain(`>Version ${displayAppVersion(appVersion())}</p>`);
     expect(html).not.toContain("Connected to");
   });
 
   it("in an app too old to say which version it is, keeps the page's version as before", () => {
     const html = about({ ogb: { platform: "darwin" }, location: { host: "bots.example.test" } });
-    expect(html).toContain(`>Version ${appVersion()} · macOS</p>`);
+    expect(html).toContain(`>Version ${displayAppVersion(appVersion())} · macOS</p>`);
     expect(html).not.toContain("Connected to");
   });
 

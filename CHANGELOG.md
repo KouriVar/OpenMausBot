@@ -441,3 +441,14 @@ no data or behaviour, and lives on `feat/ui-batch-1110b`, unmerged.
 保留计数），侧栏底部的按钮和「应用」按钮在常量开启时不再渲染。「新消息」分隔线的文字与两侧渐隐线改用 bot 的
 Bloub 颜色（`useBloubAccent`）：靠近文字为实色、向两端渐隐到透明；群聊和仍用吉祥物的 bot 保持主题色。全部由
 `FORK_UI_1110B`（`src/fork/ui-batch-1110b.ts`）控制，不改数据与行为，位于 `feat/ui-batch-1110b`，尚未合并。
+
+### A031 · V0.1, built on upstream v0.1.151
+
+The personal build is numbered 0.1.0 in the bundle and shows as **V0.1** in the app: this release is the fork's own
+cut of upstream `v0.1.151`, merging the local `main` (hidden scrollbars, the sidebar and panel UI batches, Simular's
+backend entry and the numbered changelog) into the 0.1.152 personal build with the updater left off, an arm64-only
+bundle, an Apple Development signature and no notarization.
+
+中文：**V0.1，基于官方 v0.1.151。** 个人构建的打包版本号是 0.1.0，应用内显示为 **V0.1**：这个版本基于上游
+`v0.1.151`，把本地 `main`（隐藏滚动条、侧栏与面板的两批 UI 调整、Simular 后端入口、编号化的变更日志）合并进
+0.1.152 的个人构建，保持自动更新关闭、只打 arm64、Apple Development 签名、不做公证。

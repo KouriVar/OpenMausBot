@@ -4,6 +4,8 @@ import type { AppSettingsSection } from "@/state/store";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
+import { displayAppVersion } from "@/fork/version-label";
+import { SIMPLE_ONLY } from "@/lib/simple-only";
 import type { LocaleKey } from "@/locales";
 import { productName } from "../lib/brand";
 import { AnalyticsRow } from "./AnalyticsRow";
@@ -18,7 +20,7 @@ import { LocalComputerSection } from "./LocalComputerSection";
 import { PeopleSection } from "./PeopleSection";
 import { ActivitySection } from "./ActivitySection";
 import { BuiltInBrowserRow, ServerSitesRow } from "./BrowserSettingsRows";
-import { LoginsSettings } from "./LoginsSettings";
+import { VaultSettings } from "./VaultSettings";
 import { OrganizationSettings } from "./OrganizationSettings";
 import { CloudPlanRow, CloudPlanFootnote, useCloudPlan } from "./ProIntroduction";
 import { CloudUsageDetails, CloudUsageSummaryView, useCloudUsageSettings } from "./CloudUsageMeter";
@@ -40,6 +42,7 @@ import { AdvancedModeRow, BrowserProfilesRow, ColorUserBubblesRow, FollowUpRow, 
 import { RoomTurnTimeoutSettings } from "./RoomTurnTimeoutSettings";
 import { McpCallTimeoutSettings } from "./McpCallTimeoutSettings";
 import { ThreadConcurrencySettings } from "./ThreadConcurrencySettings";
+import { AutomaticRecoverySettings } from "./AutomaticRecoverySettings";
 import { ThreadCleanupSettings } from "./ThreadCleanupSettings";
 import { CacheKeepWarmSettings } from "./CacheKeepWarmSettings";
 import { SavedStepsRow } from "./SavedStepsRow";
@@ -52,13 +55,12 @@ export type SimpleDisclosureId = "ai-more" | "ai-keys" | "computer-elsewhere" | 
 export type Disclose = (id: SimpleDisclosureId) => { id: SimpleDisclosureId; open: boolean; onToggle: () => void };
 
 export const SIMPLE_ADVANCED_ONLY: readonly LocaleKey[] = [
-  "settings.recovery.title", "settings.font.title", "settings.chatWidth.title", "settings.pinnedCircles.title", "settings.universalPins.title",
-  "settings.runCard.title",
+  "settings.font.title", "settings.chatWidth.title", "settings.pinnedCircles.title", "settings.universalPins.title", "settings.runCard.title",
 ];
 
 export const SIMPLE_MORE_LIMITS: readonly LocaleKey[] = [
-  "settings.roomTurns.title", "settings.mcpCalls.title", "settings.threads.title", "settings.threadCleanup.title", "settings.keepWarm.title",
-  "settings.savedSteps.title",
+  "settings.roomTurns.title", "settings.mcpCalls.title", "settings.threads.title", "settings.recovery.title", "settings.threadCleanup.title",
+  "settings.keepWarm.title", "settings.savedSteps.title",
 ];
 
 type Has = (id: AppSettingsSection) => boolean;
@@ -126,9 +128,9 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
           </SettingsRows>
         </div>
       )}
-      <div data-settings-block="advanced-mode" className="scroll-mt-4">
+      {!SIMPLE_ONLY && <div data-settings-block="advanced-mode" className="scroll-mt-4">
         <SettingsRows><AdvancedModeRow simple /></SettingsRows>
-      </div>
+      </div>}
     </>
   );
 }
@@ -177,6 +179,7 @@ export function SimpleMorePage({ sections, onOpen, onBack }: { sections: readonl
           <Card title={t("settings.roomTurns.title")} subtitle={t("settings.roomTurns.subtitle")}><RoomTurnTimeoutSettings /></Card>
           <Card title={t("settings.mcpCalls.title")} subtitle={t("settings.mcpCalls.subtitle")}><McpCallTimeoutSettings /></Card>
           <ThreadConcurrencySettings />
+          <AutomaticRecoverySettings />
           <ThreadCleanupSettings />
           <CacheKeepWarmSettings />
           <SettingsRows><SavedStepsRow /></SettingsRows>
@@ -227,7 +230,7 @@ export function SimpleComputerPage({ has, remoteAccess, servers, disclose }: { h
           <BrowserProfilesRow />
         </SettingsGroup>
       )}
-      {has("logins") && <div data-settings-block="logins" className="scroll-mt-4"><LoginsSettings /></div>}
+      {has("logins") && <div data-settings-block="logins" className="scroll-mt-4"><VaultSettings /></div>}
       {(has("companion") || has("desktopWorkspaces")) && (
         <SettingsDisclosureRow title={t("settings.simple.computer.elsewhere")} block="elsewhere" {...disclose("computer-elsewhere")}>
           {has("desktopWorkspaces") && <div data-settings-block="desktopWorkspaces" className="flex scroll-mt-4 flex-col gap-4">{servers}</div>}
@@ -263,7 +266,7 @@ export function SimpleBillingPage({ has, disclose, cloudAccount }: { has: Has; d
   );
 }
 
-const versionTitle = () => `${productName()} ${appVersion()}`;
+const versionTitle = () => `${productName()} ${displayAppVersion(appVersion())}`;
 
 function ServerUpdatesRow() {
   const entry = useServerUpdateItem(true);
