@@ -65,3 +65,64 @@ export function GroupFaceStack({
     </span>
   );
 }
+
+export type GroupFaceClusterLayout = "pair" | "triad";
+
+/** One face's diameter inside a square cluster of this size. */
+export function clusterFaceSize(size: number, layout: GroupFaceClusterLayout): number {
+  return Math.round(size * (layout === "pair" ? 0.6 : 0.56));
+}
+
+/** The same faces filling one square, for the place a single avatar would sit: two members take opposite
+ * corners (one upper left, one lower right) and three or more stand as a pyramid, one on top and two
+ * below. The square stays exactly the size a single face gets — which is what the sidebar row, and the
+ * collapsed rail's tile, are sized around — and no tail counts the members left out; a group row already
+ * says how many it holds in the room itself. Every face keeps the stack's disc and ring, so each overlap
+ * is a clean cut on the row's own background. */
+export function GroupFaceCluster({
+  faces,
+  layout,
+  size,
+  surface,
+  ringWidth = 2,
+}: {
+  /** The faces, in reading order; only as many as the layout holds are drawn. */
+  faces: ReactNode[];
+  /** `pair` for two members, `triad` for three or more. */
+  layout: GroupFaceClusterLayout;
+  /** The cluster's square, which is also the square a single avatar gets. */
+  size: number;
+  /** The colour behind the cluster: the disc each face sits on and its ring. */
+  surface: string;
+  ringWidth?: number;
+}) {
+  const face = clusterFaceSize(size, layout);
+  const edge = size - face;
+  const places = layout === "pair"
+    ? [{ left: 0, top: 0 }, { left: edge, top: edge }]
+    : [{ left: Math.round(edge / 2), top: 0 }, { left: 0, top: edge }, { left: edge, top: edge }];
+  const disc = { background: surface, boxShadow: `0 0 0 ${ringWidth}px ${surface}` };
+  return (
+    <span
+      data-group-faces
+      data-group-faces-shape={layout}
+      className="relative block shrink-0"
+      style={{ width: size, height: size }}
+    >
+      {faces.slice(0, places.length).map((node, index) => {
+        // The first face paints over the ones it covers, as in the row.
+        const place = places[index]!;
+        return (
+          <span
+            key={index}
+            data-group-face=""
+            className="absolute flex items-center justify-center rounded-full"
+            style={{ ...disc, ...place, width: face, height: face, zIndex: places.length - index }}
+          >
+            {node}
+          </span>
+        );
+      })}
+    </span>
+  );
+}

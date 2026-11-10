@@ -6,7 +6,7 @@ import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { GroupFaceStack } from "./GroupFaceStack";
+import { GroupFaceCluster, GroupFaceStack } from "./GroupFaceStack";
 
 let host: HTMLDivElement;
 let root: Root;
@@ -26,6 +26,10 @@ const face = (name: string) => createElement("span", { key: name, "data-fixture-
 
 function render(props: Parameters<typeof GroupFaceStack>[0]) {
   flushSync(() => root.render(createElement(GroupFaceStack, props)));
+}
+
+function cluster(props: Parameters<typeof GroupFaceCluster>[0]) {
+  flushSync(() => root.render(createElement(GroupFaceCluster, props)));
 }
 
 describe("a group's faces", () => {
@@ -51,5 +55,48 @@ describe("a group's faces", () => {
     // The second face starts under the first, and the first paints above it.
     expect(Number.parseFloat(second!.style.marginLeft)).toBeLessThan(0);
     expect(Number(first!.style.zIndex)).toBeGreaterThan(Number(second!.style.zIndex));
+  });
+});
+
+describe("a group's square cluster", () => {
+  it("puts two members corner to corner and never counts the rest", () => {
+    cluster({ faces: ["a", "b"].map(face), layout: "pair", size: 32, surface: "var(--color-panel)" });
+    const drawn = [...host.querySelectorAll<HTMLElement>("[data-group-face]")];
+    expect(drawn).toHaveLength(2);
+    expect(host.querySelector("[data-group-faces-shape]")?.getAttribute("data-group-faces-shape")).toBe("pair");
+    expect(host.querySelector("[data-group-face-more]")).toBeNull();
+    // Upper left, then lower right by the same step: 60% of the square, 40% left over.
+    expect(drawn[0]!.style.left).toBe("0px");
+    expect(drawn[0]!.style.top).toBe("0px");
+    expect(drawn[1]!.style.left).toBe(drawn[1]!.style.top);
+    expect(Number.parseFloat(drawn[1]!.style.left)).toBeGreaterThan(0);
+    expect(Number(drawn[0]!.style.zIndex)).toBeGreaterThan(Number(drawn[1]!.style.zIndex));
+  });
+
+  it("stands three or more as a pyramid: one centred on top, two below", () => {
+    cluster({ faces: ["a", "b", "c", "d"].map(face), layout: "triad", size: 48, surface: "var(--color-app)" });
+    const drawn = [...host.querySelectorAll<HTMLElement>("[data-group-face]")];
+    expect(drawn).toHaveLength(3);
+    const box = (el: HTMLElement) => ({
+      left: Number.parseFloat(el.style.left),
+      top: Number.parseFloat(el.style.top),
+      side: Number.parseFloat(el.style.width),
+    });
+    const [top, left, right] = drawn.map(box);
+    expect(top!.top).toBe(0);
+    expect(top!.left).toBeGreaterThan(0);
+    expect(top!.left).toBeLessThan(top!.side);
+    expect(left!.left).toBe(0);
+    expect(right!.left).toBeGreaterThan(left!.left);
+    expect(left!.top).toBe(right!.top);
+    expect(left!.top).toBeGreaterThan(0);
+  });
+
+  it("sits each face on a disc the colour of the row behind it", () => {
+    cluster({ faces: ["a", "b"].map(face), layout: "pair", size: 36, surface: "var(--color-raised)" });
+    for (const el of host.querySelectorAll<HTMLElement>("[data-group-face]")) {
+      expect(el.style.background).toContain("--color-raised");
+      expect(el.style.boxShadow).toContain("--color-raised");
+    }
   });
 });

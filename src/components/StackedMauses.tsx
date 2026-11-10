@@ -7,7 +7,7 @@ import { useBloubSkin } from "@/fork/bloub-skin";
 import { SIDEBAR_AVATAR_ADVANCED } from "./sidebar-icon-column";
 import { BotAvatar } from "./Avatar";
 import { BloubAvatar } from "./BloubAvatar";
-import { GroupFaceStack } from "./GroupFaceStack";
+import { GroupFaceCluster, clusterFaceSize } from "./GroupFaceStack";
 
 /** One member in the stack, in its own Bloub look, drawn to the edge of its face so the cut ring never
  * leaves a see-through gap over the face it covers. */
@@ -35,17 +35,18 @@ export function StackedMauses({ members, density, large = false, surface = "var(
       </div>
     );
   }
-  // A group is its members' own faces in Grok's stack, sized to the square a single face would take: the
-  // comfortable row fits two, the taller simple row and the collapsed rail fit three.
-  const face = iconOnly ? 26 : large ? 24 : 20;
-  const shown = members.slice(0, iconOnly ? 3 : 2);
+  // A group fills the square a single face would take: two members corner to corner, three or more as a
+  // pyramid. No count tail — the row already names the room.
+  const layout = members.length === 2 ? "pair" : "triad";
+  const square = iconOnly ? 48 : large ? 36 : 32;
+  const face = clusterFaceSize(square, layout);
+  const shown = members.slice(0, members.length === 2 ? 2 : 3);
   return (
     <div className={cn("flex shrink-0 items-center justify-center", slotSize)}>
-      <GroupFaceStack
-        face={face}
-        overlap={Math.round(face * 0.48)}
+      <GroupFaceCluster
+        layout={layout}
+        size={square}
         surface={surface}
-        total={members.length}
         faces={shown.map((b) => (bloub
           ? <BloubMember key={b.id} bot={b} size={face} />
           : <BotAvatar key={b.id} bot={b} state="happy" size={face} animated={false} />))}
