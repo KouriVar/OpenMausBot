@@ -9905,5 +9905,14 @@
   "phone.code.typeIntro": "Abra o app do {app} e digite este código de pareamento.",
   "phone.signIn.emailCode": "Código de login do seu e-mail",
   "settings.simple.account.noNameHint": "Ainda não definido",
-  "settings.simple.account.yourName": "Seu nome"
+  "settings.simple.account.yourName": "Seu nome",
+  "place.view.ccSimular.short": "No Simular",
+  "place.view.ccSimular.line": "{bot} trabalha na sua área de trabalho Simular, e você pode acompanhar por ali.",
+  "place.view.ccSimularOff.short": "Conecte primeiro",
+  "place.view.ccSimularOff.line": "Conecte o Simular em Configurações → Plugins e depois escolha aqui.",
+  "botAccess.cloud.simular": "Simular Box",
+  "botAccess.cloud.simularDescription": "Sua própria área de trabalho Simular, pelo servidor Simular que você conectou em Plugins.",
+  "botAccess.cloud.simularConnect": "Ainda não conectado: conecte o servidor Simular em Configurações → Plugins e depois escolha Simular Box.",
+  "approval.held.simular": "Um shell no computador de outra empresa, ou apagá-lo, sempre pergunta a você antes.",
+  "computer.preview.simularIdle": "A tela só é capturada enquanto o bot está trabalhando, então acompanhar aqui nunca desperta sua área de trabalho Simular sozinho."
 }
