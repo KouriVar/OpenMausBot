@@ -4,6 +4,7 @@ import type { AppSettingsSection } from "@/state/store";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
+import { displayAppVersion } from "@/fork/version-label";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
 import type { LocaleKey } from "@/locales";
 import { productName } from "../lib/brand";
@@ -265,7 +266,7 @@ export function SimpleBillingPage({ has, disclose, cloudAccount }: { has: Has; d
   );
 }
 
-const versionTitle = () => `${productName()} ${appVersion()}`;
+const versionTitle = () => `${productName()} ${displayAppVersion(appVersion())}`;
 
 function ServerUpdatesRow() {
   const entry = useServerUpdateItem(true);
