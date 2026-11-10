@@ -3493,3 +3493,13 @@ button:disabled.bg-danger {
   left: auto;
   right: 0;
 }
+
+/* Fork, floating sidebar (off by default): the bar leaves the layout, so the chat keeps the window's full
+   width behind it and only reserves the bar's column on the side it is docked to — clearing both the
+   floating avatars and the chat header's top-right controls when docked on the right. */
+:root[data-floating-rail="left"] main {
+  margin-inline-start: calc(92px + 16px);
+}
+:root[data-floating-rail="right"] main {
+  margin-inline-end: calc(92px + 16px);
+}

@@ -51,6 +51,8 @@ import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
+import { FORK_FLOATING_RAIL, useFloatingRail } from "@/fork/floating-rail";
+import { setSidebarDensity, useSidebarDensity } from "@/lib/sidebar-preferences";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -623,7 +625,24 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
     { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
   ] : [];
-  const items = railItems.length ? [...railItems, ...profileMenuItems({
+  const [floatingRail, chooseFloatingRail] = useFloatingRail();
+  const density = useSidebarDensity();
+  const floatingItems: SidebarMenuItem[] = FORK_FLOATING_RAIL
+    ? [{
+      key: "floating-rail",
+      label: t("sidebar.floatingRail"),
+      icon: <ArrowLeftRight size={16} />,
+      value: floatingRail ? "On" : undefined,
+      active: floatingRail,
+      onSelect: () => {
+        const next = !floatingRail;
+        // The floating bar is the collapsed bar: turning it on collapses the sidebar first.
+        if (next && density !== "icons") setSidebarDensity("icons");
+        chooseFloatingRail(next);
+      },
+    }]
+    : [];
+  const items = railItems.length ? [...floatingItems, ...railItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -660,7 +679,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  })] : profileMenuItems({
+  })] : [...floatingItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -697,7 +716,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  });
+  })];
   const noteworthy = update && updateNoteworthy(update.phase, update.pending) && !updateHasButton(update.phase);
   const needsYou = account?.automationsNeedYou === true;
   const initials = profileInitials(profile);
