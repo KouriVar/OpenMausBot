@@ -7707,5 +7707,6 @@
   "settings.logins.sharedBrowser": "未登录以下机器人：{bots}。它们共用这个浏览器，在这里登录会连带登录给它们。请给每个机器人单独一个浏览器，或让这个登录只作用于共享它的所有机器人。",
   "settings.profiles.sharedHint": "你自己的浏览器会为这个机器人私密保留登录。共用配置文件的机器人会共享该配置登录过的账号；只对部分机器人保留的登录，只有在配置文件上的每个机器人都可用时才会填入。",
   "settings.simple.account.noNameHint": "尚未设置",
-  "settings.simple.account.yourName": "你的名字"
+  "settings.simple.account.yourName": "你的名字",
+  "chat.setupCard.greeting": "你好，我是 {name}。你希望我先帮你做什么？"
 }
