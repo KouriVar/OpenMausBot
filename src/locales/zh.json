@@ -7708,5 +7708,9 @@
   "settings.profiles.sharedHint": "你自己的浏览器会为这个机器人私密保留登录。共用配置文件的机器人会共享该配置登录过的账号；只对部分机器人保留的登录，只有在配置文件上的每个机器人都可用时才会填入。",
   "settings.simple.account.noNameHint": "尚未设置",
   "settings.simple.account.yourName": "你的名字",
-  "chat.setupCard.greeting": "你好，我是 {name}。你希望我先帮你做什么？"
+  "chat.setupCard.greeting": "你好，我是 {name}。你希望我先帮你做什么？",
+  "sidebar.bot.simple.viewThreads": "查看对话",
+  "sidebar.bot.simple.setMainThread": "设为主对话",
+  "sidebar.bot.simple.isMainThread": "已经是主对话",
+  "lookedAfter.setForAllTitle": "{name} 里的所有人都由谁照顾"
 }

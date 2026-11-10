@@ -28,15 +28,12 @@
   font-size: inherit;
   line-height: inherit;
   text-decoration: none;
-  /* The chip's own baseline sits on the bottom of its 15px face, so baseline alignment rode 2px high
-     over the words. Middle centres the box on the text's line and the box's own 15px line-height keeps
-     it shorter than the paragraph's leading, so the line box (and the bubble) stays exactly the height
-     plain text gives it; the -0.1em lifts the last ~1.5px that middle leaves low. `bare` keeps the
-     textarea mirror's caret metrics untouched. */
-  vertical-align: middle;
-  line-height: 1;
-  position: relative;
-  top: -0.1em;
+  /* The chip keeps its own height: its 15px face plus the paragraph's leading makes it exactly one
+     Simple-mode line (22px), and its baseline sits on the bottom of the face, so `baseline` rode 2px
+     high over the words. Aligning its box to the line box's top (same 22px) puts the two centres on
+     one line without touching the chip's padding, radius or the paragraph's leading — and the line
+     box is unchanged, so no bubble grows. `bare` (the textarea mirror) keeps its own metrics. */
+  vertical-align: top;
   white-space: nowrap;
   max-width: 100%;
 }
@@ -3460,6 +3457,38 @@ button:disabled.bg-danger {
   font-weight: 650;
 }
 
+/* Fork: the composer's bottom edge fades the transcript into the canvas the way the chat head's top
+   edge does, only upside down: a 60px band above the composer, transparent at its top and solid canvas
+   at its bottom, so messages melt away under the input instead of being cut off. It copies the fading
+   top bar's solid-canvas treatment (no tint, no blur) and its reduced-transparency and forced-colour
+   fallbacks. */
+[data-fork-composer-fade] {
+  background: linear-gradient(to bottom, transparent, var(--color-app));
+}
+@media (prefers-reduced-transparency: reduce) {
+  [data-fork-composer-fade] {
+    background: linear-gradient(to bottom, transparent, Canvas);
+  }
+}
+@media (forced-colors: active) {
+  [data-fork-composer-fade] {
+    background: Canvas;
+  }
+}
+
+/* Fork: with "Bold text" on (Settings → Appearance), chat messages and the composer take one weight step
+   heavier. Unlayered so it wins over the markdown rules' own weights, and one attribute on <html> covers every
+   skin and both themes. */
+:root[data-fork-bold-text="on"] .chat-md,
+:root[data-fork-bold-text="on"] [data-tour="composer"] textarea,
+:root[data-fork-bold-text="on"] [data-tour="composer"] [contenteditable="true"] {
+  font-weight: 500;
+}
+:root[data-fork-bold-text="on"] .chat-md strong,
+:root[data-fork-bold-text="on"] .chat-md b {
+  font-weight: 650;
+}
+
 /* Fork UI batch B: the composer's bottom edge melts the transcript into the canvas the way the chat head's
    top edge does, only upside down. It copies the fading top bar exactly (solid canvas over the band, no
    tint, no blur) and flips the gradient and its masks, so both skins and forced colours behave the same. */
@@ -3483,4 +3512,15 @@ button:disabled.bg-danger {
   [data-fork-composer-fade]::before {
     background: Canvas;
   }
+}
+
+/* Fork, dark skins only: your own bubble is #3B3B3B with white ink, and the composer's two voice
+   buttons (dictation and call) share that background. Light skins are untouched. */
+:root:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"]) {
+  --color-bubble-user: #3b3b3b;
+  --color-bubble-user-ink: #ffffff;
+}
+:root:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"]) [data-fork-voice-button] > button {
+  background-color: #3b3b3b;
+  color: #ffffff;
 }

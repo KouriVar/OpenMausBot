@@ -786,7 +786,7 @@ export function Composer({
           {/* The same melt the chat head draws at the top, upside down: the strip under the composer fades
               into the canvas instead of ending on a hard line. */}
           {COMPOSER_BOTTOM_FADE && (
-            <div aria-hidden data-fork-composer-fade className={cn("pointer-events-none absolute -left-5 -right-5", advanced ? "-bottom-3" : simpleDock ? "-bottom-4" : "-bottom-3")} />
+            <div aria-hidden data-fork-composer-fade className="pointer-events-none absolute -left-5 -right-5 bottom-full h-[60px]" />
           )}
         <div ref={shellRef} data-tour="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(SIMPLE_COMPOSER, multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
         {singleRow && !locked && (
@@ -969,6 +969,7 @@ export function Composer({
         {!locked && !busy && micReady && (
           <button
             onClick={toggleMic}
+            data-fork-voice-button=""
             aria-label={recording ? t("composer.dictation.stop") : t("composer.dictation.start")}
             className={cn(
               "flex shrink-0 items-center justify-center rounded-full",
@@ -984,8 +985,8 @@ export function Composer({
             <Mic size={16} strokeWidth={1.75} absoluteStrokeWidth className="[&_rect]:fill-current" />
           </button>
         )}
-        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={advanced || singleRow ? undefined : slot.fill} ink={slot.ink} inverse={singleRow} />}
-        {callShown && group && !advanced && <GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} />}
+        {callShown && bot && !group && <span data-fork-voice-button="" className="contents"><CallButton bot={bot} placement="composer" fill={advanced || singleRow ? undefined : slot.fill} ink={slot.ink} inverse={singleRow} /></span>}
+        {callShown && group && !advanced && <span data-fork-voice-button="" className="contents"><GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} /></span>}
         {hasContent && !locked && (
           <ComposerSendButton compact={simpleDock} waits={busy && !steersNow} label={sendNames.label} title={sendNames.title} look={slot.button}
             disabled={attachmentPending} onSend={(alternate) => send(followUpFor(alternate))} onChoose={send}
