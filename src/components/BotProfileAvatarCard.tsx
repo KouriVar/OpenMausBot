@@ -19,6 +19,8 @@ import { AvatarFraming, OrganizationAvatarIcons, RESET_MASCOT_PATCH, useAvatarIm
 import { t } from "@/lib/i18n";
 import { bodyName, colorName, expressionName, festivalName } from "@/lib/mascot-names";
 import { MascotFaceColorPicker } from "./MascotFaceColorPicker";
+import { useForkAvatarStyle } from "@/fork/avatar-style";
+import { BloubCustomizer } from "./BloubCustomizer";
 
 export function BotProfileAvatarCard({
   bot,
@@ -32,6 +34,7 @@ export function BotProfileAvatarCard({
   onPatch: (patch: AvatarPatch) => void;
 }) {
   const { fileRef, crop, uploading, generating, busy, error, upload, removeImage, generate } = useAvatarImage(bot, onPatch);
+  const bloub = useForkAvatarStyle() === "bloub";
 
   return (
     <div className="overflow-hidden rounded-xl border border-hairline/40 bg-card">
@@ -94,6 +97,7 @@ export function BotProfileAvatarCard({
         </div>
         <div className="mt-1.5 text-[12px] text-ink-secondary">{t("botIdentity.imageTypes")}</div>
 
+        {!bloub && <>
         <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
           {t("botIdentity.shape")}
         </div>
@@ -115,8 +119,9 @@ export function BotProfileAvatarCard({
             </button>
           ))}
         </div>
+        </>}
 
-        {crop === "mascot" && (
+        {!bloub && crop === "mascot" && (
           <>
             <MascotFaceColorPicker bot={bot} disabled={busy} onPatch={onPatch} />
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
@@ -186,6 +191,8 @@ export function BotProfileAvatarCard({
             ))}
           </>
         )}
+
+        {bloub && <BloubCustomizer botId={bot.id} color={bot.color} />}
 
         <AvatarImageGenerator
           botLabel={bot.title || bot.name}

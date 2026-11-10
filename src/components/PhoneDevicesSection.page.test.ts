@@ -1,3 +1,4 @@
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -42,7 +43,8 @@ describe("Phone & devices", () => {
     expect(html).toContain(">Pair a device<");
     expect(html).toContain("Nothing paired yet.");
     expect(html).toMatch(/data-route-row="wifi"[\s\S]*?Same Wi-Fi[\s\S]*?Off · Devices on this network[\s\S]*?>Turn on</);
-    expect(html).toMatch(/data-route-row="relay"[\s\S]*?Anywhere, through MausBot[\s\S]*?Off · End-to-end encrypted\. MausBot can't read it\./);
+    if (FORK_LOCAL_ONLY) expect(html, "the fork is local-only: no relay row").not.toContain('data-route-row="relay"');
+    else expect(html).toMatch(/data-route-row="relay"[\s\S]*?Anywhere, through MausBot[\s\S]*?Off · End-to-end encrypted\. MausBot can't read it\./);
     expect(html).toMatch(/<details class="[^"]*">\s*<summary[^>]*>More ways in</);
     expect(html).not.toContain("data-tailscale-status");
   });

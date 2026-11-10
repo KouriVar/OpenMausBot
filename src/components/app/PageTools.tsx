@@ -2,6 +2,7 @@
 import { createContext, useCallback, useEffect, useRef, useState, type MutableRefObject, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { ArrowUpRight, Check, ChevronLeft, ChevronRight, Copy, Crosshair, Download, Globe, Loader2, Maximize2, Share2, Trash2, X } from "lucide-react";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { useStore } from "@/state/store";
 import { openExternalLink } from "@/lib/app-links";
 import { cn } from "@/lib/cn";
@@ -253,7 +254,7 @@ export function PageNotes({ version, point, share, save, room, className }: Pick
     rows.push(
       <div key="refused" role="alert" className="flex items-center gap-2 rounded-2xl bg-inset px-3 py-2 text-[13px] text-ink-secondary">
         <span dir="auto" className="min-w-0 flex-1">{state.text}</span>
-        {state.card?.upgrade && window.ogb?.cloudAccount && !window.ogb.remoteClient?.active && (
+        {!FORK_LOCAL_ONLY && state.card?.upgrade && window.ogb?.cloudAccount && !window.ogb.remoteClient?.active && (
           <button type="button" className={ASK_PRIMARY_BUTTON} onClick={() => dispatch({ type: "openCloudAdd", source: "app_pages" })}>{t("chat.page.morePages")}</button>
         )}
       </div>,

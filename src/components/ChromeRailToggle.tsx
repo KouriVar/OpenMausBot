@@ -4,10 +4,11 @@ import { setChromeRailHidden, useChromeRail } from "@/lib/chrome-rail";
 import { t } from "@/lib/i18n";
 import { SettingRow, Switch } from "./SettingsPrimitives";
 import { SIMPLE_TOP_TOGGLE } from "./SidebarSimpleTop";
+import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 
 /** The window's rail of places, drawn small: a window with the rail at its left edge and three places on it. */
-export function RailStripIcon({ size }: { size: number }) {
-  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+export function RailStripIcon({ size, stroke = 1.5 }: { size: number; stroke?: number }) {
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="18" height="18" rx="2" />
     <path d="M9 3v18" />
     <circle cx="6" cy="7.5" r="0.75" fill="currentColor" />
@@ -26,8 +27,8 @@ export function ChromeRailToggle({ advanced = false, icons = false, bar, style }
   return <button type="button" data-rail-toggle aria-label={label} title={label} aria-expanded={!rail.hidden} style={style}
     onClick={() => setChromeRailHidden(!rail.hidden)}
     className={bar ?? (advanced ? cn("flex shrink-0 items-center justify-center text-ink-secondary transition-colors hover:bg-ink/[0.06] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
-      icons ? "size-[46px] rounded-xl" : "size-8 rounded-full") : SIMPLE_TOP_TOGGLE)}>
-    <RailStripIcon size={bar ? 15 : advanced && icons ? 20 : 18} />
+      icons ? SIDEBAR_ICON_BUTTON : "size-8 rounded-full") : SIMPLE_TOP_TOGGLE)}>
+    <RailStripIcon size={bar ? 15 : advanced && icons ? SIDEBAR_ICON_SIZE : 18} stroke={!bar && advanced && icons ? SIDEBAR_ICON_STROKE : undefined} />
   </button>;
 }
 

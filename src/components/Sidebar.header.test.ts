@@ -210,7 +210,7 @@ describe("sidebar top row", () => {
     expect(buttons).toBeGreaterThan(spacer);
   });
 
-  it("collapses Simple mode to a rail: round search and + on top (the frame's top bar holds the lights), nothing on the edge, and Apps and the account at the foot", () => {
+  it("collapses Simple mode to a rail: nothing on top but the lights' space, round search and + above Apps and the account at the foot, nothing on the edge", () => {
     fixture.advanced = false;
     fixture.density = "icons";
     fixture.windowChrome = "mac-inset";
@@ -220,9 +220,11 @@ describe("sidebar top row", () => {
     expect(top).not.toContain("data-traffic-light-space");
     expect(top).not.toContain("data-sidebar-top-buttons");
     expect(top).not.toContain("data-workspace-switcher");
-    expect(top.indexOf('aria-label="Search bots and messages"')).toBeLessThan(top.indexOf('aria-label="New or share"'));
+    // Search and + now live at the foot of the rail, above Apps and the account.
+    // The hidden search input still lives in this slice; the search and + buttons do not.
+    expect(top).not.toMatch(/<button[^>]*aria-label="Search bots and messages"/);
+    expect(top).not.toMatch(/<button[^>]*aria-label="New or share"/);
     expect(top).toMatch(/data-sidebar-rail-top="true" class="flex flex-col items-center gap-2 pt-1"/);
-    expect(top).toMatch(/aria-label="New or share" class="[^"]*\bsize-9\b[^"]*\brounded-full\b/);
     const foot = html.slice(html.indexOf("data-sidebar-rail-footer"));
     const at = (marker: string) => {
       const index = foot.indexOf(marker);
@@ -230,7 +232,9 @@ describe("sidebar top row", () => {
       return index;
     };
     expect(html).not.toContain("data-sidebar-edge-toggle");
-    expect(foot).not.toContain('aria-label="Search bots and messages"');
+    expect(at('aria-label="Search bots and messages"')).toBeLessThan(at('aria-label="New or share"'));
+    expect(at('aria-label="New or share"')).toBeLessThan(at('data-sidebar-nav="apps"'));
+    expect(foot).toMatch(/aria-label="New or share" class="[^"]*\bsize-9\b[^"]*\brounded-full\b/);
     const positions = [
       at('data-sidebar-nav="apps"'),
       at("data-sidebar-account"),
@@ -244,18 +248,38 @@ describe("sidebar top row", () => {
     expect(html.match(/aria-label="New or share"/g)).toHaveLength(1);
   });
 
-  it("stacks the icons rail unchanged and keeps the icon-only switcher beneath it", () => {
+  it("stacks the icons rail and puts the place switcher in the foot, above the inbox and search", () => {
     fixture.density = "icons";
     fixture.windowChrome = "mac-inset";
     desktop();
     const html = render();
-    const row = topRow(html);
+    const row = html.slice(html.indexOf("data-sidebar-top-row"), html.indexOf('<div role="separator"'));
     expect(row).not.toContain("data-workspace-switcher");
     expect(row).not.toContain("data-sidebar-top-spacer");
     expect(classesOf(row, "data-sidebar-top-row")).toEqual(["flex", "items-center", "flex-col", "gap-1", "px-2", "pt-3.5", "pb-1"]);
     expect(row).not.toContain("data-traffic-light-space");
     expect(classesOf(row, "data-sidebar-top-buttons")).toEqual(["relative", "flex", "shrink-0", "items-center", "flex-col", "gap-1"]);
     expect(html.match(/Switch server:/g)).toHaveLength(1);
+    const foot = html.slice(html.indexOf("data-sidebar-bottom-actions"));
+    const place = foot.indexOf('data-workspace-switcher="compact"');
+    expect(place).toBeGreaterThan(-1);
+    expect(place).toBeLessThan(foot.indexOf("data-sidebar-inbox"));
+    expect(foot.indexOf("data-sidebar-inbox")).toBeLessThan(foot.indexOf('aria-label="Search bots and messages"'));
+  });
+
+  it("gives the column of icons the Simple rail's 92px and a shadow edge, so its boxes centre on the traffic lights' line", () => {
+    fixture.density = "icons";
+    fixture.windowChrome = "mac-inset";
+    desktop();
+    const html = render();
+    const aside = /<aside[^>]*\bclass="([^"]*)"/.exec(html)?.[1] ?? "";
+    expect(aside, "the rail's width, not a narrower column: 92px with 8px of padding centres a 46px box on x = 46").toContain("w-[92px]");
+    expect(aside, "a 0.5px border would take 0.5px off the column and pull its centre 0.25px left").not.toContain("border-r-[0.5px]");
+    expect(aside).toContain("shadow-[inset_-0.5px_0_0_var(--color-edge)]");
+    for (const label of ["Inbox", "Search bots and messages", "New or share", "Automations", "Apps", "Team map"]) {
+      const button = new RegExp(`<button[^>]*aria-label="${label}"[^>]*>`).exec(html)?.[0] ?? "";
+      expect(button, label).toContain("size-[46px]");
+    }
   });
 });
 

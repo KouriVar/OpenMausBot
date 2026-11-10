@@ -329,7 +329,7 @@ describe("the Advanced composer", () => {
     restoreComposerDraft(`bot:${bot.id}:${bot.threadId}`, { text: "hello", attachments: [] });
     render({ bot: { ...bot, color: "teal" } });
     const send = sendButton()!;
-    expect(send.className.split(" ")).toContain("size-8");
+    expect(send.className.split(" ")).toContain("size-7");
     expectBotButton(send, "teal");
     expect(send.className).not.toMatch(/\bbg-accent\b|text-white/);
     restoreComposerDraft(`group:${room.id}:${room.threadId}`, { text: "hello room", attachments: [] });

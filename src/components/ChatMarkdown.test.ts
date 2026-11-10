@@ -87,25 +87,26 @@ describe("mention highlighting", () => {
   it("carries bot colors into Markdown without coloring everyone as a bot", () => {
     const html = renderToStaticMarkup(createElement(ChatMarkdown, {
       text: "@Atlas @Juniper @everyone", everyone: true,
-      mentionPeers: [{ name: "Atlas", color: "blue" }, { name: "Juniper", color: "red" }],
+      mentionPeers: [{ name: "Atlas", color: "blue", botId: "a1" }, { name: "Juniper", color: "red", botId: "a2" }],
     }));
-    expect(html).toContain('style="--mention-color:#377FE6">@Atlas');
-    expect(html).toContain('style="--mention-color:#D94B52">@Juniper');
-    expect(html).toContain('<span class="mention-highlight">@everyone</span>');
+    expect(html).toContain(">@Atlas<");
+    expect(html).toContain(">@Juniper<");
+    expect(html).toContain(">@everyone<");
+    expect(html).toContain("mention-chip-face"); // bots get a face, everyone does not
   });
   it("highlights known mentions in prose, lists and tables", () => {
     const html = renderToStaticMarkup(createElement(ChatMarkdown, {
       text: "Ask @Atlas.\n\n- @調査担当 確認\n\n| Who |\n| --- |\n| @everyone |", mentionPeers, everyone: true,
     }));
-    expect(html.match(/class="mention-highlight"/g)).toHaveLength(3);
-    expect(html).toContain('<span class="mention-highlight">@Atlas</span>');
+    expect(html.match(/class="mention-chip"/g)).toHaveLength(3);
+    expect(html).toContain(">@Atlas<");
     expect(html).toContain("<table");
   });
   it("leaves code, links, emails and unknown names untouched", () => {
     const html = renderToStaticMarkup(createElement(ChatMarkdown, {
       text: "`@Atlas`\n\n```text\n@Atlas\n```\n\n[@Atlas](https://example.test) me@Atlas.test @Ghost", mentionPeers,
     }));
-    expect(html).not.toContain('class="mention-highlight"');
+    expect(html).not.toContain('class="mention-chip"');
     expect(html).toContain('href="https://example.test"');
   });
   it("keeps model HTML inert even when it contains a matching name", () => {
@@ -353,7 +354,7 @@ describe("repaired tables", () => {
     const html = renderToStaticMarkup(createElement(ChatMarkdown, {
       text: "Pros | Cons\n---\n\n| a \\| b | c |\n| --- | --- |\n| 1 | 2 |",
     }));
-    expect(html).toContain('tracking-[-0.005em]">Pros | Cons</div>');
+    expect(html).toContain('tracking-[-0.006em]">Pros | Cons</div>');
     expect(html.match(/<table\b/g)).toHaveLength(1);
     expect(html).toContain(">a | b</span>");
     expect(html.match(/<th\b/g)).toHaveLength(2);
@@ -556,7 +557,7 @@ describe("#Title thread links in markdown", () => {
     const markup = render("`#QA PR 245` in code, [#QA PR 245](https://example.test) as a link, #123 an issue\n\n# QA PR 245\n\nplain");
     expect(markup).not.toContain("data-thread-link");
     expect(markup).toContain("<code");
-    expect(markup).toContain('tracking-[-0.01em]">QA PR 245</div>');
+    expect(markup).toContain('tracking-[-0.012em]">QA PR 245</div>');
   });
 
   it("does nothing without any visible threads", () => {
@@ -1252,7 +1253,7 @@ describe("bidi: message content carries its own direction", () => {
       ].join("\n"),
     }));
 
-    expect(html).toContain('<div dir="rtl" class="md-heading mt-3 text-[20px] font-semibold leading-[26px] tracking-[-0.01em]">');
+    expect(html).toContain('<div dir="rtl" class="md-heading mt-2 text-[22px] font-semibold leading-[28px] tracking-[-0.012em]">');
     expect(html).toContain('<p dir="rtl">');
     expect(html).toContain('<p dir="ltr">An English paragraph');
     expect(html).toContain('<blockquote dir="rtl"');
@@ -1283,7 +1284,7 @@ describe("bidi: message content carries its own direction", () => {
 
     expect(html).toContain("list-disc space-y-1 ps-5");
     expect(html).toContain("list-decimal space-y-1 ps-5");
-    expect(html).toContain("border-s-2 border-hairline ps-3");
+    expect(html).toContain("border-s-2 border-hairline py-0.5 ps-3");
     expect(html).toContain('scope="col"');
     expect(html).not.toMatch(/class="[^"]*\bpl-5\b/);
     expect(html).not.toMatch(/class="[^"]*\bborder-l-2\b/);

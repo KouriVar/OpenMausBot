@@ -37,7 +37,7 @@ describe("a table in a reply", () => {
     expect(doc.querySelectorAll("th")).toHaveLength(7);
     const floors = [...doc.querySelectorAll<HTMLElement>("th > div")].map((cell) => Number.parseFloat(cell.style.minWidth));
     expect(floors).toEqual(columnMinimums(header, [row]));
-    expect(floors.reduce((sum, width) => sum + width, 0) + 7 * 24).toBeLessThan(704);
+    expect(floors.reduce((sum, width) => sum + width, 0) + 7 * 16).toBeLessThan(704);
     for (const cell of doc.querySelectorAll("td > div")) expect(cell.className).toContain("[overflow-wrap:anywhere]");
     const surface = doc.querySelector(".rich-table")!;
     expect(surface.className).toContain("w-fit");
@@ -59,7 +59,7 @@ describe("a table in a reply", () => {
 
   it("keeps roomy columns and scrolls sideways, with no inner scroll box, when even the narrowest columns cannot fit", () => {
     const minimums = columnMinimums(header, [row]);
-    const needed = minimums.reduce((sum, width) => sum + width + 24, 0);
+    const needed = minimums.reduce((sum, width) => sum + width + 16, 0);
     expect(fitsColumns({ wrap: true, virtual: false, minimums, available: needed })).toBe(true);
     expect(fitsColumns({ wrap: true, virtual: false, minimums, available: needed - 1 })).toBe(false);
     let report: () => void = () => undefined;

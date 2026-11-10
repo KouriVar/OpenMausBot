@@ -105,6 +105,7 @@
     "@lezer/highlight": "1.2.5",
     "@muse-code/sdk": "1.4.6",
     "@novnc/novnc": "1.7.0",
+    "@remixicon/react": "^4.9.0",
     "@resvg/resvg-js": "2.6.2",
     "@tanstack/react-virtual": "^3.14.13",
     "@trycua/cua-driver": "0.45.4",

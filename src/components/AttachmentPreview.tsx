@@ -662,12 +662,15 @@ export function AttachmentThumbnail({
   className,
   eager = false,
   explainRefusal = false,
+  markdown = false,
 }: {
   image: PreviewImage;
   onPreview: () => void;
   className?: string;
   eager?: boolean;
   explainRefusal?: boolean;
+  /** A Markdown picture shows whole at its own shape inside the reply, without the gallery's 4:3 crop and frame. */
+  markdown?: boolean;
 }) {
   // Callers key this by src: resetting in an effect races a cached image's onLoad, which can fire before the effect
   // runs.
@@ -675,15 +678,22 @@ export function AttachmentThumbnail({
   const [attempt, setAttempt] = useState(0);
   const [outsideWorkspace, setOutsideWorkspace] = useState(false);
   const [ratio, setRatio] = useState<number | null>(null);
+  const framed = !markdown;
 
   return (
     <span
-      style={ratio ? { aspectRatio: String(ratio) } : undefined}
-      className={cn("group/image relative block aspect-[4/3] min-w-0 overflow-hidden rounded-xl border border-hairline/40 bg-inset", className)}
+      style={framed && ratio ? { aspectRatio: String(ratio) } : undefined}
+      className={cn(
+        "group/image relative block min-w-0 overflow-hidden",
+        framed ? "aspect-[4/3] rounded-xl border border-hairline/40 bg-inset" : "rounded-[4px]",
+        className,
+      )}
     >
-      {state === "loading" && <ImageLoading name={image.name} className="absolute inset-0 bg-raised/65" />}
+      {state === "loading" && (
+        <ImageLoading name={image.name} className={framed ? "absolute inset-0 bg-raised/65" : "relative h-16 w-56 rounded-[4px] bg-raised/50"} />
+      )}
       {state === "failed" ? (
-        <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center text-ink-secondary" role="alert">
+        <span className={cn("flex flex-col items-center justify-center gap-2 px-3 text-center text-ink-secondary", framed ? "absolute inset-0" : "relative min-h-24")} role="alert">
           <ImageOff size={22} />
           {outsideWorkspace ? (
             <span className="max-w-full text-[12px]">{t("attach.imageOutsideWorkspace")}</span>
@@ -728,7 +738,10 @@ export function AttachmentThumbnail({
               onPreview();
             }
           }}
-          className="absolute inset-0 block size-full cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60 aria-disabled:cursor-default"
+          className={cn(
+            "block cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/60 aria-disabled:cursor-default",
+            framed ? "absolute inset-0 size-full" : "relative",
+          )}
           aria-label={t("attach.previewImageAria", { name: image.name })}
           title={t("attach.previewAria", { name: image.name })}
         >
@@ -748,7 +761,8 @@ export function AttachmentThumbnail({
               if (explainRefusal) void messageImageOutsideWorkspace(image.src).then(setOutsideWorkspace);
             }}
             className={cn(
-              "block size-full object-cover transition duration-200 group-hover/image:scale-[1.015]",
+              "block",
+              framed ? "size-full object-cover transition duration-200 group-hover/image:scale-[1.015]" : "h-auto max-w-full transition duration-200",
               state === "ready" ? "opacity-100" : "opacity-0",
             )}
           />
@@ -865,21 +879,21 @@ export function MarkdownImagePreview({
   };
   return (
     <>
-      <span ref={containerRef} className="my-2 block w-[min(36rem,70vw)] max-w-full">
+      <span ref={containerRef} className="my-2 block w-fit max-w-full">
         {external && !externalAllowed ? (
-          <span className="flex aspect-[4/3] max-h-96 flex-col items-center justify-center gap-2 rounded-xl border border-hairline/40 bg-inset px-4 text-center text-[12px] text-ink-secondary">
+          <span className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-[4px] bg-inset px-4 text-center text-[12px] text-ink-secondary">
             <ImageOff size={20} />
             <span>{t("attach.externalHidden")}</span>
             <button type="button" className="rounded-md border border-hairline/50 bg-panel px-2.5 py-1 text-ink hover:bg-raised" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setApprovedExternalSource(src); }}>{t("attach.loadImage")}</button>
           </span>
         ) : filePath && (!threadId || !messageId || localSourceOffset === null) ? (
-          <span className="flex aspect-[4/3] max-h-96 items-center justify-center gap-2 rounded-xl border border-hairline/40 bg-inset text-[12px] text-ink-secondary" role="alert">
+          <span className="flex min-h-24 items-center justify-center gap-2 rounded-[4px] bg-inset text-[12px] text-ink-secondary" role="alert">
             <ImageOff size={17} /> {t("attach.oldImage")}
           </span>
         ) : visibleSource ? (
-          <AttachmentThumbnail key={image.src} image={image} onPreview={() => setOpen(true)} className="max-h-96" eager explainRefusal={localMessageImage} />
+          <AttachmentThumbnail key={image.src} image={image} onPreview={() => setOpen(true)} eager explainRefusal={localMessageImage} markdown />
         ) : (
-          <ImageLoading name={name} className="aspect-[4/3] max-h-96 rounded-xl border border-hairline/40 bg-inset" />
+          <ImageLoading name={name} className="min-h-24 w-56 rounded-[4px] bg-inset" />
         )}
         {openUrl && (
           <a href={openUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-[11px] text-accent hover:underline">

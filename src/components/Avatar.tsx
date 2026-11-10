@@ -18,6 +18,11 @@ import { useFestivalDress, wornBody } from "@/lib/festival-dress";
 import { t } from "@/lib/i18n";
 import { CarvedAvatar } from "./CarvedAvatar";
 import { steelBodyImage } from "@/lib/steel-body";
+import { useForkAvatarStyle } from "@/fork/avatar-style";
+import { useBloubSkin } from "@/fork/bloub-skin";
+import { useBloubSessionState } from "@/fork/bloub-session";
+import type { Bot, Message } from "@/state/store";
+import { BloubAvatar } from "./BloubAvatar";
 
 export const EYE_SCALE = 1.12;
 export const MOUTH_WEIGHT = 11;
@@ -97,10 +102,43 @@ export type MausAvatarProps = {
   bodyId?: BotBodyId;
   gradient?: [string, string, string];
   faceColor?: MascotFaceColor | null;
+  /** The bot this avatar stands for, so the fork's Bloub look can be kept per bot. */
+  botId?: string;
+  /** Draw a Bloub body to the edges of its box (the small sidebar faces). */
+  fitBody?: boolean;
+  /** The tile the Bloub body sits in, and the element whose whole rectangle is the hover target. */
+  frameSize?: number;
+  hitRef?: React.RefObject<HTMLElement | null>;
+  /** Let a click on the (already-selected) face cycle spin/bounce/nod. */
+  pokable?: boolean;
+  /** Play Bloub's session-state animation here (the sidebar tile, the progress avatar). A face that
+   * must stay a face — the chat header pill — passes false and keeps the bot's resting face. */
+  sessionAnimation?: boolean;
 };
 
 function MausAvatarComponent(props: MausAvatarProps, ref: React.Ref<MausAvatarHandle>) {
-  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label } = props;
+  const { bodyId, color, size, state, motion, motionKey, gaze, trackPointer, animated, label, botId, fitBody, frameSize, hitRef, pokable } = props;
+  // The fork's switch: Bloub replaces every built body, the festival ones included.
+  const avatarStyle = useForkAvatarStyle();
+  const bloubSkin = useBloubSkin(botId, color);
+  if (avatarStyle === "bloub") {
+    return (
+      <BloubAvatar
+        ref={ref}
+        size={size}
+        shape={bloubSkin.shape}
+        colorId={bloubSkin.color}
+        expression={bloubSkin.expression}
+        state={state}
+        animated={animated}
+        label={label}
+        fitBody={fitBody}
+        frameSize={frameSize}
+        hitRef={hitRef}
+        pokable={pokable}
+      />
+    );
+  }
   if (isCarvedBody(bodyId)) {
     return (
       <CarvedAvatar
@@ -217,7 +255,10 @@ export const MausAvatar = memo(forwardRef(MausAvatarComponent));
 
 export type BotAvatarProps = Omit<MausAvatarProps, "color" | "gradient"> & {
   readable?: boolean;
+  /** The bot's visible transcript, so the fork's Bloub can read its session state. */
+  messages?: readonly Message[];
   bot: {
+    id?: string;
     name?: string;
     color: MausColor;
     avatarUrl?: string | null;
@@ -245,7 +286,9 @@ export function resolveBotAvatarOutcome(params: {
   return "flatImage";
 }
 
-export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotProps }: BotAvatarProps) {
+export function BotAvatar({ bot, size = 44, label, readable = false, messages, sessionAnimation = true, ...mascotProps }: BotAvatarProps) {
+  const bloubStyle = useForkAvatarStyle() === "bloub";
+  const sessionState = useBloubSessionState(bot as unknown as Bot, messages, bloubStyle && sessionAnimation);
   const profile = botAvatarProfile(bot);
   const festival = useFestivalDress();
   const [imageFailed, setImageFailed] = useState(false);
@@ -263,6 +306,8 @@ export function BotAvatar({ bot, size = 44, label, readable = false, ...mascotPr
       <MausAvatar
         bodyId={wornBody(bot.mascotBody, bot.color, festival)}
         {...mascotProps}
+        botId={bot.id}
+        state={bloubStyle ? ((sessionAnimation ? sessionState : "idle") as unknown as MausState) : mascotProps.state}
         color={bot.color}
         faceColor={bot.mascotFaceColor}
         gradient={readable ? roomAvatarGradient(bot.color) : undefined}

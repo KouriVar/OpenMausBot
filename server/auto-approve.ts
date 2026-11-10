@@ -6,6 +6,7 @@
 import { supportsApprovalMode, type ApprovalMode } from "../shared/approval-mode.ts";
 import { failedTurnTool, type FailedTurnTool } from "../shared/failed-turn.ts";
 import { isOutboundTool } from "../shared/outbound.ts";
+import { simularAlwaysAsks } from "../shared/simular.ts";
 import type { ProviderAdapter, RequestOutcome } from "./contracts.ts";
 
 /** An expired ask must never become a fresh Allow/Deny card. */
@@ -82,6 +83,7 @@ export type AutoVerdictSource =
   | "explicit-approval-block"
   | "outbound-guard"
   | "safety-floor"
+  | "simular-guard"
   | "no-grant";
 
 export interface AutoVerdict {
@@ -106,6 +108,12 @@ export function autoVerdict(
 ): AutoVerdict {
   if (ASKS_A_PERSON.has(bareToolName(tool))) {
     return { approve: null, source: "no-grant" };
+  }
+  // Another company's computer: a shell on a Simular Box and deleting it ask a person at every level, Full access
+  // included, because that grant is to this app and not to someone else's machine. The whole name is matched, so a
+  // bare "shell" never catches this app's own cloud computer.
+  if (simularAlwaysAsks(tool)) {
+    return { approve: null, source: "simular-guard" };
   }
   // Full's promise is literal, sandbox widening included; entering Full is consent-gated by the bot PATCH endpoint.
   if (mode === "full") return { approve: `approved ${tool} (full access)`, source: "full-access" };
@@ -140,6 +148,7 @@ export const HELD_NOTE = {
     "This loosens the AI's own safety limits, so only Full access can approve it automatically.",
   "approval.held.undeliveredFull": "Full access couldn't deliver this approval.",
   "approval.held.undelivered": "Approve for me couldn't answer this one.",
+  "approval.held.simular": "A shell on another company's computer, or deleting it, always asks you first.",
 } as const;
 
 export type HeldNoteKey = keyof typeof HELD_NOTE;
@@ -152,6 +161,7 @@ export function approvalHeldNote(context: {
   if (context.source === "outbound-guard") return "approval.held.outbound";
   if (context.source === "explicit-approval-block") return "approval.held.sandbox";
   if (context.source === "native-approval") return "approval.held.native";
+  if (context.source === "simular-guard") return "approval.held.simular";
   return undefined;
 }
 

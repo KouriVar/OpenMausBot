@@ -12,6 +12,7 @@ import type {
 import { newEventId, newId } from "../contracts.ts";
 import { ASK_USER_TOOL, ASK_USER_TOOL_DEFINITION, askQuestionSummary, parseAskQuestions, questionChoices } from "../../shared/ask-question.ts";
 import { allowsTool, parseToolScope } from "../../shared/tool-scope.ts";
+import { simularAlwaysAsks } from "../../shared/simular.ts";
 import { redactSecretsInText } from "../redact.ts";
 import { toolDetailPreview } from "../tool-summary.ts";
 import { ChatToolSessionError, chatToolNotices, mountChatTools, refitChatTools, type ChatToolDefinition, type ChatToolSession, type ChatToolResult } from "./chat-mcp-tools.ts";
@@ -822,8 +823,9 @@ export function createOpenAIChatRuntime<Config>(options: RuntimeOptions<Config>)
                 tools.validate(call.function.name, args);
                 const shown = tools.view(call.function.name, args as Record<string, unknown>); title = shown.title;
                 const shownPreview = shown.input === args ? inputPreview : preview(shown.input);
-                // This runtime has no provider reviewer, so Full access is honoured here.
-                const full = (turn.approvalModeNow?.() ?? turn.approvalMode) === "full";
+                // This runtime has no provider reviewer, so Full access is honoured here, except for the two tools of
+                // someone else's computer that always ask (shared/simular.ts).
+                const full = (turn.approvalModeNow?.() ?? turn.approvalMode) === "full" && !simularAlwaysAsks(call.function.name);
                 const floored = approval.floored({ full, threadId: turn.threadId, botId: turn.botId, shown, summary: shownPreview });
                 const allowed = !floored && (full || !shown.ask
                   || await approval.ask(shown.title, shownPreview ?? "This tool has no arguments.", shown.grant));

@@ -33,6 +33,13 @@ describe("Full access delivery", () => {
 });
 
 describe("autoVerdict", () => {
+  it("words a held Simular tool the same way in every language it is asked for", () => {
+    expect(approvalHeldNote({ source: "simular-guard", permission: true })).toBe("approval.held.simular");
+    expect(HELD_NOTE["approval.held.simular"]).toBe(englishCatalog["approval.held.simular"]);
+    expect(approvalHeldReason({ source: "simular-guard", permission: true })).toBeTruthy();
+    expect(approvalHeldNote({ source: "simular-guard", permission: false })).toBeUndefined();
+  });
+
   it("never uses a saved command grant to silently send on the person's behalf", () => {
     for (const mode of ["ask", "edits", "auto", "custom"] as const) {
       expect(autoVerdict(mode, "mcp__composio__GMAIL_SEND_DRAFT", { commandAllowed: true })).toEqual({ approve: null, source: "outbound-guard" });
@@ -59,6 +66,19 @@ describe("autoVerdict", () => {
       expect(autoVerdict(mode, "AskUserQuestion", { toolAllowed: true }).approve).toBeNull();
     }
   });
+  it("never answers for a shell on, or the deletion of, someone else's computer, at any level", () => {
+    for (const mode of ["ask", "edits", "auto", "custom", "full"] as const) {
+      for (const tool of ["mcp__simular__shell", "mcp__simular__box_delete"]) {
+        expect(autoVerdict(mode, tool), `${mode} ${tool}`).toEqual({ approve: null, source: "simular-guard" });
+        expect(autoVerdict(mode, tool, { commandAllowed: true, toolAllowed: true }).approve).toBeNull();
+      }
+    }
+    // The whole name is matched: this app's own cloud computer and another server's namesake are untouched.
+    expect(autoVerdict("full", "mcp__computer__exec").source).toBe("full-access");
+    expect(autoVerdict("full", "mcp__other__shell").source).toBe("full-access");
+    expect(autoVerdict("full", "mcp__simular__screenshot").source).toBe("full-access");
+  });
+
   it("answers only for Full access, and then answers everything", () => {
     expect(autoVerdict("full", "Bash")).toEqual({ approve: "approved Bash (full access)", source: "full-access" });
     expect(autoVerdict("full", "Bash", { requiresExplicitApproval: true })).toEqual({

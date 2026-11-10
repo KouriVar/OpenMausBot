@@ -22,6 +22,7 @@ import { PairedPhones } from "./PairedPhones";
 import { Card, Switch } from "./SettingsPrimitives";
 import { productName } from "../lib/brand";
 import { useStore } from "@/state/store";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 
 export {
   companionAccountActionError,
@@ -381,7 +382,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
       <section className="flex flex-col rounded-xl border border-hairline/40 bg-card px-4" data-devices-block="routes">
         <div className="pt-3 text-[13px] font-medium text-ink">{t("devices.howTheyReach")}</div>
         <RouteRow c={c} state={state} route="wifi" blocked={managedBy} />
-        <div className="border-t border-hairline/30"><RouteRow c={c} state={state} route="relay" blocked={managedBy} /></div>
+        {!FORK_LOCAL_ONLY && <div className="border-t border-hairline/30"><RouteRow c={c} state={state} route="relay" blocked={managedBy} /></div>}
         <details className="border-t border-hairline/30 py-3" open={tailscaleOn || httpsOn || undefined}>
           <summary className="cursor-pointer text-[13px] text-ink">{t("devices.moreWays")}</summary>
           <div className="mt-3 flex flex-col gap-4" data-route-row="tailscale">
@@ -421,7 +422,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
                 </div>
               </div>
             )}
-            <div className="flex items-start justify-between gap-4 border-t border-hairline/30 pt-4" data-route-row="https">
+            {!FORK_LOCAL_ONLY && <div className="flex items-start justify-between gap-4 border-t border-hairline/30 pt-4" data-route-row="https">
               <div className="min-w-0">
                 <div className="text-[13px] text-ink">{t("devices.route.https")}</div>
                 <div className="mt-0.5 text-[12px] leading-relaxed text-ink-secondary">
@@ -439,7 +440,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
                 <button type="button" className={button} disabled={c.busy || c.accountBusy || Boolean(managedBy)}
                   onClick={() => setPairing("https")}>{t("devices.route.setUp")}</button>
               )}
-            </div>
+            </div>}
           </div>
         </details>
       </section>

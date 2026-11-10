@@ -458,6 +458,11 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
         const check = await tts.verifyKey("gemini", newTts.geminiKey);
         if (!check.ok) return json(res, 400, { error: check.message });
       }
+      if (newTts?.mimoKey !== undefined) newTts.mimoKey = newTts.mimoKey.trim();
+      if (newTts?.mimoKey) {
+        const check = await tts.verifyKey("mimo", newTts.mimoKey);
+        if (!check.ok) return json(res, 400, { error: check.message });
+      }
       const deciderKey = patch.decider ? deciderPatchKey(patch.decider, cfg.decider) : null;
       if (deciderKey) {
         const check = await decider.testKey(deciderKey.check);
@@ -535,6 +540,7 @@ export function createConfigRoutes(deps: ConfigRouteDeps): RouteHandler {
           if (persisted.tts?.key !== undefined) persisted.tts.key = "";
           if (persisted.tts?.fishKey !== undefined) persisted.tts.fishKey = "";
           if (persisted.tts?.geminiKey !== undefined) persisted.tts.geminiKey = "";
+          if (persisted.tts?.mimoKey !== undefined) persisted.tts.mimoKey = "";
           if (persisted.decider?.key !== undefined) persisted.decider.key = "";
           if (persisted.decider?.openrouterKey !== undefined) persisted.decider.openrouterKey = "";
           if (persisted.decider?.workersAiToken !== undefined) persisted.decider.workersAiToken = "";

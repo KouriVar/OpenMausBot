@@ -1,6 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 
 import {
   cloudUsageSummary,
@@ -578,15 +579,15 @@ describe("Simple mode's account menu", () => {
   it("names My Cloud and opens its settings when it is the window's only place, and offers nothing without either", () => {
     const onCloudSettings = vi.fn();
     const home = placeMenuItems(place({ switchable: false, cloudHome: true, onLine: "always on" }), { owner: "ada@example.test", onCloudSettings });
-    expect(home.map((item) => [item.label, item.subtitle])).toEqual([["My Cloud", "always on · ada@example.test’s Cloud"]]);
-    home[0]!.onSelect();
-    expect(onCloudSettings).toHaveBeenCalledOnce();
+    expect(home.map((item) => [item.label, item.subtitle])).toEqual(FORK_LOCAL_ONLY ? [] : [["My Cloud", "always on · ada@example.test’s Cloud"]]);
+    home[0]?.onSelect();
+    expect(onCloudSettings).toHaveBeenCalledTimes(FORK_LOCAL_ONLY ? 0 : 1);
     expect(placeMenuItems(place({ bridge: undefined, switchable: false }), { owner: null, onCloudSettings })).toEqual([]);
   });
 
   it("names a team's Cloud by the team", () => {
     const team = placeMenuItems(place({ switchable: false, cloudHome: true, onLine: "" }), { owner: null, name: "Acme Labs", onCloudSettings: noop });
-    expect(team.map((item) => item.label)).toEqual(["Acme Labs"]);
+    expect(team.map((item) => item.label)).toEqual(FORK_LOCAL_ONLY ? [] : ["Acme Labs"]);
   });
 
   it("shows one Get the phone app row, dotted while this computer's phone is connected", () => {

@@ -1,5 +1,6 @@
 // Security: the harness holds the cloud provider keys; the renderer never talks to ElevenLabs or Fish Audio itself.
 import { DEFAULT_OPENAI_VOICE, OPENAI_VOICES } from "../../shared/openai-voice";
+import { DEFAULT_MIMO_VOICE, isMimoVoice } from "../../shared/mimo-voice";
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, Volume2 } from "lucide-react";
 
@@ -73,6 +74,15 @@ export function VoiceSettings({
   const cloudProvider = provider === "gemini"
     ? { id: "gemini" as const, name: "Gemini", credential: "geminiTtsKey" as const, configField: "geminiKey" as const,
         placeholder: t("voice.gemini.keyPlaceholder"), keyUrl: "https://aistudio.google.com/api-keys" }
+    : provider === "mimo"
+    ? {
+        id: "mimo" as const,
+        name: t("voice.mimo.label"),
+        credential: "mimoTtsKey" as const,
+        configField: "mimoKey" as const,
+        placeholder: t("voice.mimo.keyPlaceholder"),
+        keyUrl: "https://mimo.mi.com/",
+      }
     : provider === "fish"
     ? {
         id: "fish" as const,
@@ -95,6 +105,8 @@ export function VoiceSettings({
   const key = cloudProvider ? voiceKeyDraftValue(keyDraft, cloudProvider.id) : "";
   const hostProviderLabel = provider === "gemini" ? t("voice.hostLabel", { provider: "Gemini" }) : provider === "fish"
     ? t("voice.hostLabel", { provider: t("voice.fish.label") })
+    : provider === "mimo"
+      ? t("voice.hostLabel", { provider: t("voice.mimo.label") })
     : provider === "elevenlabs"
       ? t("voice.hostLabel", { provider: t("voice.elevenlabs.label") })
       : provider === "chatterbox"
@@ -206,7 +218,7 @@ export function VoiceSettings({
       .finally(() => current() && setAddingVoice(null));
   };
 
-  const setProvider = (next: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai") => {
+  const setProvider = (next: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai" | "mimo") => {
     if (next === provider || switching || (next === "system" && !systemVoicesAvailable)) return;
     setSwitching(true);
     setKeyDraft({ provider: null, value: "" });
@@ -215,6 +227,9 @@ export function VoiceSettings({
       .then((status: ConfigStatus) => {
         if (next === "openai" && currentBot.current.id === bot.id && !OPENAI_VOICES.some((voice) => voice === currentBot.current.voice)) {
           onPatch({ voice: DEFAULT_OPENAI_VOICE });
+        }
+        if (next === "mimo" && currentBot.current.id === bot.id && !isMimoVoice(currentBot.current.voice)) {
+          onPatch({ voice: DEFAULT_MIMO_VOICE });
         }
         dispatch({ type: "configStatus", config: status });
       })
@@ -333,6 +348,7 @@ export function VoiceSettings({
               { value: "openai", label: "OpenAI", available: true, span: "col-span-1" },
               { value: "xai", label: t("voice.grok.label"), available: true, span: "col-span-1" },
               { value: "gemini", label: "Gemini", available: true, span: "col-span-1" },
+              { value: "mimo", label: t("voice.mimo.label"), available: true, span: "col-span-1" },
               { value: "system", label: t("voice.macBuiltIn"), available: systemVoicesAvailable, span: "col-span-1" },
               { value: "chatterbox", label: t("voice.chatterboxLocal"), available: true, span: "col-span-1" },
             ] as const).map((option) => (
@@ -345,7 +361,7 @@ export function VoiceSettings({
                 title={!option.available ? t("voice.macOnly") : undefined}
                 onClick={() => setProvider(option.value)}
                 className={cn(
-                  "min-w-0 rounded-lg px-2 py-1.5 text-[13px] leading-tight transition-colors disabled:opacity-50",
+                  "min-w-0 whitespace-nowrap rounded-lg px-1.5 py-1.5 text-[13px] leading-tight transition-colors disabled:opacity-50",
                   option.span,
                   provider === option.value ? "bg-raised text-ink shadow" : "text-ink-secondary hover:text-ink",
                 )}
@@ -394,6 +410,10 @@ export function VoiceSettings({
           </a>
         )}
         </div>
+      )}
+
+      {!workspaceConfigurationLocked && provider === "mimo" && (
+        <div className="mt-1.5 text-[12px] leading-relaxed text-ink-secondary">{t("voice.mimo.freeNotice")}</div>
       )}
 
       {!workspaceConfigurationLocked && provider === "fish" && (

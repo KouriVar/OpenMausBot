@@ -138,3 +138,15 @@ describe("engines that run on a key", () => {
     expect(keyForInstance(undefined)).toBeUndefined();
   });
 });
+
+describe("the MiMo voice key", () => {
+  it("files MiMo's speech key in the voice section and saves it to tts.mimoKey", () => {
+    const entry = keyEntry("mimoTts");
+    expect(entry).toMatchObject({ section: "voice", name: "MiMo", env: ["OMB_MIMO_API_KEY"], kind: "key" });
+    expect(entry.target).toMatchObject({ slot: "mimoTtsKey", href: "https://mimo.mi.com/", analytics: "mimo_tts" });
+    expect(entry.target?.patch("mimo-key", false)).toEqual({ tts: { mimoKey: "mimo-key" } });
+    expect(t(entry.labelKey)).toBe("MiMo speech API key");
+    expect(savedState(entry, { savedKeys: { mimoTtsKey: { configured: true, last4: "abcd" } } } as ConfigStatus)).toEqual({ configured: true, last4: "abcd" });
+    expect(savedState(entry, {} as ConfigStatus)).toEqual({ configured: false });
+  });
+});

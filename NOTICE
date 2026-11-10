@@ -83,6 +83,11 @@ under the MIT License (third_party/minimock/LICENSE). Its icon paths are from
 Lucide, https://lucide.dev, Copyright Lucide Contributors, used under the ISC
 License; the template carries both notices, so every copy of it keeps them.
 
+The app's icons (src/lib/icons.tsx, drawn by @remixicon/react) are Remix Icon,
+https://remixicon.com, Copyright Remix Design, used under the Remix Icon
+License 1.0, an Apache License 2.0 derivative that keeps this attribution with
+every copy.
+
 The browser desktop viewer bundles the unmodified noVNC 1.7.0 library,
 Copyright the noVNC authors, under MPL-2.0 and its accompanying licenses.
 Attribution, license terms and the corresponding source location are in

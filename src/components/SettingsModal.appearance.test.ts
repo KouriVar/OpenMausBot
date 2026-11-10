@@ -2,6 +2,7 @@ import { createElement, type ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setLocale } from "@/lib/i18n";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import type { SendKey } from "@/lib/send-key";
 import { en, locales } from "@/locales";
 import type { AppSettingsSection } from "@/state/store";
@@ -418,7 +419,7 @@ describe("Settings → Appearance", () => {
     expect(render()).not.toContain('<option value="desktopWorkspaces"');
   });
 
-  it("offers optional Organisation settings only through the local desktop bridge", () => {
+  it.skipIf(FORK_LOCAL_ONLY)("offers optional Organisation settings only through the local desktop bridge", () => {
     fixture.section = "organization";
     vi.stubGlobal("window", { ogb: { organization: {} } });
     const local = render();
@@ -431,7 +432,7 @@ describe("Settings → Appearance", () => {
     expect(render()).not.toContain('<option value="organization"');
     expect(render()).toContain("Midnight");
   });
-  it("offers personal Cloud separately and only through the local desktop bridge", () => {
+  it.skipIf(FORK_LOCAL_ONLY)("offers personal Cloud separately and only through the local desktop bridge", () => {
     fixture.section = "cloudAccount";
     vi.stubGlobal("window", { ogb: { cloudAccount: {} } });
     expect(render()).toContain('<option value="cloudAccount" selected="">MausBot Cloud</option>');

@@ -31,6 +31,19 @@ function railPage(): Plugin {
   };
 }
 
+/** The app's screens draw Remix Icon through src/lib/icons.tsx; a sandboxed JSX page and a server test keep lucide. */
+function appIcons(): Plugin {
+  const icons = page("./src/lib/icons.tsx");
+  const appSource = page("./src/");
+  return {
+    name: "app-icons",
+    enforce: "pre",
+    resolveId(source, importer) {
+      if (source === "lucide-react" && importer?.startsWith(appSource)) return icons;
+    },
+  };
+}
+
 const include = [
   "evals/**/*.test.ts",
   "server/**/*.test.ts",
@@ -45,7 +58,7 @@ const include = [
 ];
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), railPage()],
+  plugins: [react(), tailwindcss(), railPage(), appIcons()],
   build: {
     rollupOptions: { input: { index: page("./index.html"), rail: page("./rail.html") } },
   },

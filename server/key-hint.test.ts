@@ -17,6 +17,11 @@ describe("a saved key's hint", () => {
     ]);
   });
 
+  it("is given for a saved MiMo voice key, and says when none is on file", () => {
+    expect(nestedKeyStatus({ tts: { mimoKey: "mimo-voice-9999" } }).mimoTtsKey).toEqual({ configured: true, last4: "9999" });
+    expect(nestedKeyStatus({}).mimoTtsKey).toEqual({ configured: false });
+  });
+
   it("comes off everything a client session is sent, at any depth", () => {
     const status = {
       openai: { configured: true, last4: "a1b2" },

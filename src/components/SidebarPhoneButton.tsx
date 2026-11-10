@@ -6,6 +6,7 @@ import { t } from "@/lib/i18n";
 import { phonePairingSettingsAction } from "@/lib/phone-pairing";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { companionBridge } from "@/lib/companion-bridge";
+import { SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 import type { CompanionState } from "./PhoneSetupFlow";
 
 export const SIDEBAR_PHONE_RECENT_MS = 2 * 60_000;
@@ -166,12 +167,13 @@ export function SidebarPhoneStatusButton({
       data-phone-status={status.kind}
       data-sidebar-density={density}
       className={cn(
-        "relative flex size-[46px] shrink-0 items-center justify-center rounded-xl hover:bg-raised",
+        "relative hover:bg-raised",
+        SIDEBAR_ICON_BUTTON,
         density === "icons" && "mx-auto",
         connected ? "text-success" : "text-ink-secondary hover:text-ink",
       )}
     >
-      <TabletSmartphone size={18} strokeWidth={1.8} />
+      <TabletSmartphone size={density === "icons" ? SIDEBAR_ICON_SIZE : 18} strokeWidth={density === "icons" ? SIDEBAR_ICON_STROKE : 1.8} />
       {status.kind === "unpaired" && (
         <span
           aria-hidden="true"

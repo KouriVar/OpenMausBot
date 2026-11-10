@@ -1,7 +1,7 @@
 import type { Bot, Group } from "@/state/store";
 import { effectiveDefaultResponder, groupComposerHint } from "@/lib/group-routing";
 import { t } from "@/lib/i18n";
-import { BOT_BUTTON, botButtonStyle, botButtonTone, type BotButton } from "@/lib/bot-button";
+import { BOT_BUTTON, botButtonStyle, botButtonStyleHex, botButtonTone, botButtonToneHex, type BotButton } from "@/lib/bot-button";
 
 /** Simple mode's composer pill on a wider screen: the field, the mic and the round button in one shell. */
 export const SIMPLE_COMPOSER = "bg-composer p-2 ring-[0.5px] ring-ink/10 hover:ring-ink/[0.22] focus-within:ring-ink/[0.22] shadow-[0_2px_8px_-1px_rgb(0_0_0/0.05),0_1px_2px_rgb(0_0_0/0.03),0_0_0_1px_rgb(228_228_228/0.04)] [transition:border-radius_300ms,box-shadow_150ms]";
@@ -11,10 +11,16 @@ export const SIMPLE_CONTROL = "size-7 rounded-full bg-ink/[0.05] ring-[0.5px] ri
 
 const ROOM_FILL = { fill: "var(--color-accent)", ink: "var(--color-accent-ink)" };
 
-/** The round call, Send and Stop button: the bot's own button, or the accent in a room. */
-export function slotColors(color: Bot["color"] | undefined, room: boolean): { fill: string; ink: string; button: BotButton } {
+/** The round voice, call, Send and Stop buttons: the bot's own colour, or the accent in a room.
+ * `accent` is the colour its Bloub avatar paints (see `useBloubAccent`), so the button, your bubble and
+ * both avatars read one value; without it the button keeps the MausBot colour. */
+export function slotColors(accent: string | undefined, color: Bot["color"] | undefined, room: boolean): { fill: string; ink: string; button: BotButton } {
   if (room) {
     return { ...ROOM_FILL, button: { className: "hover:brightness-110 disabled:opacity-40", style: { backgroundColor: ROOM_FILL.fill, color: ROOM_FILL.ink } } };
+  }
+  if (accent) {
+    const tone = botButtonToneHex(accent);
+    return { fill: tone.fill, ink: tone.ink, button: { className: BOT_BUTTON, style: botButtonStyleHex(accent) } };
   }
   const own = color ?? "green";
   const tone = botButtonTone(own);

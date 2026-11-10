@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CloudAccountState, CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
 import type { CloudOffer, CloudTrial } from "../../electron/cloud-home.mjs";
 import { withTourFinished } from "@/lib/guided-tour";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { setLocale } from "@/lib/i18n";
 import { EMPTY_ONBOARDING, LOCAL_VIEWER, markWelcomeFinished, MET_CHIEF_HINT, type WelcomeViewer } from "@/lib/onboarding";
 import { launchDialogShown, markLaunchDialog } from "@/lib/launch-dialogs";
@@ -165,7 +166,7 @@ beforeEach(() => {
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); setLocale("en"); });
 
 describe("the card after the update", () => {
-  it("offers the free trial to someone signed out who has used the app before, in the Admin's numbers, with Start free trial and Show me how", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("offers the free trial to someone signed out who has used the app before, in the Admin's numbers, with Start free trial and Show me how", async () => {
     returning();
     const html = await launch();
     const words = [INTRO, "Free for 7 days", "MausBot Cloud runs your bots for you in the cloud, always on.", "Routines run on time, day and night",
@@ -188,7 +189,7 @@ describe("the card after the update", () => {
     expect(track).toHaveBeenCalledWith("cloud_card_shown", { variant: "free" });
   });
 
-  it("needs a trial: without one it waits (the star may show), and without money-back from the Admin it says none", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("needs a trial: without one it waits (the star may show), and without money-back from the Admin it says none", async () => {
     returning(); offer = { ...PLAIN_OFFER };
     let html = await launch();
     expect(html).not.toContain(INTRO); expect(html).toContain(STAR);
@@ -215,7 +216,7 @@ describe("the card after the update", () => {
     expect(org).not.toContain(INTRO); expect(org).toContain(STAR);
   });
 
-  it("Start free trial opens the Add a Cloud dialog from the card, and the card is done for good", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("Start free trial opens the Add a Cloud dialog from the card, and the card is done for good", async () => {
     returning(); await launch();
     press("Start free trial"); await flush();
     expect(f.dispatch).toHaveBeenCalledWith({ type: "openCloudAdd", source: "app_card" });
@@ -225,7 +226,7 @@ describe("the card after the update", () => {
     now = NOW + 5 * DAY; storage.clear(); launchCardsSeen(); expect(await launch()).not.toContain(INTRO);
   });
 
-  it("Show me how starts the one-step tip; Not now, the X and Escape end it for good, then say where Add a Cloud lives", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("Show me how starts the one-step tip; Not now, the X and Escape end it for good, then say where Add a Cloud lives", async () => {
     returning(); await launch();
     press("Show me how");
     expect(f.dispatch).toHaveBeenCalledWith({ type: "cloudHowTo", open: true });
@@ -246,7 +247,7 @@ describe("the card after the update", () => {
     expect(track).toHaveBeenCalledWith("cloud_card_action", { action: "close" });
   });
 
-  it("Sign in to your Cloud plan opens the sheet at its own sign-in and only hides the card for now", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("Sign in to your Cloud plan opens the sheet at its own sign-in and only hides the card for now", async () => {
     returning(); await launch();
     press("Sign in to your Cloud plan");
     expect(f.dispatch).toHaveBeenCalledWith({ type: "openCloudAdd", source: "app_card", signIn: true });
@@ -254,7 +255,7 @@ describe("the card after the update", () => {
     now = NOW + DAY; expect(await launch()).toContain(INTRO);
   });
 
-  it("shows on at most three days, or one for someone who closed the earlier Pro card", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("shows on at most three days, or one for someone who closed the earlier Pro card", async () => {
     returning();
     for (let day = 0; day < 3; day++) { now = NOW + day * DAY; expect(await relaunch(), `day ${day}`).toContain(INTRO); }
     now = NOW + 3 * DAY;
@@ -280,7 +281,7 @@ describe("the card after the update", () => {
     expect(bridges.cloud.offer, "nothing to load the offer for").not.toHaveBeenCalled();
   });
 
-  it("never over setup, a dialog, the Add a Cloud dialog or its tip, busy work, or an update being offered", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("never over setup, a dialog, the Add a Cloud dialog or its tip, busy work, or an update being offered", async () => {
     returning();
     const waits: Array<() => void> = [
       () => { f.state.welcomeOpen = true; }, () => { f.state.tourOpen = true; }, () => { f.state.appSettingsOpen = true; },
@@ -298,7 +299,7 @@ describe("the card after the update", () => {
 });
 
 describe("the free trial's notice, here and on My Cloud", () => {
-  it("shows the notice main says is due, tells main once, and stays up until it is closed", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("shows the notice main says is due, tells main once, and stays up until it is closed", async () => {
     const running = trial("active", { switchTo: { tier: "starter", amount: 1500 } });
     account = paid({ trial: running }); snapshot = { status: "paid", tier: "pro", trial: running, notice: "active", credit: { grantedUsd: 5, remainingUsd: 3.2, state: "active" } };
     offer = { ...PLAIN_OFFER };
@@ -316,7 +317,7 @@ describe("the free trial's notice, here and on My Cloud", () => {
     expect(await launch()).not.toContain("Your free trial");
   });
 
-  it("on My Cloud's own page, only the trial's notice, after its sign-in and setup checklist", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("on My Cloud's own page, only the trial's notice, after its sign-in and setup checklist", async () => {
     viewer = { hosted: false, canSave: true, cloudHome: true };
     showWindow(MY_CLOUD);
     returning();
@@ -335,7 +336,7 @@ describe("the free trial's notice, here and on My Cloud", () => {
 });
 
 describe("the first conversation after meeting the Chief", () => {
-  it("holds every corner notice, an account's own too, until the person has written and had a reply", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("holds every corner notice, an account's own too, until the person has written and had a reply", async () => {
     const running = trial("active");
     account = paid({ trial: running }); snapshot = { status: "paid", tier: "pro", trial: running, notice: "active" };
     f.state.config.onboarding.hintsSeen = [...withTourFinished(undefined), MET_CHIEF_HINT];
@@ -345,7 +346,7 @@ describe("the first conversation after meeting the Chief", () => {
     expect(await launch()).toContain("Your free trial ends on");
   });
 
-  it("changes nothing for an install whose first run came before: its notices keep their own rules", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("changes nothing for an install whose first run came before: its notices keep their own rules", async () => {
     const running = trial("active");
     account = paid({ trial: running }); snapshot = { status: "paid", tier: "pro", trial: running, notice: "active" };
     f.state.bots = [{ tasks: [{ threadId: "first", usage: { turns: 0 } }] }];
@@ -354,7 +355,7 @@ describe("the first conversation after meeting the Chief", () => {
 });
 
 describe("This computer's Cloud sign-in card and the star", () => {
-  it("an ended sign-in on a paid plan asks to sign in again; the star comes last and is for good", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("an ended sign-in on a paid plan asks to sign in again; the star comes last and is for good", async () => {
     account = { status: "reauth-required", message: "expired", lastPlan: { tier: "pro", active: true } }; returning();
     expect(await launch()).toContain("Sign in again to reach the Cloud");
     press("Sign in again"); await flush();
@@ -570,7 +571,7 @@ describe("Boat's credit offer", () => {
     expect(await launch()).not.toContain(html(TITLE));
   });
 
-  it("comes after a trial's notice, before the star, and waits while the bots move to My Cloud", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("comes after a trial's notice, before the star, and waits while the bots move to My Cloud", async () => {
     fresh(); storage.delete(STAR_NOTICE);
     const running = trial("active");
     account = paid({ trial: running }); snapshot = { status: "paid", tier: "pro", trial: running, notice: "active" };
@@ -620,7 +621,7 @@ describe("What's new after the update", () => {
       querySelectorAll: () => modal ? [{ closest: () => null, checkVisibility: () => true }] : [] });
   });
 
-  it("no Cloud plan: once, before every other card, a modal with the new Cloud then Team in the Admin's numbers; Get Pro opens Add a Cloud with its tag", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("no Cloud plan: once, before every other card, a modal with the new Cloud then Team in the Admin's numbers; Get Pro opens Add a Cloud with its tag", async () => {
     returning(); storage.delete(STAR_NOTICE);
     const html = await launch();
     expect(on(html)).toBe("pro");
@@ -652,7 +653,7 @@ describe("What's new after the update", () => {
     expect(f.dispatch).not.toHaveBeenCalled(); expect(seenOnDesktop()).toEqual([]);
   });
 
-  it("See the new Cloud and Start a Team open the Cloud website with their slide's tag, and end it for good", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("See the new Cloud and Start a Team open the Cloud website with their slide's tag, and end it for good", async () => {
     await launch();
     press("See the new Cloud"); await flush();
     expect(window.ogb?.openExternal).toHaveBeenCalledWith("https://cloud.openmausbot.com/cloud?src=app_whats_new_pro");
@@ -666,7 +667,7 @@ describe("What's new after the update", () => {
     await keptForGood();
   });
 
-  it("a Cloud plan of one's own, in no team: the Team slide alone", async () => {
+  it.skipIf(FORK_LOCAL_ONLY)("a Cloud plan of one's own, in no team: the Team slide alone", async () => {
     for (const state of [paid(), tierPlan("starter"), tierPlan("personal"), tierPlan("max"), paid({ trial: trial("active") })]) {
       vi.clearAllMocks(); fresh(); account = state;
       const html = await relaunch();

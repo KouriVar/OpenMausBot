@@ -17,6 +17,7 @@ import {
   type Message,
 } from "@/state/store";
 import { BotAvatar } from "./Avatar";
+import { GroupFaceStack } from "./GroupFaceStack";
 import { ScreenFrame } from "./ScreenFrame";
 import { RoomHoldsBanner } from "./RoomHoldsBanner";
 import { ThreadChip } from "./ThreadChip";
@@ -98,6 +99,8 @@ import { HandoffChip } from "./HandoffReply"; import { TeammateChip } from "./Te
 import { RoomWorkingFolder } from "./RoomWorkingFolder";
 import { RoomBulletin } from "./RoomBulletin";
 import { RoomHeader } from "./RoomHeader";
+import { SpeakerName } from "./BloubIdentity";
+import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
 import { useChatFindRequests } from "@/lib/chat-find";
 import { simpleRoomHeader } from "@/lib/room-panel";
 
@@ -169,7 +172,7 @@ function RoomTextMessage({
   useEffect(() => { if (focusedSearch && collapsible) setExpanded(true); }, [focusedSearch, collapsible, focus?.nonce]);
   const simple = !useAdvancedMode();
   const speakerBot = members.find((member) => member.id === m.from?.botId);
-  const botText = rawText; const teammates = useTeammates(); const peers = useMemo(() => [...members, ...teammates.peers], [members, teammates]);
+  const botText = rawText; const teammates = useTeammates(); const peers = useMemo(() => [...members.map((mm) => ({ name: mm.name, botId: mm.id, color: mm.color })), ...teammates.peers], [members, teammates]);
   const pin = roomPin(group, m, dispatch);
   const botMenu = useBotMessageMenu({
     text: botText,
@@ -197,7 +200,7 @@ function RoomTextMessage({
   );
   return (
     <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "items-end" : "items-start")}>
-      {speaker && <div className="mb-0.5 px-1 text-[12px] font-medium text-ink-secondary">{speaker}</div>}
+      {speaker && <div className="mb-0.5 px-1"><SpeakerName label={speaker} botId={speakerBot?.id} fallbackColor={speakerBot?.color} /></div>}
       <div className={cn("flex w-full items-end gap-1.5", user ? "justify-end" : "justify-start")}>
         {user && (
           <MessageActions side="user" menu={userMessageMenu({ messageId: m.id, pin })}>
@@ -209,15 +212,15 @@ function RoomTextMessage({
           data-chat-bubble={simple ? "simple" : ""}
           className={cn(
             tabled ? "w-full" : "w-fit",
-            simple ? cn(!tabled && SIMPLE_BUBBLE_MAX, SIMPLE_BUBBLE_TEXT) : "max-w-[min(var(--chat-bubble-max),var(--chat-bubble-pct))] rounded-2xl text-[15px] leading-relaxed",
+            simple ? cn(!tabled && SIMPLE_BUBBLE_MAX, SIMPLE_BUBBLE_TEXT) : "max-w-[min(var(--chat-bubble-max),var(--chat-bubble-pct),calc(100%-82px))] rounded-[18px] text-[15px] leading-relaxed",
             !user && emerging && "turn-answer",
             tabled || (!user && !m.text?.trim() && !m.replyToId && m.attachments?.length)
               ? "text-ink"
               : !simple && !user && isFormattedReply(m.text ?? "")
                 ? cn(formattedReplyWidth(m.text ?? ""), "px-1 text-ink")
                 : user
-                  ? cn("chat-text whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-4 py-2.5")
-                  : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-4 py-2.5 text-ink",
+                  ? cn("chat-text whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]")
+                  : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
           )}
           title={new Date(m.at).toLocaleString(intlLocale())}
         >
@@ -293,7 +296,7 @@ function RoomTextMessage({
           )}
         </div>
         {!tabled && botActions}
-        <span className="self-end pb-1 text-[11px] tabular-nums text-ink-tertiary opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="self-end pb-1 text-[12px] font-medium leading-none tabular-nums text-ink-tertiary opacity-0 transition-opacity group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 rtl:-translate-x-1">
           {formatTime(m.at)}
         </span>
       </div>
@@ -1103,8 +1106,12 @@ export function GroupView({ group }: { group: Group }) {
         >
           {group.messages.length === 0 && (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-center">
-              <div className="flex -space-x-2">
-                {members.slice(0, 3).map((b) => (
+              <GroupFaceStack
+                face={44}
+                overlap={18}
+                surface="var(--color-app)"
+                total={members.length}
+                faces={members.slice(0, 3).map((b) => (
                   <BotAvatar
                     key={b.id}
                     bot={b}
@@ -1115,7 +1122,7 @@ export function GroupView({ group }: { group: Group }) {
                     animated={false}
                   />
                 ))}
-              </div>
+              />
               <div className="text-[17px] font-semibold text-ink">{group.name}</div>
               <div className="max-w-[380px] text-[14px] text-ink-secondary">
                 {groupResponseHint(group, members, { jevOn: jevRoomRoutingOn(state.config) })}
@@ -1161,6 +1168,7 @@ export function GroupView({ group }: { group: Group }) {
                   forward={false}
                   lookAround={1}
                   trackPointer={false}
+                  sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.progress}
                 />
               }
               visible={presenceVisible}

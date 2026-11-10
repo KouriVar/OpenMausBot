@@ -41,7 +41,7 @@ export function useRotatingPhrase(
   return { current, previous };
 }
 
-const SHEEN_PERIOD_MS = 2000;
+const SHEEN_PERIOD_MS = 2200;
 
 function ShimmerPhrase({ text, className }: { text: string; className?: string }) {
   const [delay] = useState(() => `-${Date.now() % SHEEN_PERIOD_MS}ms`);

@@ -1,10 +1,13 @@
 import { useEffect, useSyncExternalStore } from "react";
 
+import { SIMULAR_SERVER } from "../../shared/simular";
 import { api } from "@/state/store";
 
 export interface McpServerSummary {
   name: string;
   enabled: boolean;
+  /** `signed-in`: this installation keeps a sign-in for a server reached by URL. */
+  auth?: "signed-in" | "needs-sign-in" | "none";
   /** The bot whose own server this is. */
   bot?: string;
   /** The bots it is off for, because it doesn't start for them. */
@@ -24,7 +27,7 @@ const subscribe = (listener: () => void) => {
 export function updateMcpServers(servers: McpServerSummary[]): void {
   generation += 1;
   inflight = null;
-  cached = { servers: servers.map(({ name, enabled, bot, offFor }) => ({ name, enabled: Boolean(enabled), ...(bot ? { bot } : {}), ...(offFor?.length ? { offFor } : {}) })), error: false };
+  cached = { servers: servers.map(({ name, enabled, auth, bot, offFor }) => ({ name, enabled: Boolean(enabled), ...(auth ? { auth } : {}), ...(bot ? { bot } : {}), ...(offFor?.length ? { offFor } : {}) })), error: false };
   for (const listener of listeners) listener();
 }
 
@@ -73,4 +76,16 @@ export function mcpServersForBot(all: McpServerSummary[], own: string[] | null |
 export function mcpSwitch(servers: McpServerSummary[], own: string[] | null | undefined, name: string): string[] {
   const current = own == null ? servers.filter((server) => server.enabled).map((server) => server.name) : own;
   return current.includes(name) ? current.filter((item) => item !== name) : [...current, name];
+}
+
+/** Whether the person's Simular Box can be used here: its MCP server is listed, on, and signed in. */
+export function simularBoxReady(servers: readonly McpServerSummary[] | null): boolean {
+  const server = servers?.find((entry) => entry.name === SIMULAR_SERVER);
+  return Boolean(server && server.enabled && server.auth === "signed-in");
+}
+
+/** The same for a component that needs the fact without showing the list. */
+export function useSimularBoxReady(): boolean {
+  const { servers } = useMcpServers();
+  return simularBoxReady(servers);
 }

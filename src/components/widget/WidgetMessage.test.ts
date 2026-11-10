@@ -171,7 +171,7 @@ describe("drawing a widget", () => {
   it("falls back to the row's text when there is no tree to draw", () => {
     mount({ id: "w1", role: "bot", kind: "widget", at: 1, text: "the readable fallback" });
     expect(host.textContent).toBe("the readable fallback");
-    expect(host.querySelector(".chat-text")?.className).toMatch(/max-w-\[min\(var\(--chat-bubble-max\),var\(--chat-bubble-pct\)/);
+    expect(host.querySelector(".chat-text")?.className).toMatch(/max-w-\[min\(var\(--chat-bubble-max\),var\(--chat-bubble-pct\),calc\(100%-82px\)\)\]/);
     expect(find("[data-widget]")).toBeNull();
   });
 

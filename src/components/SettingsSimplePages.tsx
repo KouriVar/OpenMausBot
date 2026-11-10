@@ -1,6 +1,7 @@
 import { pageIsThisComputer } from "@/lib/companion-bridge";
 import type { ReactNode } from "react";
 import type { AppSettingsSection } from "@/state/store";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
@@ -35,7 +36,7 @@ import { ProfileSummaryRow } from "./ProfileSettings";
 import { ImportSettings } from "./ImportSettings";
 import { NotificationRows } from "./NotificationSettingsRows";
 import { useServerUpdateItem } from "./SidebarProfileMenu";
-import { AdvancedModeRow, BrowserProfilesRow, ColorUserBubblesRow, FollowUpRow, LanguageRow, ReplayTourRow, SendKeyRow, ToolCallsRow, UpdatesRow } from "./AppSettingsRows";
+import { AdvancedModeRow, BrowserProfilesRow, ColorUserBubblesRow, FollowUpRow, ForkAvatarStyleRow, LanguageRow, ReplayTourRow, SendKeyRow, ToolCallsRow, UpdatesRow } from "./AppSettingsRows";
 import { RoomTurnTimeoutSettings } from "./RoomTurnTimeoutSettings";
 import { McpCallTimeoutSettings } from "./McpCallTimeoutSettings";
 import { ThreadConcurrencySettings } from "./ThreadConcurrencySettings";
@@ -69,7 +70,7 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
         <SettingsGroup label={t("settings.group.account")} block="general">
           <SettingsRows>
             {has("general") && <ProfileSummaryRow />}
-            {has("general") && <CloudPlanRow place="account" />}
+            {has("general") && !FORK_LOCAL_ONLY && <CloudPlanRow place="account" />}
             {has("people") && <div data-settings-block="people" className="scroll-mt-4"><PeopleSection simple startOpen={peopleOpen} /></div>}
           </SettingsRows>
         </SettingsGroup>
@@ -83,6 +84,7 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
             <ChromeRailRow />
             <WindowFrameRow />
             <ColorUserBubblesRow simple />
+            <ForkAvatarStyleRow />
           </SettingsRows>
         </SettingsGroup>
       )}

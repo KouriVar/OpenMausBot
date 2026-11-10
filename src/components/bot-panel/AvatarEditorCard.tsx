@@ -15,6 +15,8 @@ import { AvatarImageGenerator } from "../AvatarImageGenerator";
 import { AvatarFraming, OrganizationAvatarIcons, RESET_MASCOT_PATCH, useAvatarImage, type AvatarPatch } from "../avatar-editing";
 import { Segmented } from "./rows";
 import { MascotFaceColorPicker } from "../MascotFaceColorPicker";
+import { useForkAvatarStyle } from "@/fork/avatar-style";
+import { BloubCustomizer } from "../BloubCustomizer";
 
 export type AvatarEditorTab = "bot" | "generate" | "upload";
 
@@ -57,6 +59,7 @@ export function AvatarEditorCard({ bot, activeState, onPatch, onClose }: {
 }) {
   const image = useAvatarImage(bot, onPatch);
   const { fileRef, crop, uploading, generating, busy, error, upload, removeImage, generate } = image;
+  const bloub = useForkAvatarStyle() === "bloub";
   const showsImage = crop !== "mascot" && Boolean(bot.avatarUrl);
   const [tab, setTab] = useState<AvatarEditorTab>(showsImage ? "upload" : "bot");
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -132,7 +135,7 @@ export function AvatarEditorCard({ bot, activeState, onPatch, onClose }: {
       </div>
 
       <div className="p-3">
-        {tab === "bot" && (
+        {tab === "bot" && (bloub ? <BloubCustomizer botId={bot.id} color={bot.color} /> : (
           <>
             <div className="grid grid-cols-5 gap-1.5">
               {MASCOT_BODY_IDS.map((id) => bodyButton(id, bodyName(id)))}
@@ -203,7 +206,7 @@ export function AvatarEditorCard({ bot, activeState, onPatch, onClose }: {
               </div>
             )}
           </>
-        )}
+        ))}
 
         {tab === "generate" && (
           <div className="[&>div:first-child]:mt-0 [&>div:first-child]:border-0 [&>div:first-child]:pt-0">
