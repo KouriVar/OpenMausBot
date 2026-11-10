@@ -34,10 +34,10 @@ export function simularAlwaysAsks(tool: unknown): boolean {
   return typeof tool === "string" && ALWAYS_ASK.has(tool.trim());
 }
 
-/** The highest approval level a Simular Box turn may run at: "full" would hand the engine its own bypass and the two
- * tools above would never reach a person. */
-export function simularApprovalCeiling(backend: string | null | undefined): "auto" | null {
-  return backend === "simular" ? "auto" : null;
+/** The highest approval level a Simular Box turn may run at: Full access would hand the engine its own bypass, and the
+ * two tools above would never reach a person. */
+export function cappedApprovalMode<Mode extends string>(mode: Mode, backend: string | null | undefined): Mode {
+  return (backend === "simular" && mode === "full" ? "auto" : mode) as Mode;
 }
 
 export function isSimularBackend(backend: string | null | undefined): boolean {

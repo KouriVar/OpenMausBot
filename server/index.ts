@@ -108,8 +108,10 @@ import { DataSheetRegistry } from "./data/sheet.ts";
 import { DataFailure } from "./data/types.ts";
 import { TeamComputers, teamComputerOwner, type TeamComputerRecord } from "./team-computers.ts";
 import { isEffortLevel, type CardAnswerer, type ResolvedSender, type SignInRequestCardData, type WireBot, type WireGroup, type WireTask } from "../shared/wire.ts";
-import { simularApprovalCeiling, isSimularBackend, SIMULAR_BOX_URL } from "../shared/simular.ts";
-import { simularConnected, simularScreenshot, simularSleep, simularTurnMount, SIMULAR_CALL_MS } from "./simular.ts";
+import { cappedApprovalMode, isSimularBackend } from "../shared/simular.ts";
+import { SIMULAR_CALL_MS } from "./simular.ts";
+import { createPlaceFailures } from "./place-failures.ts";
+import { cloudBackendForTurn, computerPromptKindFor, mountSimularBox, simularComputerStatus, simularComputerVerb } from "./simular-desktop.ts";
 import { isPersistentQuestionCard, shouldSettleRequestCard } from "../shared/ask-question.ts";
 import { parseToolScope } from "../shared/tool-scope.ts";
 import type { TeamComputersPayload } from "../shared/team-computer.ts";
@@ -514,7 +516,6 @@ import { CONTROL_ACT_WITHIN_MS, CONTROL_BUSY, CONTROL_HANDED_BACK, CONTROL_WAIT_
 import { computerFreeAfterText, computerParkedText, computerPersonAwayText, computerStoppedWaitingText, computerWaitingText, type ComputerHolder } from "./computer-wait.ts";
 import { modelContextWindow } from "./model-context-window.ts";
 import { browserIsThePlace, chosenPin, cloudPlaceRefusal, computerSkippedNote, computerToolsRefusal, handoffUsesOwnCloud, isHandedWork, ownCloudStateWithin, parseSurface, pinSource, PlaceUnavailableError, placeUnavailable, resolveSurface, surfaceLabel, surfaceOfComputerKind, surfacePrompt, type ComputerWant, type PlaceSource, type Surface } from "./surface.ts";
-import { cloudRefusal, type PlaceRow } from "../shared/place-view.ts";
 import {
   PendingTurnCancellations,
   ProviderTurnGenerationRegistry,
@@ -1875,41 +1876,14 @@ function clearFailedAutoPin(botId: string, threadId: string, place: Surface): bo
   return true;
 }
 
-async function asPlaceFailure(
-  error: unknown, place: Surface, source: PlaceSource, bot: { id: string; name: string }, backend: "box" | "vps" | "simular" = "box",
-): Promise<unknown> {
-  if (error instanceof DirectTurnSetupCancelled || error instanceof ComputerWaitParked || error instanceof PlaceUnavailableError) return error;
-  const failure = error instanceof Error ? error : new Error(String(error));
-  const cause = failure.message.trim().replace(/[\s.]+$/, "");
-  if (place !== "cloud" || backend === "vps" || (failure as { code?: unknown }).code === "managed_policy") {
-    return placeUnavailable(place, {
-      state: "place-failed", params: { bot: bot.name, cause: `${cause.charAt(0).toUpperCase()}${cause.slice(1)}.` }, source,
-    }, Boolean(CLOUD_HOME));
-  }
-  const { boatCode, boatStatus, status } = failure as { boatCode?: unknown; boatStatus?: unknown; status?: unknown };
-  const providerStatus = typeof boatStatus === "number" ? boatStatus : typeof status === "number" ? status : undefined;
-  const read = cloudRefusal({
-    message: failure.message,
-    ...(typeof boatCode === "string" ? { code: boatCode } : {}),
-    ...(providerStatus !== undefined ? { status: providerStatus } : {}),
-  }, boat.boatAccount(cfg)?.included === true);
-  const row: PlaceRow = { state: read.state, params: { bot: bot.name, ...read.params }, source };
-  if (row.state === "cc-at-once") row.params.holders = await cloudComputerHolders(bot.id);
-  return placeUnavailable(place, row, Boolean(CLOUD_HOME));
-}
-async function cloudComputerHolders(botId: string): Promise<string[]> {
-  try {
-    const listed = await boat.listManagedBoats(cfg, managedBoatOwners(), { adoptLegacy: false });
-    return [...new Set(listed.instances
-      .filter((instance) => instance.ownerBotId && instance.ownerBotId !== botId && instance.ownerName)
-      .map((instance) => instance.ownerName!))];
-  } catch {
-    return [];
-  }
-}
-function boatNotConfigured(bot: { name: string }, source: PlaceSource): PlaceUnavailableError {
-  return placeUnavailable("cloud", { state: CLOUD_HOME ? "cc-unavailable" : "cc-needs-key", params: { bot: bot.name }, source }, Boolean(CLOUD_HOME));
-}
+const placeFailures = createPlaceFailures({
+  cfg,
+  cloudHome: Boolean(CLOUD_HOME),
+  owners: () => managedBoatOwners(),
+  boatIncluded: () => boat.boatAccount(cfg)?.included === true,
+  settled: (error) => error instanceof DirectTurnSetupCancelled || error instanceof ComputerWaitParked || error instanceof PlaceUnavailableError,
+});
+const { asPlaceFailure, boatNotConfigured } = placeFailures;
 const directTurnDispatchClaims = new Map<string, DirectTurnDispatchClaim>();
 const directTurnGenerationByThread = new Map<string, string>();
 // Latest direct request per thread, kept past Stop until completion or failure cleanup; unknown continuations deliberately lose proof.
@@ -3084,10 +3058,8 @@ const approvalModeForTurn = (bot: BotRecord, peerInitiated = false, threadId = b
   if (!supportsApprovalMode(bot.modelSelection, mode)) {
     return "ask";
   }
-  // A Simular Box is another company's machine, and Full access hands the engine its own bypass: the two tools that shell
-  // into it or delete it would never reach a person (shared/simular.ts). Full therefore stops at Approve for me here.
-  const ceiling = simularApprovalCeiling(bot.cloudBackend);
-  return ceiling === "auto" && mode === "full" ? "auto" : mode;
+  // Full access never reaches another company's computer: see cappedApprovalMode.
+  return cappedApprovalMode(mode, bot.cloudBackend);
 };
 
 function sourceApprovalMode(botId: string, threadId: string): ApprovalMode {
@@ -7954,9 +7926,7 @@ async function beginTurn(
       const dwebUrl = process.env.DWEB_URL?.trim();
       if (dwebUrl) integrations.dweb = { url: dwebUrl };
       let teamComputer = computerSkipped || proactive.fence.confines(threadId) || botApiThread(threadId) ? undefined : inheritedTeamComputer(bot);
-      const cloudBackend = teamComputer || opts?.runOn === "cloud" ? "box"
-        : bot.cloudBackend === "vps" ? "vps"
-          : isSimularBackend(bot.cloudBackend) ? "simular" : "box";
+      const cloudBackend = cloudBackendForTurn({ teamComputer, runOnCloud: opts?.runOn === "cloud", backend: bot.cloudBackend });
       const mountsComputerMcp = instance.adapter.capabilities.computerMcp === true;
       const mountsLocalComputer = instance.adapter.capabilities.localComputerMcp === true;
       const dispatchTask = store.taskByThread(bot.id, threadId);
@@ -8230,22 +8200,12 @@ async function beginTurn(
         if (wants === "cloud" && cloudBackend === "box" && computerKind !== "box") {
           throw new Error("the cloud computer could not be created or reached");
         }
-        // A Simular Box is reached through its own MCP server, so the bot calls that server's tools and no computer of
-        // this app's is mounted: the box's screenshot, click, shell and window tools are the ones it names.
         if (!teamComputer && cloudBackend === "simular" && wants === "cloud") {
           // An organization that switched cloud computers off switches this one off too: it is a cloud desktop like Boat's.
           const refusal = computerPlaceRefusal("box");
           if (refusal) throw Object.assign(new Error(refusal.message), { code: refusal.code });
-          if (!simularConnected(cfg, mcpOAuth)) {
-            throw placeUnavailable("cloud", { state: "cc-simular-off", params: { bot: bot.name }, source: placeSource ?? "works-on" }, Boolean(CLOUD_HOME));
-          }
-          const mount = await simularTurnMount(cfg, mcpOAuth);
-          if (!mount) throw placeUnavailable("cloud", { state: "cc-simular-off", params: { bot: bot.name }, source: placeSource ?? "works-on" }, Boolean(CLOUD_HOME));
-          // Wrapped on its own, then merged: the bot's own servers are already brokered and must not be wrapped twice.
-          const wrapped: Pick<NonNullable<SendTurnInput["integrations"]>, "custom" | "customResultBudgets"> = {};
-          attachCustomMcp(wrapped, mount, cfg, { botId: bot.id, threadId });
-          integrations.custom = { ...integrations.custom, ...wrapped.custom };
-          if (wrapped.customResultBudgets) integrations.customResultBudgets = { ...integrations.customResultBudgets, ...wrapped.customResultBudgets };
+          const boxOff = placeUnavailable("cloud", { state: "cc-simular-off", params: { bot: bot.name }, source: placeSource ?? "works-on" }, Boolean(CLOUD_HOME));
+          if (!await mountSimularBox({ cfg, oauth: mcpOAuth, botId: bot.id, threadId, integrations })) throw boxOff;
           computerKind = "box";
         }
       } catch (error) {
@@ -8382,12 +8342,7 @@ async function beginTurn(
       if (!markDirectTurnDispatching(bot.id, dispatchClaimId, threadId)) {
         throw new DirectTurnSetupCancelled("turn stopped before dispatch");
       }
-      const computerPromptKind = cloudBackend === "simular" && computerKind === "box"
-        ? "simular" as const
-        : resolveComputerPromptKind({
-          kind: computerKind,
-          vmPrivate: localVmMode(cfg) === "per-bot",
-        });
+      const computerPromptKind = computerPromptKindFor({ cloudBackend, kind: computerKind, vmPrivate: localVmMode(cfg) === "per-bot" });
       const coordinationNode = opts?.coordination ? coordinator.node(opts.coordination.id) : undefined;
       if (opts?.coordination && (!coordinationNode || coordinationNode.status !== "running" || roomHandoffProblem(coordinationNode,
         coordinationNode.parentId ? coordinator.node(coordinationNode.parentId) : undefined))) {
@@ -15248,11 +15203,7 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
       if (!bot) return json(res, 404, { error: "no such bot" });
       const surface = url.searchParams.has("threadId") ? await computerPreviewSurface(bot, bot.threadId) : "cloud";
       if (surface !== "cloud") return json(res, 200, { surface, configured: false, backend: bot.cloudBackend === "vps" ? "vps" : "box" });
-      // The person's own Simular Box: one desktop per account, known by its MCP sign-in alone. It is never a team's.
-      if (isSimularBackend(bot.cloudBackend)) {
-        const connected = simularConnected(cfg, mcpOAuth);
-        return json(res, 200, { surface, backend: "simular", configured: connected, simular: { connected } });
-      }
+      if (isSimularBackend(bot.cloudBackend)) return json(res, 200, simularComputerStatus(cfg, mcpOAuth));
       const teamComputer = inheritedTeamComputer(bot);
       if (teamComputer) return json(res, 200, { surface, backend: "box", teamComputer: { id: teamComputer.id, name: teamComputer.name }, ...(await boat.boatStatus(cfg, teamComputerOwner(teamComputer.id))) });
       return bot.cloudBackend === "vps"
@@ -15335,27 +15286,12 @@ const handleRequest = async (req: IncomingMessage, res: ServerResponse) => {
       if (m[2] === "join" && bot.cloudBackend === "vps") {
         for (let pending; (pending = vpsJoinRequests.get(botId));) await pending;
       }
-      // A Simular Box is the person's own account: one desktop that wakes when used, watched and driven at its own portal.
+      // The person's own Simular account: one desktop that wakes when used, watched and driven at its own portal.
       if (isSimularBackend(bot.cloudBackend)) {
         const abort = new AbortController();
         res.once("close", () => { if (!res.writableEnded) abort.abort(); });
-        const stop = AbortSignal.any([abort.signal, AbortSignal.timeout(SIMULAR_CALL_MS)]);
-        if (!simularConnected(cfg, mcpOAuth)) {
-          return json(res, 409, { error: "Simular Box is not connected in Settings → Plugins" });
-        }
-        if (m[2] === "screenshot") {
-          res.setHeader("cache-control", "private, no-store");
-          return json(res, 200, await computerPreviews.capture(botId, () => simularScreenshot(cfg, mcpOAuth, stop)));
-        }
-        if (m[2] === "join") return json(res, 200, { joinUrl: SIMULAR_BOX_URL });
-        if (m[2] === "sleep") return json(res, 200, { slept: await simularSleep(cfg, mcpOAuth, stop) });
-        if (m[2] === "provision") {
-          return json(res, 409, { error: "A Simular account has one desktop already; there is nothing to create here." });
-        }
-        if (m[2] === "remove") {
-          return json(res, 409, { error: "This app creates no desktop at Simular; remove the server in Settings → Plugins." });
-        }
-        return json(res, 409, { error: "The bot runs commands there with the box's own shell tool" });
+        const reply = await simularComputerVerb({ cfg, oauth: mcpOAuth, verb: m[2], botId, previews: computerPreviews, noStore: () => res.setHeader("cache-control", "private, no-store"), signal: AbortSignal.any([abort.signal, AbortSignal.timeout(SIMULAR_CALL_MS)]) });
+        return json(res, reply.status, reply.body);
       }
       const remoteProvider: RemoteComputerProvider = bot.cloudBackend === "vps" ? "vps" : "box";
       if (computerProviderConfigTransitions.has(remoteProvider)) {

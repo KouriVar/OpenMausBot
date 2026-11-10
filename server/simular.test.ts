@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SIMULAR_ALWAYS_ASK_TOOLS, SIMULAR_BOX_URL, simularAlwaysAsks, simularApprovalCeiling } from "../shared/simular.ts";
+import { cappedApprovalMode, SIMULAR_ALWAYS_ASK_TOOLS, SIMULAR_BOX_URL, simularAlwaysAsks } from "../shared/simular.ts";
 import { simularConnected, simularServerConfigured } from "./simular.ts";
 import type { AppConfig } from "./config.ts";
 
@@ -37,10 +37,13 @@ describe("the person's Simular Box", () => {
   });
 
   it("caps Full access at Approve for me, so the engine never answers those two by itself", () => {
-    expect(simularApprovalCeiling("simular")).toBe("auto");
-    expect(simularApprovalCeiling("box")).toBeNull();
-    expect(simularApprovalCeiling("vps")).toBeNull();
-    expect(simularApprovalCeiling(undefined)).toBeNull();
+    expect(cappedApprovalMode("full", "simular")).toBe("auto");
+    expect(cappedApprovalMode("ask", "simular")).toBe("ask");
+    expect(cappedApprovalMode("auto", "simular")).toBe("auto");
+    // Every other computer keeps the level the person granted.
+    expect(cappedApprovalMode("full", "box")).toBe("full");
+    expect(cappedApprovalMode("full", "vps")).toBe("full");
+    expect(cappedApprovalMode("full", undefined)).toBe("full");
   });
 
   it("watches and is taken over at the box's own portal", () => {

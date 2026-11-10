@@ -36,8 +36,7 @@ import type {
   TextGenerationOptions,
 } from "../contracts.ts";
 import { appMountFor, customServerGate, gateQueryTools, gateServer } from "../mcp-gate-config.ts";
-import { canUseMcpServer } from "../../shared/tool-scope.ts";
-import { simularAlwaysAsks } from "../../shared/simular.ts";
+import { canUseMcpServer } from "../../shared/tool-scope.ts"; import { simularAlwaysAsks } from "../../shared/simular.ts";
 import { assertToolScopeSupported } from "../../shared/tool-scope-support.ts";
 import { newEventId, newId } from "../contracts.ts";
 import { askInputSummary, commandSummary, toolDetailPreview } from "../tool-summary.ts";

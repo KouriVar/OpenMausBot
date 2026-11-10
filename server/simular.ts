@@ -13,8 +13,9 @@ import {
   SIMULAR_CLIENT_NAME, SIMULAR_HIBERNATE_TOOL, SIMULAR_SCREENSHOT_TOOL, SIMULAR_SERVER, SIMULAR_STATUS_TOOL, SIMULAR_WAKE_TOOL,
 } from "../shared/simular.ts";
 
-/** How long one panel call may take: a box that is asleep wakes in a few seconds, and a still is one screen. */
-export const SIMULAR_CALL_MS = 25_000;
+/** How long one panel call may take: a still is one screen, but a box that went to sleep needs waking first, and the
+ * first call after a restart also pays for its sign-in. */
+export const SIMULAR_CALL_MS = 45_000;
 
 /** One still of the box's screen, as the panel's image takes it. */
 export interface SimularFrame {
