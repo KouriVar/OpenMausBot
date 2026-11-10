@@ -7713,5 +7713,6 @@
   "sidebar.bot.simple.setMainThread": "设为主对话",
   "sidebar.bot.simple.isMainThread": "已经是主对话",
   "lookedAfter.setForAllTitle": "{name} 里的所有人都由谁照顾",
-  "sidebar.floatingRail": "悬浮侧栏"
+  "sidebar.hideSidebar": "隐藏侧栏",
+  "sidebar.revealHidden": "唤出侧栏"
 }

@@ -15,6 +15,9 @@ import { ThreadRefsProvider } from "@/components/ThreadRefs";
 import { initAnalytics } from "@/lib/analytics";
 import { parseComputerHelp } from "@/lib/computer-control";
 import { Sidebar } from "@/components/Sidebar";
+import { HiddenSidebarEdge } from "@/components/HiddenSidebarEdge";
+import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
+import { setSidebarDensity } from "@/lib/sidebar-preferences";
 import { ChatView } from "@/components/ChatView";
 import { GroupView } from "@/components/GroupView";
 import { SIDEBAR_AND_PANEL_FIT, SIDEBAR_INLINE, TWO_SIDE_PANELS_FIT, useMediaQuery } from "@/lib/use-media-query";
@@ -137,6 +140,15 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   useExternalChatLinks(state, dispatch); useDesktopNotificationOpens(state, dispatch);
   usePresence(state, dispatch);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // Fork: the sidebar can be hidden behind an edge handle; the handle brings the collapsed bar back.
+  const [hiddenSidebar, setHiddenSidebar] = useHiddenSidebar();
+  const [revealSidebar, setRevealSidebar] = useState(false);
+  const revealHiddenSidebar = useCallback(() => {
+    setSidebarDensity("icons");
+    setHiddenSidebar(false);
+    setRevealSidebar(true);
+    window.setTimeout(() => setRevealSidebar(false), 260);
+  }, [setHiddenSidebar]);
   usePageLanguage(effectiveLanguage(useLanguageChoice(), state.config?.language), true);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // Stays mounted once opened: a Cloud bought in it can arrive after the sheet is closed.
@@ -359,9 +371,11 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
         className={framed ? "relative flex min-w-0 flex-1 flex-col overflow-hidden bg-app" : "contents"}>
       {framed && strips}
       <div className={framed ? "relative flex min-h-0 flex-1" : "contents"}>
-      {!calendarFocus && <Sidebar
+      {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && <HiddenSidebarEdge onReveal={revealHiddenSidebar} />}
+      {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && hiddenSidebar) && <Sidebar
         collapseToIcons={collapseSidebar}
         open={drawerOpen}
+        reveal={revealSidebar}
         onClose={() => {
           setDrawerOpen(false);
           menuButtonRef.current?.focus();

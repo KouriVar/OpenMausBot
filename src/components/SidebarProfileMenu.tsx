@@ -51,8 +51,7 @@ import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
-import { FORK_FLOATING_RAIL, useFloatingRail } from "@/fork/floating-rail";
-import { setSidebarDensity, useSidebarDensity } from "@/lib/sidebar-preferences";
+import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -625,24 +624,11 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
     { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
   ] : [];
-  const [floatingRail, chooseFloatingRail] = useFloatingRail();
-  const density = useSidebarDensity();
-  const floatingItems: SidebarMenuItem[] = FORK_FLOATING_RAIL
-    ? [{
-      key: "floating-rail",
-      label: t("sidebar.floatingRail"),
-      icon: <ArrowLeftRight size={16} />,
-      value: floatingRail ? "On" : undefined,
-      active: floatingRail,
-      onSelect: () => {
-        const next = !floatingRail;
-        // The floating bar is the collapsed bar: turning it on collapses the sidebar first.
-        if (next && density !== "icons") setSidebarDensity("icons");
-        chooseFloatingRail(next);
-      },
-    }]
+  const [, setHiddenSidebar] = useHiddenSidebar();
+  const hideItems: SidebarMenuItem[] = FORK_HIDDEN_SIDEBAR
+    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <ArrowDownToLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
     : [];
-  const items = railItems.length ? [...floatingItems, ...railItems, ...profileMenuItems({
+  const items = railItems.length ? [...hideItems, ...railItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -679,7 +665,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  })] : [...floatingItems, ...profileMenuItems({
+  })] : [...hideItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({

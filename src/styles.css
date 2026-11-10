@@ -3494,12 +3494,12 @@ button:disabled.bg-danger {
   right: 0;
 }
 
-/* Fork, floating sidebar (off by default): the bar leaves the layout, so the chat keeps the window's full
-   width behind it and only reserves the bar's column on the side it is docked to — clearing both the
-   floating avatars and the chat header's top-right controls when docked on the right. */
-:root[data-floating-rail="left"] main {
-  margin-inline-start: calc(92px + 16px);
+/* Fork: the collapsed bar slides back in when the edge handle brings it; the handle itself is a 5px
+   sliver on the window's left edge, clearer on hover. */
+@keyframes sidebar-reveal {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
-:root[data-floating-rail="right"] main {
-  margin-inline-end: calc(92px + 16px);
+@media (prefers-reduced-motion: reduce) {
+  [data-hidden-sidebar-edge] span { transition: none; }
 }

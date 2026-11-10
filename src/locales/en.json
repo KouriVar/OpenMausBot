@@ -9933,5 +9933,6 @@
   "settings.boldText.title": "Bold text",
   "settings.boldText.subtitle": "Messages and the composer draw one weight heavier. Saved on this device; off by default.",
   "chat.setupCard.greeting": "Hi, I'm {name}. What would you like me to do?",
-  "sidebar.floatingRail": "Floating sidebar"
+  "sidebar.hideSidebar": "Hide sidebar",
+  "sidebar.revealHidden": "Show the sidebar"
 }

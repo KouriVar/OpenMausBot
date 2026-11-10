@@ -43,7 +43,6 @@ import { draggedFolder, FOLDER_DRAG_TYPE, moveFolder, placeFolder } from "@/lib/
 import { folderUnreadThreadIds, markFolderRead } from "@/lib/folder-read";
 import { HelperThreadGroup, orderedThreadList, partitionHelperThreads, SidebarThreadRow, stampClock, threadRecency, threadRowActions, useRelativeNow, useRevealedThreadRow, useSnoozeExpiry, visibleSidebarThreads } from "./SidebarThreadRow";
 import { setSidebarDensity, useSidebarDensity, usePinnedCircles, useUniversalPins, type SidebarDensity } from "@/lib/sidebar-preferences";
-import { FORK_FLOATING_RAIL, useFloatingRail, useFloatingRailSide, type FloatingSide } from "@/fork/floating-rail";
 import {
   ATTENTION_SECTION_ID,
   BOT_CHATS_SECTION_ID,
@@ -945,10 +944,12 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   );
 });
 
-export function Sidebar({ open, onClose, collapseToIcons = false }: {
+export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false }: {
   open: boolean;
   onClose: () => void;
   collapseToIcons?: boolean;
+  /** Fork: the bar was just brought back by the edge handle; slide it in once. */
+  reveal?: boolean;
 }) {
   const { state, dispatch } = useStore();
   const now = useRelativeNow();
@@ -1010,19 +1011,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
   } | null>(null);
   const [query, setQuery] = useState("");
   const storedDensity = useSidebarDensity();
-  // Fork: the collapsed bar can float over the chat. Off unless the person turns it on.
-  const [floatingOn] = useFloatingRail();
-  const [floatingSide, setFloatingSide] = useFloatingRailSide();
-  const floating = FORK_FLOATING_RAIL && floatingOn && storedDensity === "icons" && !phone;
-  const floatDrag = useRef<{ startX: number; moved: boolean } | null>(null);
-  const floatDragX = useRef(0);
-  const floatSuppressClick = useRef(false);
-  useEffect(() => {
-    const root = document.documentElement;
-    if (floating) root.setAttribute("data-floating-rail", floatingSide);
-    else root.removeAttribute("data-floating-rail");
-    return () => root.removeAttribute("data-floating-rail");
-  }, [floating, floatingSide]);
   const density = collapseToIcons ? "icons" : storedDensity;
   const simple = !advanced && density !== "icons";
   const simpleDesk = simple && !phone;
@@ -1285,56 +1273,9 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
         // The phone's list covers the whole screen: choosing the bot that is already open has to dismiss it too.
         if (phone && open && event.target instanceof Element && !(event.target instanceof HTMLInputElement) && event.target.closest("[data-sidebar-bot-row], [data-sidebar-hero]")) onClose();
       }}
-      style={floating
-        ? {
-          "--sidebar-width": `${sizing.width}px`,
-          position: "fixed",
-          top: 44,
-          bottom: 8,
-          left: floatingSide === "left" ? 8 : "auto",
-          right: floatingSide === "right" ? 8 : "auto",
-          height: "auto",
-          zIndex: 30,
-          transform: floatDragX.current ? `translateX(${floatDragX.current}px)` : undefined,
-        } as CSSProperties
-        : { "--sidebar-width": `${sizing.width}px` } as CSSProperties}
-      onPointerDown={(event) => {
-        if (!floating) return;
-        const target = event.target as Element | null;
-        if (target?.closest("button, a, input, textarea, [role=menu], [data-sidebar-bot-row]")) return;
-        floatDrag.current = { startX: event.clientX, moved: false };
-        floatDragX.current = 0;
-        (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-      }}
-      onPointerMove={(event) => {
-        const drag = floatDrag.current;
-        if (!drag || !floating) return;
-        const delta = event.clientX - drag.startX;
-        if (Math.abs(delta) > 4) drag.moved = true;
-        floatDragX.current = delta;
-        event.currentTarget.style.transform = `translateX(${delta}px)`;
-      }}
-      onPointerUp={(event) => {
-        const drag = floatDrag.current;
-        if (!drag || !floating) return;
-        floatDrag.current = null;
-        const el = event.currentTarget;
-        el.style.transform = "";
-        floatDragX.current = 0;
-        if (!drag.moved) return;
-        floatSuppressClick.current = true;
-        const side: FloatingSide = event.clientX < window.innerWidth / 2 ? "left" : "right";
-        setFloatingSide(side);
-      }}
-      onClickCapture={(event) => {
-        if (!floatSuppressClick.current) return;
-        floatSuppressClick.current = false;
-        event.preventDefault();
-        event.stopPropagation();
-      }}
+      style={{ "--sidebar-width": `${sizing.width}px` } as CSSProperties}
       className={cn(
         "relative flex h-full shrink-0 flex-col bg-panel max-md:[--scroll-fade-surface:var(--color-app)]",
-        floating && "rounded-xl border border-hairline/40 shadow-[0_18px_44px_-14px_rgb(0_0_0/0.45)] motion-safe:transition-[left,right] motion-safe:duration-200 motion-safe:ease-out",
         density === "icons" && !rail ? SIDEBAR_ICON_COLUMN_EDGE : "border-r-[0.5px] border-edge",
         sizing.resizing && !sizing.snapping ? "transition-none" : "transition-[width] duration-200 motion-reduce:transition-none",
         density === "icons" ? SIDEBAR_ICON_COLUMN_WIDTH_CLASS : advanced ? "w-[320px] md:w-[var(--sidebar-width)]" : "w-[280px] md:w-[var(--sidebar-width)]",
@@ -1344,6 +1285,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
         "max-md:absolute max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:w-full max-md:bg-app",
         "max-md:transition-transform max-md:duration-200",
         open ? "max-md:translate-x-0" : "max-md:-translate-x-full",
+        reveal && "motion-safe:animate-[sidebar-reveal_180ms_ease-out]",
       )}
     >
       <GlassScrollFrame className="flex-1" fade><PlaceTint />
@@ -1446,7 +1388,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
       </GlassBar>
 
       {!collapseToIcons && !phone && <SidebarResizeHandle sizing={sizing} sidebarRef={sidebarRef} avatars={density === "icons"} avatarsWidth={SIDEBAR_ICON_COLUMN_WIDTH}
-        onAvatars={floating ? () => {} : (avatars) => setSidebarDensity(avatars ? "icons" : "comfortable")} style={windowNoDragStyle} />}
+        onAvatars={(avatars) => setSidebarDensity(avatars ? "icons" : "comfortable")} style={windowNoDragStyle} />}
 
       <GlassScroller className={rail ? "[scrollbar-gutter:stable_both-edges]" : simpleDesk ? "px-3" : density === "icons" ? "px-2 [scrollbar-gutter:stable_both-edges]" : "px-2"}>
         <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced ? "gap-0.5" : "gap-1 pb-2 pt-2")}>
@@ -1592,7 +1534,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
           archived={archivedEntry}
           topActions={RAIL_MENU_ACTIONS ? undefined : <div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
             {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
-            <button type="button" onClick={floating ? openCommandPalette : railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
+            <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
               <Search size={18} strokeWidth={1.5} aria-hidden="true" />
             </button>
             <div className="relative flex">{plusControl}</div>
