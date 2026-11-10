@@ -776,17 +776,17 @@ export function Composer({
           onEdit={locked ? undefined : editQueued}
         />
         <div className="relative">
-          {/* Plain canvas behind the composer and the strip below it, so the transcript ends at the composer
-              with no fade. Simple mode starts it at the composer's top edge, Advanced at its middle. */}
-          <div
-            aria-hidden
-            data-composer-backdrop
-            className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
-          />
-          {/* The same melt the chat head draws at the top, upside down: the strip under the composer fades
-              into the canvas instead of ending on a hard line. */}
-          {COMPOSER_BOTTOM_FADE && (
-            <div aria-hidden data-fork-composer-fade className="pointer-events-none absolute -left-5 -right-5 bottom-full h-[60px]" />
+          {/* Fork: the transcript runs on to the window's bottom edge and the fade layer behind the composer
+              melts it into the canvas, instead of one opaque block cutting it off at the input's top. The
+              layer sits under the composer (which keeps its own opaque pill) and over the bubbles. */}
+          {COMPOSER_BOTTOM_FADE ? (
+            <div aria-hidden data-fork-composer-fade className="pointer-events-none absolute -left-5 -right-5 top-0 -bottom-3" />
+          ) : (
+            <div
+              aria-hidden
+              data-composer-backdrop
+              className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
+            />
           )}
         <div ref={shellRef} data-tour="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(SIMPLE_COMPOSER, multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
         {singleRow && !locked && (

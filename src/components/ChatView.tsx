@@ -696,6 +696,9 @@ const MessagesList = memo(function MessagesList({
   const layout = useMemo(() => simple ? simpleRowLayout(items, { botId, showToolCalls, unreadIds }) : null, [simple, items, unreadIds, showToolCalls, botId]);
   const joins = layout?.joins;
   const durations = useMemo(() => simple ? turnDurations(messages) : null, [messages, simple]);
+  // Fork: one notice per turn is enough. A rescue can arrive as two rows (the row with its buttons and
+  // the plain notice without them); the second used to print the stored English sentence again.
+  const shownNotices = new Set<string>();
   const dividerAbove = (rows: readonly Message[]) => {
     if (!unreadIds || dividerPlaced || !rows.some((row) => unreadIds.has(row.id))) return null;
     dividerPlaced = true;
@@ -750,7 +753,12 @@ const MessagesList = memo(function MessagesList({
               return m.call ? <CallRecordRow message={m} transcript={transcript} botName={botName} threadId={threadId} busy={busy} hasMore={hasMore} /> : null;
             case "activity": {
               if (m.dataResult) return <DataResultChip message={m} />;
-              if (isStatusActivity(m)) return <StatusActivityRow message={m} />;
+              if (isStatusActivity(m)) {
+                const noticeKey = `${m.turnId ?? ""}|${m.tool?.name ?? ""}`;
+                if (shownNotices.has(noticeKey)) return null;
+                shownNotices.add(noticeKey);
+                return <StatusActivityRow message={m} />;
+              }
               if (m.tool && failedTurnCause(m.tool.name) !== null) {
                 return (
                   <FailedTurnRow

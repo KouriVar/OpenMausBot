@@ -3457,59 +3457,20 @@ button:disabled.bg-danger {
   font-weight: 650;
 }
 
-/* Fork: the composer's bottom edge fades the transcript into the canvas the way the chat head's top
-   edge does, only upside down: a 60px band above the composer, transparent at its top and solid canvas
-   at its bottom, so messages melt away under the input instead of being cut off. It copies the fading
-   top bar's solid-canvas treatment (no tint, no blur) and its reduced-transparency and forced-colour
-   fallbacks. */
+/* Fork: the composer's bottom edge fades the transcript into the canvas the way the chat head's top edge
+   does, only upside down. The layer sits behind the composer (pointer-events: none) and reaches the
+   window's bottom edge; it is transparent where the composer starts and becomes the canvas below, so
+   messages melt away as they pass under the input and nothing above the composer is covered. */
 [data-fork-composer-fade] {
-  background: linear-gradient(to bottom, transparent, var(--color-app));
+  background: linear-gradient(to bottom, transparent, var(--color-app) 85%);
 }
 @media (prefers-reduced-transparency: reduce) {
   [data-fork-composer-fade] {
-    background: linear-gradient(to bottom, transparent, Canvas);
+    background: linear-gradient(to bottom, transparent, Canvas 85%);
   }
 }
 @media (forced-colors: active) {
   [data-fork-composer-fade] {
-    background: Canvas;
-  }
-}
-
-/* Fork: with "Bold text" on (Settings → Appearance), chat messages and the composer take one weight step
-   heavier. Unlayered so it wins over the markdown rules' own weights, and one attribute on <html> covers every
-   skin and both themes. */
-:root[data-fork-bold-text="on"] .chat-md,
-:root[data-fork-bold-text="on"] [data-tour="composer"] textarea,
-:root[data-fork-bold-text="on"] [data-tour="composer"] [contenteditable="true"] {
-  font-weight: 500;
-}
-:root[data-fork-bold-text="on"] .chat-md strong,
-:root[data-fork-bold-text="on"] .chat-md b {
-  font-weight: 650;
-}
-
-/* Fork UI batch B: the composer's bottom edge melts the transcript into the canvas the way the chat head's
-   top edge does, only upside down. It copies the fading top bar exactly (solid canvas over the band, no
-   tint, no blur) and flips the gradient and its masks, so both skins and forced colours behave the same. */
-[data-fork-composer-fade] {
-  height: 60px;
-  overflow: hidden;
-}
-[data-fork-composer-fade]::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(to top, var(--color-app), var(--color-app) calc(100% - 60px), transparent);
-}
-@media (prefers-reduced-transparency: reduce) {
-  [data-fork-composer-fade]::before {
-    background: Canvas;
-  }
-}
-@media (forced-colors: active) {
-  [data-fork-composer-fade]::before {
     background: Canvas;
   }
 }

@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import { openBotSettings } from "@/components/bot-panel/panel-link";
 import { requestAiSwitch, useAiSwitchRow } from "@/lib/ai-switch";
 import { t } from "@/lib/i18n";
+import { localizedRescueText } from "@/fork/zh-notices";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { useLiveTurn } from "@/lib/stop-turn";
 import { useStore } from "@/state/store";
@@ -38,7 +39,7 @@ export function FirstReplyRescueRow({ rescue, text, at }: { rescue: FirstReplyRe
     <div role="status" data-first-reply-rescue className="flex w-fit max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-hairline/40 bg-panel px-3 py-2 text-[13px] text-ink-secondary">
       <span className="flex min-w-0 items-start gap-2">
         <Info size={13} aria-hidden="true" className="mt-0.5 shrink-0" />
-        <span className="min-w-0 break-words">{bot ? t(rescue.over ? "chat.rescue.over" : "chat.rescue.waiting", { bot: bot.name, ai }) : text}</span>
+        <span className="min-w-0 break-words">{bot ? t(rescue.over ? "chat.rescue.over" : "chat.rescue.waiting", { bot: bot.name, ai }) : localizedRescueText(text)}</span>
       </span>
       {live && (
         <span className="flex flex-wrap items-center gap-2">
