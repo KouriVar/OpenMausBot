@@ -8,6 +8,7 @@ import { placeHasIssue, worksOnSimpleLabel } from "@/lib/place-view";
 import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
 import { api, useStore, type Bot } from "@/state/store";
 import { BotAvatar } from "../Avatar";
+import { CloudBackendPicker } from "../CloudBackendPicker";
 import { useDesktopCapabilities } from "../DesktopCapabilities";
 import { LocalComputerAutoWarning } from "../LocalComputerAutoWarning";
 import { usePlaceViews } from "../PlaceChip";
@@ -111,6 +112,9 @@ export function WherePage({ bot, derived }: { bot: Bot; derived: Derived }) {
           ))}
         </div>
       </Card>
+      {/* Cloud is a place, and Boat / Simular Box / self-hosted VPS is where it runs: offered here too, greyed with a
+          pointer to the plugins panel until Simular's MCP server is signed in. */}
+      {current === "cloud" && <CloudBackendPicker compact value={bot.cloudBackend ?? "box"} onChange={(backend) => patch({ cloudBackend: backend })} />}
       {usingNow && <p data-panel-using-now className="mx-1 text-[13px] text-ink-secondary">{t("computer.simple.usingNow", { place: usingNow })}</p>}
       <LocalComputerAutoWarning
         open={localAutoWarning !== null}
