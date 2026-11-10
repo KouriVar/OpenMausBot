@@ -3475,25 +3475,6 @@ button:disabled.bg-danger {
   }
 }
 
-/* Fork, dark skins only: your own bubble is #3B3B3B with white ink, and the composer's two voice
-   buttons (dictation and call) share that background. Light skins are untouched. */
-:root:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"]) {
-  --color-bubble-user: #3b3b3b;
-  --color-bubble-user-ink: #ffffff;
-}
-:root:is([data-skin="midnight"], [data-skin="foundry"], [data-skin="graphite"], [data-skin="dusk"], [data-skin="halloween"], [data-skin="diwali"], [data-skin="aurora"]) [data-fork-voice-button] > button {
-  background-color: #3b3b3b;
-  color: #ffffff;
-}
-
-/* Fork: Simple's + on the footer row opens its menu upwards, since the row sits on the window's floor. */
-[data-simple-footer-actions] [role="menu"] {
-  top: auto;
-  bottom: calc(100% + 0.375rem);
-  left: auto;
-  right: 0;
-}
-
 /* Fork: the collapsed bar slides back in when the edge handle brings it; the handle itself is a 5px
    sliver on the window's left edge, clearer on hover. */
 @keyframes sidebar-reveal {

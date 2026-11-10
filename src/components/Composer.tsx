@@ -66,6 +66,8 @@ import {
 import { goalCoordinatorForComposer, jevRoomRoutingOn, openTaskWorking, roomRouteForComposer } from "@/lib/group-routing";
 import { composerPlaceholder, sendLabels, SIMPLE_COMPOSER, SIMPLE_CONTROL, slotColors } from "./composer-simple"; import { ComposerSendButton } from "./ComposerSendButton";
 import { BOT_BUTTON } from "@/lib/bot-button";
+import { useColorScheme } from "@/lib/color-scheme";
+import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
 import { COMPOSER_BOTTOM_FADE, FORK_UI_1110B } from "@/fork/ui-batch-1110b";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
@@ -526,6 +528,10 @@ export function Composer({
   const callShown = !simpleDock || (!hasContent && !stopInSlot);
   // One colour for everything that belongs to this bot: its avatars, your bubble, and these buttons.
   const accent = useBloubAccent({ id: group ? undefined : bot?.id, color: bot?.color });
+  // Fork: a white avatar in dark mode takes the grey voice buttons, same as the bubble.
+  const scheme = useColorScheme();
+  const whiteVoice = FORK_WHITE_BUBBLE && !group && scheme === "dark" && isWhiteAccent(accent);
+  const voiceStyle = whiteVoice ? { backgroundColor: WHITE_BUBBLE_BG, color: WHITE_BUBBLE_INK } : undefined;
   const slot = slotColors(accent, bot?.color, Boolean(group));
   // A one-to-one bot at work: Enter does the chosen follow-up and Ctrl/⌘ with it the other one. Rooms keep their own queue.
   const followUpFor = (alternate: boolean) => resolveFollowUp({ running: busy && !group && Boolean(bot), alternate, preferred: followUpDefault, canSteer }) ?? undefined;
@@ -969,7 +975,6 @@ export function Composer({
         {!locked && !busy && micReady && (
           <button
             onClick={toggleMic}
-            data-fork-voice-button=""
             aria-label={recording ? t("composer.dictation.stop") : t("composer.dictation.start")}
             className={cn(
               "flex shrink-0 items-center justify-center rounded-full",
@@ -979,14 +984,14 @@ export function Composer({
                 : accent ? BOT_BUTTON
                   : advanced || singleRow ? "text-ink-secondary hover:bg-raised hover:text-ink" : SIMPLE_CONTROL,
             )}
-            style={!recording && accent ? slot.button.style : undefined}
+            style={whiteVoice ? voiceStyle : !recording && accent ? slot.button.style : undefined}
             title={recording ? t("composer.dictation.stopHint") : t("composer.dictation.hint")}
           >
             <Mic size={16} strokeWidth={1.75} absoluteStrokeWidth className="[&_rect]:fill-current" />
           </button>
         )}
-        {callShown && bot && !group && <span data-fork-voice-button="" className="contents"><CallButton bot={bot} placement="composer" fill={advanced || singleRow ? undefined : slot.fill} ink={slot.ink} inverse={singleRow} /></span>}
-        {callShown && group && !advanced && <span data-fork-voice-button="" className="contents"><GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} /></span>}
+        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={whiteVoice ? WHITE_BUBBLE_BG : advanced || singleRow ? undefined : slot.fill} ink={whiteVoice ? WHITE_BUBBLE_INK : slot.ink} inverse={singleRow} />}
+        {callShown && group && !advanced && <GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} />}
         {hasContent && !locked && (
           <ComposerSendButton compact={simpleDock} waits={busy && !steersNow} label={sendNames.label} title={sendNames.title} look={slot.button}
             disabled={attachmentPending} onSend={(alternate) => send(followUpFor(alternate))} onChoose={send}

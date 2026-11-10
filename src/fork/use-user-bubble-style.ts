@@ -18,6 +18,23 @@ export function useBloubAccent(bot: { id?: string; color?: string }): string | u
   return useMemo(() => (forkBloub ? bloubMid(skin.color, scheme) : undefined), [forkBloub, skin.color, scheme]);
 }
 
+/** Fork: a white avatar (Bloub "black" in dark mode paints #FFFFFF→#C2C2C2) makes your bubble dark grey
+ * instead of following that near-white accent, which used to leave it light grey on a dark canvas. */
+export const FORK_WHITE_BUBBLE = true;
+export const WHITE_BUBBLE_BG = "#3B3B3B";
+export const WHITE_BUBBLE_INK = "#F5F5F5";
+
+/** True when an accent is near-white, so the bubble and the composer's voice buttons can go grey. */
+export function isWhiteAccent(hex: string | undefined): boolean {
+  if (!hex) return false;
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!match) return false;
+  const n = Number.parseInt(match[1]!, 16);
+  const [r, g, b] = [n >> 16, (n >> 8) & 0xff, n & 0xff];
+  // Perceived lightness: only a near-white avatar takes the dark grey.
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.82;
+}
+
 /** Your bubble: with Bloub on, the bot's Bloub colour (neutral in a group chat); otherwise the old
  * "colour my messages" rule. The bubble takes the middle of the Bot's gradient (per theme) so the text
  * contrast is measured against the colour that actually shows. */
@@ -29,11 +46,24 @@ export function useUserBubbleStyle({ bot, advanced, colorMine, sharedChat }: {
 }): CSSProperties | undefined {
   const forkBloub = useForkAvatarStyle() === "bloub";
   const accent = useBloubAccent(bot);
+  const scheme = useColorScheme();
   return useMemo(() => {
     if (forkBloub) {
       if (sharedChat) return undefined;
+      // A white avatar in dark mode: the inline accent style would beat any stylesheet rule, so the
+      // override belongs here, where the bubble's own variables are set.
+      if (FORK_WHITE_BUBBLE && scheme === "dark" && isWhiteAccent(accent)) {
+        return {
+          "--color-bubble-user": WHITE_BUBBLE_BG,
+          "--color-bubble-user-ink": WHITE_BUBBLE_INK,
+          // The bubble's own text uses text-ink, so the ink variables inside it move together.
+          "--color-ink": WHITE_BUBBLE_INK,
+          "--color-ink-secondary": `color-mix(in srgb, ${WHITE_BUBBLE_INK} 72%, transparent)`,
+          "--color-ink-tertiary": `color-mix(in srgb, ${WHITE_BUBBLE_INK} 52%, transparent)`,
+        } as CSSProperties;
+      }
       return accent ? userBubbleStyleHex(accent, { flat: !advanced }) : undefined;
     }
     return colorMine ? userBubbleStyle(bot.color, { flat: !advanced }) : undefined;
-  }, [forkBloub, sharedChat, accent, colorMine, bot.color, advanced]);
+  }, [forkBloub, sharedChat, accent, scheme, colorMine, bot.color, advanced]);
 }
