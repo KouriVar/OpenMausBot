@@ -113,6 +113,28 @@ describe("the composer's buttons in a Bloub chat", () => {
     expect(contrastRatio(tone.ink, tone.pressed)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it("paints the black avatar's voice and Send buttons from its own black", () => {
+    // happy-dom reports the dark scheme, so the black avatar paints its white end here; the light end
+    // (#2c2c2c fill, white icon) is the same tone the bubble and the hex tests read.
+    const lightTone = botButtonToneHex("#2c2c2c");
+    expect(lightTone.fill).toBe("#2c2c2c");
+    expect(lightTone.ink).toBe("#ffffff");
+    expect(contrastRatio(lightTone.ink, lightTone.fill)).toBeGreaterThanOrEqual(4.5);
+
+    flushSync(() => saveBloubSkin(bot.id, { ...defaultBloubSkin(bot.color), color: "black" }));
+    restoreComposerDraft(`bot:${bot.id}:${bot.threadId}`, { text: "hello", attachments: [] });
+    render({ bot });
+    for (const button of [micButton(), sendButton()]) {
+      expect(button?.className.split(" ")).toContain(BOT_BUTTON);
+      const fill = button!.style.getPropertyValue("--bot-button");
+      const ink = button!.style.getPropertyValue("--bot-button-ink");
+      const tone = tonesFor("black").find((candidate) => candidate.fill === fill);
+      expect(tone, `black button fill ${fill}`).toBeDefined();
+      expect(ink).toBe(tone!.ink);
+      expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it("follows the avatar when its colour changes, with no reload", () => {
     restoreComposerDraft(`bot:${bot.id}:${bot.threadId}`, { text: "hello", attachments: [] });
     render({ bot });

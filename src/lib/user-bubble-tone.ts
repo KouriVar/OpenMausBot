@@ -186,10 +186,19 @@ function darkInkTone(palette: string): UserBubbleTone {
   };
 }
 
+/** Whether a colour takes the pale fill with dark words. The yellow family does, but its hue alone is
+ * not enough to say so: a neutral black reports a numerical hue near 90° with zero chroma, so the fork's
+ * light-theme black (#2c2c2c, the midpoint of the avatar's own gradient) used to fall in the yellow
+ * window and come out as a pale grey bubble with dark words. Dark words are only ever chosen where the
+ * colour really carries them at AA. */
+function takesDarkInk(palette: string): boolean {
+  const { h } = toOklch(palette);
+  return h >= YELLOW_HUES.from && h <= YELLOW_HUES.to && contrastRatio(INK, palette) >= BUBBLE_TEXT_MIN;
+}
+
 export function userBubbleTone(color: MausColor): UserBubbleTone {
   const palette = MAUS_COLORS[color];
-  const { h } = toOklch(palette);
-  return h >= YELLOW_HUES.from && h <= YELLOW_HUES.to ? darkInkTone(palette) : whiteInkTone(palette);
+  return takesDarkInk(palette) ? darkInkTone(palette) : whiteInkTone(palette);
 }
 
 export function mentionChipBackground(mention: string, inset: string): string {
@@ -239,8 +248,7 @@ export function userBubbleStyle(color: MausColor, { flat = false }: { flat?: boo
 
 /** The tone of any hex (the fork's Bloub colours); its ink keeps AA at both ends of the gradient. */
 export function userBubbleToneHex(hex: string): UserBubbleTone {
-  const { h } = toOklch(hex);
-  return h >= YELLOW_HUES.from && h <= YELLOW_HUES.to ? darkInkTone(hex) : whiteInkTone(hex);
+  return takesDarkInk(hex) ? darkInkTone(hex) : whiteInkTone(hex);
 }
 
 /** The same tone from any hex, as a bubble's inline style. */

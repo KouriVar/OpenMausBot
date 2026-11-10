@@ -17,6 +17,7 @@ import { ConversationTurnLimit } from "./ConversationTurnLimit";
 import { useCaptionChrome } from "./DesktopCapabilities";
 import { ExportTranscriptMenu } from "./ExportTranscriptMenu";
 import { RoomHeaderCallButton } from "./GroupCallView";
+import { GroupFaceStack } from "./GroupFaceStack";
 import { GroupUsageChip } from "./GroupUsageChip";
 import { PlaceIcon } from "./PlaceIcon";
 import { roomMemberQueueTitle } from "./RoomQueueList";
@@ -120,7 +121,8 @@ function memberMauses(group: Group, members: Bot[]) {
   });
 }
 
-const SIMPLE_FACES = 3;
+/** Grok's stack shows three faces and counts the rest, in both header layouts. */
+const FACES_SHOWN = 3;
 
 export function RoomHeader({
   group,
@@ -151,7 +153,6 @@ export function RoomHeader({
     ? t("room.members.ariaOne")
     : t("room.members.ariaMany", { count: members.length });
   if (simple) {
-    const more = members.length - SIMPLE_FACES;
     return (
       <div {...headerDragProps} className="@container/roomhead px-5 py-3 pl-11 md:pl-5">
         <div data-roomhead-row className="flex items-center justify-between gap-3">
@@ -182,14 +183,13 @@ export function RoomHeader({
               style={headerNoDragStyle}
               className="flex items-center rounded-full py-0.5 pl-1 pr-1.5 hover:bg-raised/60"
             >
-              <span className="flex items-center -space-x-1.5">
-                {faces.slice(0, SIMPLE_FACES)}
-                {more > 0 && (
-                  <span className="relative flex h-6 min-w-6 items-center justify-center rounded-full border border-app bg-raised px-1 text-[11px] font-medium tabular-nums text-ink-secondary">
-                    +{more}
-                  </span>
-                )}
-              </span>
+              <GroupFaceStack
+                face={24}
+                overlap={6}
+                surface="var(--color-app)"
+                total={members.length}
+                faces={faces.slice(0, FACES_SHOWN)}
+              />
             </button>
           </div>
         </div>
@@ -253,7 +253,13 @@ export function RoomHeader({
               aria-label={membersLabel}
               className="flex items-center gap-1.5 rounded-full py-0.5 pl-1 pr-1.5 hover:bg-raised/60"
             >
-              {faces}
+              <GroupFaceStack
+                face={24}
+                overlap={6}
+                surface="var(--color-app)"
+                total={members.length}
+                faces={faces.slice(0, FACES_SHOWN)}
+              />
               <span className="flex size-[18px] items-center justify-center rounded-full border border-dashed border-hairline/70 text-ink-secondary">
                 <Plus size={11} />
               </span>
