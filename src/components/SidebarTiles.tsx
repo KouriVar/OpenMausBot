@@ -17,6 +17,7 @@ import { RenameTitle } from "./RenameTitle";
 import { openBotContextMenu, useVisibleMessages, type BotRowProps } from "./Sidebar";
 import { sidebarBotStatus } from "./SidebarBotActivity";
 import { SIMPLE_ROW_FOCUS } from "./SidebarSimpleTop";
+import { ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
 import { useBotUnread } from "./unread-notice";
 
 const RING = "ring-2 ring-[var(--tile)]";
@@ -75,7 +76,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
       onKeyDown={onKeyDown}
       onContextMenu={(event) => openBotContextMenu(onMenu, bot.id, event)}
       className={cn(
-        "flex h-[92px] w-[78px] shrink-0 cursor-pointer flex-col items-center rounded-[8px] bg-[var(--tile)] px-1 pt-2 transition-colors duration-150", SIMPLE_ROW_FOCUS,
+        "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 pt-2 transition-colors duration-150", SIMPLE_ROW_FOCUS,
+        primary ? "size-[92px]" : "h-[92px] w-[78px]", ROW_RADIUS_SIMPLE,
         selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]",
         pinnedCircleDragClass({ drag, dragging, drop }),
       )}

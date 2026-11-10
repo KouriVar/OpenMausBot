@@ -84,7 +84,7 @@ export { TeamMenuItems };
 import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
-import { SidebarRailSeparator, SimpleRailFooter } from "./SidebarSimpleRail";
+import { SimpleRailFooter } from "./SidebarSimpleRail";
 import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -744,7 +744,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const body = (
     <>
       <span className={cn("relative flex shrink-0", simpleRow && "-m-[3px]")} title={iconOnly || simpleList ? undefined : [bot.name, ...details].join(" · ")}>
-        <span className={cn("relative flex items-center justify-center", simpleRow && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
+        <span className={cn("relative flex items-center justify-center", simpleRow && bot.chiefOfStaff && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow && bot.chiefOfStaff ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
@@ -1441,7 +1441,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
                   density !== "icons" && index > 0 && !simple && "pt-3",
                 )}
               >
-                {rail && index > 0 && <SidebarRailSeparator />}
                 {layout.dropLine(id, "before")}
                 {density !== "icons" && !headless && (
                   <SidebarSectionHeader
