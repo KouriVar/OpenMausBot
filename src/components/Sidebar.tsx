@@ -85,6 +85,7 @@ import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
 import { SidebarRailSeparator, SimpleRailFooter } from "./SidebarSimpleRail";
+import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { useBotUnread } from "./unread-notice";
@@ -109,6 +110,7 @@ import { ArchivedBotsPanel, botConfirmProps, type BotConfirmKind } from "./Archi
 import { NewRoomPanel } from "./SidebarNewRoomPanel";
 import { SectionPicker } from "./SidebarSectionPicker";
 import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL, SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
+import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_SIMPLE, ROW_RADIUS, ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -188,10 +190,11 @@ export function GroupListItem({
         onMenu({ groupId: group.id, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }}
       className={cn(
-        "relative flex w-full items-center rounded-md text-left", SIMPLE_ROW_FOCUS,
+        "relative flex w-full items-center text-left", FORK_UI_1110 ? ROW_RADIUS : "rounded-md", SIMPLE_ROW_FOCUS,
         density === "icons" ? (railTile ? "h-[54px] justify-center" : "justify-center px-1 py-1.5") : simpleRow
-          ? cn("gap-2 rounded-[8px] py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", !group.dm && hasThreadList ? "pl-6" : "pl-2") : "gap-2 py-1.5 pl-6 pr-9",
+          ? cn("gap-2 py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]", !group.dm && hasThreadList ? "pl-6" : "pl-2") : "gap-2 py-1.5 pl-6 pr-9",
         selected && !expanded ? "bg-raised" : "hover:bg-raised/50",
+        rowSurface(selected),
       )}
       title={density === "icons" ? group.name : undefined}
       aria-label={density === "icons" ? group.name : undefined}
@@ -200,7 +203,7 @@ export function GroupListItem({
         members={members}
         density={railTile ? "comfortable" : density}
         large={simpleRow || railTile}
-        surface={selected && !expanded ? "var(--color-raised)" : "var(--color-panel)"}
+        surface={FORK_UI_1110 ? "var(--row)" : selected && !expanded ? "var(--color-raised)" : "var(--color-panel)"}
       />
       <div className={cn("min-w-0 flex-1", density === "icons" && "hidden")}>
         <div className={cn("flex items-baseline justify-between gap-2", simpleRow && "pr-7")}>
@@ -210,7 +213,7 @@ export function GroupListItem({
           {simpleRow && !expanded && group.unread && <RowDot />}
         </div>
         {!expanded && <div className="flex items-center justify-between gap-2">
-          <span className={cn("truncate text-ink-secondary", simpleRow ? "text-[13px] leading-[18px]" : "text-[11px]")}>{group.description || groupPreview(group, state.bots, state.instances, advanced)}</span>
+          <span className={cn("truncate text-ink-secondary", simpleRow ? (FORK_UI_1110 ? ROW_PREVIEW_SIMPLE : "text-[13px] leading-[18px]") : FORK_UI_1110 ? ROW_PREVIEW : "text-[11px]")}>{group.description || groupPreview(group, state.bots, state.instances, advanced)}</span>
           {!simpleRow && group.unread && <span className="size-2 shrink-0 rounded-full bg-accent" />}
         </div>}
         {simpleRow && <RowStatusText unread={group.unread} />}
@@ -719,7 +722,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const simpleRow = !advanced && !showThreads && density === "comfortable";
   const simpleList = !advanced && !iconOnly;
   const railTile = iconOnly && !advanced;
-  const avatarSize = iconOnly ? (railTile ? SIDEBAR_AVATAR_RAIL : SIDEBAR_AVATAR_ADVANCED) : showThreads ? 32 : simpleRow ? 36 : 44; const tileRef = useRef<HTMLDivElement>(null);
+  const avatarSize = iconOnly ? (railTile ? SIDEBAR_AVATAR_RAIL : SIDEBAR_AVATAR_ADVANCED) : showThreads ? 32 : simpleRow ? 36 + (FORK_UI_1110 ? HERO_AVATAR_BUMP : 0) : 44; const tileRef = useRef<HTMLDivElement>(null);
   const tooltip = simpleList ? botTooltip(bot, instances) : undefined;
   const visible = useVisibleMessages(bot);
   const last = lastNonReceipt(visible);
@@ -729,7 +732,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
     "flex w-full items-center rounded-xl text-left", SIMPLE_ROW_FOCUS,
     iconOnly
       ? railTile ? "h-[54px] justify-center" : "justify-center"
-      : simpleRow ? "gap-2 rounded-[8px] py-2 pl-2 pr-2 md:h-[54px] md:py-0"
+      : simpleRow ? cn("gap-2 py-2 pl-2 pr-2 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
         : cn(showThreads ? "gap-2 py-2" : "gap-3 py-2", showThreads ? "pl-6 pr-9 group-hover:pr-[5.75rem] group-focus-within:pr-[5.75rem] max-md:pr-9 touch:pr-[5.75rem]" : "pl-2.5 pr-9"),
     !iconOnly && "max-md:rounded-2xl max-md:py-2.5",
     selected ? "bg-raised" : "hover:bg-raised/50",
@@ -741,6 +744,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const body = (
     <>
       <span className={cn("relative flex shrink-0", simpleRow && "-m-[3px]")} title={iconOnly || simpleList ? undefined : [bot.name, ...details].join(" · ")}>
+        <span className={cn("relative flex items-center justify-center", simpleRow && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
@@ -752,6 +756,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
+        </span>
         {/* Bottom-left, clear of the status dots on the right and of the row's hover actions. */}
         {(iconOnly || !simpleList) && !FORK_HIDE_BOT_BADGES && <BotModelBadge bot={bot} instances={instances} avatarSize={avatarSize} />}
         {simpleRow && <AvatarActivityDot activity={working ? "working" : teammateWait ? "teammate" : queued && !waiting ? "queued" : null} />}
@@ -770,9 +775,16 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
           className={cn("absolute -right-0.5 -bottom-0.5 rounded-full border-2 border-panel bg-accent", iconOnly ? "size-3" : "size-2.5")} />}
         {!simpleRow && !teammateWait && !waiting && !working && queued && <span data-testid="queued-dot" role="status" aria-label={t("task.queued")} title={t("task.queued")}
           className={cn("absolute -right-0.5 -bottom-0.5 rounded-full border-2 border-panel bg-ink-secondary", iconOnly ? "size-3" : "size-2.5")} />}
-        {bot.chiefOfStaff && !FORK_HIDE_BOT_BADGES && (iconOnly || simpleRow) && (
+        {bot.chiefOfStaff && !FORK_HIDE_BOT_BADGES && !FORK_UI_1110 && (iconOnly || simpleRow) && (
           <span className="absolute -left-1 -top-1 flex rounded-full bg-raised p-[3px]">
             <Crown size={11} strokeWidth={2.25} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
+              <title>{t("sidebar.bot.chiefOfStaff")}</title>
+            </Crown>
+          </span>
+        )}
+        {FORK_UI_1110 && bot.chiefOfStaff && simpleRow && (
+          <span data-fork-hero-crown="" className="absolute -right-1.5 -top-1.5 flex rounded-full border-[3px] bg-raised p-[3px]" style={{ borderColor: "var(--row)" }}>
+            <Crown size={12} strokeWidth={2.25} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
               <title>{t("sidebar.bot.chiefOfStaff")}</title>
             </Crown>
           </span>
@@ -838,7 +850,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               {t("sidebar.bot.deletingRow")}
             </span>
           ) : (
-            <span className={cn("flex min-w-0 items-center gap-1.5 truncate text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-secondary")}>
+            <span className={cn("flex min-w-0 items-center gap-1.5 truncate", FORK_UI_1110 ? "text-[13px] font-medium leading-[18px]" : "text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-secondary")}>
               {working ? (
                 <SidebarWorkingStep bot={bot} last={last} />
               ) : (
@@ -846,7 +858,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               )}
             </span>
           )}
-          {simpleRow && <BotEngineMark bot={bot} instances={instances} className="ms-auto" />}
+          {simpleRow && !FORK_UI_1110 && <BotEngineMark bot={bot} instances={instances} className="ms-auto" />}
           {!simpleRow && unread && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label={t("task.unreadMany")} />}
         </div>}
         {simpleRow && <RowStatusText working={working} unread={unread} />}
@@ -1435,7 +1447,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
                   <SidebarSectionHeader
                     name={sectionLabel(id)}
                     line={simple} reserveMenu={simple && !remoteClient}
-                    count={simple ? sectionChiefItems.length + sectionBotItems.length + sectionGroupItems.length : undefined}
+                    count={simple && !(FORK_UI_1110 && id === CHANNELS_SECTION_ID) ? sectionChiefItems.length + sectionBotItems.length + sectionGroupItems.length : undefined}
                     onMenu={simple && !remoteClient && sectionName ? (button) => {
                       const rect = button.getBoundingClientRect();
                       openTeamMenu(sectionName, rect.right - 256, rect.bottom + 4, button);
@@ -1513,17 +1525,19 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
 
       {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} place={!q ? <DesktopWorkspaceSwitcher compact cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} /> : null} inbox={!q ? <SidebarInboxRow icons large={false} running={attentionHasRunningWork(attention)} /> : null} />}
 
-      {rail ? <SimpleRailFooter
-        owner={cloudOwner}
-        archived={archivedEntry}
-        topActions={<div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
-          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
-          <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
-            <Search size={18} strokeWidth={1.5} aria-hidden="true" />
-          </button>
-          <div className="relative flex">{plusControl}</div>
-        </div>}
-      /> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
+      {rail ? <RailActionsProvider actions={{ onSearch: railSearch, onNew: () => setNewChatOpen(true), onPlugins: () => dispatch({ type: "togglePlugins", open: true }) }}>
+        <SimpleRailFooter
+          owner={cloudOwner}
+          archived={archivedEntry}
+          topActions={RAIL_MENU_ACTIONS ? undefined : <div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
+            {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
+            <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
+              <Search size={18} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <div className="relative flex">{plusControl}</div>
+          </div>}
+        />
+      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
       </GlassBar>
       </GlassScrollFrame>
 

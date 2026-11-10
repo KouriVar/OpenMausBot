@@ -27,6 +27,7 @@ import { Card, SettingRow, SettingsDisclosureRow, SettingsGroup, SettingsRows } 
 import { UsageSection } from "./UsageSection";
 import { PlanUsageSummary } from "./PlanUsage";
 import { SkinPicker } from "./SkinPicker";
+import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { useSkinChoice } from "./ThemeRow";
 import { resolveSkin, SKINS } from "@/lib/skins";
 import { PlaceLookRows } from "./PlaceLookCard";
@@ -84,6 +85,7 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
             <ChromeRailRow />
             <WindowFrameRow />
             <ColorUserBubblesRow simple />
+            <ForkBoldTextRow />
             <ForkAvatarStyleRow />
           </SettingsRows>
         </SettingsGroup>

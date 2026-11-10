@@ -131,7 +131,7 @@ export function ChiefIntro({ replay, onDone, onLeave }: { replay: boolean; onDon
       {choosing ? (
         <div className="p-4">
           <h2 id="chief-intro-title" className="text-[14px] font-medium leading-5 text-ink">{t("onboarding.chief.chooseTitle")}</h2>
-          <div role="radiogroup" aria-labelledby="chief-intro-title" className="-mx-2 mt-2 max-h-[282px] overflow-y-auto px-2 [scrollbar-width:thin]">
+          <div role="radiogroup" aria-labelledby="chief-intro-title" className="-mx-2 mt-2 max-h-[282px] overflow-y-auto px-2">
             {choices.map((bot) => {
               const able = canLead(bot, state.instances);
               const checked = picked === bot.id;

@@ -66,11 +66,11 @@ export function GroupFaceStack({
   );
 }
 
-export type GroupFaceClusterLayout = "pair" | "triad";
+export type GroupFaceClusterLayout = "pair" | "triad" | "quad";
 
 /** One face's diameter inside a square cluster of this size. */
 export function clusterFaceSize(size: number, layout: GroupFaceClusterLayout): number {
-  return Math.round(size * (layout === "pair" ? 0.6 : 0.56));
+  return Math.round(size * (layout === "pair" ? 0.6 : layout === "quad" ? 0.52 : 0.56));
 }
 
 /** The same faces filling one square, for the place a single avatar would sit: two members take opposite
@@ -98,9 +98,19 @@ export function GroupFaceCluster({
 }) {
   const face = clusterFaceSize(size, layout);
   const edge = size - face;
+  // Quad pulls every corner toward the centre by a little, so the four faces overlap one another instead of
+  // meeting at a cross; the top-left one paints last and its ring cuts the two it covers.
+  const inset = Math.round(face * 0.14);
   const places = layout === "pair"
     ? [{ left: 0, top: 0 }, { left: edge, top: edge }]
-    : [{ left: Math.round(edge / 2), top: 0 }, { left: 0, top: edge }, { left: edge, top: edge }];
+    : layout === "triad"
+      ? [{ left: Math.round(edge / 2), top: 0 }, { left: 0, top: edge }, { left: edge, top: edge }]
+      : [
+        { left: inset, top: inset },
+        { left: edge - inset, top: inset },
+        { left: inset, top: edge - inset },
+        { left: edge - inset, top: edge - inset },
+      ];
   const disc = { background: surface, boxShadow: `0 0 0 ${ringWidth}px ${surface}` };
   return (
     <span

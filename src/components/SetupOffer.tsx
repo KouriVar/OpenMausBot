@@ -12,6 +12,7 @@ import { t } from "@/lib/i18n";
 import type { LocaleKey } from "@/locales";
 import { api, useStore, type Bot, type Message } from "@/state/store";
 import { moveChoiceFocus, returnFocusToComposer } from "./AskCard";
+import { localizedSetupChoice } from "@/fork/zh-intro";
 
 const blank = (bot: Pick<Bot, "soul" | "description">): boolean => !bot.soul?.trim() && !bot.description?.trim();
 const LETTERS = "ABCDEFGH";
@@ -94,7 +95,8 @@ export function SetupOffer({ botId, threadId, message, transcript }: { botId: st
     setClosed(true);
     void api(`/api/bots/${botId}/setup-request`, { method: "DELETE", body: JSON.stringify({ threadId }) }).catch(() => setClosed(false));
   };
-  const options = [...choices.map((choice) => ({ label: choice, pick: () => ask(choice) })), { label: t("chat.setupCard.other"), pick: () => ask() }];
+  // Display in the locale; a pick still sends the choice in the server's own words.
+  const options = [...choices.map((choice) => ({ label: localizedSetupChoice(choice), pick: () => ask(choice) })), { label: t("chat.setupCard.other"), pick: () => ask() }];
   const byLetter = (event: KeyboardEvent<HTMLElement>) => {
     const index = LETTERS.indexOf(event.key.toUpperCase());
     if (event.key.length !== 1 || index < 0 || index >= options.length || event.metaKey || event.ctrlKey || event.altKey) {

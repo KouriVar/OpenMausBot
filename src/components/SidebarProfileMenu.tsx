@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   Archive,
   ArrowDownToLine,
+  Inbox,
+  Plus,
+  Puzzle,
+  Search,
   ArrowLeftRight,
   Check,
   CircleUserRound,
@@ -46,6 +50,10 @@ import { updaterMessage, useUpdaterState, type UpdaterState } from "@/lib/update
 import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
+import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
+import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
+import { useTeamPeople } from "@/state/team-people";
+import { inboxFixes, waitingCount } from "./inbox/inbox-view";
 import { cn } from "@/lib/cn";
 import { meterPercent, resetLine } from "@/lib/usage-meter";
 import type { CloudPlanSnapshot } from "../../electron/cloud-account.mjs";
@@ -593,7 +601,66 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const move = useAccountMove(state.config?.cloudHome === true, { onOpen: openCloudAccount, onPairPhone: () => dispatch(phonePairingSettingsAction()) });
   const accounts = useAccounts();
 
-  const items = profileMenuItems({
+  const railActions = useRailActions();
+  const inboxSupport = useInboxSupport();
+  const inboxView = useInboxView();
+  const inboxPanel = useInboxPanel();
+  const inboxTeam = useTeamPeople();
+  const inboxCount = inboxSupport === "no" ? 0 : waitingCount(inboxView) + inboxFixes(inboxTeam?.needsYou, inboxView).length;
+  const railItems: SidebarMenuItem[] = railActions && RAIL_MENU_ACTIONS ? [
+    {
+      key: "rail-inbox",
+      label: t("inbox.panel.title"),
+      icon: <Inbox size={16} />,
+      value: inboxCount > 0 ? (inboxCount > 9 ? "9+" : String(inboxCount)) : undefined,
+      active: inboxPanel.open,
+      onSelect: () => {
+        if (inboxPanel.open) closeInbox();
+        else openInbox();
+      },
+    },
+    { key: "rail-search", label: t("sidebar.searchAria"), icon: <Search size={16} />, onSelect: railActions.onSearch },
+    { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
+    { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
+  ] : [];
+  const items = railItems.length ? [...railItems, ...profileMenuItems({
+    phone: simple
+      ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
+      : phoneMenuItems({
+        destinations,
+        connected: phone.kind === "connected",
+        onConnect: connectTo,
+        onGetApp: () => setPhoneAppOpen(true),
+      }),
+    usage: !remote,
+    usageSummary: cloudUsage ?? engineUsage,
+    update: update?.item ?? null,
+    updateTop: simple ? simpleUpdateTop(update) : null,
+    move: move.items,
+    account: cloudAccount ? cloudRowLabel(accounts.view) : null,
+    accounts: accountMenuItems(accounts),
+    ...(account ? { simple: {
+      tools: toolMenuItems({
+        activeView: state.activeView,
+        automationsNeedYou: account.automationsNeedYou,
+        onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
+        onTeamMap: () => dispatch({ type: "showTeamMap" }),
+        onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+        archived: account.archived,
+      }),
+      places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
+    } } : {}),
+    onUsage: () => dispatch({ type: "toggleAppSettings", open: true, section: "usage" }),
+    onSettings: () => dispatch({ type: "toggleAppSettings" }),
+    onShortcuts: () => {
+      triggerRef.current?.closest("button")?.focus();
+      dispatch({ type: "toggleShortcuts", open: true });
+    },
+    onAbout: () => setAboutOpen(true),
+    onHelp: () => void openExternalLink(HELP_CENTER_URL),
+    onFeedback: () => void openExternalLink(FEEDBACK_URL),
+    onAccount: openCloudAccount,
+  })] : profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
