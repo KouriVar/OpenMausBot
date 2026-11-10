@@ -33687,7 +33687,22 @@
       "place.view.ccSimularOff.line": "2f65d302d07b76975c778d2cd4696de4c52ed7094c0a72ec0f81f045252d12bc",
       "botAccess.cloud.simular": "5549d820d2911095c310dc8ea75c63588e53bf4c4f2fcb5716f6a11f19175c6b",
       "botAccess.cloud.simularDescription": "04e931c9e6354fff4952cacc3e114276be84ac662626c71745ad8cc4f2383a39",
-      "botAccess.cloud.simularConnect": "e30ebec85a22b87b19b3385170c56e1e0a8bc3b91a3adc8c76a9d2486c6c4d31"
+      "botAccess.cloud.simularConnect": "e30ebec85a22b87b19b3385170c56e1e0a8bc3b91a3adc8c76a9d2486c6c4d31",
+      "settings.bloubAvatar.title": "1cdc67f18b8d33001ee68c54ae644db0daba26f3e2c7778294d19d9cb25ca2ca",
+      "settings.bloubAvatar.studio": "4208a96df7362ada100a58a1db379b424eb387d2c5b108f56144ed583f3bc97c",
+      "settings.bloubAvatar.studioSubtitle": "648791eddd5d356134f84b7f0a485fa8452afe15f426a970105818504aaeb70e",
+      "settings.bloubAvatar.studioOpen": "730a9d80c097a1cc11997a89df8496c88ab8ecd3be8406eafd2d6f122e5c6250",
+      "settings.bloubAvatar.studioNewTab": "6f3a857852cf96a8fc3783765f56c29e0ba1d7a112452eda7ffc488bb82eface",
+      "settings.bloubAvatar.studioClose": "fbd8292fb87ba545045355976e5d24ce1576a7e90d16f0df2ca9f5027280af97",
+      "bloubCustomizer.shape": "e0e492707f85ff1f9c23155494a54382b52bf34888091adc7a6bb338ef78f88d",
+      "bloubCustomizer.expression": "c67415bcff328a59fd399e2a7ca9691e0044192fb7480ae501644339965d046d",
+      "bloubCustomizer.color": "3a9dfa58df63e0dda962a147a6cea86cc5294a5e859d89ddfa8e74a977fedf5d",
+      "settings.bloubAvatar.subtitle": "8a0c48d92e2657249152b1896ed020ab54ddbe470a92970ee7a7ebd1e4135616",
+      "voice.mimo.label": "2750f64227d34d73aa16e6f67972a1df87b2811cd012d4f981af5bf493e8dbff",
+      "voice.mimo.keyPlaceholder": "c8a9f057d1a8b4ab43dfaef2ae01e3320288e8dcc672feb28461189a9bbb7eee",
+      "voice.mimo.freeNotice": "21aab2dd868ed15e67eed8a0358c42d4ee3dc18a79b17ebc498fd8e4aa10090b",
+      "keys.label.mimoTts": "a8d6231c2d58e43b8976e64f9775c68f736585a111a2288829a80aeb4717ec0e",
+      "keys.purpose.mimoTts": "b363578edefc75d10708f7d7a72b4fada8d04904b0af1efa7d50dce34110a4e6"
     },
     "zh": {
       "pro.fromPrice": "a48a04a457d60b08b54fc83e7a6c4584ffedb1e23621859084900c8521a3af7b",
@@ -41361,7 +41376,12 @@
       "place.view.ccSimularOff.line": "2f65d302d07b76975c778d2cd4696de4c52ed7094c0a72ec0f81f045252d12bc",
       "botAccess.cloud.simular": "5549d820d2911095c310dc8ea75c63588e53bf4c4f2fcb5716f6a11f19175c6b",
       "botAccess.cloud.simularDescription": "04e931c9e6354fff4952cacc3e114276be84ac662626c71745ad8cc4f2383a39",
-      "botAccess.cloud.simularConnect": "e30ebec85a22b87b19b3385170c56e1e0a8bc3b91a3adc8c76a9d2486c6c4d31"
+      "botAccess.cloud.simularConnect": "e30ebec85a22b87b19b3385170c56e1e0a8bc3b91a3adc8c76a9d2486c6c4d31",
+      "voice.mimo.label": "2750f64227d34d73aa16e6f67972a1df87b2811cd012d4f981af5bf493e8dbff",
+      "voice.mimo.keyPlaceholder": "c8a9f057d1a8b4ab43dfaef2ae01e3320288e8dcc672feb28461189a9bbb7eee",
+      "voice.mimo.freeNotice": "21aab2dd868ed15e67eed8a0358c42d4ee3dc18a79b17ebc498fd8e4aa10090b",
+      "keys.label.mimoTts": "a8d6231c2d58e43b8976e64f9775c68f736585a111a2288829a80aeb4717ec0e",
+      "keys.purpose.mimoTts": "b363578edefc75d10708f7d7a72b4fada8d04904b0af1efa7d50dce34110a4e6"
     },
     "zh-tw": {
       "whop.description": "1a07cf04ef17029448d3781415cbac16d54e66b821907a40d94e0e6349710e70",
