@@ -181,7 +181,7 @@ export function ConnectAiDialog({ hosted = false, tested, onClose }: { hosted?: 
           </button>
         </div>
         <div className="ui-modal-divider shrink-0" />
-        <div className="min-h-0 overflow-y-auto p-4 [scrollbar-width:thin]">
+        <div className="min-h-0 overflow-y-auto p-4">
           <ConnectAi hosted={hosted} tested={tested} />
         </div>
       </div>

@@ -1743,11 +1743,7 @@ body {
   0%, 94% { --settings-fade: 10px; }
   100% { --settings-fade: 0px; }
 }
-/* A thin thumb that stays visible, so a long Settings page shows it goes on. */
-.settings-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-scrollbar) transparent;
-}
+/* The Settings page fades in at its edges where more copy follows; it draws no bar of its own. */
 @supports (animation-timeline: scroll()) {
   .settings-scroll {
     mask-image: linear-gradient(to bottom, #000 calc(100% - var(--settings-fade)), transparent);
@@ -1867,17 +1863,12 @@ body {
 @media (forced-colors: active) {
   .place-banner { display: none; }
 }
-/* The frame publishes its bars' heights. Rows rest clear of the glass,
-   keyboard focus scrolls them clear, and the scrollbar runs only between the
-   bars (a bar over it would swallow the drag). */
+/* The frame publishes its bars' heights. Rows rest clear of the glass, and
+   keyboard focus scrolls them clear. */
 .glass-scroller {
   isolation: isolate;
   scroll-padding-top: var(--glass-top, 0px);
   scroll-padding-bottom: calc(var(--glass-bottom, 0px) + var(--glass-bottom-reach, 0px));
-}
-.glass-scroller::-webkit-scrollbar-track {
-  margin-top: var(--glass-top, 0px);
-  margin-bottom: var(--glass-bottom, 0px);
 }
 .glass-scroller-content {
   padding-top: var(--glass-top, 0px);
@@ -1953,38 +1944,16 @@ body {
   color: var(--color-ink);
 }
 
-/* Scrollbars: a slim pill in each skin's own --color-scrollbar, never a
-   full-height slab. At rest it is a 2px line, enough to say "this scrolls";
-   with the pointer on it (anywhere across the 8px gutter, since the
-   transparent border is part of the thumb) or while dragged it widens to a
-   6px pill and darkens, as macOS and Windows 11 scrollbars do. The gutter
-   never changes width, so nothing reflows, and the track stays clear, so no
-   gray rail runs down a panel. (Widening on hover of the scrolling area
-   instead, via `*:hover::-webkit-scrollbar-thumb`, does not repaint in
-   Chromium, so it is not used.) */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Scrollbars are hidden everywhere: a wheel, a trackpad, the keyboard and
+   scroll-into-view still move everything, the bars are simply never drawn — in
+   inputs, the Settings pages, the sidebar, the transcript, and code blocks' or
+   tables' horizontal scroll alike. This rule is unlayered, so it also beats the
+   Tailwind utilities that ask for a thin bar; nothing may re-enable one. */
+* {
+  scrollbar-width: none;
 }
-::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
-  border-radius: 999px;
-  background-clip: padding-box;
-  background-color: var(--color-scrollbar);
-}
-::-webkit-scrollbar-thumb:vertical { min-height: 40px; }
-::-webkit-scrollbar-thumb:horizontal { min-width: 40px; }
-/* the thumb was inert — it never acknowledged the pointer */
-::-webkit-scrollbar-thumb:hover,
-::-webkit-scrollbar-thumb:active {
-  border-width: 1px;
-  background-color: color-mix(in srgb, var(--color-scrollbar) 55%, var(--color-ink));
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-corner {
-  background: transparent;
+*::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes panel-in {
