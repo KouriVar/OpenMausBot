@@ -1743,7 +1743,9 @@ export function ComputerPanel({
                 </button>
               </div>
             )}
-            {vpsPhase && <SimpleVpsChoices bot={bot} backend={cloudBackend} onBackend={(backend) => updateComputerSelection({ cloudBackend: backend })}
+            {/* The cloud desktop's provider (Boat / Simular Box / self-hosted VPS) is a choice about where a cloud bot
+                works, so it belongs here whenever Cloud is the chosen place, not only while a VPS needs setup. */}
+            {(vpsPhase || profileBot.computer === "cloud") && <SimpleVpsChoices bot={bot} backend={cloudBackend} onBackend={(backend) => updateComputerSelection({ cloudBackend: backend })}
               onAutoStart={() => dispatch({ type: "updateBot", botId: bot.id, patch: { autoStartVps: !bot.autoStartVps } })} />}
           </div>
         )}
