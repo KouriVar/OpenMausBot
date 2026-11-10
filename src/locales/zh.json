@@ -7675,5 +7675,7 @@
   "voice.mimo.keyPlaceholder": "粘贴你的 MiMo API 密钥",
   "voice.mimo.freeNotice": "MiMo 语音目前限时免费；官方开始计费后按量扣费，余额不足时会提示。",
   "keys.label.mimoTts": "MiMo 语音合成 API 密钥",
-  "keys.purpose.mimoTts": "用于朗读回复、语音备忘录和通话的 MiMo 语音"
+  "keys.purpose.mimoTts": "用于朗读回复、语音备忘录和通话的 MiMo 语音",
+  "settings.boldText.title": "粗体文字",
+  "settings.boldText.subtitle": "消息正文和输入框的字重各提高一档。保存在这台设备上，默认关闭。"
 }

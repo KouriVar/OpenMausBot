@@ -122,7 +122,7 @@ export function LiveDesktop({ target, threadId, name, poster, expanded, onExpand
             <Minimize2 size={14} aria-hidden="true" />
             <span className="max-sm:hidden">{t("desktopViewer.exitFullscreen")}</span>
           </button>
-          <button type="button" style={noDragStyle} onClick={onHandBack} disabled={handingBack} className={cn(iconButton, "bg-accent font-medium text-accent-ink hover:brightness-110")}>
+          <button type="button" style={noDragStyle} onClick={onHandBack} disabled={handingBack} className={cn(iconButton, "bg-[var(--bot-accent,var(--color-accent))] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110")}>
             {handingBack ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Hand size={14} aria-hidden="true" />}
             {t("computer.handBack")}
           </button>

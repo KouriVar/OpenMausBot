@@ -107,12 +107,13 @@ afterEach(() => {
 });
 
 describe("Simple-mode sidebar layout", () => {
-  it("lists the bots with no heading, then gives group chats and a person's own departments a quiet heading with a count", () => {
+  it("lists the bots with no heading, then gives group chats and a person's own departments a quiet heading, counting departments only", () => {
     const { tree } = render();
     expect(sectionOrder(tree)).toEqual([BOTS_SECTION_ID, CHANNELS_SECTION_ID, userSectionId("Work")]);
     expect(listedBots(tree)).toEqual(["atlas", "bea", "dodo"]);
     const lines = headers(tree);
-    expect(lines.map((header) => [header.props.name, header.props.line, header.props.count])).toEqual([["Group chats", true, 1], ["Work", true, 1]]);
+    // Fork UI batch: the group-chats heading draws no count.
+    expect(lines.map((header) => [header.props.name, header.props.line, header.props.count])).toEqual([["Group chats", true, undefined], ["Work", true, 1]]);
     expect(lines[0]!.props.onMenu).toBeUndefined();
     expect(lines[1]!.props.onDelete).toBeUndefined();
     expect(lines[1]!.props.onMenu).toBeTypeOf("function");

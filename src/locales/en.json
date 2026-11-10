@@ -9929,5 +9929,7 @@
   "voice.mimo.keyPlaceholder": "Paste your MiMo API key",
   "voice.mimo.freeNotice": "MiMo speech is free for a limited time. Once Xiaomi starts charging, you pay as you go, and the app tells you when the balance is low.",
   "keys.label.mimoTts": "MiMo speech API key",
-  "keys.purpose.mimoTts": "MiMo voices for spoken replies, voice notes and calls"
+  "keys.purpose.mimoTts": "MiMo voices for spoken replies, voice notes and calls",
+  "settings.boldText.title": "Bold text",
+  "settings.boldText.subtitle": "Messages and the composer draw one weight heavier. Saved on this device; off by default."
 }
