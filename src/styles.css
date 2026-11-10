@@ -3485,3 +3485,11 @@ button:disabled.bg-danger {
   background-color: #3b3b3b;
   color: #ffffff;
 }
+
+/* Fork: Simple's + on the footer row opens its menu upwards, since the row sits on the window's floor. */
+[data-simple-footer-actions] [role="menu"] {
+  top: auto;
+  bottom: calc(100% + 0.375rem);
+  left: auto;
+  right: 0;
+}

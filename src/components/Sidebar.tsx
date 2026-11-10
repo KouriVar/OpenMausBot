@@ -85,6 +85,7 @@ import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
 import { SimpleRailFooter } from "./SidebarSimpleRail";
+import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
 import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -1536,7 +1537,14 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
             <div className="relative flex">{plusControl}</div>
           </div>}
         />
-      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
+      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined}
+        footerActions={simpleDesk && FOOTER_ACTIONS ? <>
+          <button type="button" onClick={searchShown ? closeSearch : () => setSearchOpen(true)} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
+            <Search size={18} strokeWidth={1.5} aria-hidden="true" />
+          </button>
+          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
+          <div className="relative flex">{plusControl}</div>
+        </> : undefined} />}
       </GlassBar>
       </GlassScrollFrame>
 
