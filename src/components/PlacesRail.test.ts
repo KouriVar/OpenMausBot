@@ -3,6 +3,7 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import type { RailPlace, RailState } from "../../electron/cloud-rail.mjs";
+import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { setLocale } from "@/lib/i18n";
 import { placeInitials, refreshPlaces } from "@/lib/places";
 
@@ -207,9 +208,12 @@ it("Connect to a server says plainly that another computer's desktop app can't b
   expect(line).not.toContain("isn't a MausBot server");
   expect((form.querySelector("[data-own-server-connect]") as HTMLButtonElement).disabled).toBe(true);
   // The 6-digit code a desktop app shows for pairing a phone gets the same pointer, not "a code from an older MausBot".
+  // The fork keeps the older, Cloud-free wording for that one line (see src/locales/en.json native.connect.oldCode).
   await type(form.querySelector("[data-own-server-link]"), "123456");
   await settle();
-  expect(form.querySelector("[data-connect-problem]")?.textContent).toContain("That 6-digit code pairs a phone with a desktop app");
+  expect(form.querySelector("[data-connect-problem]")?.textContent).toContain(FORK_LOCAL_ONLY
+    ? "That's a code from an older MausBot"
+    : "That 6-digit code pairs a phone with a desktop app");
 });
 
 it("Connect to a server takes an address and a code typed apart: a code pasted alone moves to its field, and main names the server it found", async () => {

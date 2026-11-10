@@ -1,7 +1,7 @@
 {
   "name": "openmausbot",
   "private": true,
-  "version": "0.1.151",
+  "version": "0.1.152",
   "description": "A local-first chat app for running a team of AI agents.",
   "homepage": "https://github.com/milind-soni/OpenMausBot",
   "repository": {
@@ -71,6 +71,7 @@
     "build:updater": "node scripts/bundle-updater.mjs",
     "package:prepare": "pnpm build && pnpm build:server && pnpm build:companion && pnpm build:updater && pnpm build:android-tools && pnpm build:cloudflared && pnpm build:browser && pnpm build:duckdb",
     "package:mac": "pnpm package:prepare && pnpm build:speech && pnpm build:cua && electron-builder --mac --publish never",
+    "package:mac:arm64": "OMB_SPEECH_HELPER_ARCH=arm64 pnpm package:prepare && OMB_SPEECH_HELPER_ARCH=arm64 pnpm build:speech && pnpm build:cua && electron-builder --mac --arm64 --publish never",
     "package:win": "pnpm package:prepare && pnpm build:cua:win && electron-builder --win --publish never",
     "package:linux": "pnpm package:prepare && pnpm build:cua:linux && electron-builder --linux --x64 --publish never",
     "package:arch": "pnpm package:prepare && pnpm build:cua:linux && electron-builder --linux pacman --x64 --publish never",
