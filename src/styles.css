@@ -3482,3 +3482,28 @@ button:disabled.bg-danger {
 :root[data-fork-bold-text="on"] .chat-md b {
   font-weight: 650;
 }
+
+/* Fork UI batch B: the composer's bottom edge melts the transcript into the canvas the way the chat head's
+   top edge does, only upside down. It copies the fading top bar exactly (solid canvas over the band, no
+   tint, no blur) and flips the gradient and its masks, so both skins and forced colours behave the same. */
+[data-fork-composer-fade] {
+  height: 60px;
+  overflow: hidden;
+}
+[data-fork-composer-fade]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--color-app), var(--color-app) calc(100% - 60px), transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  [data-fork-composer-fade]::before {
+    background: Canvas;
+  }
+}
+@media (forced-colors: active) {
+  [data-fork-composer-fade]::before {
+    background: Canvas;
+  }
+}

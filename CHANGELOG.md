@@ -414,3 +414,30 @@ data or behaviour, and lives on `feat/ui-batch-1110` (`e8916c95e`), unmerged.
 Bloub 颜色，按对比度自动选黑或白字，没有 Bloub 色时回落主题色，群聊维持主题色。全部由
 `src/fork/ui-batch-1110.ts` 的 `FORK_UI_1110` 控制，不改数据与行为，位于 `feat/ui-batch-1110`（`e8916c95e`），
 尚未合并。
+
+### A030 · The MCP page's Claude Code rows, a missing zh-CN pass, the composer's bottom edge, aligned bubbles, the rail's menu and the bot's divider colour
+
+The MCP servers page no longer draws the two Claude Code switches or the "commands run on this computer" notice: the
+settings themselves are untouched, only their rows are hidden, so turning the constant back on restores them. The
+zh-CN catalogue gained the settings strings that were still falling back to English (the theme block, the colour
+themes hint and its follow-system variants, "Use the bot's color for my messages", the language-and-typing group, the
+setup card's heading and hint, attachments, browser server sites, the Grok import row, shared-browser hints, and the
+name hints). The composer's bottom edge now melts into the canvas the way the chat head's top edge does, copied and
+flipped, with the same solid-canvas gradient, no tint and the same reduced-transparency and forced-colour fallbacks.
+Bubbles cap at the composer's own width, measured once and published as `--composer-width`, so a reply lines up with
+the input instead of running a few pixels past it. Simple's collapsed rail keeps only its avatars: inbox, search, new
+and plugins move into the avatar's menu, the inbox item keeping its count, and the rail's foot and its Apps button are
+gone while the constant is on. The "New" messages divider takes the bot's Bloub colour for its label and both fading
+lines through `useBloubAccent`, solid next to the words and fading to nothing at the ends; a group chat and a bot
+still on the mascot keep the theme colour. Everything is behind `FORK_UI_1110B` (`src/fork/ui-batch-1110b.ts`), changes
+no data or behaviour, and lives on `feat/ui-batch-1110b`, unmerged.
+
+中文：MCP 服务器页不再绘制两个 Claude Code 开关和「命令会在这台电脑上运行」说明框：设置值原样保留，只是不显示行，
+把常量关掉即可恢复。zh-CN 补上了此前仍回落到英文的设置文案（主题区块、「配色主题」及其跟随系统的两种说明、「我的
+消息使用该机器人的颜色」、「语言与输入」分组、选起点卡片的标题与说明、附件、浏览器站点、Grok 迁移、共享浏览器
+提示、姓名提示等）。输入框底部现在像会话区顶部一样渐隐到画布：复制了顶部那套实现并翻转方向，同样是纯画布渐变、
+无着色，并沿用减少透明度和强制颜色下的回退。气泡以输入框自身宽度为上限（量一次并发布为 `--composer-width`），
+所以回复与输入框对齐，不再超出几像素。简约模式收起的侧栏只留头像：收件箱、搜索、+ 新建、插件移入头像菜单（收件箱
+保留计数），侧栏底部的按钮和「应用」按钮在常量开启时不再渲染。「新消息」分隔线的文字与两侧渐隐线改用 bot 的
+Bloub 颜色（`useBloubAccent`）：靠近文字为实色、向两端渐隐到透明；群聊和仍用吉祥物的 bot 保持主题色。全部由
+`FORK_UI_1110B`（`src/fork/ui-batch-1110b.ts`）控制，不改数据与行为，位于 `feat/ui-batch-1110b`，尚未合并。

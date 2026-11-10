@@ -67,6 +67,7 @@ import { goalCoordinatorForComposer, jevRoomRoutingOn, openTaskWorking, roomRout
 import { composerPlaceholder, sendLabels, SIMPLE_COMPOSER, SIMPLE_CONTROL, slotColors } from "./composer-simple"; import { ComposerSendButton } from "./ComposerSendButton";
 import { BOT_BUTTON } from "@/lib/bot-button";
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
+import { COMPOSER_BOTTOM_FADE, FORK_UI_1110B } from "@/fork/ui-batch-1110b";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
 import { CallButton } from "./CallView";
 import { GroupCallButton } from "./GroupCallView";
@@ -225,6 +226,21 @@ export function Composer({
   const { recording, ready: micReady, speechError, toggle: toggleMic, stop: stopDictation } = useComposerDictation({ draftId, text, onText: editText });
   const [caret, setCaret] = useState(0);
   const shellRef = useRef<HTMLDivElement>(null);
+  // Fork: bubbles cap at the composer's own width, so they line up with the input instead of running a few
+  // pixels past it. One shared custom property; the transcript reads it, no measurement per bubble.
+  useEffect(() => {
+    if (!FORK_UI_1110B) return;
+    const element = shellRef.current;
+    if (!element) return;
+    const apply = () => document.documentElement.style.setProperty("--composer-width", `${Math.round(element.getBoundingClientRect().width)}px`);
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--composer-width");
+    };
+  }, []);
   const tall = useTallPill(shellRef, simpleDock);
   const multiline = simpleDock && (tall || text.includes("\n"));
   const [highlight, setHighlight] = useState(0);
@@ -767,6 +783,11 @@ export function Composer({
             data-composer-backdrop
             className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
           />
+          {/* The same melt the chat head draws at the top, upside down: the strip under the composer fades
+              into the canvas instead of ending on a hard line. */}
+          {COMPOSER_BOTTOM_FADE && (
+            <div aria-hidden data-fork-composer-fade className={cn("pointer-events-none absolute -left-5 -right-5", advanced ? "-bottom-3" : simpleDock ? "-bottom-4" : "-bottom-3")} />
+          )}
         <div ref={shellRef} data-tour="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(SIMPLE_COMPOSER, multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
         {singleRow && !locked && (
           <div className="flex shrink-0 items-center">

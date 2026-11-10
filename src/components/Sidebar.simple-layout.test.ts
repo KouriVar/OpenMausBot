@@ -54,6 +54,9 @@ import { GlassBar, GlassScrollFrame, GlassScroller } from "./GlassScrollFrame";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { SidebarRailSeparator, SimpleRailFooter } from "./SidebarSimpleRail";
+import { SidebarConnectApps } from "./SidebarConnectApps";
+
+import { RAIL_MENU_ACTIONS } from "@/fork/rail-actions";
 
 const bot = (id: string, extra: Partial<Bot> = {}): Bot => ({
   id, threadId: `${id}-thread`, name: id, title: "", description: "", notifications: true,
@@ -309,7 +312,7 @@ describe("Simple-mode sidebar layout", () => {
     expect(tree.some((node) => node.props["data-sidebar-top-buttons"] !== undefined)).toBe(false);
   });
 
-  it("puts round search and the same + menu above Apps at the foot of the rail, and dragging its edge out opens it again", () => {
+  it.skipIf(RAIL_MENU_ACTIONS)("puts round search and the same + menu above Apps at the foot of the rail, and dragging its edge out opens it again", () => {
     setSidebarDensity("icons");
     // Search and + now live in the rail footer's topActions, above Apps and the account.
     const foot = () => nodes(render().tree.find((node) => node.type === SimpleRailFooter)!.props.topActions as ReactNode);
@@ -353,7 +356,7 @@ describe("Simple-mode sidebar layout", () => {
   const railSearch = (tree: ReactElement<Props>[]) => nodes(tree.find((node) => node.type === SimpleRailFooter)!.props.topActions as ReactNode)
     .find((node) => node.type === "button" && node.props["aria-label"] === "Search bots and messages")!.props.onClick as () => void;
 
-  it("opens the search pill from the rail's search button by expanding the sidebar", () => {
+  it.skipIf(RAIL_MENU_ACTIONS)("opens the search pill from the rail's search button by expanding the sidebar", () => {
     setSidebarDensity("icons");
     expect(render().tree.some((node) => node.type === SidebarSearchPill)).toBe(false);
     railSearch(render().tree)();
@@ -362,7 +365,17 @@ describe("Simple-mode sidebar layout", () => {
     expect(tree.some((node) => node.type === SidebarSearchPill)).toBe(true);
   });
 
-  it("opens the command palette instead when a side panel holds the sidebar collapsed", () => {
+  // Fork UI batch B: the rail keeps only the bot avatars and the avatar menu; the foot's four controls
+  // (inbox, search, new, plugins) live in the avatar's menu instead.
+  it.skipIf(!RAIL_MENU_ACTIONS)("keeps the rail's foot to the avatar only", () => {
+    setSidebarDensity("icons");
+    const { tree } = render();
+    const footer = tree.find((node) => node.type === SimpleRailFooter)!;
+    expect(footer.props.topActions).toBeUndefined();
+    expect(tree.some((node) => node.type === SidebarConnectApps)).toBe(false);
+  });
+
+  it.skipIf(RAIL_MENU_ACTIONS)("opens the command palette instead when a side panel holds the sidebar collapsed", () => {
     const opened = vi.fn();
     window.addEventListener("omb:open-command-palette", opened);
     const search = railSearch(render(true).tree);

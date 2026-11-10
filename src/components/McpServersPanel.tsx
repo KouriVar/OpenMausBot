@@ -28,6 +28,7 @@ import { api, useStore } from "@/state/store";
 import { McpAppsSwitch } from "./McpAppsSwitch";
 import { Switch } from "./SettingsPrimitives";
 import { ClaudeCodeSwitches } from "./ClaudeCodeSwitches";
+import { HIDE_CLAUDE_CODE_MCP } from "@/fork/ui-batch-1110b";
 import { HostedMcpIcon } from "./HostedMcpIcon";
 import type { McpMessage } from "./McpResultBudgetField";
 import { McpServerEditor, type McpServerSubmission } from "./McpServerEditor";
@@ -638,11 +639,13 @@ export function McpServersPanel({ embedded = false, hostedCards, hideHosted = fa
           ...notice.params,
           ...(notice.stateKey ? { state: t(notice.stateKey) } : {}),
         })}</div>}
-        <ClaudeCodeSwitches />
+        {!HIDE_CLAUDE_CODE_MCP && <ClaudeCodeSwitches />}
 
-        <div className="mt-4 rounded-xl border border-hairline/50 bg-raised/35 px-4 py-3 text-[12px] leading-relaxed text-ink-secondary">
-          {t("mcp.trustNotice")}
-        </div>
+        {!HIDE_CLAUDE_CODE_MCP && (
+          <div className="mt-4 rounded-xl border border-hairline/50 bg-raised/35 px-4 py-3 text-[12px] leading-relaxed text-ink-secondary">
+            {t("mcp.trustNotice")}
+          </div>
+        )}
 
         {servers === null ? (
           <div className="flex items-center justify-center gap-2 py-24 text-[13px] text-ink-secondary"><Loader2 size={14} className="animate-spin" /> {t("mcp.loading")}</div>

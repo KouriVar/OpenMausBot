@@ -85,6 +85,7 @@ import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
 import { SidebarRailSeparator, SimpleRailFooter } from "./SidebarSimpleRail";
+import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { useBotUnread } from "./unread-notice";
@@ -1524,17 +1525,19 @@ export function Sidebar({ open, onClose, collapseToIcons = false }: {
 
       {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} place={!q ? <DesktopWorkspaceSwitcher compact cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} /> : null} inbox={!q ? <SidebarInboxRow icons large={false} running={attentionHasRunningWork(attention)} /> : null} />}
 
-      {rail ? <SimpleRailFooter
-        owner={cloudOwner}
-        archived={archivedEntry}
-        topActions={<div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
-          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
-          <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
-            <Search size={18} strokeWidth={1.5} aria-hidden="true" />
-          </button>
-          <div className="relative flex">{plusControl}</div>
-        </div>}
-      /> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
+      {rail ? <RailActionsProvider actions={{ onSearch: railSearch, onNew: () => setNewChatOpen(true), onPlugins: () => dispatch({ type: "togglePlugins", open: true }) }}>
+        <SimpleRailFooter
+          owner={cloudOwner}
+          archived={archivedEntry}
+          topActions={RAIL_MENU_ACTIONS ? undefined : <div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
+            {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
+            <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
+              <Search size={18} strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <div className="relative flex">{plusControl}</div>
+          </div>}
+        />
+      </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined} />}
       </GlassBar>
       </GlassScrollFrame>
 

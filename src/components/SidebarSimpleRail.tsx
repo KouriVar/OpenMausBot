@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { SidebarConnectApps } from "./SidebarConnectApps";
+import { RAIL_MENU_ACTIONS } from "@/fork/rail-actions";
 import { SidebarPlaceStatus, useSimplePlace } from "./SidebarFooter";
 import { SidebarProfileMenu, useSimpleAccount, type ArchivedBots } from "./SidebarProfileMenu";
 import { UpdateIndicator } from "./UpdateIndicator";
@@ -19,7 +20,7 @@ export function SimpleRailFooter({ owner = null, archived, topActions }: {
   return (
     <div data-sidebar-rail-footer="" className="relative flex flex-col items-center gap-2 px-2 pb-4 pt-2">
       {topActions}
-      <SidebarConnectApps circle />
+      {!RAIL_MENU_ACTIONS && <SidebarConnectApps circle />}
       <UpdateIndicator />
       <SidebarProfileMenu iconOnly rail simple={account} />
       <SidebarPlaceStatus place={place} className="absolute bottom-3 left-full z-40 ml-2 w-56 rounded-md bg-menu px-2 py-1 text-[11px] shadow-lg" />
