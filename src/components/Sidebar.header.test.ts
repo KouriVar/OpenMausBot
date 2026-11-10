@@ -69,9 +69,16 @@ describe("sidebar header", () => {
     fixture.advanced = false;
     fixture.density = density;
     const html = render();
-    expect(html).toContain('aria-label="Inbox"');
+    // Fork UI batch B: collapsed to avatars, the rail keeps only the avatars; the Inbox and + live in the avatar's menu.
+    if (density === "icons") {
+      expect(html).not.toContain('aria-label="Inbox"');
+      expect(html).not.toContain('aria-label="New or share"');
+      expect(html).toContain('data-sidebar-account');
+    } else {
+      expect(html).toContain('aria-label="Inbox"');
+      expect(html).toContain('aria-label="New or share"');
+    }
     expect(html).not.toContain('aria-label="Active Threads"');
-    expect(html).toContain('aria-label="New or share"');
     expect(html).not.toMatch(collapse);
     expect(html, "the edge that is dragged, open or as avatars, so the avatars are never a dead end").toMatch(/role="separator" aria-label="Resize sidebar"/);
   });
@@ -210,7 +217,7 @@ describe("sidebar top row", () => {
     expect(buttons).toBeGreaterThan(spacer);
   });
 
-  it("collapses Simple mode to a rail: nothing on top but the lights' space, round search and + above Apps and the account at the foot, nothing on the edge", () => {
+  it("collapses Simple mode to a rail: nothing on top but the lights' space, only the account at the foot, nothing on the edge", () => {
     fixture.advanced = false;
     fixture.density = "icons";
     fixture.windowChrome = "mac-inset";
@@ -226,26 +233,16 @@ describe("sidebar top row", () => {
     expect(top).not.toMatch(/<button[^>]*aria-label="New or share"/);
     expect(top).toMatch(/data-sidebar-rail-top="true" class="flex flex-col items-center gap-2 pt-1"/);
     const foot = html.slice(html.indexOf("data-sidebar-rail-footer"));
-    const at = (marker: string) => {
-      const index = foot.indexOf(marker);
-      expect(index, marker).toBeGreaterThan(-1);
-      return index;
-    };
     expect(html).not.toContain("data-sidebar-edge-toggle");
-    expect(at('aria-label="Search bots and messages"')).toBeLessThan(at('aria-label="New or share"'));
-    expect(at('aria-label="New or share"')).toBeLessThan(at('data-sidebar-nav="apps"'));
-    expect(foot).toMatch(/aria-label="New or share" class="[^"]*\bsize-9\b[^"]*\brounded-full\b/);
-    const positions = [
-      at('data-sidebar-nav="apps"'),
-      at("data-sidebar-account"),
-    ];
-    expect(positions).toEqual([...positions].sort((a, b) => a - b));
-    expect(foot).toMatch(/data-tour="nav-apps" data-sidebar-nav="apps"[^>]*aria-label="Connect apps"[^>]*class="[^"]*\bsize-9\b[^"]*"><svg[^>]*lucide-puzzle/);
+    // Fork UI batch B: the rail keeps only its avatars — Inbox, search, + and Apps moved into the avatar's menu.
+    expect(foot).toContain("data-sidebar-account");
+    expect(foot).not.toMatch(/aria-label="Search bots and messages"/);
+    expect(foot).not.toContain('aria-label="New or share"');
+    expect(foot).not.toContain('data-sidebar-nav="apps"');
     expect(foot).not.toContain("data-workspace-switcher");
     expect(foot).not.toContain('data-sidebar-nav="automations"');
     expect(foot).not.toContain('data-sidebar-nav="team-map"');
     expect(html).not.toContain("Switch server:");
-    expect(html.match(/aria-label="New or share"/g)).toHaveLength(1);
   });
 
   it("stacks the icons rail and puts the place switcher in the foot, above the inbox and search", () => {
