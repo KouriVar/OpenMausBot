@@ -28,7 +28,15 @@
   font-size: inherit;
   line-height: inherit;
   text-decoration: none;
-  vertical-align: baseline;
+  /* The chip's own baseline sits on the bottom of its 15px face, so baseline alignment rode 2px high
+     over the words. Middle centres the box on the text's line and the box's own 15px line-height keeps
+     it shorter than the paragraph's leading, so the line box (and the bubble) stays exactly the height
+     plain text gives it; the -0.1em lifts the last ~1.5px that middle leaves low. `bare` keeps the
+     textarea mirror's caret metrics untouched. */
+  vertical-align: middle;
+  line-height: 1;
+  position: relative;
+  top: -0.1em;
   white-space: nowrap;
   max-width: 100%;
 }
