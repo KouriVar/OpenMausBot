@@ -388,3 +388,29 @@ only the bar is not drawn, and the skin `--color-scrollbar` tokens remain define
 `ConnectAi`、`ChiefIntro` 里的 `[scrollbar-width:thin]`。滚轮、触控板、键盘、scroll-into-view 照旧；
 所有 `overflow-x/y` 容器（含代码块与表格）仍可滚动，只是不画条；皮肤里的 `--color-scrollbar` 变量保留，
 供对比度检查使用。改动在 `feat/hide-scrollbars`（`e9d8f636b`）上，尚未合并。
+
+### A029 · Sidebar and panel polish: group faces, one row radius, the chief's card, bold text and bot accents
+
+The sidebar's group avatar now draws the members themselves: one member is a single face, two sit corner to corner,
+three stand as a pyramid, and four or more are the first four in a 2x2 whose faces ride over one another, each on a
+disc ringed in the row's own surface so a selected row's cuts follow its selected colour (the +N tail stays out of the
+row; the header capsule and the empty room keep theirs). Group rows and bot rows share one radius token
+(`ROW_RADIUS` / `ROW_RADIUS_SIMPLE`) after disagreeing (`rounded-xl` against `rounded-md`, 12px against 6px), and
+Simple mode's chief row grows its avatar one step, squares it to the row radius and presses the crown into the
+avatar's corner with a ring in the row's surface colour. Message previews take one weight step up at their existing
+size, while the engine mark on the row's right and the group-chats heading's count are simply not drawn. Settings →
+Appearance gains a "Bold text" switch (off by default, saved on the device) that raises chat messages and the
+composer one weight step in both themes, and the bot settings and computer panels take the bot's Bloub colour through
+`--bot-accent` / `--bot-accent-ink`, with black or white ink chosen by contrast, the skin accent as the fallback and
+group chat left on the theme colour. All of it sits behind `FORK_UI_1110` in `src/fork/ui-batch-1110.ts`, changes no
+data or behaviour, and lives on `feat/ui-batch-1110` (`e8916c95e`), unmerged.
+
+中文：侧栏群头像改成按人数直接画成员：1 人单脸、2 人对角、3 人品字、4 人及以上取前 4 个 2×2 互压；每张脸坐在按行
+自身表面色描边的圆盘上，所以选中行的切口跟随选中底色（行内不再显示 +N；顶部胶囊和群空态保持原样）。群行与 bot 行统一
+用同一个圆角 token（`ROW_RADIUS` / `ROW_RADIUS_SIMPLE`）——之前两者不一致（`rounded-xl` 对 `rounded-md`，12px 对
+6px）；简易模式的主 bot 行头像放大一档、按行圆角做成正方形，皇冠压进头像一角并以行表面色描边。消息预览字号不变、只加粗
+一档；行右侧的模型图标与「群组聊天」标题计数不再绘制。设置 → 外观新增「粗体文字」开关（默认关、存本机），让会话区
+消息与输入框在深浅主题下都提高一档字重；bot 设置面板与屏幕面板通过 `--bot-accent` / `--bot-accent-ink` 取 bot 的
+Bloub 颜色，按对比度自动选黑或白字，没有 Bloub 色时回落主题色，群聊维持主题色。全部由
+`src/fork/ui-batch-1110.ts` 的 `FORK_UI_1110` 控制，不改数据与行为，位于 `feat/ui-batch-1110`（`e8916c95e`），
+尚未合并。
