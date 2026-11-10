@@ -7,7 +7,8 @@ import { useBloubSkin } from "@/fork/bloub-skin";
 import { SIDEBAR_AVATAR_ADVANCED } from "./sidebar-icon-column";
 import { BotAvatar } from "./Avatar";
 import { BloubAvatar } from "./BloubAvatar";
-import { GroupFaceCluster, clusterFaceSize } from "./GroupFaceStack";
+import { GroupFaceCluster, clusterFaceSize, type GroupFaceClusterLayout } from "./GroupFaceStack";
+import { FORK_UI_1110 } from "@/fork/ui-batch-1110";
 
 /** One member in the stack, in its own Bloub look, drawn to the edge of its face so the cut ring never
  * leaves a see-through gap over the face it covers. */
@@ -16,7 +17,7 @@ function BloubMember({ bot, size }: { bot: Bot; size: number }) {
   return <BloubAvatar size={size} frameSize={size} fitBody shape={skin.shape} colorId={skin.color} expression={skin.expression} state="idle" animated={false} label={bot.name} />;
 }
 
-export function StackedMauses({ members, density, large = false, surface = "var(--color-panel)" }: {
+export function StackedMauses({ members, density, large = false, surface = "var(--row, var(--color-panel))" }: {
   members: Bot[];
   density: SidebarDensity;
   large?: boolean;
@@ -35,12 +36,15 @@ export function StackedMauses({ members, density, large = false, surface = "var(
       </div>
     );
   }
-  // A group fills the square a single face would take: two members corner to corner, three or more as a
-  // pyramid. No count tail — the row already names the room.
-  const layout = members.length === 2 ? "pair" : "triad";
+  // A group fills the square a single face would take: two members corner to corner, three as a pyramid, four
+  // or more as the first four in a 2x2 whose faces ride over one another. No count tail — the row already
+  // names the room.
+  const layout: GroupFaceClusterLayout = FORK_UI_1110
+    ? members.length === 2 ? "pair" : members.length === 3 ? "triad" : "quad"
+    : members.length === 2 ? "pair" : "triad";
   const square = iconOnly ? 48 : large ? 36 : 32;
   const face = clusterFaceSize(square, layout);
-  const shown = members.slice(0, members.length === 2 ? 2 : 3);
+  const shown = members.slice(0, layout === "quad" ? 4 : layout === "triad" ? 3 : 2);
   return (
     <div className={cn("flex shrink-0 items-center justify-center", slotSize)}>
       <GroupFaceCluster

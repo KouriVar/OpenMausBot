@@ -36,6 +36,8 @@ const LiveDesktop = lazy(loadLiveDesktop);
 import { browserAvailable, browserUnavailableReason, builtInBrowserEnabled } from "@/lib/feature-flags";
 import { parseComputerHelp, transitionComputerControlLease, type ComputerControlAction } from "@/lib/computer-control";
 import { openProviderDesktop, useComputerTakeover } from "./computer-takeover";
+import { useBloubAccent } from "@/fork/use-user-bubble-style";
+import { botAccentStyle } from "@/fork/ui-batch-1110";
 import { SignInBanner } from "./SignInRequestCard";
 import { FullScreenButton } from "./FullScreenButton";
 import { LocalScreenPreview } from "./LocalScreenPreview";
@@ -1182,7 +1184,7 @@ export function ComputerPanel({
       )}
       ref={panelRef}
       data-computer-panel
-      style={{ width: panelWidth }}
+      style={{ width: panelWidth, ...botAccentStyle(useBloubAccent({ id: bot.id, color: bot.color })) }}
     >
       <div
         ref={separatorRef}
@@ -1429,7 +1431,7 @@ export function ComputerPanel({
                     onClick={() => void runVmAction("vm-start")}
                     disabled={pending !== null}
                     aria-busy={pending === "vm-start"}
-                    className="mt-1 flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-medium text-white hover:brightness-110 disabled:opacity-50"
+                    className="mt-1 flex items-center gap-1.5 rounded-lg bg-[var(--bot-accent,var(--color-accent))] px-3 py-1.5 text-[12px] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110 disabled:opacity-50"
                   >
                     {pending === "vm-start" && <Loader2 size={13} className="animate-spin" />}
                     {t(pending === "vm-start" ? "vm.setup.starting" : "vm.setup.start")}
@@ -1438,7 +1440,7 @@ export function ComputerPanel({
                   <button
                     onClick={() => void runVmAction(vmStatus.container === "missing" ? "vm-create" : "vm-recreate")}
                     disabled={pending !== null}
-                    className="mt-1 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-medium text-white hover:brightness-110 disabled:opacity-50"
+                    className="mt-1 rounded-lg bg-[var(--bot-accent,var(--color-accent))] px-3 py-1.5 text-[12px] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110 disabled:opacity-50"
                   >
                     {(pending === "vm-create" || pending === "vm-recreate") && (
                       <Loader2 size={13} className="mr-1.5 inline animate-spin" />
@@ -1490,7 +1492,7 @@ export function ComputerPanel({
                 <button
                   onClick={() => void replaceVpsComputer()}
                   disabled={pending === "vps-replace"}
-                  className="mt-1 rounded-lg bg-accent px-3 py-1.5 text-[12px] font-medium text-white hover:brightness-110 disabled:opacity-50"
+                  className="mt-1 rounded-lg bg-[var(--bot-accent,var(--color-accent))] px-3 py-1.5 text-[12px] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110 disabled:opacity-50"
                 >
                   {pending === "vps-replace" && <Loader2 size={13} className="mr-1.5 inline animate-spin" />}
                   {t("computer.replaceVps")}
@@ -1555,7 +1557,7 @@ export function ComputerPanel({
             <button
               onClick={() => void handBack()}
               disabled={controlPending || takeover.handingBack}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-accent py-2 text-[13px] font-medium text-white hover:brightness-110 disabled:opacity-50"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--bot-accent,var(--color-accent))] py-2 text-[13px] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110 disabled:opacity-50"
             >
               <Hand size={14} />
               {t("computer.handBack")}
@@ -1591,7 +1593,7 @@ export function ComputerPanel({
                 type="button"
                 onClick={() => void takeControl()}
                 disabled={controlPending || takeBlocked}
-                className="flex flex-auto items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-accent px-3 py-2 text-[13px] font-medium text-accent-ink hover:brightness-110 disabled:opacity-50"
+                className="flex flex-auto items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[var(--bot-accent,var(--color-accent))] px-3 py-2 text-[13px] font-medium text-[var(--bot-accent-ink,var(--color-accent-ink))] hover:brightness-110 disabled:opacity-50"
                 title={t("computer.takeControlTitle")}
               >
                 {pending === "join" ? <Loader2 size={14} className="animate-spin" /> : <Hand size={14} />}
@@ -1707,12 +1709,12 @@ export function ComputerPanel({
                   className={cn(
                     "flex min-w-0 flex-col items-center gap-1.5 rounded-lg border px-1.5 py-2.5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card",
                     selected
-                      ? "border-accent/60 bg-accent/10 text-ink"
+                      ? "border-[color-mix(in_srgb,var(--bot-accent,var(--color-accent))_60%,transparent)] bg-[color-mix(in_srgb,var(--bot-accent,var(--color-accent))_10%,transparent)] text-ink"
                       : "border-hairline/50 bg-panel/30 text-ink-secondary",
-                    disabled ? "cursor-not-allowed opacity-50" : "hover:border-accent/40 hover:bg-control/60",
+                    disabled ? "cursor-not-allowed opacity-50" : "hover:border-[color-mix(in_srgb,var(--bot-accent,var(--color-accent))_40%,transparent)] hover:bg-control/60",
                   )}
                 >
-                  <Icon size={16} className={cn("shrink-0", selected ? "text-accent" : "text-ink-secondary")} aria-hidden="true" />
+                  <Icon size={16} className={cn("shrink-0", selected ? "text-[var(--bot-accent,var(--color-accent))]" : "text-ink-secondary")} aria-hidden="true" />
                   <span className="w-full truncate text-[12px] font-medium leading-4">{simpleLabel}</span>
                   {issue && <span className="w-full truncate text-[11px] leading-3 text-ink-secondary">{view.short}</span>}
                 </button>

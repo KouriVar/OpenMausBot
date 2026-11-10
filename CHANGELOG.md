@@ -388,3 +388,56 @@ only the bar is not drawn, and the skin `--color-scrollbar` tokens remain define
 `ConnectAi`、`ChiefIntro` 里的 `[scrollbar-width:thin]`。滚轮、触控板、键盘、scroll-into-view 照旧；
 所有 `overflow-x/y` 容器（含代码块与表格）仍可滚动，只是不画条；皮肤里的 `--color-scrollbar` 变量保留，
 供对比度检查使用。改动在 `feat/hide-scrollbars`（`e9d8f636b`）上，尚未合并。
+
+### A029 · Sidebar and panel polish: group faces, one row radius, the chief's card, bold text and bot accents
+
+The sidebar's group avatar now draws the members themselves: one member is a single face, two sit corner to corner,
+three stand as a pyramid, and four or more are the first four in a 2x2 whose faces ride over one another, each on a
+disc ringed in the row's own surface so a selected row's cuts follow its selected colour (the +N tail stays out of the
+row; the header capsule and the empty room keep theirs). Group rows and bot rows share one radius token
+(`ROW_RADIUS` / `ROW_RADIUS_SIMPLE`) after disagreeing (`rounded-xl` against `rounded-md`, 12px against 6px), and
+Simple mode's chief row grows its avatar one step, squares it to the row radius and presses the crown into the
+avatar's corner with a ring in the row's surface colour. Message previews take one weight step up at their existing
+size, while the engine mark on the row's right and the group-chats heading's count are simply not drawn. Settings →
+Appearance gains a "Bold text" switch (off by default, saved on the device) that raises chat messages and the
+composer one weight step in both themes, and the bot settings and computer panels take the bot's Bloub colour through
+`--bot-accent` / `--bot-accent-ink`, with black or white ink chosen by contrast, the skin accent as the fallback and
+group chat left on the theme colour. All of it sits behind `FORK_UI_1110` in `src/fork/ui-batch-1110.ts`, changes no
+data or behaviour, and lives on `feat/ui-batch-1110` (`e8916c95e`), unmerged.
+
+中文：侧栏群头像改成按人数直接画成员：1 人单脸、2 人对角、3 人品字、4 人及以上取前 4 个 2×2 互压；每张脸坐在按行
+自身表面色描边的圆盘上，所以选中行的切口跟随选中底色（行内不再显示 +N；顶部胶囊和群空态保持原样）。群行与 bot 行统一
+用同一个圆角 token（`ROW_RADIUS` / `ROW_RADIUS_SIMPLE`）——之前两者不一致（`rounded-xl` 对 `rounded-md`，12px 对
+6px）；简易模式的主 bot 行头像放大一档、按行圆角做成正方形，皇冠压进头像一角并以行表面色描边。消息预览字号不变、只加粗
+一档；行右侧的模型图标与「群组聊天」标题计数不再绘制。设置 → 外观新增「粗体文字」开关（默认关、存本机），让会话区
+消息与输入框在深浅主题下都提高一档字重；bot 设置面板与屏幕面板通过 `--bot-accent` / `--bot-accent-ink` 取 bot 的
+Bloub 颜色，按对比度自动选黑或白字，没有 Bloub 色时回落主题色，群聊维持主题色。全部由
+`src/fork/ui-batch-1110.ts` 的 `FORK_UI_1110` 控制，不改数据与行为，位于 `feat/ui-batch-1110`（`e8916c95e`），
+尚未合并。
+
+### A030 · The MCP page's Claude Code rows, a missing zh-CN pass, the composer's bottom edge, aligned bubbles, the rail's menu and the bot's divider colour
+
+The MCP servers page no longer draws the two Claude Code switches or the "commands run on this computer" notice: the
+settings themselves are untouched, only their rows are hidden, so turning the constant back on restores them. The
+zh-CN catalogue gained the settings strings that were still falling back to English (the theme block, the colour
+themes hint and its follow-system variants, "Use the bot's color for my messages", the language-and-typing group, the
+setup card's heading and hint, attachments, browser server sites, the Grok import row, shared-browser hints, and the
+name hints). The composer's bottom edge now melts into the canvas the way the chat head's top edge does, copied and
+flipped, with the same solid-canvas gradient, no tint and the same reduced-transparency and forced-colour fallbacks.
+Bubbles cap at the composer's own width, measured once and published as `--composer-width`, so a reply lines up with
+the input instead of running a few pixels past it. Simple's collapsed rail keeps only its avatars: inbox, search, new
+and plugins move into the avatar's menu, the inbox item keeping its count, and the rail's foot and its Apps button are
+gone while the constant is on. The "New" messages divider takes the bot's Bloub colour for its label and both fading
+lines through `useBloubAccent`, solid next to the words and fading to nothing at the ends; a group chat and a bot
+still on the mascot keep the theme colour. Everything is behind `FORK_UI_1110B` (`src/fork/ui-batch-1110b.ts`), changes
+no data or behaviour, and lives on `feat/ui-batch-1110b`, unmerged.
+
+中文：MCP 服务器页不再绘制两个 Claude Code 开关和「命令会在这台电脑上运行」说明框：设置值原样保留，只是不显示行，
+把常量关掉即可恢复。zh-CN 补上了此前仍回落到英文的设置文案（主题区块、「配色主题」及其跟随系统的两种说明、「我的
+消息使用该机器人的颜色」、「语言与输入」分组、选起点卡片的标题与说明、附件、浏览器站点、Grok 迁移、共享浏览器
+提示、姓名提示等）。输入框底部现在像会话区顶部一样渐隐到画布：复制了顶部那套实现并翻转方向，同样是纯画布渐变、
+无着色，并沿用减少透明度和强制颜色下的回退。气泡以输入框自身宽度为上限（量一次并发布为 `--composer-width`），
+所以回复与输入框对齐，不再超出几像素。简约模式收起的侧栏只留头像：收件箱、搜索、+ 新建、插件移入头像菜单（收件箱
+保留计数），侧栏底部的按钮和「应用」按钮在常量开启时不再渲染。「新消息」分隔线的文字与两侧渐隐线改用 bot 的
+Bloub 颜色（`useBloubAccent`）：靠近文字为实色、向两端渐隐到透明；群聊和仍用吉祥物的 bot 保持主题色。全部由
+`FORK_UI_1110B`（`src/fork/ui-batch-1110b.ts`）控制，不改数据与行为，位于 `feat/ui-batch-1110b`，尚未合并。
