@@ -16,6 +16,29 @@ the earliest, later entries append new numbers — and they are never reused, so
 
 ## Unreleased / 未发布
 
+## V0.2 · 2026-11-11 · 基于官方 v0.1.151 / Based on official v0.1.151
+
+The second personal build: the @ mention chip is centred on the text line without being compressed, the
+composer's bottom edge fades the transcript behind the input instead of cutting it, the bot context
+menu and the first-reply notice are in Chinese (the duplicated English notice is gone), picture bubbles
+keep equal padding on all four sides (including mixed text-and-picture bubbles and their bottoms), and
+a white avatar's own bubbles and the composer's two voice buttons turn #3B3B3B with #F5F5F5 ink in dark
+mode. The chat header's profile pill lost its › arrow, the sidebar lost the section rule, the chief's
+card is square with the row radius, non-chief avatars lost their grey frame, group avatars draw 1.2x
+larger, the expanded sidebar's search/inbox/+ buttons moved onto the account's row (its header buttons
+and the Connect apps button are hidden), and the sidebar can be hidden behind a thin left-edge handle
+that brings the collapsed bar back on click or drag. Simular Box lights up for any enabled, signed-in
+Simular MCP whose name contains "simular" (the hosted one is `simular-cloud`).
+
+中文：第二个个人构建：@ 提及 chip 在不变形的前提下与正文中线对齐；输入框下沿改为渐进渐隐（层级在输入框之后、
+气泡之上），不再硬裁消息；bot 右键菜单与“首次回复”提示全部汉化，并去掉了重复的英文公告；图片气泡四边内边距一致
+（含文字+图片混合气泡的底部），深色模式下白色头像的“我”气泡与输入框两个语音按钮统一为 #3B3B3B 底、#F5F5F5
+字/图标。聊天顶部资料胶囊去掉右侧 › 箭头；侧边栏去掉分区横线；主 bot 卡片改为方形并沿用行圆角；非主 bot 头像去掉
+灰色外框；群头像整体放大 1.2 倍；展开侧栏的搜索、收件箱、+ 移到用户头像那一行（顶部对应按钮与「连接应用」隐藏）；
+侧栏可隐藏为左边缘细长提手，点击或向右拖可唤回收起状态。Simular Box 对任何名含 simular 且已启用、已登录的 MCP
+（如 `simular-cloud`）即可用。
+
+
 ### A001 · Sidebar: search and new-chat buttons moved to the bottom
 
 The search button and the `+` button now sit at the bottom of the sidebar, just above the tools/plugins
