@@ -33,6 +33,9 @@ whatever else the message offers, and the time at its foot. The menu opens where
 window, and leaves links and text fields their own right-click menus. Display only, behind
 `FORK_MESSAGE_MENU_ON_RIGHT_CLICK` in `src/fork/ui-batch-1111.ts`.
 
+In Advanced mode the composer's call button now matches the mic beside it: both are 32px with a 16px glyph, where the
+call button used to take the white bubble's 28px.
+
 Advanced mode's conversation header draws the same pill Simple's does too — the same padding, round surface and 14px
 medium name beside the 24px avatar — instead of the wider, semibold variant it had, while the pencil that renames the
 bot and the chief's `总协调机器人` tag stay inside it.
@@ -41,6 +44,8 @@ bot and the chief's `总协调机器人` tag stay inside it.
 （`👍` `👎` `❤️` `😂` `🎉` `👀`，不做「添加表情」），下面是回复、复制和这条消息其余的项，最底下是时间。菜单在指针
 位置弹出、不越出窗口，链接和输入框保留它们自己的右键菜单。纯显示，由 `src/fork/ui-batch-1111.ts` 的
 `FORK_MESSAGE_MENU_ON_RIGHT_CLICK` 控制。
+
+高级模式输入框右边的通话按钮现在和旁边的麦克风一样：都是 32px 方框、16px 图标，不再是白色气泡那版的 28px。
 
 高级模式的会话页头部也换成和简易一样的胶囊 —— 同样的内边距、圆底，头像 24px 旁 14px 中等字重的名字，不再是更宽、
 字更重那版；改名铅笔和「总协调机器人」标签都留在胶囊里。
