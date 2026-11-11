@@ -12,7 +12,7 @@ export function MentionText({ text, peers, everyone = false, person, bare = fals
     return (
       <Fragment key={range.start}>
         {prefix}
-        <MentionChip name={text.slice(range.start, range.end)} botId={range.botId} fallbackColor={range.fallbackColor}
+        <MentionChip name={text.slice(range.start, range.end).replace(/^@/, "")} botId={range.botId} fallbackColor={range.fallbackColor}
           you={range.you} person={range.person} bare={bare} />
       </Fragment>
     );

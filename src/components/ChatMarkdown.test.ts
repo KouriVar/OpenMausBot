@@ -89,9 +89,10 @@ describe("mention highlighting", () => {
       text: "@Atlas @Juniper @everyone", everyone: true,
       mentionPeers: [{ name: "Atlas", color: "blue", botId: "a1" }, { name: "Juniper", color: "red", botId: "a2" }],
     }));
-    expect(html).toContain(">@Atlas<");
-    expect(html).toContain(">@Juniper<");
-    expect(html).toContain(">@everyone<");
+    // Fork: the chip shows the face and the name; the "@" is dropped from the label.
+    expect(html).toContain(">Atlas<");
+    expect(html).toContain(">Juniper<");
+    expect(html).toContain(">everyone<");
     expect(html).toContain("mention-chip-face"); // bots get a face, everyone does not
   });
   it("highlights known mentions in prose, lists and tables", () => {
@@ -99,7 +100,7 @@ describe("mention highlighting", () => {
       text: "Ask @Atlas.\n\n- @調査担当 確認\n\n| Who |\n| --- |\n| @everyone |", mentionPeers, everyone: true,
     }));
     expect(html.match(/class="mention-chip"/g)).toHaveLength(3);
-    expect(html).toContain(">@Atlas<");
+    expect(html).toContain(">Atlas<");
     expect(html).toContain("<table");
   });
   it("leaves code, links, emails and unknown names untouched", () => {

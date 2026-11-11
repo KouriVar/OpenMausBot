@@ -683,7 +683,8 @@ const MARKDOWN_COMPONENTS: Components = {
     const link = threadLinkFromProps(raw);
     if (link) return <ThreadLink target={link.target} ambiguous={link.ambiguous}>{props.children}</ThreadLink>;
     if (String(raw.className ?? "").includes("mention-chip")) {
-      return <MentionChip name={String(raw["data-mention-name"] ?? "")}
+      // Fork: the chip already reads as a mention — the face and the name say it, so the "@" goes.
+      return <MentionChip name={String(raw["data-mention-name"] ?? "").replace(/^@/, "")}
         botId={raw["data-mention-bot"] as string | undefined}
         fallbackColor={raw["data-mention-fallback"] as string | undefined}
         you={Boolean(raw["data-mention-you"])} person={Boolean(raw["data-mention-person"])} />;
