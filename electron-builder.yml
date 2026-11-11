@@ -13,9 +13,11 @@ protocols:
 # --publish never, and must be uploaded to the GitHub release alongside the
 # artifacts — a release missing latest.yml leaves every Windows install
 # stranded on its installed version.
+# Fork: the app's own updater reads this feed (electron/fork-updates.mjs), so it must point at this fork's releases,
+# never upstream's — otherwise a Windows install would replace itself with the official build.
 publish:
   - provider: github
-    owner: milind-soni
+    owner: KouriVar
     repo: OpenMausBot
 
 directories:

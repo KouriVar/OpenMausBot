@@ -1,10 +1,11 @@
 # Fork release: one tag (v*) builds the personal build's macOS arm64 and Windows x64 packages,
-# unsigns them, and publishes a pre-release with the installers and their checksums.
+# unsigns them, and publishes a stable release with the installers, their checksums and the
+# electron-builder update metadata (latest.yml / latest-mac.yml) the app's own updater reads.
 #
-# No secrets are used: the macOS app is built unsigned (no Developer ID certificate) and the
-# Windows NSIS installer is unsigned, so SmartScreen shows its first-run prompt. The app's own
-# updater is short-circuited at runtime (OMB_FOLLOW_UPSTREAM_UPDATES !== "1"), so the missing
-# publisherName/signature never reaches an update check.
+# No secrets are used: the macOS app is built unsigned and the Windows NSIS installer is unsigned,
+# so SmartScreen shows its first-run prompt. Windows installs updates in place from these releases
+# (electron-updater skips its signature check when app-update.yml carries no publisherName); macOS
+# cannot replace an unsigned app, so its check opens the release page instead.
 name: Fork Release
 
 on:
@@ -40,12 +41,16 @@ jobs:
         run: pnpm package:mac:arm64
       - name: Checksums
         run: cd release && shasum -a 256 *.dmg *.zip > sha256-mac.txt && cat sha256-mac.txt
+      # The updater reads this file; a release without it would leave every install behind, silently.
+      - name: Update metadata
+        run: test -f release/latest-mac.yml && cat release/latest-mac.yml
       - uses: actions/upload-artifact@v4
         with:
           name: mac-release
           path: |
             release/*.dmg
             release/*.zip
+            release/latest-mac.yml
             release/sha256-mac.txt
           if-no-files-found: error
           retention-days: 7
@@ -74,11 +79,15 @@ jobs:
       - name: Checksums
         shell: bash
         run: cd release && sha256sum *.exe > sha256-win.txt && cat sha256-win.txt
+      - name: Update metadata
+        shell: bash
+        run: test -f release/latest.yml && cat release/latest.yml
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
           path: |
             release/*.exe
+            release/latest.yml
             release/sha256-win.txt
           if-no-files-found: error
           retention-days: 7
@@ -105,16 +114,20 @@ jobs:
           cat sha256-mac.txt sha256-win.txt > SHA256SUMS.txt
           sed -i 's#  #  #' SHA256SUMS.txt
           cat SHA256SUMS.txt
-      - name: Publish pre-release
+      # A stable release, not a pre-release: electron-updater ignores pre-releases unless asked for them, so the
+      # app's own check would never see one.
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          prerelease: true
+          prerelease: false
           body_path: .github/fork-release-notes.md
           files: |
             assets/*.dmg
             assets/*.zip
             assets/*.exe
+            assets/latest.yml
+            assets/latest-mac.yml
             assets/SHA256SUMS.txt
           fail_on_unmatched_files: true
