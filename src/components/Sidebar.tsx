@@ -95,6 +95,7 @@ import { SidebarNoBots, SidebarTileGrid } from "./SidebarTiles";
 import { BotContextMenu } from "./SidebarBotMenu";
 export { BotContextMenu };
 import { AvatarActivityDot, RowDot, RowStatusText, rowSurface } from "./SidebarRowMarkers";
+import { AvatarStatusDot, avatarDotState, FORK_ONE_AVATAR_DOT } from "@/fork/avatar-dot";
 
 
 import { SidebarAttentionPanel } from "./SidebarAttentionPanel";
@@ -741,6 +742,8 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   );
   const { waiting, working, teammateWait, queued } = sidebarBotStatus(bot, pendingQueued);
   const { unread, noticing } = useBotUnread(bot);
+  // Fork: the row's avatar wears one dot, in the working dot's corner; unread is a blue dot there, not a second one.
+  const rowDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ waiting, working, unread, teammate: teammateWait, queued }) : null;
   const onLiveCall = liveBadgeFor(bot.id, liveMedia, liveCall);
   const body = (
     <>
@@ -760,7 +763,9 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         </span>
         {/* Bottom-left, clear of the status dots on the right and of the row's hover actions. */}
         {(iconOnly || !simpleList) && !FORK_HIDE_BOT_BADGES && <BotModelBadge bot={bot} instances={instances} avatarSize={avatarSize} />}
-        {simpleRow && <AvatarActivityDot activity={working ? "working" : teammateWait ? "teammate" : queued && !waiting ? "queued" : null} />}
+        {simpleRow && (FORK_ONE_AVATAR_DOT
+          ? rowDot && <AvatarStatusDot state={rowDot} surface="ring-2 ring-[var(--row)]" />
+          : <AvatarActivityDot activity={working ? "working" : teammateWait ? "teammate" : queued && !waiting ? "queued" : null} />)}
         {!simpleRow && working && (
           <span
             data-testid="working-dot"
@@ -842,7 +847,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
             </span>
           )}
           {expanded && unread && <span className="size-1.5 shrink-0 rounded-full bg-accent" aria-label={t("task.unreadMany")} />}
-          {simpleRow && (unread || waiting) && <RowDot waiting={waiting} />}
+          {simpleRow && !FORK_ONE_AVATAR_DOT && (unread || waiting) && <RowDot waiting={waiting} />}
         </div>
         {(!expanded || deleting) && <div className="flex items-center justify-between gap-2">
           {deleting ? (

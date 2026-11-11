@@ -18,6 +18,7 @@ import { openBotContextMenu, useVisibleMessages, type BotRowProps } from "./Side
 import { sidebarBotStatus } from "./SidebarBotActivity";
 import { SIMPLE_ROW_FOCUS } from "./SidebarSimpleTop";
 import { ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
+import { AvatarStatusDot, avatarDotState, FORK_ONE_AVATAR_DOT } from "@/fork/avatar-dot";
 import { useBotUnread } from "./unread-notice";
 
 const RING = "ring-2 ring-[var(--tile)]";
@@ -36,6 +37,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
   const onLiveCall = liveBadgeFor(bot.id, liveMedia, liveCall);
   const tooltip = botTooltip(bot, instances);
   const status = waiting ? t("sidebar.preview.waiting") : working ? t("chat.activity.working") : teammateWait ? t("sidebar.preview.waitingOnTeammate") : queued ? t("task.queued") : "";
+  // Fork: one dot on the tile too, in the working dot's corner, its colour carrying the state (unread included).
+  const tileDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ waiting, working, unread, teammate: teammateWait, queued }) : null;
   const label = [bot.name, bot.chiefOfStaff ? t("sidebar.bot.chiefOfStaff") : "", onLiveCall ? t("call.live.badge") : "", status, unread ? t("task.unread") : ""].filter(Boolean).join(" · ");
   const reorder = pinnedCircleDragHandlers(bot.id, { drag, dragging, prevId, nextId });
   const open = () => openBotRow(dispatch, bot, showThreads, selected);
@@ -92,11 +95,20 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
         {primary && bot.chiefOfStaff && (
-          <span data-testid="chief-badge" className={cn("absolute -bottom-px -right-px flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", RING)}>
+          <span data-testid="chief-badge" className={cn("absolute flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", FORK_ONE_AVATAR_DOT ? "-left-1 -top-1" : "-bottom-px -right-px", RING)}>
             <Crown size={10} strokeWidth={1.5} fill="currentColor" aria-hidden="true" />
           </span>
         )}
-        {onLiveCall ? (
+        {FORK_ONE_AVATAR_DOT ? (
+          <>
+            {onLiveCall && (
+              <span data-testid="live-call-badge" className={cn("absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-success", RING)}>
+                <Phone size={9} strokeWidth={2.5} aria-hidden="true" />
+              </span>
+            )}
+            {tileDot && <AvatarStatusDot state={tileDot} surface={RING} />}
+          </>
+        ) : onLiveCall ? (
           <span data-testid="live-call-badge" className={cn("absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-success", RING)}>
             <Phone size={9} strokeWidth={2.5} aria-hidden="true" />
           </span>
