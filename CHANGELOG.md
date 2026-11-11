@@ -32,18 +32,25 @@ introduced no numbered entry of its own — the work it carries is described in 
 
 ## Unreleased / 未发布
 
-## V0.4 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+## V0.4 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
-The fourth personal build is being prepared here: `0.4.0` in the bundle, shown as **V0.4** in the app, still cut
-from official `v0.1.151` with the same three upstream cherry-picks as V0.3 (`949cabedd`, `5beba1276`,
-`d48997f07`) and still Simple-only. Every change that lands in it is numbered from `D001` onward and listed
-under this heading, one entry per change; the build date and the closing summary are written when the
-version is cut.
+The fourth personal build: `0.4.0` in the bundle, shown as **V0.4.0** in the app, still cut from official
+`v0.1.151` with the same three upstream cherry-picks as V0.3 (`949cabedd`, `5beba1276`, `d48997f07`) and still
+Simple-only. It is the fork's larger round of polish, eleven entries: the hidden sidebar's edge handle is smaller,
+fainter and springs under the pointer, Simple's chat-head pill gains 4px on its trailing edge, the avatar menu names
+the installed build, the transcript no longer shows below the composer, every avatar wears one status dot whose
+colour is the state, the chief's card is an 80px square with the star badge on its avatar, a message's time moved
+into its own menu, an image bubble keeps its sides' inset on top, an unread bot's mascot draws no extra glyph, and
+the app's updater now follows this fork's own GitHub releases (Windows installs in place, macOS opens the release
+page). Patches after this one count up from `0.4.1`; each release's notes gather the entries since the last one.
 
-中文：**V0.4，进行中，基于官方 v0.1.151 + 与 V0.3 相同的 3 个 cherry-pick。** 第四个个人构建正在这里准备：
-打包版本号 `0.4.0`，应用内显示 **V0.4**，基线仍是官方 `v0.1.151`，cherry-pick 与 V0.3 相同的 `949cabedd`、
-`5beba1276`、`d48997f07`，仍为 Simple-only。落进本版的每项改动从 `D001` 开始编号，按条目列在本标题下，
-一项一条；打包日期与收尾的整段概述在该版本发出时补上。
+中文：**V0.4.0，基于官方 v0.1.151 + 与 V0.3 相同的 3 个 cherry-pick。** 第四个个人构建：打包版本号 `0.4.0`，应用内显示
+**V0.4.0**，基线仍是官方 `v0.1.151`，cherry-pick 与 V0.3 相同的 `949cabedd`、`5beba1276`、`d48997f07`，仍为
+Simple-only。这一版是 fork 比较大的一轮打磨，共十一条：隐藏侧栏的提手更小更淡、悬停有回弹，简易模式资料胶囊右侧
+多 4px，头像菜单标出当前构建，会话面板下方不再漏出正文，每个头像只有一个状态点、用颜色表示状态，主 bot 卡片是
+80px 方形、星标压在头像上，消息时间挪进它自己的菜单，带图片的气泡顶部与左右内边距一致，未读 bot 的吉祥物不再多画
+一个字形，应用内更新改为跟随本仓库的 Release（Windows 就地安装，macOS 打开发版页）。这之后的补丁从 `0.4.1` 起算，
+每次发版的说明把距上一次的条目汇总在一起。
 
 ### D001 · The hidden sidebar's edge handle is smaller, fainter and springs under the pointer
 

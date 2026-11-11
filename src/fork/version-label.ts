@@ -1,17 +1,17 @@
-/** The personal build's own version, shown in the app as "V0.3" while the bundle keeps a semver 0.3.0. */
-export const FORK_VERSION_DISPLAY = "V0.3";
-const FORK_VERSION_SEMVER = "0.3.0";
+/** The personal build's own version, shown in the app as "V0.4.0" while the bundle keeps the same semver. Patches
+ * (0.4.1, 0.4.2 …) show their own number, so the label alone says which release is installed. */
+export const FORK_VERSION_DISPLAY = "V0.4.0";
+export const FORK_VERSION_SEMVER = "0.4.0";
 
-/** The ui build this installed app runs. The bundle version cannot move without repackaging, so every
- * `apply-ui-patch.sh` run bumps this third number instead. */
-export const FORK_UI_BUILD = "0.3.12";
+/** The ui build this installed app runs. Bumped by every `apply-ui-patch.sh` run while the bundle stays put. */
+export const FORK_UI_BUILD = "0.4.0";
 
-/** "V0.3" for this personal build, the version as given for anything else (servers, tests, upstream). */
+/** "V0.4.0" for this personal build, the version as given for anything else (servers, tests, upstream). */
 export function displayAppVersion(version: string): string {
   return version === FORK_VERSION_SEMVER ? FORK_VERSION_DISPLAY : version;
 }
 
-/** "V0.3 (0.3.1)" — the label and the ui build, in the shape the About panel shows; anything else is unchanged. */
+/** The menu and About shape. Three parts already name the release, so the label stands alone; anything else is unchanged. */
 export function displayAppVersionWithBuild(version: string): string {
-  return version === FORK_VERSION_SEMVER ? `${FORK_VERSION_DISPLAY} (${FORK_UI_BUILD})` : version;
+  return version === FORK_VERSION_SEMVER ? FORK_VERSION_DISPLAY : version;
 }
