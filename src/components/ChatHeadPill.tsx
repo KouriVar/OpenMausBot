@@ -8,6 +8,7 @@ import { useStore, type Bot } from "@/state/store";
 import { awayFromMainThread } from "@/state/thread-navigation";
 import { BotAvatar } from "./Avatar";
 import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
+import { CHATHEAD_PILL_PAD, CHATHEAD_PILL_PAD_BEFORE, FORK_UI_1111 } from "@/fork/ui-batch-1111";
 import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { sidebarBotActivityTasks } from "./SidebarBotActivity";
 import { BOT_PANEL_ID } from "./bot-panel/side-panel";
@@ -60,7 +61,7 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
       aria-label={conversation ? `${label}, ${conversation}` : label}
       aria-expanded={open}
       aria-controls={open ? BOT_PANEL_ID : undefined}
-      className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full px-[7.5px] py-[7.5px] text-ink", ELEVATED_FLOAT, ELEVATED_HOVER)}
+      className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full text-ink", FORK_UI_1111 ? CHATHEAD_PILL_PAD : CHATHEAD_PILL_PAD_BEFORE, ELEVATED_FLOAT, ELEVATED_HOVER)}
     >
       <BotAvatar bot={bot} size={24} {...avatar} hitRef={pillRef} sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader} />
       <span dir="auto" className="min-w-0 truncate text-[14px] font-medium leading-5">{bot.name}</span>
