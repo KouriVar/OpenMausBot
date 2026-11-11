@@ -15,3 +15,11 @@ export const CHATHEAD_PILL_PAD_BEFORE = "px-[7.5px] py-[7.5px]";
 /** The avatar menu's top line: this installed build's own label and its ui build, so a patched ui is recognisable. */
 export const FORK_MENU_BUILD_STAMP = true;
 export const MENU_BUILD_STAMP = "px-2 pb-1 pt-1 text-[12px] font-medium leading-4 text-ink-tertiary";
+
+/** The transcript never shows below the composer: the chat pane clips what it draws, and Simple's fade reaches
+ * the pane's bottom edge (its composer carries pb-4, which the old -bottom-3 fell 4px short of). The gradient's
+ * own colour is the canvas, so every skin and both themes stay right. */
+export const FORK_CHAT_PANE_CLIP = true;
+export const CHAT_PANE_CLIP = "overflow-hidden";
+export const COMPOSER_FADE_BOTTOM_SIMPLE = "-bottom-4";
+export const COMPOSER_FADE_BOTTOM = "-bottom-3";
