@@ -169,6 +169,19 @@ the sides, matching the bottom gap the same bubble already gave it. Display only
 有图片、又不是「纯图片」那种（纯图片本来就是四边 6px），就加 `pt-3`：图片离顶部和离左右一样远，跟这个气泡原本给图片的
 底部间距对齐。纯显示。
 
+### D010 · An unread bot draws no glyph on its mascot
+
+Hovering a bot with unread messages made its mascot play the "notifying" glyph — a bang with a round dot beside the
+head, drawn in the body's gradient — so the avatar showed a second, paler mark next to the row's own blue dot, and
+only while the pointer was on it. The glyph is gone (`EFFECTS` in `src/components/CursorAvatar.tsx`): the row's dot
+is the one signal, and `noticing` still runs the mascot's animation for `UNREAD_NOTICE_MS` (now a plain 8400), so
+nothing else changes. Display only.
+
+中文：未读的 bot 在鼠标悬停时，光标/头像吉祥物会播放「通知」字形 —— 头边一个感叹号加一个圆点，用身体渐变上色，
+于是头像旁边多出一个更淡的记号，而且只在指针放上去时才出现。现在这个字形去掉了
+（`src/components/CursorAvatar.tsx` 的 `EFFECTS`）：未读只由行上那个蓝点表示；`noticing` 仍然按
+`UNREAD_NOTICE_MS`（现在是 8400）驱动吉祥物动画，其他行为不变。纯显示。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
