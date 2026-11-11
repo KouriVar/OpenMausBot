@@ -52,6 +52,8 @@ import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
+import { displayAppVersionWithBuild } from "@/fork/version-label";
+import { FORK_MENU_BUILD_STAMP, MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -717,6 +719,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       <SidebarPopoverMenu
         items={items}
         ariaLabel={name}
+        header={FORK_MENU_BUILD_STAMP ? <div className={MENU_BUILD_STAMP}>{`${productName()} ${displayAppVersionWithBuild(appVersion())}`}</div> : undefined}
         onOpenChange={simple ? setMenuOpen : undefined}
         triggerClassName={iconOnly || simple ? cn("shrink-0", circle || simple ? "rounded-full" : "rounded-xl") : "w-full"}
         triggerTitle={iconOnly || simple ? label : undefined}

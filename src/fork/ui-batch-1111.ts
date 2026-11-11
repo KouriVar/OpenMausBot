@@ -11,3 +11,7 @@ export const EDGE_HANDLE_BEFORE = "pointer-events-none block h-16 w-[5px] rounde
 /** Simple's chat-head pill: 4px more on the trailing edge, which the eye reads as even against the ring. */
 export const CHATHEAD_PILL_PAD = "py-[7.5px] pl-[7.5px] pr-[11.5px]";
 export const CHATHEAD_PILL_PAD_BEFORE = "px-[7.5px] py-[7.5px]";
+
+/** The avatar menu's top line: this installed build's own label and its ui build, so a patched ui is recognisable. */
+export const FORK_MENU_BUILD_STAMP = true;
+export const MENU_BUILD_STAMP = "px-2 pb-1 pt-1 text-[12px] font-medium leading-4 text-ink-tertiary";

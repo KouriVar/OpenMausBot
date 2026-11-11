@@ -175,6 +175,7 @@ export function SidebarPopoverMenu({
   triggerLabel,
   triggerTour,
   onOpenChange,
+  header,
   renderTrigger,
 }: {
   placement?: "above" | "below";
@@ -188,6 +189,8 @@ export function SidebarPopoverMenu({
   triggerLabel?: string;
   triggerTour?: string;
   onOpenChange?: (open: boolean) => void;
+  /** What the sheet shows above its first row, such as this build's own label. It is not a row of the menu. */
+  header?: React.ReactNode;
   renderTrigger: (state: { open: boolean }) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -362,6 +365,7 @@ export function SidebarPopoverMenu({
         motion.className,
       )}
     >
+      {header && <div className="shrink-0">{header}</div>}
       <MenuRows
         items={items}
         openSubmenu={submenu}

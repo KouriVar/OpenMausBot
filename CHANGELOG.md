@@ -70,6 +70,22 @@ had; it now expects `pr-[11.5px]`.
 描边；样式为 `py-[7.5px] pl-[7.5px] pr-[11.5px]`，同样由 `FORK_UI_1111` 控制。`ChatView.controls.test.ts` 原先
 断言的右侧 `pr-[13.5px]` 组件里从来没有过，现改为 `pr-[11.5px]`。
 
+### D003 · The avatar menu opens with this build's own label and ui build
+
+The sidebar's avatar menu now opens with one quiet line naming what is installed: `OpenMausBot V0.3 (0.3.1)`,
+the label the About panel shows plus the ui build. The bundle version cannot move without repackaging, so
+`FORK_UI_BUILD` in `src/fork/version-label.ts` counts the ui patches instead, bumped on every
+`apply-ui-patch.sh` run. `SidebarPopoverMenu` gained an optional `header` slot, and the line itself sits behind
+`FORK_MENU_BUILD_STAMP` in `src/fork/ui-batch-1111.ts`: display only, nothing about behaviour changes. The About
+panel is the packaged main process's (`app.setAboutPanelOptions`), so its own parenthetical only catches up when
+0.4 is packaged.
+
+中文：侧边栏头像菜单顶部新增一行小字，标出当前安装的是哪个构建：`OpenMausBot V0.3 (0.3.1)` —— 前半是 About 面板
+显示的标签，括号里是 ui 构建号。打包版本号不重新打包就动不了，因此改由 `src/fork/version-label.ts` 的
+`FORK_UI_BUILD` 记 ui 补丁序号，每次跑 `apply-ui-patch.sh` 时加一。`SidebarPopoverMenu` 新增可选的 `header`
+插槽，这行由 `src/fork/ui-batch-1111.ts` 的 `FORK_MENU_BUILD_STAMP` 控制：纯展示，不改任何行为。About 面板属于
+已打包的主进程（`app.setAboutPanelOptions`），它括号里的数字要等 0.4 重新打包才会跟上。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
