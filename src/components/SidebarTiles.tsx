@@ -81,7 +81,7 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
       onContextMenu={(event) => openBotContextMenu(onMenu, bot.id, event)}
       className={cn(
         "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 transition-colors duration-150", SIMPLE_ROW_FOCUS,
-        primary ? "size-[96px] pt-1" : "h-[92px] w-[78px] pt-2", ROW_RADIUS_SIMPLE,
+        primary ? "size-[128px] pt-1" : "h-[92px] w-[78px] pt-2", ROW_RADIUS_SIMPLE,
         selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]",
         pinnedCircleDragClass({ drag, dragging, drop }),
       )}
@@ -90,9 +90,9 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
-          size={primary ? 72 : 56}
+          size={primary ? 96 : 56}
           fitBody={primary}
-          frameSize={primary ? 72 : undefined}
+          frameSize={primary ? 96 : undefined}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
