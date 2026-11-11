@@ -3076,10 +3076,10 @@ app.whenReady().then(async () => {
       return credentials;
     }).finally(syncManagedComposioCredentials);
   }
-  // Fork build (Sully): auto-update is off. This build hides MausBot Cloud and ships the fork's own UI, so following the
-  // upstream release feed (milind-soni/OpenMausBot, baked into app-update.yml) would silently replace it with the official
-  // build. The updater never starts, so nothing checks, downloads, or installs on quit; the update IPC stays registered and
-  // answers from the idle state, and the feed file is left in place but never read. OMB_FOLLOW_UPSTREAM_UPDATES=1 opts back in.
+  // Fork build (Sully): the feed is this fork's own releases (electron-builder.yml's publish, electron/fork-updates.mjs),
+  // never upstream's, so an update can only ever install a newer build of this fork. Windows starts the real updater;
+  // macOS keeps it off (an unsigned app cannot be replaced in place) and answers a check from the release page instead.
+  // OMB_FOLLOW_UPSTREAM_UPDATES=1 still opts into the upstream updater for experiments.
   // Fork updates (electron/fork-updates.mjs): Windows installs this fork's releases in place. macOS never starts
   // Squirrel.Mac (an unsigned build cannot be replaced), so its check answers from the release page instead — see
   // registerUpdaterIpc. OMB_FOLLOW_UPSTREAM_UPDATES=1 still opts into the upstream updater for experiments.
