@@ -1184,7 +1184,8 @@ export function GroupView({ group }: { group: Group }) {
           )}
           <RoomQueueList group={group} members={members} />
           {threadSpeaker && !group.dm && members.length > 1 && !group.holds?.[threadSpeaker.id] && (
-            <div className="flex justify-start pl-12">
+            {/* Fork: the stop pill lines up with the work row above it, not 12px inside it. */}
+            <div className="flex justify-start">
               <button
                 type="button"
                 data-testid="room-stop-member"
