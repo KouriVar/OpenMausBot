@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { RiStarFill } from "@remixicon/react";
 
 import { cn } from "@/lib/cn";
 
@@ -9,9 +9,9 @@ export function ChiefBadge({ ring, className }: { ring: string; className?: stri
     <span
       data-testid="chief-badge"
       aria-hidden="true"
-      className={cn("absolute bottom-1 right-1 flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", ring, className)}
+      className={cn("absolute bottom-0 right-0 flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", ring, className)}
     >
-      <Star size={10} strokeWidth={0} fill="currentColor" aria-hidden="true" />
+      <RiStarFill size={11} aria-hidden="true" />
     </span>
   );
 }
