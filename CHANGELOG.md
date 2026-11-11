@@ -133,6 +133,17 @@ Display only, through the existing fork constants.
 外圈是卡片底色描边——就是收起侧栏那块 tile 用的同一个 `chief-badge`，没有另画；状态点则让到卡片右上角，免得两者挤
 同一角。纯显示，沿用已有的 fork 常量。
 
+### D007 · The chief's badge is a white star, tucked onto the avatar
+
+The chief of staff's badge is one component now (`src/components/ChiefBadge.tsx`): the same orange disc and the same
+ring in the surface behind it, with a white filled five-point star in place of the crown. The expanded card's badge
+moves in from the card's corner so it sits on the avatar's bottom-right, overlapping the round body by about a third
+instead of floating outside it; the collapsed rail keeps the badge on that same corner. Display only.
+
+中文：主 bot 角标现在是一个组件（`src/components/ChiefBadge.tsx`）：橙色圆底和外圈那道表面色描边不变，里面的皇冠
+换成白色实心五角星。展开卡片里的角标从卡片角落往内收，压在头像圆的右下角、跟圆边重叠约三分之一，不再悬在头像外面；
+收起侧栏仍然挂在同一个右下角。纯显示。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

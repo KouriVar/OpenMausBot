@@ -1,4 +1,4 @@
-import { Crown, Loader2, Phone } from "lucide-react";
+import { Loader2, Phone } from "lucide-react";
 import { memo, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import { cn } from "@/lib/cn";
@@ -10,6 +10,7 @@ import { api, openBotRow, useStore, type Bot } from "@/state/store";
 import { useChiefStepOpen } from "@/lib/default-bot";
 
 import { BotAvatar } from "./Avatar";
+import { ChiefBadge } from "./ChiefBadge";
 import { botTooltip } from "./BotModelBadge";
 import { liveBadgeFor } from "./LiveCallPill";
 import { pinnedCircleDragClass, pinnedCircleDragHandlers, usePinnedCircleDrag, type PinnedCircleDragProps } from "./PinnedCircleThreads";
@@ -94,11 +95,7 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
-        {primary && bot.chiefOfStaff && (
-          <span data-testid="chief-badge" className={cn("absolute -bottom-px -right-px flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", RING)}>
-            <Crown size={10} strokeWidth={1.5} fill="currentColor" aria-hidden="true" />
-          </span>
-        )}
+        {primary && bot.chiefOfStaff && <ChiefBadge ring={RING} />}
         {FORK_ONE_AVATAR_DOT ? (
           <>
             {onLiveCall && (
