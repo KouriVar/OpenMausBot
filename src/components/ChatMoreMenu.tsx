@@ -14,7 +14,7 @@ import {
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { localizedTaskTitle } from "@/lib/task-title";
-import { ELEVATED_CONTROL, ELEVATED_HOVER, ELEVATED_OPEN } from "./elevated";
+import { ELEVATED_CONTROL, ELEVATED_FLOAT, ELEVATED_HOVER, ELEVATED_OPEN } from "./elevated";
 import { ShortcutHint } from "./ShortcutHint";
 import { SidebarPopoverMenu, type SidebarMenuItem } from "./SidebarPopoverMenu";
 import { orderedThreadList } from "./SidebarThreadRow";
@@ -233,12 +233,13 @@ export function ChatHeaderMenu({ bot }: { bot: Bot }): JSX.Element {
         <span
           data-testid="chat-more"
           className={cn(
-            "flex size-8 items-center justify-center rounded-full transition-colors hover:bg-ink/[0.06]",
+            // Fork: the header's more button wears the same round surface as the computer button beside it.
+            "flex size-8 items-center justify-center rounded-full", ELEVATED_FLOAT, ELEVATED_HOVER,
             open || on ? "text-accent" : "text-ink-secondary hover:text-ink",
           )}
           title={t("chat.more")}
         >
-          <MoreHorizontal size={18} />
+          <MoreHorizontal size={16} />
         </span>
       )}
     />
