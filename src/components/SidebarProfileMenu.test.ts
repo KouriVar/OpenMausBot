@@ -436,15 +436,16 @@ describe("Simple mode's account menu", () => {
     return all;
   }, []);
 
-  it("leads with Automations and Team map, then usage and Settings, then the phone app and support, then where this window is and Cloud", () => {
+  // Fork: the menu keeps only what this build uses (FORK_PROFILE_MENU_MINIMAL) — no phone app, support or place rows.
+  it("leads with Automations and Team map, then usage and Settings, and nothing else", () => {
     const items = build();
     expect(groups(items)).toEqual([
       ["automations", "team-map"],
       ["usage", "settings"],
-      ["phone-app", "support"],
-      ["place", "switch-place", "account"],
     ]);
-    expect(items.find((item) => item.key === "support")!.submenu!.map((item) => item.key)).toEqual(["help", "feedback", "shortcuts", "about", "update"]);
+    for (const gone of ["phone-app", "support", "place", "switch-place", "account"]) {
+      expect(items.find((item) => item.key === gone), gone).toBeUndefined();
+    }
   });
 
   it("raises an update that is ready or failed to its own top row with a pill, and keeps it out of support", () => {
@@ -454,7 +455,7 @@ describe("Simple mode's account menu", () => {
     expect(items[0]).toMatchObject({ label: "Update ready", subtitle: undefined, attention: false });
     expect(renderToStaticMarkup(createElement("div", null, items[0]!.trailing))).toContain(">Restart</span>");
     expect(items[1]!.separatorBefore).toBe(true);
-    expect(items.find((item) => item.key === "support")!.submenu!.map((item) => item.key)).not.toContain("update");
+    expect(items.find((item) => item.key === "support")).toBeUndefined();
   });
 
   it("raises a downloaded or failed app update and a newer server, and nothing else", () => {
@@ -527,8 +528,6 @@ describe("Simple mode's account menu", () => {
       ["cloud-move"],
       ["automations", "team-map"],
       ["usage", "settings"],
-      ["phone-app", "support"],
-      ["place", "switch-place", "account"],
     ]);
     expect(groups(build({ move, update, updateTop: { label: "Update ready", action: "Restart" } })).slice(0, 2)).toEqual([["cloud-move"], ["update"]]);
     expect(groups(build({ move: [] }))[0]).toEqual(["automations", "team-map"]);
