@@ -16,6 +16,19 @@ the earliest, later entries append new numbers — and they are never reused, so
 
 ## Unreleased / 未发布
 
+## V0.4 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+The fourth personal build is being prepared here: `0.4.0` in the bundle, shown as **V0.4** in the app, still cut
+from official `v0.1.151` with the same three upstream cherry-picks as V0.3 (`949cabedd`, `5beba1276`,
+`d48997f07`) and still Simple-only. Every change that lands in it is numbered from A034 onward and listed
+under this heading, one entry per change; the build date and the closing summary are written when the
+version is cut.
+
+中文：**V0.4，进行中，基于官方 v0.1.151 + 与 V0.3 相同的 3 个 cherry-pick。** 第四个个人构建正在这里准备：
+打包版本号 `0.4.0`，应用内显示 **V0.4**，基线仍是官方 `v0.1.151`，cherry-pick 与 V0.3 相同的 `949cabedd`、
+`5beba1276`、`d48997f07`，仍为 Simple-only。落进本版的每项改动从 A034 开始编号，按条目列在本标题下，
+一项一条；打包日期与收尾的整段概述在该版本发出时补上。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
