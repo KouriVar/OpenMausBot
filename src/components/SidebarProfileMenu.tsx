@@ -6,6 +6,7 @@ import {
   Plus,
   Puzzle,
   Search,
+  SlidersHorizontal,
   ArrowLeftRight,
   Check,
   CircleUserRound,
@@ -40,6 +41,9 @@ import { useCloudPlanSnapshot } from "./CloudTrialNotice";
 import type { WorkspacePlace } from "./DesktopWorkspaceSwitcher";
 import { railShown, usePlaces } from "@/lib/places";
 import { useAutomationsNeedYou } from "./SidebarFooterNav";
+import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
+import { setAdvancedUnlocked } from "@/fork/advanced-unlock";
+import { FORK_MODE_SWITCH_IN_MENU } from "@/fork/mode-switch";
 import { useWebPanels } from "@/lib/web-panel-preferences";
 import { useCloudFilesReady } from "@/lib/cloud-files";
 import { SidebarPopoverMenu, type SidebarMenuItem } from "./SidebarPopoverMenu";
@@ -481,6 +485,7 @@ export function profileMenuItems({
   account,
   accounts = [],
   tools = [],
+  advancedToggle,
   simple,
   onUsage,
   onSettings,
@@ -502,6 +507,8 @@ export function profileMenuItems({
   accounts?: SidebarMenuItem[];
   /** the sidebar's tools (automations, team map, apps, files): Advanced puts them here instead of the footer */
   tools?: SidebarMenuItem[];
+  /** the row that takes this window to the other mode */
+  advancedToggle?: SidebarMenuItem | null;
   simple?: { tools?: SidebarMenuItem[]; places: SidebarMenuItem[] };
   onUsage: () => void;
   onSettings: () => void;
@@ -538,7 +545,7 @@ export function profileMenuItems({
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
   if (!simple) {
     // Fork: Advanced keeps its tools in this menu rather than a footer section, the same rows Simple already lists.
-    const rest = [...present(...tools), ...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
+    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
   const raised: SidebarMenuItem | null = update && updateTop ? {
@@ -551,6 +558,7 @@ export function profileMenuItems({
   const groups = [
     move,
     present(raised),
+    present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
     simple.tools ?? tools,
     [...present(usageItem), settings],
@@ -619,6 +627,21 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const accounts = useAccounts();
 
   const automationsNeedYou = useAutomationsNeedYou();
+  const advancedNow = useAdvancedMode();
+  const advancedToggle: SidebarMenuItem | null = !FORK_MODE_SWITCH_IN_MENU ? null : {
+    key: "advanced-mode",
+    label: t("settings.advancedMode.title"),
+    icon: <SlidersHorizontal size={18} />,
+    onSelect: () => {
+      if (advancedNow) {
+        setAdvancedMode(false);
+        setAdvancedUnlocked(false);
+        return;
+      }
+      setAdvancedUnlocked(true);
+      setAdvancedMode(true);
+    },
+  };
   const panels = useWebPanels();
   const railActions = useRailActions();
   const inboxSupport = useInboxSupport();
@@ -662,6 +685,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     move: move.items,
     account: cloudAccount ? cloudRowLabel(accounts.view) : null,
     accounts: accountMenuItems(accounts),
+    advancedToggle,
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
     tools: toolMenuItems({
       activeView: state.activeView,
@@ -703,6 +727,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     move: move.items,
     account: cloudAccount ? cloudRowLabel(accounts.view) : null,
     accounts: accountMenuItems(accounts),
+    advancedToggle,
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
     tools: toolMenuItems({
       activeView: state.activeView,
