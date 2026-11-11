@@ -40,6 +40,7 @@ vi.mock("@/state/store", async (importOriginal) => {
 });
 
 import { Sidebar } from "./Sidebar";
+import { SidebarFooter } from "./SidebarFooter";
 
 type Props = { children?: ReactNode; onClick?: () => void; role?: string; [key: string]: unknown };
 function nodes(value: ReactNode): ReactElement<Props>[] {
@@ -56,7 +57,10 @@ function words(value: ReactNode): string {
 }
 function render() {
   fixture.index = 0;
-  return nodes(Sidebar({ open: true, onClose: () => {} }));
+  const tree = nodes(Sidebar({ open: true, onClose: () => {} }));
+  // Fork: the + and its menu sit on the footer's action row, which the sidebar hands SidebarFooter as a prop.
+  const footerActions = tree.find((node) => node.type === SidebarFooter)?.props.footerActions;
+  return [...tree, ...nodes(footerActions as ReactNode)];
 }
 function plusMenu(admin: boolean | null) {
   fixture.values = [];

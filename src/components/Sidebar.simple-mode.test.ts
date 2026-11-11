@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initialState, type AppState, type Bot, type Group } from "@/state/store";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
-import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL } from "./sidebar-icon-column";
+import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_RAIL } from "./sidebar-icon-column";
 
 const fixture = vi.hoisted(() => ({ advanced: false, showThreads: true, admin: true as boolean | null, state: {} as Partial<AppState>, dispatch: vi.fn() }));
 vi.mock("@/lib/interface-mode", async (original) => ({
@@ -88,7 +88,8 @@ describe("bot-first sidebar", () => {
 
   it.each([
     { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-6"] },
-    { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_ADVANCED, spacing: ["justify-center"] },
+    // Fork: Advanced's rail is Simple's rail, so its bot portrait is the same 40px in the same 54px slot.
+    { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
     { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-2.5", "pr-9"] },
     { advanced: false, enabled: false, density: "comfortable", size: 46, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"] },
     { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
@@ -293,7 +294,8 @@ describe("bot-first sidebar", () => {
   it.each([
     { advanced: false, density: "comfortable", face: 36, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"], name: "font-medium", preview: "text-[13px]" },
     { advanced: false, density: "icons", face: 36, spacing: ["h-[54px]", "justify-center"], name: "font-semibold", preview: "text-[11px]" },
-    { advanced: true, density: "icons", face: 44, spacing: ["justify-center"], name: "font-semibold", preview: "text-[11px]" },
+    // Fork: Advanced's rail is Simple's rail, so a group chat there draws the same 36px faces in the same 54px slot.
+    { advanced: true, density: "icons", face: 36, spacing: ["h-[54px]", "justify-center"], name: "font-semibold", preview: "text-[11px]" },
     { advanced: true, density: "comfortable", face: 32, spacing: ["gap-2", "py-1.5", "pl-6", "pr-9"], name: "font-semibold", preview: "text-[11px]" },
   ] as const)("sizes group chat rows in $density density (advanced $advanced)", ({ advanced, density, face, spacing, name, preview }) => {
     fixture.advanced = advanced;

@@ -39,6 +39,7 @@ vi.mock("@/state/store", async (importOriginal) => {
 });
 
 import { Sidebar } from "./Sidebar";
+import { SidebarFooter } from "./SidebarFooter";
 import { SidebarNewChatPanel } from "./SidebarNewChatPanel";
 
 type Props = { children?: ReactNode; className?: string; onClick?: () => void; [key: string]: unknown };
@@ -51,7 +52,10 @@ function nodes(value: ReactNode): ReactElement<Props>[] {
 function render() {
   fixture.index = 0;
   fixture.effects = [];
-  return nodes(Sidebar({ open: false, onClose: () => {} }));
+  const tree = nodes(Sidebar({ open: false, onClose: () => {} }));
+  // Fork: both modes put the + on the footer's action row, handed to SidebarFooter as a prop, so its menu lives there.
+  const footerActions = tree.find((node) => node.type === SidebarFooter)?.props.footerActions;
+  return [...tree, ...nodes(footerActions as ReactNode)];
 }
 const trigger = (label: string) => render().find((node) => node.type === "button" && node.props["aria-label"] === label)!;
 

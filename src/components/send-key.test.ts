@@ -83,6 +83,15 @@ function press(input: Element, init: KeyboardEventInit & { keyCode?: number } = 
 
 const sends = () => fixture.dispatch.mock.calls.map(([action]) => action).filter((action) => ["send", "sendGroup", "editMessage"].includes(action.type));
 
+/** Fork: a message's actions live in its right-click menu, so a test opens it where the pointer would. */
+function openMessageMenu(id: string) {
+  // The actions listen on the message row `[data-message-row]`, inside the layout wrapper that carries `data-mid`.
+  const row = host.querySelector(`[data-mid="${id}"] [data-message-row]`)!;
+  flushSync(() => row.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 120, clientY: 160 })));
+}
+const menuItem = (id: string, label: string) => [...host.querySelectorAll<HTMLButtonElement>(`[data-mid="${id}"] [role=menuitem]`)]
+  .find((item) => (item.textContent ?? "").startsWith(label))!;
+
 function expectSendKey(mode: SendKey, input: () => HTMLTextAreaElement, sent: () => number) {
   const ime = [{ isComposing: true }, { keyCode: 229 }, { isComposing: true, shiftKey: true }, { keyCode: 229, shiftKey: true }, { isComposing: true, ctrlKey: true }, { keyCode: 229, metaKey: true }];
   for (const init of ime) {
@@ -144,8 +153,8 @@ describe.each(SEND_KEYS)("in %s mode", (mode) => {
 
   it("editing a sent message submits on the same key", () => {
     render(createElement(ChatView, { bot: { ...bot, messages: [{ id: "ask", role: "user", kind: "text", at: 1, text: "Try the new model" }] } }));
-    flushSync(() => host.querySelector<HTMLButtonElement>('[data-mid="ask"] button[aria-haspopup="menu"]')!.click());
-    const edit = [...host.querySelectorAll<HTMLButtonElement>('[data-mid="ask"] [role=menuitem]')].find((item) => (item.textContent ?? "").startsWith("Edit"))!;
+    openMessageMenu("ask");
+    const edit = menuItem("ask", "Edit");
     flushSync(() => edit.click());
     const editor = () => host.querySelector<HTMLTextAreaElement>("textarea:not([aria-label])")!;
     expect(editor().value).toBe("Try the new model");

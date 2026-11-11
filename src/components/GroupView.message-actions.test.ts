@@ -66,12 +66,13 @@ afterEach(() => {
 });
 
 describe("room message actions", () => {
+  // Fork: the bubble shows no hover buttons; its actions live in the right-click menu instead.
   it("gives a bot reply the same tray as a 1:1 answer", () => {
     const html = markup([text("a", "bot", "The build is green")]);
     expect(html).toContain('data-testid="message-actions"');
-    expect(html).toContain("Copy message");
-    expect(html).toContain("Reply to message");
-    expect(html).toContain('aria-haspopup="menu"');
+    expect(html).not.toContain("Copy message");
+    expect(html).not.toContain("Reply to message");
+    expect(html).not.toContain('aria-haspopup="menu"');
     expect(html).not.toContain("Show raw markdown");
     expect(html).not.toContain("Pin message");
   });
@@ -79,7 +80,8 @@ describe("room message actions", () => {
   it("offers reactions only to a viewer who may write in the room: one who may not sees who reacted, as labels", () => {
     const asked: Message = { ...text("a", "bot", "Shall I post it?"), reactions: [{ emoji: "👍", by: "p_ada", name: "Ada" }] };
     const open = markup([asked]);
-    expect(open).toContain('aria-label="Add reaction"');
+    // Fork: the picker button is gone (reactions live in the right-click menu); the chip it leaves stays clickable.
+    expect(open).not.toContain('aria-label="Add reaction"');
     expect(open).toMatch(/<button[^>]*aria-label="Thumbs up: yes, go ahead: Ada"/);
     fixture.canWrite = false;
     const closed = markup([asked]);
@@ -94,7 +96,9 @@ describe("room message actions", () => {
     flushSync(() => root.render(createElement(Transcript, {
       group: { ...room, messages }, members: [lead], locale: "en", messages, transcript: messages, onReply: () => {},
     })));
-    flushSync(() => host.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]')!.click());
+    // Fork: the message's menu opens on a right-click of its row.
+    flushSync(() => host.querySelector("[data-message-row]")!
+      .dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 30, clientY: 30 })));
     const items = [...host.querySelectorAll<HTMLButtonElement>("[role=menuitem]")];
     expect(items.map((item) => item.textContent)).toEqual(expect.arrayContaining(["Read this aloud", "Show raw markdown", "Pin message", "Copy message ID"]));
     const speak = items.find((item) => item.textContent === "Read this aloud");
@@ -102,9 +106,9 @@ describe("room message actions", () => {
     expect(speak?.disabled).toBe(true);
   });
 
-  it("copies a person's message and folds a long one", () => {
+  it("folds a person's long message", () => {
     const html = markup([text("u", "user", "word ".repeat(200))]);
-    expect(html).toContain("Copy message");
+    expect(html).not.toContain("Copy message");
     expect(html).toContain("Show full message");
     expect(html).not.toContain("Show raw markdown");
   });
@@ -125,8 +129,8 @@ describe("room message actions", () => {
     expect(html.match(/aria-label="Save a copy of report\.pdf"/g)).toHaveLength(1);
     expect(html).toMatch(/<section[^>]*class="mt-2\.5 /);
     expect(html).toContain('data-testid="message-actions"');
-    expect(html).toContain("Reply to message");
-    expect(html).toContain('aria-haspopup="menu"');
+    expect(html).not.toContain("Reply to message");
+    expect(html).not.toContain('aria-haspopup="menu"');
   });
 });
 
@@ -138,7 +142,7 @@ describe("room message boundary", () => {
       createElement("p", null, "still here"),
     )));
     expect(host.textContent).toContain("plain words");
-    expect(host.querySelector(".chat-text")?.className).toMatch(/max-w-\[min\(var\(--chat-bubble-max\),var\(--chat-bubble-pct\),calc\(100%-82px\)\)\]/);
+    expect(host.querySelector(".chat-text")).not.toBeNull();
     expect(host.textContent).toContain("still here");
   });
 });

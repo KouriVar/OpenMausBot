@@ -76,7 +76,8 @@ describe("BotListItem", () => {
     expect(teammateDot).toContain("size-2.5");
     expect(teammateDot).not.toContain("size-4");
     expect(teammate).toContain('class="truncate">Waiting on a teammate…</span>');
-    expect(teammate).toContain("truncate text-[13px] leading-[18px] text-ink-secondary");
+    // Fork UI batch: the preview keeps its size and takes one weight step up, so the line reads as text, not a label.
+    expect(teammate).toContain("truncate text-[13px] font-medium leading-[18px] text-ink-secondary");
     expect(teammate).not.toContain("font-semibold text-warning");
 
     const working = renderRow(bot({ busy: true }));
@@ -88,7 +89,7 @@ describe("BotListItem", () => {
       messages: [{ id: "b1", role: "bot", kind: "text", text: "Created notes.txt", at: 2 }] as Bot["messages"],
     }));
     expect(preview).toContain('class="truncate">Created notes.txt</span>');
-    expect(preview).toContain("truncate text-[13px] leading-[18px] text-ink-secondary");
+    expect(preview).toContain("truncate text-[13px] font-medium leading-[18px] text-ink-secondary");
     expect(preview).not.toContain("text-warning");
     expect(preview).not.toContain("waiting-dot");
   });
@@ -251,7 +252,8 @@ describe("BotListItem", () => {
   it("keeps the title in an icons-only row's name and tooltip", () => {
     const icons = renderRow(bot({ chiefOfStaff: true, title: "  Developer " }), "icons");
     expect(icons).toContain('aria-label="Atlas · Developer · Chief of Staff"');
-    expect(icons).toContain('title="Atlas · Developer"');
+    // Fork: Advanced's rail is Simple's rail, so its tooltip carries the Chief line too.
+    expect(icons).toContain('title="Atlas · Developer · Chief of Staff"');
     const untitled = renderRow(bot(), "icons");
     expect(untitled).toContain('aria-label="Atlas"');
     expect(untitled).toContain('title="Atlas"');

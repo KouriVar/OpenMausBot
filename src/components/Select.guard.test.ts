@@ -6,10 +6,14 @@ import { describe, expect, it } from "vitest";
 
 const src = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+/** Fork: PillSelectMenu's comment names the native <select>s it replaced; prose is not a tag. Blank out block
+ * comments while keeping every line where it was, so a reported position still points at its source line. */
+const codeOnly = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, " "));
+
 const tags = readdirSync(src, { recursive: true, encoding: "utf8" })
   .filter((name) => name.endsWith(".tsx") && !name.endsWith(".test.tsx"))
   .flatMap((name) => {
-    const source = readFileSync(join(src, name), "utf8");
+    const source = codeOnly(readFileSync(join(src, name), "utf8"));
     let line = 1;
     let counted = 0;
     return [...source.matchAll(/<([sS]elect)\b/g)].map((match) => {

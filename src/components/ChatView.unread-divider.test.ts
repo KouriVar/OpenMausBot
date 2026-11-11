@@ -22,7 +22,8 @@ vi.mock("@/lib/cloud-guest", () => ({ useCanWriteIn: () => true, useReactor: () 
 vi.mock("./ModelPicker", () => ({ ModelPicker: () => null }));
 
 const { ChatView } = await import("./ChatView");
-const { BotEditorStore, initialState, reducer } = await import("@/state/store");
+const { StoreContext, initialState, reducer } = await import("@/state/store");
+const { StoreRefContext } = await import("@/state/store-ref-context");
 const { UNREAD_DIVIDER_FADE_MS, UNREAD_DIVIDER_LINGER_MS } = await import("@/lib/unread-divider");
 const { t } = await import("@/lib/i18n");
 
@@ -42,11 +43,14 @@ const profile = (id: string, messages: Message[], unread: boolean): Bot => ({
 let state: AppState;
 const dispatched: Action[] = [];
 const dispatch = (action: Action) => { dispatched.push(action); };
+// Fork: a bubble now reads the store through `useStoreRef` (the right-click menu's reactions), so the test must
+// provide the stable ref the app's own provider gives it. BotEditorStore's null ref would subscribe every row.
+const storeRef = { dispatch, state: () => state };
 let root: Root;
 async function draw() {
   const value = { state, dispatch, flushBotPatches: async () => null, refreshInstances: async () => {}, refreshModels: async () => {} };
   const children = createElement(ChatView, { bot: state.bots.find((bot) => bot.id === state.selectedId)! });
-  flushSync(() => root.render(createElement(BotEditorStore, { value, children })));
+  flushSync(() => root.render(createElement(StoreRefContext, { value: storeRef }, createElement(StoreContext.Provider, { value }, children))));
   await vi.advanceTimersByTimeAsync(0);
 }
 async function apply(action: Action) {

@@ -268,7 +268,9 @@ describe("ThreadRefText with mention peers", () => {
       peers: [{ name: "Scout", color: "green", botId: "s1" }],
     }));
     expect(markup).toContain('class="mention-chip"');
-    expect(markup).toContain("@Scout");
+    // Fork: the chip carries the bot's face and name and drops the leading @.
+    expect(markup).toContain('<span class="mention-chip-name">Scout</span>');
+    expect(markup).not.toContain("@Scout");
     expect(markup).toContain('data-thread-link="qa-245"');
     expect(markup).toContain(">#QA PR 245</button>");
     expect(markup).toContain(" today");

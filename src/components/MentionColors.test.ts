@@ -17,7 +17,8 @@ it.each(["plain text", "Markdown"] as const)("keeps all bot colours independent 
     const expected = bloubReadableColor(defaultBloubSkin(color).color, "dark");
     expect(html).toContain("mention-chip");
     expect(html).toContain(`style="--mention-color:${expected}"`);
-    expect(html).toContain(`>@${name}<`);
+    // Fork: the chip draws the face and the name only, so the "@" is not part of the rendered name.
+    expect(html).toContain(`>${name}<`);
     expect(html).toContain('class="mention-chip-face"');
     expect(html).toContain("@Unknown"); // unmatched stays plain text
   }

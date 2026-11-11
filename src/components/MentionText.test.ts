@@ -14,9 +14,10 @@ it("uses each bot's avatar colour and updates when its color changes", () => {
       peers: [{ name: "Atlas", color, botId: "a1" }, { name: "Juniper", color: "purple", botId: "a2" }],
     }));
     expect(html).toContain(`style="--mention-color:${exp(color)}"`);
-    expect(html).toContain(">@Atlas<");
+    // Fork: the chip draws the face and the name only, so the "@" is not part of the rendered name.
+    expect(html).toContain(">Atlas<");
     expect(html).toContain('class="mention-chip-face"'); // small static face inside the chip
-    expect(html).toContain(">@everyone<");
+    expect(html).toContain(">everyone<");
   }
 });
 
@@ -25,7 +26,8 @@ it("decorates known names while preserving whitespace and escaping text", () => 
     text: "<script>\n@Atlas & @Ghost\n@Atlas", peers: [{ name: "Atlas", botId: "a1" }],
   }));
   expect(html).toContain("&lt;script&gt;\n");
-  expect(html.match(/>@Atlas</g)).toHaveLength(2);
+  // Fork: the chip's name is the bare name, without the "@" that introduced it.
+  expect(html.match(/>Atlas</g)).toHaveLength(2);
   expect(html).toContain(" &amp; @Ghost\n");
 });
 

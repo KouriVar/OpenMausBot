@@ -240,7 +240,8 @@ describe("the chat header's pill", () => {
       expect(button.getAttribute("aria-label")).toBe("Open Scout's profile");
       expect(button.getAttribute("aria-expanded")).toBe("false");
       expect(button.hasAttribute("aria-controls")).toBe(false);
-      expect(header.querySelector("[data-chathead-chevron]")).not.toBeNull();
+      // Fork: one pill in both modes, with no hover chevron.
+      expect(header.querySelector("[data-chathead-chevron]")).toBeNull();
       expect(header.querySelector("[data-chathead-elsewhere]")!.getAttribute("aria-label")).toBe("Other activity (1)");
       click(button);
       expect(onToggle).toHaveBeenCalledOnce();
@@ -249,13 +250,14 @@ describe("the chat header's pill", () => {
     }
   });
 
-  it("says the panel is open and points at it, then hides the hover chevron", () => {
+  it("says the panel is open and points at it, and draws no hover chevron either way", () => {
     fixture.settingsOpen = true;
     const { header, done } = pill();
     try {
       const button = header.querySelector<HTMLButtonElement>("[data-chathead-pill]")!;
       expect(button.getAttribute("aria-expanded")).toBe("true");
       expect(button.getAttribute("aria-controls")).toBe("bot-panel");
+      // Fork: the chevron is gone, open or closed.
       expect(header.querySelector("[data-chathead-chevron]")).toBeNull();
     } finally {
       fixture.settingsOpen = false;

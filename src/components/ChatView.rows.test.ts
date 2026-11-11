@@ -52,7 +52,8 @@ vi.mock("@/lib/cloud-guest", () => ({ useCanWriteIn: () => true, useReactor: () 
 vi.mock("./ModelPicker", () => ({ ModelPicker: () => null }));
 
 const { ChatView } = await import("./ChatView");
-const { BotEditorStore, initialState, reducer } = await import("@/state/store");
+const { StoreContext, initialState, reducer } = await import("@/state/store");
+const { StoreRefContext } = await import("@/state/store-ref-context");
 const { setRemoteVoiceProvider } = await import("@/lib/local-voice");
 const { t } = await import("@/lib/i18n");
 
@@ -85,22 +86,31 @@ let state: AppState = {
   config: { features: { showToolCalls: true } } as AppState["config"],
 };
 const dispatch = vi.fn();
+// Fork: a bubble now reads the store through `useStoreRef` (the right-click menu's reactions), so the test must
+// provide the stable ref the app's own provider gives it. BotEditorStore's null ref would subscribe every row.
+const storeRef = { dispatch, state: () => state };
 let root: Root;
 const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 async function draw() {
   const value = { state, dispatch, flushBotPatches: async () => null, refreshInstances: async () => {}, refreshModels: async () => {} };
   const children = createElement(ChatView, { bot: state.bots.find((bot) => bot.id === "pepper")! });
-  flushSync(() => root.render(createElement(BotEditorStore, { value, children })));
+  flushSync(() => root.render(createElement(StoreRefContext, { value: storeRef }, createElement(StoreContext.Provider, { value }, children))));
   await settle();
 }
 async function menuOf(mid: string) {
-  const more = document.querySelector<HTMLButtonElement>(`[data-mid="${mid}"] button[aria-haspopup="menu"]`);
-  if (!more) return [];
-  flushSync(() => more.click());
+  const row = document.querySelector<HTMLElement>(`[data-mid="${mid}"]`);
+  if (!row) return [];
+  // Fork: a message's actions open from its row's right-click instead of a hover button.
+  const target = row.querySelector<HTMLElement>("[data-message-row]") ?? row;
+  flushSync(() => {
+    target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 20, clientY: 20 }));
+  });
   await settle();
-  const items = [...document.querySelectorAll<HTMLButtonElement>(`[data-mid="${mid}"] [role=menuitem]`)]
+  const items = [...row.querySelectorAll<HTMLButtonElement>('[data-testid="message-actions"] [role=menuitem]')]
     .map((item) => ({ label: item.textContent ?? "", title: item.title, disabled: item.disabled }));
-  flushSync(() => more.click());
+  flushSync(() => {
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+  });
   await settle();
   return items;
 }

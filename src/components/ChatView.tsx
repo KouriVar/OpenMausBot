@@ -414,6 +414,10 @@ const Bubble = memo(function Bubble({
     if (focusedSearch && collapsible) setExpanded(true);
   }, [focusedSearch, collapsible, focus?.nonce]);
 
+  // Fork: the bubble's right-click menu offers the quick reactions itself. The hook stays above the editor's early
+  // return below, or editing one of your own messages would render this component with fewer hooks than before.
+  const reaction = useReaction(threadId, message);
+
   if (user && editing && !webhookView && !hasAttachments) {
     return (
       <div className="flex w-full justify-end">
@@ -429,8 +433,6 @@ const Bubble = memo(function Bubble({
   };
   const togglePin = () =>
     dispatch({ type: "updateTask", botId, threadId, patch: { pinnedMessageId: pinned ? "" : message.id } });
-  // Fork: the bubble's right-click menu offers the quick reactions itself, so the row needs them here.
-  const reaction = useReaction(threadId, message);
   const botActions = !user && (
     <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={[...replyAndCopy(() => onReply(message), text), ...botMenu]}
       reactions={canReact && !peer ? { emojis: REACTIONS, mine: reaction.mine, onPick: (emoji) => reaction.react(emoji as Reaction) } : null}>

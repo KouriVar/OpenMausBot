@@ -42,12 +42,22 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("the sidebar tiles", () => {
-  it.each([true, false])("draws the main tile and a pinned tile the same: 78 by 92, radius 8, a 56px avatar over a one-line 13px medium name (main %s)", (primary) => {
-    const html = renderToStaticMarkup(createElement(SidebarBotTile, { ...props(bot({ chiefOfStaff: primary })), primary }));
-    expect(html).toMatch(new RegExp(`data-sidebar-tile="${primary ? "primary" : "pinned"}"[^>]*class="[^"]*\\bh-\\[92px\\] w-\\[78px\\][^"]*\\brounded-\\[8px\\]`));
-    expect(html).toContain('width="56px" height="56px"');
-    expect(html).toMatch(/truncate text-center text-\[13px\] font-medium leading-4 text-ink"[^>]*>MausBot</);
-    expect(html).not.toContain("data-provider-mark");
+  it("draws the Chief's card at 80px with a 64px avatar, the pinned tiles at 78 by 92 with a 56px avatar, both radius 8 and a one-line 13px medium name", () => {
+    const main = renderToStaticMarkup(createElement(SidebarBotTile, { ...props(bot({ chiefOfStaff: true })), primary: true }));
+    // Fork: the Chief's card is the one that grows — an 80px square with a 64px avatar — and it drops the tile fill.
+    const mainClass = /data-sidebar-tile="primary"[^>]*class="([^"]*)"/.exec(main)![1]!;
+    expect(mainClass.split(" ")).toEqual(expect.arrayContaining(["w-20", "rounded-[8px]"]));
+    expect(mainClass).not.toContain("h-[92px]");
+    expect(main).toContain('width="64px" height="64px"');
+    const pinned = renderToStaticMarkup(createElement(SidebarBotTile, props(bot())));
+    const pinnedClass = /data-sidebar-tile="pinned"[^>]*class="([^"]*)"/.exec(pinned)![1]!;
+    expect(pinnedClass.split(" ")).toEqual(expect.arrayContaining(["h-[92px]", "w-[78px]", "rounded-[8px]"]));
+    expect(pinnedClass).not.toContain("w-20");
+    expect(pinned).toContain('width="56px" height="56px"');
+    for (const html of [main, pinned]) {
+      expect(html).toMatch(/truncate text-center text-\[13px\] font-medium leading-4 text-ink"[^>]*>MausBot</);
+      expect(html).not.toContain("data-provider-mark");
+    }
   });
 
   it("gives the crown to the main tile only, and only when it is the Chief", () => {
@@ -59,10 +69,13 @@ describe("the sidebar tiles", () => {
     expect(tileHtml({}, true)).not.toContain('data-testid="chief-badge"');
   });
 
-  it("fills the selected tile and marks it current, and shows working, waiting and unread as a dot on the avatar", () => {
+  it("marks the selected tile current and fills a pinned one, and shows working, waiting and unread as a dot on the avatar", () => {
     const selected = renderToStaticMarkup(createElement(SidebarBotTile, { ...props(bot(), true), primary: true }));
     expect(selected).toContain('aria-current="page"');
-    expect(selected).toContain("[--tile:var(--color-raised)]");
+    // Fork: the Chief's card keeps no fill of its own; a pinned tile's fill is what says it is selected.
+    expect(selected).not.toContain("bg-[var(--tile)]");
+    const pinnedSelected = renderToStaticMarkup(createElement(SidebarBotTile, { ...props(bot(), true), primary: false }));
+    expect(pinnedSelected).toContain("[--tile:var(--color-raised)]");
     expect(renderToStaticMarkup(createElement(SidebarBotTile, props(bot({ busy: true }))))).toContain('data-testid="working-dot"');
     expect(renderToStaticMarkup(createElement(SidebarBotTile, props(bot({ activity: "waiting-on-you" }))))).toContain('data-testid="waiting-dot"');
     const unread = renderToStaticMarkup(createElement(SidebarBotTile, props(bot({ unread: true }))));
@@ -109,13 +122,15 @@ describe("the tile grid", () => {
 
   afterEach(() => setPinnedCircleOrder([]));
 
-  it.each([0, 1, 2, 3, 5])("puts the main bot first, then %i pinned bots, as same-size tiles in one centred, wrapping grid", (count) => {
+  it.each([0, 1, 2, 3, 5])("puts the main bot first, then %i pinned bots, in one centred, wrapping grid", (count) => {
     const html = grid(main, pins(count));
     const drag = count > 1 ? ":drag" : "";
     expect(tiles(html)).toEqual(["primary:mausbot", ...pins(count).map((pin) => `pinned:${pin.id}${drag}`)]);
     expect(html).toMatch(/^<div data-sidebar-tiles="" class="flex max-h-\[40vh\] flex-wrap justify-center gap-1 overflow-y-auto /);
-    expect(html.match(/\bh-\[92px\] w-\[78px\]/g)).toHaveLength(count + 1);
-    expect(html.match(/width="56px" height="56px"/g)).toHaveLength(count + 1);
+    // Fork: the Chief's card is the bigger one, so the 78 by 92 tiles are the pinned ones alone.
+    expect(html.match(/\bh-\[92px\] w-\[78px\]/g) ?? []).toHaveLength(count);
+    expect(html.match(/width="64px" height="64px"/g)).toHaveLength(1);
+    expect(html.match(/width="56px" height="56px"/g) ?? []).toHaveLength(count);
     expect(html.match(/data-testid="chief-badge"/g)).toHaveLength(1);
   });
 
@@ -132,11 +147,27 @@ describe("the tile grid", () => {
   // A grid taller than its 40vh cap scrolls, and its 8px scrollbar takes from the room.
   it.each([[280, 3], [360, 4]])("fits %ipx of sidebar to %i tiles across, with or without a scrollbar", (width, columns) => {
     const html = grid(main, pins(5));
-    const tile = Number(/data-sidebar-tile="primary"[^>]*class="[^"]*\bw-\[(\d+)px\]/.exec(html)![1]);
+    // Fork: the Chief's card is 80px (w-20) where a pinned tile is 78px, so the row packs its own widths in order.
+    const widthOf = (value: string) => {
+      const bare = /\bw-(\d+)\b/.exec(value);
+      return bare ? 4 * Number(bare[1]) : Number(/\bw-\[(\d+)px\]/.exec(value)![1]);
+    };
+    const primaryWidth = widthOf(/data-sidebar-tile="primary"[^>]*class="([^"]*)"/.exec(html)![1]!);
+    const pinnedWidth = widthOf(/data-sidebar-tile="pinned"[^>]*class="([^"]*)"/.exec(html)![1]!);
     const gridClass = /data-sidebar-tiles="" class="([^"]*)"/.exec(html)![1]!;
     const gap = 4 * Number(/\bgap-(\d+)\b/.exec(gridClass)![1]);
     const gutters = 2 * 4 * Number(/\bpx-(\d+)\b/.exec(gridClass)![1]);
-    const across = (room: number) => Math.floor((room + gap) / (tile + gap));
+    const across = (room: number) => {
+      let used = 0;
+      let count = 0;
+      for (const tile of [primaryWidth, ...pins(5).map(() => pinnedWidth)]) {
+        const next = used === 0 ? tile : used + gap + tile;
+        if (next > room) break;
+        used = next;
+        count += 1;
+      }
+      return count;
+    };
     expect(across(width - gutters)).toBe(columns);
     expect(across(width - gutters - 8)).toBe(columns);
   });

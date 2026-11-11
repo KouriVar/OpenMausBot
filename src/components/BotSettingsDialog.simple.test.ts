@@ -134,7 +134,8 @@ const { PageBody, AppsPage, RoutinesPage, MemoryPage, SkillsPage, FolderPage, Br
 const { BrowserLogins } = await import("./bot-panel/browser-logins");
 const { PAGES, sectionTarget } = await import("./bot-panel/page-registry");
 const { openBotSettings } = await import("./bot-panel/panel-link");
-const { PageHeader } = await import("./bot-panel/rows");
+const { PageHeader, DisclosureCard } = await import("./bot-panel/rows");
+const { BackupAis } = await import("./bot-panel/BackupAis");
 const { ChatShareMenu } = await import("./ChatMoreMenu");
 const { SoulField } = await import("./SoulField");
 const { LocalComputerAutoWarning } = await import("./LocalComputerAutoWarning");
@@ -202,6 +203,22 @@ const settingsPage = (bot: Bot, editingInstructions = false) =>
   capture(() => SettingsPage({ bot, derived: derived(), onOpen, editingInstructions, onEditInstructions }));
 const library = (bot: Bot) => capture(() => LibraryTab({ bot, onOpen }));
 const computer = (bot: Bot) => capture(() => ComputerTab({ bot, derived: derived(), onOpen }));
+// Fork: Backup AIs, Call mode and Reply style fold away behind their title rows. Captured on their own, the card's
+// open flag is the harness's first piece of state, so a click in one capture opens it for the next.
+const folded = (bot: Bot, anchor: "backups" | "call" | "replies"): Rendered => {
+  fresh();
+  const page = settingsPage(bot);
+  const node = anchor === "backups"
+    ? ofType(page, BackupAis)!
+    : page.nodes.find((candidate) => candidate.type === DisclosureCard && candidate.props.anchor === anchor)!;
+  const render = () => capture(() => node.type === BackupAis
+    ? BackupAis(node.props as Parameters<typeof BackupAis>[0])
+    : DisclosureCard(node.props as Parameters<typeof DisclosureCard>[0]));
+  fresh();
+  const closed = render();
+  click(find(closed, "data-panel-disclosure", anchor));
+  return render();
+};
 const find = (rendered: { nodes: Node[] }, attr: string, value: unknown = true) => {
   const found = rendered.nodes.find((node) => node.props[attr] === value);
   if (!found) throw new Error(`no node with ${attr}=${String(value)}`);
@@ -426,10 +443,14 @@ describe("the bot panel in Simple mode", () => {
       for (const text of ["Memory", "Upkeep", "Record"]) expect(rendered.html).not.toContain(`>${text}<`);
     }
     click(find(panel(bot), "data-panel-gear"));
-    const settings = panel(bot).html;
-    expect(switches(settings)).toBe(2);
-    expect(settings).toContain('aria-label="Notifications"');
-    expect(settings).toContain('aria-label="Let apps talk to this bot"');
+    // Fork: Reply style folds away and holds Notifications, so the page shows Bot API's switch alone until it is opened.
+    const closed = panel(bot).html;
+    expect(switches(closed)).toBe(1);
+    expect(closed).toContain('aria-label="Let apps talk to this bot"');
+    expect(closed).not.toContain('aria-label="Notifications"');
+    const replies = folded(bot, "replies");
+    expect(switches(replies.html)).toBe(1);
+    expect(replies.html).toContain('aria-label="Notifications"');
   });
 });
 
@@ -629,11 +650,14 @@ describe("the Details tab", () => {
     expect(switches(rendered.html)).toBe(0);
   });
 
-  it("offers Add a routine, which says what routines are, and Automations while the bot has none, and lists them once it has some", () => {
+  it("offers Add a routine, which says what routines are, in a plain section with no label and no Automations link, and lists them once it has some", () => {
     const empty = botTab(makeBot());
     expect(empty.html).toContain('data-panel-empty="routines"');
     expect(empty.html).toContain('title="Jobs this bot runs on a schedule, like a news roundup every morning."');
-    expect(empty.html).toMatch(/data-panel-automations=""[^>]*>Automations<svg/);
+    // Fork: the empty state lost its quiet "Routines" label and its Automations link, and has no card around it.
+    expect(empty.html).not.toMatch(/data-panel-automations/);
+    expect(empty.html).not.toContain('data-panel-card="routines"');
+    expect(empty.html).not.toContain(">Routines<");
     expect(empty.html.match(/data-panel-page="routines"/g)).toHaveLength(1);
     const add = find(empty, "data-panel-page", "routines");
     expect(empty.html).toMatch(/data-panel-page="routines"[^>]*>.*<span class="truncate">Add a routine<\/span><\/button>/);
@@ -643,6 +667,9 @@ describe("the Details tab", () => {
     const some = botTab(makeBot());
     expect(some.html).not.toContain('data-panel-empty="routines"');
     expect(some.html.indexOf('data-panel-card="conversations"')).toBeLessThan(some.html.indexOf('data-panel-page="routines"'));
+    // Fork: with routines, the row is flat in a plain section — no Card surface, ring or border around it.
+    const section = some.html.slice(some.html.indexOf('<section data-panel-card="routines">'));
+    expect(section.slice(0, section.indexOf("</section>"))).not.toMatch(/data-panel-card-surface|ring-1|\bborder\b/);
   });
 
   it("values Routines by how many are on, and opens the routines page", () => {
@@ -677,16 +704,30 @@ describe("the Bot settings page", () => {
     expect(patch).toHaveBeenCalledExactlyOnceWith({ soul: description, description: first });
   });
 
-  it("holds Instructions, Before it acts, Backup AIs, Call mode, Reply style, Notifications, Apps, Job and Hide, with every title on one edge", () => {
-    const rendered = settingsPage(makeBot({ defaultBot: {} }));
-    const order = ['data-panel-edit="soul"', 'data-panel-row="approval"', 'data-panel-row="backups"', 'data-panel-row="call-mode"', 'data-panel-row="reply-style"',
-      'data-panel-row="notifications"', 'data-panel-page="apps"', 'data-panel-row="job"', 'data-panel-row="default-bot-hide"']
+  it("holds Instructions, Before it acts, Backup AIs, Call mode, Reply style, Notifications, Apps, Job and Hide, the folded cards opening to their rows", () => {
+    const bot = makeBot({ defaultBot: {} });
+    const rendered = settingsPage(bot);
+    const order = ['data-panel-edit="soul"', 'data-panel-row="approval"', 'data-panel-disclosure="backups"', 'data-panel-disclosure="call"', 'data-panel-disclosure="replies"',
+      'data-panel-page="apps"', 'data-panel-row="job"', 'data-panel-row="default-bot-hide"']
       .map((marker) => rendered.html.indexOf(marker));
     expect(order.every((index) => index > -1)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
-    expect(switches(rendered.html)).toBe(2);
+    // Fork: the three cards start closed, so Bot API's switch is the only one on the page.
+    for (const anchor of ["backups", "call", "replies"]) expect(rendered.html).toMatch(new RegExp(`data-panel-disclosure="${anchor}" aria-expanded="false"`));
+    expect(switches(rendered.html)).toBe(1);
     expect(rendered.html).toContain('aria-label="Let apps talk to this bot"');
-    expect(rendered.html.match(/pl-\[38px\]/g)).toHaveLength(5);
+    // Opened, each card holds its rows on the same 38px edge the whole page uses.
+    const backups = folded(bot, "backups");
+    expect(backups.html).toContain('data-panel-row="backups"');
+    expect(backups.html).toContain('data-panel-action="backup-add"');
+    const call = folded(bot, "call");
+    expect(call.html).toContain('data-panel-row="call-mode"');
+    expect(call.html).toContain('data-call-mode="turns"');
+    const replies = folded(bot, "replies");
+    expect(replies.html).toContain('data-panel-row="reply-style"');
+    expect(replies.html).toContain('data-panel-row="notifications"');
+    expect(replies.html).toContain('aria-label="Notifications"');
+    for (const card of [backups, call, replies]) expect(card.html.match(/pl-\[38px\]/g)).toHaveLength(1);
     for (const gone of ['data-panel-row="always-allow"', 'data-panel-row="slack"', 'data-panel-page="visibility"']) expect(rendered.html, gone).not.toContain(gone);
   });
 
@@ -694,7 +735,8 @@ describe("the Bot settings page", () => {
     const rendered = settingsPage(makeBot({ alwaysAllow: ["Bash(git status)", "mcp__linear__list_issues"] }));
     const html = rendered.html;
     expect(html.indexOf('data-panel-row="always-allow"')).toBeGreaterThan(html.indexOf('data-panel-row="approval"'));
-    expect(html.indexOf('data-panel-row="always-allow"')).toBeLessThan(html.indexOf('data-panel-row="backups"'));
+    // Fork: Backup AIs now shows only its title row, so the list ends before that card's header.
+    expect(html.indexOf('data-panel-row="always-allow"')).toBeLessThan(html.indexOf('data-panel-disclosure="backups"'));
     expect(html).toContain(">Always allowed<");
     expect(html).toContain(">Bash(git status)<");
     click(find(rendered, "data-panel-action", "always-allow:Bash(git status)"));
@@ -755,14 +797,15 @@ describe("the Bot settings page", () => {
     expect(html.indexOf('data-panel-row="slack"')).toBeGreaterThan(html.indexOf('data-panel-row="job"'));
   });
 
-  it("shows the first line of the instructions, or how to start, and edits them in place with Done", () => {
+  it("keeps the instructions row quiet, and edits them in place with Done", () => {
     const bot = makeBot();
     const closed = settingsPage(bot);
-    expect(closed.html).toContain("Be brief.");
+    // Fork: the first line of the soul, and the hint for a blank one, no longer sit under the title.
+    expect(closed.html).not.toContain("Be brief.");
     expect(ofType(closed, SoulField)).toBeUndefined();
     click(find(closed, "data-panel-edit", "soul"));
     expect(onEditInstructions).toHaveBeenLastCalledWith(true);
-    expect(settingsPage(makeBot({ soul: "" })).html).toContain("Tell Scout how to work for you");
+    expect(settingsPage(makeBot({ soul: "" })).html).not.toContain("Tell Scout how to work for you");
 
     const open = settingsPage(bot, true);
     expect(ofType(open, SoulField)!.props.onPatch).toBe(patch);
@@ -824,16 +867,15 @@ describe("the Bot settings page", () => {
     expect(settingsPage(makeBot()).html).not.toContain("The bot is working");
   });
 
-  it("holds the conversation's approval level, the composer's choice, beside the bot's own", () => {
+  it("leaves the conversation's own approval level off Bot settings, which shows the bot's alone", () => {
+    // Fork: the per-conversation approval chip row is gone, so a conversation set to Full changes nothing here.
     expect(has(settingsPage(makeBot()), "data-panel-row", "thread-approval")).toBe(false);
     fixture.storeState = { ...fixture.storeState, instances: [engine({ displayName: "Claude" })] };
     const rendered = settingsPage(makeBot({ tasks: [{ threadId: "thread-scout", title: "Plan", createdAt: 1, approvalMode: "full" }] }));
-    expect(has(rendered, "data-panel-row", "thread-approval")).toBe(true);
-    expect(rendered.html).toContain(">In this conversation<");
-    const choice = ofType(rendered, ApprovalChip)!.props.choice as Parameters<typeof ApprovalChip>[0]["choice"];
-    expect(choice).toMatchObject({ approvalMode: "full", providerName: "Claude", driverKind: "claudeAgent" });
-    choice.onSelect("ask");
-    expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "updateTask", botId: "scout", threadId: "thread-scout", patch: { approvalMode: "ask" } });
+    expect(has(rendered, "data-panel-row", "thread-approval")).toBe(false);
+    expect(rendered.html).not.toContain(">In this conversation<");
+    expect(ofType(rendered, ApprovalChip)).toBeUndefined();
+    expect(pressed(rendered.html, "data-approval-choice")).toEqual(["ask"]);
   });
 
   it("chooses the call mode, Take turns or Live", () => {
@@ -848,23 +890,30 @@ describe("the Bot settings page", () => {
     }
   });
 
-  it("values the Apps row with the apps switched on, or None yet, and opens the apps page", () => {
+  it("opens the apps page from the Apps row, which lists none of the apps that are on", () => {
     const empty = settingsPage(makeBot());
-    expect(rowValue(empty, "apps")).toBe("None yet");
+    // Fork: the row is quiet — no "None yet", no list of the apps switched on.
+    expect(rowValue(empty, "apps")).toBeUndefined();
+    expect(empty.html).not.toContain("None yet");
     click(find(empty, "data-panel-page", "apps"));
     expect(onOpen).toHaveBeenLastCalledWith("apps");
     fixture.apps = { phase: "ready", connectedSlugs: ["gmail", "notion", "slack"], apps: [app("gmail", "write"), app("notion", null), app("slack", "read")] };
-    expect(rowValue(settingsPage(makeBot()), "apps")).toBe("Gmail, Slack");
+    const enabled = settingsPage(makeBot());
+    expect(rowValue(enabled, "apps")).toBeUndefined();
+    expect(enabled.html).not.toContain("Gmail, Slack");
   });
 
-  it("lists the MCP servers the bot can use after its apps, and None yet when there are neither", () => {
+  it("leaves the Apps row quiet for MCP servers too, which the apps page lists instead", () => {
     fixture.mcp.servers = [{ name: "dodopayments-remote", enabled: true }, { name: "linear", enabled: true }, { name: "paused", enabled: false }];
-    expect(rowValue(settingsPage(makeBot()), "apps")).toBe("dodopayments-remote, linear");
-    expect(rowValue(settingsPage(makeBot({ mcpServers: ["linear"] })), "apps")).toBe("linear");
+    expect(rowValue(settingsPage(makeBot()), "apps")).toBeUndefined();
+    expect(rowValue(settingsPage(makeBot({ mcpServers: ["linear"] })), "apps")).toBeUndefined();
     fixture.apps = { phase: "ready", connectedSlugs: ["gmail"], apps: [app("gmail", "write")] };
-    expect(rowValue(settingsPage(makeBot({ mcpServers: ["linear"] })), "apps")).toBe("Gmail, linear");
+    expect(rowValue(settingsPage(makeBot({ mcpServers: ["linear"] })), "apps")).toBeUndefined();
     fixture.apps = { phase: "ready", apps: [], connectedSlugs: [] };
-    expect(rowValue(settingsPage(makeBot({ mcpServers: [] })), "apps")).toBe("None yet");
+    expect(rowValue(settingsPage(makeBot({ mcpServers: [] })), "apps")).toBeUndefined();
+    // Fork: the list of servers moved off the row; the apps page it opens still names each one.
+    fresh();
+    expect(find(capture(() => AppsPage({ bot: makeBot({ mcpServers: ["linear"] }), derived: derived() })), "aria-label", "Scout can use linear")).toBeDefined();
   });
 
   it("edits the bot's job: saved on blur, Enter leaves the field, Escape puts it back", () => {

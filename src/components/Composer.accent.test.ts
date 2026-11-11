@@ -11,6 +11,7 @@ import { BOT_BUTTON, botButtonTone, botButtonToneHex } from "@/lib/bot-button";
 import { contrastRatio } from "@/lib/color-contrast";
 import { bloubMid, defaultBloubSkin, saveBloubSkin, BLOUB_SKIN_PREFIX } from "@/fork/bloub-skin";
 import { FORK_AVATAR_STYLE_KEY } from "@/fork/avatar-style";
+import { WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
 
 const fixture = vi.hoisted(() => ({ advanced: false, dispatch: vi.fn() }));
 
@@ -113,7 +114,7 @@ describe("the composer's buttons in a Bloub chat", () => {
     expect(contrastRatio(tone.ink, tone.pressed)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it("paints the black avatar's voice and Send buttons from its own black", () => {
+  it("paints the black avatar's voice on the grey voice surface, and Send from its white end", () => {
     // happy-dom reports the dark scheme, so the black avatar paints its white end here; the light end
     // (#2c2c2c fill, white icon) is the same tone the bubble and the hex tests read.
     const lightTone = botButtonToneHex("#2c2c2c");
@@ -124,15 +125,21 @@ describe("the composer's buttons in a Bloub chat", () => {
     flushSync(() => saveBloubSkin(bot.id, { ...defaultBloubSkin(bot.color), color: "black" }));
     restoreComposerDraft(`bot:${bot.id}:${bot.threadId}`, { text: "hello", attachments: [] });
     render({ bot });
-    for (const button of [micButton(), sendButton()]) {
-      expect(button?.className.split(" ")).toContain(BOT_BUTTON);
-      const fill = button!.style.getPropertyValue("--bot-button");
-      const ink = button!.style.getPropertyValue("--bot-button-ink");
-      const tone = tonesFor("black").find((candidate) => candidate.fill === fill);
-      expect(tone, `black button fill ${fill}`).toBeDefined();
-      expect(ink).toBe(tone!.ink);
-      expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(4.5);
-    }
+    // Fork: a near-white avatar in the dark scheme keeps the voice button on the grey voice surface...
+    const voice = micButton()!;
+    expect(voice.className.split(" ")).toContain(BOT_BUTTON);
+    expect(voice.style.getPropertyValue("background-color").toLowerCase()).toMatch(/#3b3b3b|rgb\(59, ?59, ?59\)/);
+    expect(voice.style.getPropertyValue("color").toLowerCase()).toMatch(/#f5f5f5|rgb\(245, ?245, ?245\)/);
+    expect(contrastRatio(WHITE_BUBBLE_INK, WHITE_BUBBLE_BG)).toBeGreaterThanOrEqual(4.5);
+    // ...while Send still carries the accent's own bot tone.
+    const button = sendButton()!;
+    expect(button.className.split(" ")).toContain(BOT_BUTTON);
+    const fill = button.style.getPropertyValue("--bot-button");
+    const ink = button.style.getPropertyValue("--bot-button-ink");
+    const tone = tonesFor("black").find((candidate) => candidate.fill === fill);
+    expect(tone, `black button fill ${fill}`).toBeDefined();
+    expect(ink).toBe(tone!.ink);
+    expect(contrastRatio(ink, fill)).toBeGreaterThanOrEqual(4.5);
   });
 
   it("follows the avatar when its colour changes, with no reload", () => {

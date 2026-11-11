@@ -52,12 +52,13 @@ const caption = (runId: string) => document.querySelector<HTMLElement>(`[data-au
 async function regenerateOffers(): Promise<string[]> {
   const found: string[] = [];
   for (const row of document.querySelectorAll("[data-mid]")) {
-    const more = row.querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]');
-    if (!more) continue;
-    flushSync(() => more.click());
+    const target = row.querySelector<HTMLElement>("[data-message-row]");
+    if (!target) continue;
+    // Fork: a message's actions open from its row's right-click instead of a hover button.
+    flushSync(() => target.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 20, clientY: 20 })));
     await settle();
     if ([...row.querySelectorAll("[role=menuitem]")].some((item) => item.textContent === t("chat.regenerate"))) found.push(row.getAttribute("data-mid")!);
-    flushSync(() => more.click());
+    flushSync(() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })));
     await settle();
   }
   return found;

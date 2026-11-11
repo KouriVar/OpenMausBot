@@ -105,15 +105,19 @@ describe("conversational replies", () => {
     expect([...document.querySelectorAll("[data-md]")].map((el) => el.textContent)).toContain(reply);
   });
 
-  it("keeps a reply's Reply and Copy in its … menu in Simple mode, beside the reaction button", async () => {
+  it("keeps a reply's Reply and Copy in its right-click menu in Simple mode, under the quick reactions", async () => {
     await draw(profile({}));
     const row = document.querySelector("[data-mid='m2']")!;
+    // Fork: the bubble draws no hover buttons at all, so the two are only in the menu.
     expect(row.querySelector('[aria-label="Reply to message"]')).toBeNull();
     expect(row.querySelector('[aria-label="Copy message"]')).toBeNull();
-    const more = row.querySelector<HTMLButtonElement>('button[aria-label="Message actions"]')!;
-    flushSync(() => more.click());
-    const items = [...document.querySelectorAll('[role="menu"][aria-label="Message actions"] [role="menuitem"]')].map((item) => item.textContent);
+    flushSync(() => row.querySelector("[data-message-row]")!
+      .dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 20, clientY: 20 })));
+    const menu = document.querySelector('[role="menu"][aria-label="Message actions"]')!;
+    const items = [...menu.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent);
     expect(items.slice(0, 2)).toEqual(["Reply", "Copy message"]);
+    // The quick reactions sit on the menu's first row, where the old reaction button used to be.
+    expect(menu.querySelector("[data-message-reactions]")?.querySelectorAll("button").length).toBeGreaterThan(0);
   });
 
   it("puts a formatted reply in the bot's bubble in Simple mode, and on the open page in Advanced", async () => {

@@ -76,22 +76,19 @@ describe("sidebar bot row", () => {
   });
   afterEach(() => { vi.unstubAllGlobals(); });
 
-  // Every density puts the badge on the avatar's bottom-left: the status dots own the bottom-right, and a mark at the
-  // row's end sat under the hover actions (+, new folder, …) without lining up with them.
-  it.each<[SidebarDensity, string]>([["comfortable", "absolute -bottom-0.5 -left-0.5"], ["icons", "absolute -bottom-0.5 -left-0.5"]])(
-    "shows the model once in a %s row", (density, placement) => {
-      const found = badges(render(bot("claude", "opus"), density));
-      expect(found).toHaveLength(1);
-      expect(found[0]).toContain('aria-label="Model: Opus 4.1 (Claude)"');
-      expect(found[0]).toContain(placement);
-    });
+  // Fork: the fork's rows carry no engine badge and no chief crown (FORK_HIDE_BOT_BADGES) — one quiet row instead. The
+  // model still reaches the person in the row's tooltip wherever the row has one, so nothing is lost but the mark.
+  it.each<SidebarDensity>(["comfortable", "icons"])("draws no model badge in an Advanced %s row", (density) => {
+    const markup = render(bot("claude", "opus"), density);
+    expect(badges(markup)).toHaveLength(0);
+    if (density === "icons") expect(markup).toContain('title="Atlas · Model: Opus 4.1 (Claude)"');
+  });
 
-  // Simple mode shows the mark too (the owner's ask, 2026-10-22): a person sees which provider each bot runs on at a glance.
-  it.each<SidebarDensity>(["comfortable", "icons"])("shows the model once in a Simple mode %s row", (density) => {
+  it.each<SidebarDensity>(["comfortable", "icons"])("draws no model badge in a Simple mode %s row, keeping the model in its tooltip", (density) => {
     fixture.advanced = false;
-    const found = badges(render(bot("claude", "opus"), density));
-    expect(found).toHaveLength(1);
-    expect(found[0]).toContain('aria-label="Model: Opus 4.1 (Claude)"');
+    const markup = render(bot("claude", "opus"), density);
+    expect(badges(markup)).toHaveLength(0);
+    expect(markup).toContain("Model: Opus 4.1 (Claude)");
   });
 
   it("shows no badge while the bot's engine is missing", () => {

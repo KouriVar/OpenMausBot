@@ -13,7 +13,8 @@ vi.mock("./DesktopCapabilities", () => ({ useDesktopCapabilities: () => ({}) }))
 
 import { Transcript } from "./GroupView";
 import { DefaultResponderSelect } from "./RoomHeader";
-import { Select } from "./Select";
+import { PillSelectMenu } from "@/fork/PillSelectMenu";
+import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 import { RoutedByLine } from "./RoomQueueList";
 
 const members = [
@@ -22,6 +23,8 @@ const members = [
 ] as Bot[];
 const room = (defaultResponder: Group["defaultResponder"]) => ({ id: "room", defaultResponder } as Group);
 const jev = (enabled: boolean): ConfigStatus => ({ decider: { provider: "jev", configured: enabled, enabled, jobs: { roomRouting: true } } } as ConfigStatus);
+/** Fork: the responder is a pill that opens the app's own menu, so its choices live in PillSelectMenu's items. */
+const itemsOf = (tree: ReactNode) => nodes(tree).find((node) => node.type === PillSelectMenu)!.props.items as SidebarMenuItem[];
 
 type Node = ReactElement<Record<string, unknown> & { children?: ReactNode }>;
 function nodes(value: ReactNode): Node[] {
@@ -39,22 +42,27 @@ beforeEach(() => {
 
 describe("room responder selector", () => {
   it("offers Auto (Jev) and shows it selected on an Auto room", () => {
-    const markup = renderToStaticMarkup(createElement(DefaultResponderSelect, { group: room({ kind: "auto" }), members }));
-    expect(markup).toContain('<option value="auto" selected="">Auto (Jev)</option>');
+    const tree = DefaultResponderSelect({ group: room({ kind: "auto" }), members });
+    const markup = renderToStaticMarkup(tree);
+    // Fork: the trigger pill reads the chosen option...
+    expect(markup).toContain(">Auto (Jev)<");
     expect(markup).toContain("Jev picks who answers each plain message");
+    // ...and the menu marks that same option as the chosen one.
+    expect(itemsOf(tree).filter((item) => item.checked).map((item) => item.key)).toEqual(["auto"]);
   });
 
   it("reads plain Auto, and names who answers, while Jev is off", () => {
     fixture.config = jev(false);
-    const markup = renderToStaticMarkup(createElement(DefaultResponderSelect, { group: room({ kind: "auto", fallbackBotId: "theo" }), members }));
-    expect(markup).toContain('<option value="auto" selected="">Auto</option>');
+    const tree = DefaultResponderSelect({ group: room({ kind: "auto", fallbackBotId: "theo" }), members });
+    const markup = renderToStaticMarkup(tree);
+    expect(markup).toContain(">Auto<");
     expect(markup).toContain("Jev is off, so plain messages go to Theo");
+    expect(itemsOf(tree).find((item) => item.key === "auto")!.label).toBe("Auto");
   });
 
   it("switching a lead room to Auto keeps the lead as its fallback", () => {
     const tree = DefaultResponderSelect({ group: room({ kind: "member", botId: "theo" }), members });
-    const select = nodes(tree).find((node) => node.type === Select)!;
-    (select.props.onChange as (event: { target: { value: string } }) => void)({ target: { value: "auto" } });
+    itemsOf(tree).find((item) => item.key === "auto")!.onSelect();
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "patchGroup", groupId: "room", patch: { defaultResponder: { kind: "auto", fallbackBotId: "theo" } } });
   });
 });

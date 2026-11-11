@@ -166,16 +166,18 @@ describe("Settings in Simple mode", () => {
     for (const id of hidden) expect(SIMPLE_HIDDEN_SECTIONS).toContain(id);
   });
 
-  it("opens General on Account, then Appearance, Language and typing, Notifications, System and Import, with More settings and Advanced mode last as plain rows", () => {
+  it("opens General on Account, then Appearance, Language and typing, Notifications, System and Import, with More settings last as a plain row", () => {
     const html = render();
     expect(currentPage(html)).toBe("general");
     expect(groupLabels(html)).toEqual(FORK_LOCAL_ONLY
       ? ["Account", "Appearance", "Language and typing", "Notifications", "System", "Import"]
       : ["Account", "Appearance", "Language and typing", "Notifications", "System", "Import", "Organization"]);
-    expect(blocks(html).slice(-2)).toEqual(["more", "advanced-mode"]);
+    expect(blocks(html).slice(-2)).toEqual(["import", "more"]);
     expect(html).toContain(">More settings<");
-    expect([...html.matchAll(/<button[^>]*role="switch"[^>]*>/g)].at(-1)?.[0]).toContain('aria-label="Advanced mode"');
-    expect(html).toContain("Show every control, including tools for builders. Nothing is deleted either way.");
+    // Fork: Advanced mode has no switch here any more — it comes back only through the ten-tap unlock on Updates.
+    expect(html).not.toContain('aria-label="Advanced mode"');
+    expect(html).not.toContain('data-settings-block="advanced-mode"');
+    expect(html).not.toContain("Show every control, including tools for builders. Nothing is deleted either way.");
     expect(html).not.toContain("border-accent-border/40");
     expect(html).toContain(">Your name</div>");
     expect(html).toContain(">Not set yet</div>");
@@ -212,7 +214,7 @@ describe("Settings in Simple mode", () => {
     expect(fixture.switches.find((props) => props["aria-label"] === "Show your computers")?.checked).toBe(false);
   });
 
-  it("keeps the everyday rows, puts limits behind More settings, and leaves the six other builder controls to Advanced, where search still points", () => {
+  it("keeps the everyday rows, puts limits behind More settings, and leaves the other builder controls out of Simple", () => {
     const general = open("general");
     for (const shown of ['aria-label="Send usage analytics"', 'aria-label="Color my messages with the bot&#x27;s color"', 'aria-label="Send messages with"',
       'aria-label="Notification sounds"', 'aria-label="Show the notification feed"', 'aria-label="App language"', 'role="radiogroup" aria-label="Light or dark"']) {
@@ -224,8 +226,10 @@ describe("Settings in Simple mode", () => {
       "Interface font", "Chat width", "Pinned bots as circles", "Universal pins", "Tool calls", "This run", "Keep prompt cache warm"]) {
       expect(everyPage, gone).not.toContain(`>${gone}<`);
     }
-    expect(SIMPLE_ADVANCED_ONLY.map((key) => t(key))).toEqual(["Automatic recovery", "Interface font", "Chat width", "Pinned bots as circles", "Universal pins", "This run"]);
-    expect(SIMPLE_MORE_LIMITS.map((key) => t(key))).toEqual(["Group turns", "Tool time limit", "Parallel threads", "Event log cleanup", "Keep prompt cache warm", "Repeat computer tasks without AI"]);
+    // Fork: Advanced is no longer reachable from Settings, so the builder controls it used to hold are simply listed
+    // for search, and Automatic recovery joined the limits behind More settings.
+    expect(SIMPLE_ADVANCED_ONLY.map((key) => t(key))).toEqual(["Interface font", "Chat width", "Pinned bots as circles", "Universal pins", "This run"]);
+    expect(SIMPLE_MORE_LIMITS.map((key) => t(key))).toEqual(["Group turns", "Tool time limit", "Parallel threads", "Automatic recovery", "Event log cleanup", "Keep prompt cache warm", "Repeat computer tasks without AI"]);
   });
 
   it("holds the defaults for new bots on AI as one row: the effort they start with, and Edit for the rest", () => {
@@ -321,7 +325,9 @@ describe("Settings in Simple mode", () => {
     expect(currentPage(general)).toBe("general");
     expect(general).not.toContain(">Your name</div>");
     expect(general).toContain('aria-label="App language"');
-    expect(general).toContain('aria-label="Advanced mode"');
+    // Fork: the Advanced mode switch is gone from General, and a paired remote client has no Updates page to unlock it on.
+    expect(general).not.toContain('aria-label="Advanced mode"');
+    expect(general).not.toContain("data-fork-unlock");
   });
 
   it.each<[AppSettingsSection, string]>([
@@ -376,14 +382,16 @@ describe("Settings in Simple mode", () => {
 describe("Settings in Advanced mode", () => {
   beforeEach(() => { fixture.advancedMode = true; });
 
-  it("keeps the grouped rail and General, Advanced mode switch first, on the same Settings look as Simple", () => {
+  it("keeps the grouped rail and General on the same Settings look as Simple, with no Advanced mode switch on General", () => {
     const html = render();
     expect(html).toContain("glass-surface");
     expect(html).toContain('data-settings-look="advanced"');
     expect(html).not.toContain("data-settings-page=");
     expect([...html.matchAll(/data-settings-group="([^"]+)"/g)].map((match) => match[1])).toEqual(["you", "ai", "computers", "account"]);
-    expect(html.indexOf('aria-label="Advanced mode"')).toBeLessThan(html.indexOf("Language"));
-    expect(html).toContain("Show every technical control on this device");
+    // Fork: the switch moved off General — turning Advanced off is the hidden unlock row on the Updates page.
+    expect(html).not.toContain('aria-label="Advanced mode"');
+    expect(html).not.toContain("Show every technical control on this device");
+    expect(html).not.toContain("Show every control, including tools for builders. Nothing is deleted either way.");
     expect(html).not.toContain("More settings");
     for (const kept of ["Group turns", 'aria-label="Effort for new bots"', 'aria-label="Send usage analytics"', "Diagnostics"]) {
       expect(placement(html, kept), kept).toBe("shown");

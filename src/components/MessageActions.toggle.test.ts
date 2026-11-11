@@ -12,7 +12,9 @@ const row = () => host.querySelector<HTMLElement>(`[${MESSAGE_ROW}]`)!;
 const body = () => host.querySelector<HTMLElement>("p")!;
 const tray = () => host.querySelector<HTMLElement>('[data-testid="message-actions"]')!;
 const shown = () => tray().dataset.shown === "true";
-const more = () => tray().querySelector<HTMLButtonElement>('button[aria-haspopup="menu"]')!;
+const openMenu = () => act(async () => {
+  row().dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 40, clientY: 120 }));
+});
 const items = () => [...host.querySelectorAll<HTMLButtonElement>("[role=menuitem]")];
 
 const pointer = (type: string, target: Element, pointerType: string) =>
@@ -102,13 +104,10 @@ describe("message actions row", () => {
 
   it("opens the more menu with the moved actions and closes it on a pick", async () => {
     await render();
-    await pointer("pointerenter", row(), "mouse");
     expect(items()).toHaveLength(0);
-    await act(async () => more().click());
-    expect(more().getAttribute("aria-expanded")).toBe("true");
+    // Fork: the menu opens on a right-click anywhere on the message.
+    await openMenu();
     expect(items().map((item) => item.textContent)).toEqual(["Pin message", "Show raw markdown"]);
-    await pointer("pointerleave", row(), "mouse");
-    expect(shown()).toBe(true);
     await act(async () => items()[0]!.click());
     expect(picked).toEqual(["pin"]);
     expect(items()).toHaveLength(0);
@@ -116,7 +115,7 @@ describe("message actions row", () => {
 
   it("closes the menu on Escape", async () => {
     await render();
-    await act(async () => more().click());
+    await openMenu();
     expect(items()).toHaveLength(2);
     await act(async () => {
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
