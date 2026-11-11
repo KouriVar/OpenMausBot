@@ -4,15 +4,31 @@ All notable changes to this fork are documented here. This fork tracks
 [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot); entries below are
 local customizations on top of it.
 
-Every change carries one ID (`A001`, `A002`, …) and exactly two paragraphs: one English, then
-one Chinese beginning `中文：`. The IDs follow the order the work landed on this fork — A001 is
-the earliest, later entries append new numbers — and they are never reused, so a reference like
-"A014" keeps pointing at the same change.
+Every change carries one ID and exactly two paragraphs: one English, then one Chinese beginning `中文：`.
+
+An ID is the version's letter plus a three-digit counter (`D001`, `D002`, …): V0.1 is `A`, V0.2 `B`, and so on,
+so the letter alone says which build a change landed in. The letter is the version counted from 1 — 0.1 is 1,
+0.9 is 9, 1.0 is 10, 2.7 is 27 — written in base 26 without a zero digit: `A`…`Z` for 1–26, `AA` for 27,
+`AB` for 28, `AZ` for 52, `BA` for 53. The counter starts at `001` and follows the order the work landed inside
+that build; it is never reused, so `C001` keeps pointing at the same change.
 
 本文件记录这个 fork 的所有主要改动，跟随
 [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot)，下面每条都是在上游之上的本地定制。
-每条改动有一个编号（`A001`、`A002`……），固定为两段：先英文、后以「中文：」开头的中文。编号按改动落到本 fork
-的先后排列（A001 最早，新改动往后追加），永不复用，所以「A014」这样的引用始终指向同一条改动。
+每条改动有一个编号，固定为两段：先英文、后以「中文：」开头的中文。
+
+编号是该版本对应的字母加三位序号（`D001`、`D002`……），光看字母就知道改动落在哪一个构建：V0.1 是 `A`、
+V0.2 是 `B`，依此类推。字母按版本号从 1 数起 —— 0.1 数到 1、0.9 数到 9、1.0 数到 10、2.7 数到 27 ——
+再写成没有 0 位的 26 进制：1–26 用 `A`…`Z`，27 是 `AA`，28 是 `AB`，52 是 `AZ`，53 是 `BA`。
+序号从 `001` 起、按该构建内改动落地的先后递增，永不复用，所以 `C001` 始终指向同一条改动。
+
+The `A001`–`A031` entries were written under one running counter before the letter rule existed. All of them
+shipped in V0.1, so they keep their numbers; V0.3's former `A032` and `A033` are now `C001` and `C002`. V0.2
+introduced no numbered entry of its own — the work it carries is described in its own heading and in the
+`A001`–`A031` entries above it.
+
+`A001`–`A031` 早于字母规则，当时是一条全局序号。它们都已经随 V0.1 发出，因此编号不变；V0.3 原来的
+`A032`、`A033` 现在改为 `C001`、`C002`。V0.2 没有新增自己的编号条目：它带的改动写在该版本的标题段和它
+上面的 `A001`–`A031` 里。
 
 ## Unreleased / 未发布
 
@@ -20,13 +36,13 @@ the earliest, later entries append new numbers — and they are never reused, so
 
 The fourth personal build is being prepared here: `0.4.0` in the bundle, shown as **V0.4** in the app, still cut
 from official `v0.1.151` with the same three upstream cherry-picks as V0.3 (`949cabedd`, `5beba1276`,
-`d48997f07`) and still Simple-only. Every change that lands in it is numbered from A034 onward and listed
+`d48997f07`) and still Simple-only. Every change that lands in it is numbered from `D001` onward and listed
 under this heading, one entry per change; the build date and the closing summary are written when the
 version is cut.
 
 中文：**V0.4，进行中，基于官方 v0.1.151 + 与 V0.3 相同的 3 个 cherry-pick。** 第四个个人构建正在这里准备：
 打包版本号 `0.4.0`，应用内显示 **V0.4**，基线仍是官方 `v0.1.151`，cherry-pick 与 V0.3 相同的 `949cabedd`、
-`5beba1276`、`d48997f07`，仍为 Simple-only。落进本版的每项改动从 A034 开始编号，按条目列在本标题下，
+`5beba1276`、`d48997f07`，仍为 Simple-only。落进本版的每项改动从 `D001` 开始编号，按条目列在本标题下，
 一项一条；打包日期与收尾的整段概述在该版本发出时补上。
 
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
@@ -45,7 +61,7 @@ AI provider 密钥收进系统加密存储，首次启动迁移到 `credentials.
 官方 `f3b00bb86` 评估后以空提交保留：它修的是 `v0.1.151` 之后才引入的 sandbox 权限回归，本基线没有它要改的代码
 （`advertisedGrants`、app-sandbox e2e）。界面、汉化、Simple-only、版本号与 updater 短路均保持原样。
 
-### A032 · Three official fixes cherry-picked for V0.3
+### C001 · Three official fixes cherry-picked for V0.3
 
 `949cabedd` replaces the whole-phrase matching in the memory search with a CJK word index (`server/cjk-search.ts`), so
 a Chinese or Japanese note is recalled by a word inside the sentence; `5beba1276` moves every provider key the desktop
@@ -64,7 +80,7 @@ upstream's provider names and the fork's `mimoTtsKey`.
 MiMo TTS 密钥（`mimoTtsKey`）保留在凭据白名单里，三项都落地且没动界面与汉化。冲突一律取我方：中文 `README.md`
 保持本仓库自己的版本；`src/types/ogb.d.ts` 取上游 provider 名单与本 fork `mimoTtsKey` 的并集。
 
-### A033 · The key-readback e2e covers the fork's MiMo key slot
+### C002 · The key-readback e2e covers the fork's MiMo key slot
 
 The `scripts/testing/key-readback.e2e.test.ts` expectation list now includes `mimoTts`, and the loopback stand-in
 answers MiMo's `/models` key check through a new `/mimo` route plus `OMB_MIMO_API`. This fixes a regression that
