@@ -1201,7 +1201,8 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
       <>
         <div role="menu" aria-label={remoteClient ? t("sidebar.new") : t("sidebar.newOrShare")} onKeyDown={navigateThreadMenu} className={cn(
           "absolute z-40 w-max min-w-[200px] overflow-hidden", MENU_SHEET,
-          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
+          // Fork: the + sits on the footer's action row, so its menu opens upward or it opens past the window.
+          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : FOOTER_ACTIONS ? "bottom-full right-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
           plusMotion.className,
         )} {...plusMotion.exitProps}>
           {advanced && <button
