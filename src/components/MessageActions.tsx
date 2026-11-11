@@ -1,10 +1,11 @@
 import { createContext, use, useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { Check, Copy, Ellipsis, Reply, X } from "lucide-react";
+import { Check, Clock, Copy, Ellipsis, Reply, X } from "lucide-react";
 import { popoverClosesOnKey, usePopoverDismiss } from "@/hooks/use-popover-dismiss";
 import { cn } from "@/lib/cn";
 import { useCopyFeedback } from "@/lib/copy-text";
 import { t } from "@/lib/i18n";
-import { MENU_ITEM, MENU_SHEET } from "./menu-recipe";
+import { MENU_ITEM, MENU_ITEM_SEPARATOR, MENU_SHEET } from "./menu-recipe";
+import { FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
 
 export const ACTION_ICON = { size: 17, strokeWidth: 1.5 } as const;
 
@@ -44,12 +45,15 @@ export function MessageActions({
   forceOpen = false,
   className,
   menu: items = [],
+  time,
   children,
 }: {
   side: "user" | "bot";
   forceOpen?: boolean;
   className?: string;
   menu?: MessageMenuItem[];
+  /** The message's time: shown at the menu's foot (one row, a clock and the time) instead of the hover row. */
+  time?: string;
   children?: ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -227,6 +231,15 @@ export function MessageActions({
               <span className="min-w-0 flex-1 truncate">{item.label}</span>
             </button>
           ))}
+          {FORK_MESSAGE_TIME_IN_MENU && time && (
+            <>
+              <div role="separator" className={MENU_ITEM_SEPARATOR} />
+              <div data-message-time="" className="flex min-h-[30px] items-center gap-2 px-2 py-1.5 text-[14px] leading-[18px] text-ink-tertiary">
+                <span className="flex size-4 shrink-0 items-center justify-center [&>svg]:size-4" aria-hidden="true"><Clock {...ACTION_ICON} /></span>
+                <span className="tabular-nums">{time}</span>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

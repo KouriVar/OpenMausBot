@@ -147,6 +147,41 @@ centres the 64px avatar, the name sits under it and the star keeps its place on 
 这个框的右下角，正好落在头像圆的边上、与圆边重叠约三分之一，不再悬在头像旁边。主 bot 卡片本身不带背景：80px 方形
 居中放 64px 头像，名字在下方，星标仍在头像圆边上。纯显示。
 
+### D008 · The message's time lives in its own menu
+
+The hover row beside a message shows only its buttons now: the time it used to print there is the last row of the
+message's menu, a clock icon and the time on the menu's own 14px line, set off by the menu's hairline. `MessageActions`
+takes an optional `time` and draws that row; `ChatView` and `GroupView` pass it and stop rendering the hover-row
+span. Display only, behind `FORK_MESSAGE_TIME_IN_MENU` in `src/fork/ui-batch-1111.ts`.
+
+中文：消息旁边那一行现在只剩按钮：原来印在那里的时间，改成消息菜单的最后一行 —— 时钟图标加时间，字号跟菜单里其他行
+一样是 14px，上面用菜单那条细线隔开。`MessageActions` 新增可选 `time`，由它画这一行；`ChatView` 和 `GroupView` 传值
+并去掉悬停行原来的时间。纯显示，由 `src/fork/ui-batch-1111.ts` 的 `FORK_MESSAGE_TIME_IN_MENU` 控制。
+
+### D009 · An image bubble's top inset matches its sides
+
+A message bubble that carries a picture kept the text rows' 7px on top while its sides take the bubble's 12px
+padding, so the picture sat 5px tight against the top. The bubble now takes `pt-3` whenever it holds a picture and
+is not the picture-only bubble (which already pads 6px on every side): the picture is as far from the top as from
+the sides, matching the bottom gap the same bubble already gave it. Display only.
+
+中文：带图片的消息气泡，顶部一直沿用文字行的 7px，而左右是气泡的 12px，所以图片离顶边比离侧边紧 5px。现在只要气泡里
+有图片、又不是「纯图片」那种（纯图片本来就是四边 6px），就加 `pt-3`：图片离顶部和离左右一样远，跟这个气泡原本给图片的
+底部间距对齐。纯显示。
+
+### D010 · An unread bot draws no glyph on its mascot
+
+Hovering a bot with unread messages made its mascot play the "notifying" glyph — a bang with a round dot beside the
+head, drawn in the body's gradient — so the avatar showed a second, paler mark next to the row's own blue dot, and
+only while the pointer was on it. The glyph is gone (`EFFECTS` in `src/components/CursorAvatar.tsx`): the row's dot
+is the one signal, and `noticing` still runs the mascot's animation for `UNREAD_NOTICE_MS` (now a plain 8400), so
+nothing else changes. Display only.
+
+中文：未读的 bot 在鼠标悬停时，光标/头像吉祥物会播放「通知」字形 —— 头边一个感叹号加一个圆点，用身体渐变上色，
+于是头像旁边多出一个更淡的记号，而且只在指针放上去时才出现。现在这个字形去掉了
+（`src/components/CursorAvatar.tsx` 的 `EFFECTS`）：未读只由行上那个蓝点表示；`noticing` 仍然按
+`UNREAD_NOTICE_MS`（现在是 8400）驱动吉祥物动画，其他行为不变。纯显示。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

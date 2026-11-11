@@ -114,7 +114,7 @@ export const EFFECTS: EffectsByState = {
   receiving: { trails: { count: 2, period: 1500, radius: 120 } },
 
   alerting: { glyph: { markup: GLYPH_BANG, period: 2600, hold: 1100 } },
-  notifying: { glyph: { markup: GLYPH_BANG, period: 4200, hold: 900 } },
+  // Fork: unread is the row's own dot; the mascot draws no glyph for it, so hovering an unread bot stays quiet.
   confused: { glyph: { markup: GLYPH_QUERY, period: 5200, hold: 1200 } },
 }
 
