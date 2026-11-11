@@ -54,6 +54,7 @@ import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { displayAppVersionWithBuild } from "@/fork/version-label";
 import { FORK_MENU_BUILD_STAMP, MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
+import { FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -541,8 +542,9 @@ export function profileMenuItems({
     // Places you go first, then the app's own settings, then getting the phone app and help.
     simple.tools,
     [...present(usageItem), settings],
-    [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
-    [...simple.places, ...present(accountItem)],
+    // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
+    FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
+    FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],
     accounts,
   ].filter((group) => group.length > 0);
   return groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));

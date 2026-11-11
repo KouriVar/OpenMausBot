@@ -6,20 +6,20 @@ local customizations on top of it.
 
 Every change carries one ID and exactly two paragraphs: one English, then one Chinese beginning `中文：`.
 
-An ID is the version's letter plus a three-digit counter (`D001`, `D002`, …): V0.1 is `A`, V0.2 `B`, and so on,
-so the letter alone says which build a change landed in. The letter is the version counted from 1 — 0.1 is 1,
-0.9 is 9, 1.0 is 10, 2.7 is 27 — written in base 26 without a zero digit: `A`…`Z` for 1–26, `AA` for 27,
-`AB` for 28, `AZ` for 52, `BA` for 53. The counter starts at `001` and follows the order the work landed inside
-that build; it is never reused, so `C001` keeps pointing at the same change.
+An ID is the release's letter plus a three-digit counter (`E001`, `E002`, …), so the letter alone says which
+release a change shipped in. Releases take the letters in order — 0.1 `A`, 0.2 `B`, 0.3 `C`, 0.4 `D`, 0.4.1 `E`,
+0.4.2 `F`, and so on — written in base 26 without a zero digit: `A`…`Z` for releases 1–26, `AA` for 27, `AB` for
+28. The counter starts at `001` and follows the order the work landed inside that release; it is never reused, so
+`D004` keeps pointing at the same change.
 
 本文件记录这个 fork 的所有主要改动，跟随
 [milind-soni/OpenMausBot](https://github.com/milind-soni/OpenMausBot)，下面每条都是在上游之上的本地定制。
 每条改动有一个编号，固定为两段：先英文、后以「中文：」开头的中文。
 
-编号是该版本对应的字母加三位序号（`D001`、`D002`……），光看字母就知道改动落在哪一个构建：V0.1 是 `A`、
-V0.2 是 `B`，依此类推。字母按版本号从 1 数起 —— 0.1 数到 1、0.9 数到 9、1.0 数到 10、2.7 数到 27 ——
-再写成没有 0 位的 26 进制：1–26 用 `A`…`Z`，27 是 `AA`，28 是 `AB`，52 是 `AZ`，53 是 `BA`。
-序号从 `001` 起、按该构建内改动落地的先后递增，永不复用，所以 `C001` 始终指向同一条改动。
+编号是**发版**对应的字母加三位序号（`E001`、`E002`……），光看字母就知道改动随哪一版发出。字母按发版顺序取 ——
+0.1 是 `A`、0.2 是 `B`、0.3 是 `C`、0.4 是 `D`、0.4.1 是 `E`、0.4.2 是 `F`，依此类推 —— 写成没有 0 位的 26 进制：
+第 1–26 版用 `A`…`Z`，第 27 版是 `AA`，第 28 版是 `AB`。序号从 `001` 起、按该版本内改动落地的先后递增，永不复用，
+所以 `D004` 始终指向同一条改动。
 
 The `A001`–`A031` entries were written under one running counter before the letter rule existed. All of them
 shipped in V0.1, so they keep their numbers; V0.3's former `A032` and `A033` are now `C001` and `C002`. V0.2
@@ -31,6 +31,28 @@ introduced no numbered entry of its own — the work it carries is described in 
 上面的 `A001`–`A031` 里。
 
 ## Unreleased / 未发布
+
+## V0.4.1 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+The first patch after 0.4.0: `0.4.1` in the bundle, shown as **V0.4.1** in the app, same base and the same three
+upstream cherry-picks. Each patch gathers the entries that land in it, and its release notes carry them since the
+last release.
+
+中文：**V0.4.1，0.4.0 之后的第一个补丁版。** 打包版本号 `0.4.1`，应用内显示 **V0.4.1**，基线与 cherry-pick 都和
+0.4.0 相同。每次补丁把落在它上面的条目汇总起来，Release 说明写自上一版以来的全部条目。
+
+### E001 · The avatar menu keeps only what this build uses
+
+The avatar menu loses four rows: `获取手机应用` (the phone app), `帮助与支持` (the support submenu), the current
+place row (`This computer`) and `切换到…`. The about row went with the support submenu, so the app menu's About and
+Settings' version row are where those live now. The updater row, usage, tools, settings, move-to-Cloud and the
+signed-in accounts stay exactly as they were. Display only, behind `FORK_PROFILE_MENU_MINIMAL` in
+`src/fork/ui-batch-1111.ts`.
+
+中文：头像菜单去掉四行：`获取手机应用`、`帮助与支持`（含它下面的子菜单）、当前所在位置那行（`This computer`）和
+`切换到…`。关于这一项原本在帮助子菜单里，之后请看应用菜单里的 About 和设置里的版本行。更新、用量、工具、设置、
+迁移到 My Cloud、已登录账号这些行都原样保留。纯显示，由 `src/fork/ui-batch-1111.ts` 的
+`FORK_PROFILE_MENU_MINIMAL` 控制。
 
 ## V0.4 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
