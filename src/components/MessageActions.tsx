@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { useCopyFeedback } from "@/lib/copy-text";
 import { t } from "@/lib/i18n";
 import { MENU_ITEM, MENU_ITEM_SEPARATOR, MENU_SHEET } from "./menu-recipe";
-import { FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
+import { FORK_MESSAGE_MENU_ON_RIGHT_CLICK, FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
 
 export const ACTION_ICON = { size: 17, strokeWidth: 1.5 } as const;
 
@@ -46,6 +46,7 @@ export function MessageActions({
   className,
   menu: items = [],
   time,
+  reactions = null,
   children,
 }: {
   side: "user" | "bot";
@@ -54,6 +55,8 @@ export function MessageActions({
   menu?: MessageMenuItem[];
   /** The message's time: shown at the menu's foot (one row, a clock and the time) instead of the hover row. */
   time?: string;
+  /** The quick reactions the right-click menu offers on its first row. */
+  reactions?: { emojis: readonly string[]; mine: string | null; onPick: (emoji: string) => void } | null;
   children?: ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -69,9 +72,12 @@ export function MessageActions({
   const [keyboardFocus, setKeyboardFocus] = useState(false);
   const [tapped, setTapped] = useState(false);
   const [menuAbove, setMenuAbove] = useState(false);
+  // Fork: the right-click menu sits where the pointer was, so it needs the click's own coordinates.
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [menuFlipped, setMenuFlipped] = useState(false);
   const mirrored = side === "user";
   const shown = forceOpen || menuOpen || hovered || keyboardFocus || tapped;
+  const rightClick = FORK_MESSAGE_MENU_ON_RIGHT_CLICK;
 
   useEffect(() => {
     const row = rootRef.current?.closest<HTMLElement>(`[${MESSAGE_ROW}]`) ?? rootRef.current;
@@ -111,6 +117,15 @@ export function MessageActions({
       if (window.getSelection()?.toString()) return;
       setTapped((value) => !value);
     };
+    const context = (event: MouseEvent) => {
+      if (!FORK_MESSAGE_MENU_ON_RIGHT_CLICK) return;
+      // A link or a text field keeps its own menu: copying a URL and editing are not this menu's business.
+      if (event.target instanceof Element && event.target.closest("a, input, textarea, [contenteditable=true]")) return;
+      event.preventDefault();
+      setAnchor({ x: event.clientX, y: event.clientY });
+      setMenuOpen(true);
+    };
+    row.addEventListener("contextmenu", context);
     row.addEventListener("pointerenter", enter);
     row.addEventListener("pointerleave", leave);
     row.addEventListener("focusin", focusIn);
@@ -121,6 +136,7 @@ export function MessageActions({
     row.addEventListener("pointercancel", cancel);
     return () => {
       if (press) clearTimeout(press.timer);
+      row.removeEventListener("contextmenu", context);
       row.removeEventListener("pointerenter", enter);
       row.removeEventListener("pointerleave", leave);
       row.removeEventListener("focusin", focusIn);
@@ -135,6 +151,7 @@ export function MessageActions({
   usePopoverDismiss(tapped && !menuOpen, rowRef, () => setTapped(false));
   usePopoverDismiss(menuOpen, rootRef, () => {
     setMenuOpen(false);
+    setAnchor(null);
     if (rootRef.current?.contains(document.activeElement)) moreRef.current?.focus();
   });
 
@@ -171,9 +188,10 @@ export function MessageActions({
     <div
       ref={rootRef}
       className={cn(
-        "relative flex items-center gap-0.5 self-end pb-0.5 transition-opacity duration-150",
-        mirrored && "flex-row-reverse",
-        shown ? "opacity-100" : "pointer-events-none opacity-0",
+        rightClick
+          // Fork: no hover row at all — the bubble's right-click opens everything.
+          ? "contents"
+          : cn("relative flex items-center gap-0.5 self-end pb-0.5 transition-opacity duration-150", mirrored && "flex-row-reverse", shown ? "opacity-100" : "pointer-events-none opacity-0"),
         className,
       )}
       data-testid="message-actions"
@@ -184,8 +202,8 @@ export function MessageActions({
         (document.activeElement as HTMLElement | null)?.blur();
       }}
     >
-      {children}
-      {menu.length > 0 && (
+      {rightClick ? (forceOpen ? children : null) : children}
+      {!rightClick && menu.length > 0 && (
         <button
           ref={moreRef}
           type="button"
@@ -207,12 +225,34 @@ export function MessageActions({
           role="menu"
           aria-label={t("chat.messageActions")}
           onKeyDown={moveFocus}
+          style={rightClick && anchor ? { left: Math.max(8, Math.min(anchor.x, window.innerWidth - 232)), top: Math.min(anchor.y, window.innerHeight - 16) } : undefined}
           className={cn(
-            "absolute z-40 min-w-52 max-w-[calc(100vw-2rem)] overflow-hidden", MENU_SHEET,
-            menuAbove ? "bottom-full mb-1" : "top-full mt-1",
-            mirrored !== menuFlipped ? "end-0" : "start-0",
+            "z-40 min-w-52 max-w-[calc(100vw-2rem)] overflow-hidden", MENU_SHEET,
+            rightClick ? "fixed" : cn("absolute", menuAbove ? "bottom-full mb-1" : "top-full mt-1", mirrored !== menuFlipped ? "end-0" : "start-0"),
           )}
         >
+          {rightClick && reactions && (
+            <>
+              <div data-message-reactions="" className="flex items-center gap-0.5 px-1.5 py-1.5">
+                {reactions.emojis.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    aria-pressed={reactions.mine === emoji}
+                    onClick={() => {
+                      reactions.onPick(emoji);
+                      setMenuOpen(false);
+                      setAnchor(null);
+                    }}
+                    className="flex size-8 items-center justify-center rounded-full text-[17px] leading-none transition-colors hover:bg-menu-hover aria-pressed:bg-raised"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <div role="separator" className={MENU_ITEM_SEPARATOR} />
+            </>
+          )}
           {menu.map((item) => (
             <button
               key={item.key}

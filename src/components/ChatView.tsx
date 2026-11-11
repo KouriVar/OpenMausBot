@@ -97,6 +97,7 @@ import { CompactionChip, DigestChip } from "./DigestChip";
 import { RenameTitle } from "./RenameTitle"; import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
 import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill"; import { useStoreRef } from "@/state/store-ref";
 import { CHATHEAD_PILL_PAD, CHATHEAD_PILL_PAD_BEFORE, FORK_UI_1111 } from "@/fork/ui-batch-1111";
+import { useReaction } from "./Reactions"; import { REACTIONS, type Reaction } from "../../shared/reactions";
 import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { ChatHeaderMenu, ChatMoreMenu } from "./ChatMoreMenu"; import { TeamOwnHelperHeader, TeamPrivateFirstLine, TeamPrivateHeader, TeamSharedHeader } from "./TeamPrivateChatsLine";
 import { useChatFindRequests } from "@/lib/chat-find";
@@ -430,8 +431,11 @@ const Bubble = memo(function Bubble({
   };
   const togglePin = () =>
     dispatch({ type: "updateTask", botId, threadId, patch: { pinnedMessageId: pinned ? "" : message.id } });
+  // Fork: the bubble's right-click menu offers the quick reactions itself, so the row needs them here.
+  const reaction = useReaction(threadId, message);
   const botActions = !user && (
-    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={simple ? [...replyAndCopy(() => onReply(message), text), ...botMenu] : botMenu}>
+    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={[...replyAndCopy(() => onReply(message), text), ...botMenu]}
+      reactions={canReact && !peer ? { emojis: REACTIONS, mine: reaction.mine, onPick: (emoji) => reaction.react(emoji as Reaction) } : null}>
       {!simple && <ReplyAction onReply={() => onReply(message)} />}
       {canReact && !peer && <ReactAction threadId={threadId} message={message} />}
       {!simple && text && <CopyButton text={text} className={messageActionClass} />}
@@ -450,7 +454,7 @@ const Bubble = memo(function Bubble({
             side="user"
             time={formatTime(message.at)}
             menu={[
-              ...(simple ? replyAndCopy(() => onReply(message), visibleText) : []),
+              ...replyAndCopy(() => onReply(message), visibleText),
               ...userMessageMenu({
                 messageId: message.id,
                 onEdit: !speaker && message.kind === "text" && !webhookView && !hasAttachments && !message.id.startsWith("optimistic-")

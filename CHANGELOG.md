@@ -25,14 +25,25 @@ release notes carry.
 
 ## V0.4.3 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
-### OD004 · Advanced's chat head wears Simple's pill
+### OD004 · The message bubble's actions live in a right-click menu
 
-Advanced mode's conversation header now draws the same pill Simple's does — the same padding, the same round surface and
-the same 14px medium name beside the 24px avatar — instead of the wider, semibold variant it had. The pencil that
-renames the bot and the chief's `总协调机器人` tag stay where they were inside the pill. Display only.
+A message bubble shows no action buttons on hover any more: right-clicking anywhere on it opens one menu, with the
+quick reactions on its first row (`👍` `👎` `❤️` `😂` `🎉` `👀`, no "add reaction" button), then reply, copy and
+whatever else the message offers, and the time at its foot. The menu opens where the pointer is, stays inside the
+window, and leaves links and text fields their own right-click menus. Display only, behind
+`FORK_MESSAGE_MENU_ON_RIGHT_CLICK` in `src/fork/ui-batch-1111.ts`.
 
-中文：高级模式的会话页头部改成和简易一样的胶囊 —— 同样的内边距、同样的圆底、头像 24px 旁边 14px 中等字重的名字，
-不再是原来那版更宽、字更重的。改名用的铅笔和「总协调机器人」那个标签都留在胶囊里原来的位置。纯显示。
+Advanced mode's conversation header draws the same pill Simple's does too — the same padding, round surface and 14px
+medium name beside the 24px avatar — instead of the wider, semibold variant it had, while the pencil that renames the
+bot and the chief's `总协调机器人` tag stay inside it.
+
+中文：会话气泡不再在鼠标悬停时冒出一排按钮：在气泡任意位置右键就弹出一个菜单，第一排是快捷表情
+（`👍` `👎` `❤️` `😂` `🎉` `👀`，不做「添加表情」），下面是回复、复制和这条消息其余的项，最底下是时间。菜单在指针
+位置弹出、不越出窗口，链接和输入框保留它们自己的右键菜单。纯显示，由 `src/fork/ui-batch-1111.ts` 的
+`FORK_MESSAGE_MENU_ON_RIGHT_CLICK` 控制。
+
+高级模式的会话页头部也换成和简易一样的胶囊 —— 同样的内边距、圆底，头像 24px 旁 14px 中等字重的名字，不再是更宽、
+字更重那版；改名铅笔和「总协调机器人」标签都留在胶囊里。
 
 ## V0.4.2 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
