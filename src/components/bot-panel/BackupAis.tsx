@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, LifeBuoy, Plus } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
 import { configuredModelInstances } from "@/lib/engine-rail";
 import { t } from "@/lib/i18n";
 import type { Typeahead } from "@/lib/menu-keys";
@@ -232,7 +233,7 @@ export function BackupAis({ bot, onChange }: { bot: Bot; onChange: (fallback: Ba
           <RowIcon icon={LifeBuoy} />
           <RowText title={t("botPanel.backups.title")} />
         </div>
-        <p className="-mt-1 pl-[38px] text-[13px] leading-[1.35] text-ink-secondary">{t("botPanel.backups.hint", { name: bot.name })}</p>
+        {!FORK_BOT_SETTINGS_QUIET && <p className="-mt-1 pl-[38px] text-[13px] leading-[1.35] text-ink-secondary">{t("botPanel.backups.hint", { name: bot.name })}</p>}
         {chain.length > 0 && (
           <ol aria-label={t("botPanel.backups.title")} className="flex flex-col gap-1 pl-[38px]">
             {chain.map((entry, index) => {

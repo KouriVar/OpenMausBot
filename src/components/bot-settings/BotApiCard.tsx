@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Copy } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
 import { copyText } from "@/lib/copy-text";
 import { t } from "@/lib/i18n";
 import { relativeTime } from "@/lib/memory";
@@ -136,7 +137,7 @@ function BotApiSection({ bot, webhooksLink = false, className }: { bot: Bot; web
         <div className="min-w-0">
           <div className="text-[15px] font-medium text-ink">{t("botApi.title")}</div>
           <div className="mt-0.5 text-[14px] text-ink">{t("botApi.switch")}</div>
-          <div className="mt-0.5 text-[13px] text-ink-secondary">{canManage || !view ? t("botApi.hint", { name: bot.name }) : t("botApi.notAllowed", { name: bot.name })}</div>
+          {!FORK_BOT_SETTINGS_QUIET && <div className="mt-0.5 text-[13px] text-ink-secondary">{canManage || !view ? t("botApi.hint", { name: bot.name }) : t("botApi.notAllowed", { name: bot.name })}</div>}
         </div>
         <Switch
           aria-label={t("botApi.switch")}

@@ -73,12 +73,12 @@ afterEach(() => {
 });
 
 describe("a bot's backup AIs in Simple", () => {
-  it("say when they are used, with no switch to turn them on", () => {
+  // Fork: the card keeps its rows but drops the explanatory line (FORK_BOT_SETTINGS_QUIET).
+  it("keeps its rows and no switch, without the explanatory line", () => {
     render();
     const card = host.querySelector("[data-panel-row=backups]")!;
     expect(card.textContent).toContain("Backup AIs");
-    expect(card.textContent).toContain("Used only when Scout's AI is at its usage limit or can't start on a message.");
-    expect(card.textContent).toContain("After a usage limit resets, the conversation goes back.");
+    expect(card.textContent).not.toContain("Used only when Scout's AI is at its usage limit");
     expect(card.querySelector('[role="switch"], input[type="checkbox"]')).toBeNull();
     expect(host.querySelectorAll("[data-backup]")).toHaveLength(0);
   });

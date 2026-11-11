@@ -1,3 +1,4 @@
+import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
 import { useState } from "react";
 import { AppWindow, AudioLines, Bell, ChevronRight, ExternalLink, Eye, FileText, MessageSquareText, ShieldCheck, Slack, Tag } from "lucide-react";
 
@@ -141,7 +142,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
             <RowIcon icon={FileText} />
             <RowText
               title={t("botSettings.simple.instructions")}
-              hint={<span className="line-clamp-1">{firstSentence(bot.soul ?? "") || t("botPanel.instructionsHint", { name })}</span>}
+              hint={FORK_BOT_SETTINGS_QUIET ? undefined : <span className="line-clamp-1">{firstSentence(bot.soul ?? "") || t("botPanel.instructionsHint", { name })}</span>}
             />
             <ChevronRight size={15} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
           </button>
@@ -165,7 +166,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
               options={actsOptions}
             />
           </div>
-          {approval.choice && (
+          {approval.choice && !FORK_BOT_SETTINGS_QUIET && (
             <div data-panel-row="thread-approval" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pl-[38px]">
               <span className="text-[13px] text-ink-secondary">{t("botPanel.thisConversation")}</span>
               <span className="ms-auto flex">
@@ -236,7 +237,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
           data-panel-page="apps"
           icon={AppWindow}
           title={t("botPanel.appsRow")}
-          value={enabledApps.length > 0 ? enabledApps.join(", ") : t("botPanel.appsNoneYet")}
+          value={FORK_BOT_SETTINGS_QUIET ? undefined : enabledApps.length > 0 ? enabledApps.join(", ") : t("botPanel.appsNoneYet")}
           onClick={() => onOpen?.("apps")}
         />
         <label data-panel-row="job" className={cn(rowCls, "cursor-text")}>
