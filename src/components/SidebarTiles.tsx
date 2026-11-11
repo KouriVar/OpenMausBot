@@ -80,19 +80,20 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
       onKeyDown={onKeyDown}
       onContextMenu={(event) => openBotContextMenu(onMenu, bot.id, event)}
       className={cn(
-        "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 transition-colors duration-150", SIMPLE_ROW_FOCUS,
-        primary ? "size-[128px] pt-1" : "h-[92px] w-[78px] pt-2", ROW_RADIUS_SIMPLE,
-        selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]",
+        "flex shrink-0 cursor-pointer flex-col items-center transition-colors duration-150", SIMPLE_ROW_FOCUS,
+        primary ? "w-20" : "h-[92px] w-[78px] bg-[var(--tile)] px-1 pt-2", ROW_RADIUS_SIMPLE,
+        // The chief's card keeps no background of its own: an 80px square centres the 64px avatar, name under it.
+        !primary && (selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]"),
         pinnedCircleDragClass({ drag, dragging, drop }),
       )}
     >
-      <span className="relative flex">
+      <span className={cn("relative flex", primary && "h-20 w-20 items-center justify-center")}>
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
-          size={primary ? 72 : 56}
+          size={primary ? 64 : 56}
           fitBody={primary}
-          frameSize={primary ? 72 : undefined}
+          frameSize={primary ? 64 : undefined}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
