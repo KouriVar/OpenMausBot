@@ -74,6 +74,8 @@ export function MessageActions({
   const [menuAbove, setMenuAbove] = useState(false);
   // Fork: the right-click menu sits where the pointer was, so it needs the click's own coordinates.
   const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  // Where the right-click menu lands: the pointer, clamped, flipping above it when it would run under the composer.
+  const [point, setPoint] = useState<{ left: number; top: number } | null>(null);
   const [menuFlipped, setMenuFlipped] = useState(false);
   const mirrored = side === "user";
   const shown = forceOpen || menuOpen || hovered || keyboardFocus || tapped;
@@ -152,12 +154,22 @@ export function MessageActions({
   usePopoverDismiss(menuOpen, rootRef, () => {
     setMenuOpen(false);
     setAnchor(null);
+    setPoint(null);
     if (rootRef.current?.contains(document.activeElement)) moreRef.current?.focus();
   });
 
   useLayoutEffect(() => {
     if (!menuOpen) return;
     const menuBox = menuRef.current?.getBoundingClientRect();
+    if (rightClick && anchor && menuBox) {
+      // The composer's own top edge is the floor: a menu that dips under it cannot be clicked either.
+      const composer = document.querySelector('[data-tour="composer"]')?.getBoundingClientRect();
+      const floor = Math.min(composer ? composer.top : window.innerHeight, window.innerHeight) - 8;
+      const left = Math.max(8, Math.min(anchor.x, window.innerWidth - menuBox.width - 8));
+      const below = anchor.y + menuBox.height <= floor;
+      const top = below ? anchor.y : Math.max(8, anchor.y - menuBox.height);
+      setPoint((current) => (current && current.left === left && current.top === top ? current : { left, top }));
+    }
     const more = moreRef.current?.getBoundingClientRect();
     if (menuBox && more) setMenuAbove(more.bottom + 4 + menuBox.height > window.innerHeight - 8 && more.top - 4 - menuBox.height > 8);
     const rowBox = rootRef.current?.getBoundingClientRect();
@@ -225,7 +237,7 @@ export function MessageActions({
           role="menu"
           aria-label={t("chat.messageActions")}
           onKeyDown={moveFocus}
-          style={rightClick && anchor ? { left: Math.max(8, Math.min(anchor.x, window.innerWidth - 232)), top: Math.min(anchor.y, window.innerHeight - 16) } : undefined}
+          style={rightClick ? { left: point?.left, top: point?.top, visibility: point ? undefined : "hidden" } : undefined}
           className={cn(
             "z-40 min-w-52 max-w-[calc(100vw-2rem)] overflow-hidden", MENU_SHEET,
             rightClick ? "fixed" : cn("absolute", menuAbove ? "bottom-full mb-1" : "top-full mt-1", mirrored !== menuFlipped ? "end-0" : "start-0"),
@@ -243,6 +255,7 @@ export function MessageActions({
                       reactions.onPick(emoji);
                       setMenuOpen(false);
                       setAnchor(null);
+                      setPoint(null);
                     }}
                     className="flex size-8 items-center justify-center rounded-full text-[17px] leading-none transition-colors hover:bg-menu-hover aria-pressed:bg-raised"
                   >

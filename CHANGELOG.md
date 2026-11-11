@@ -49,7 +49,8 @@ behind `FORK_BOT_PANEL_ASKS`, `FORK_BOT_PANEL_LABELS` and `FORK_BOT_SETTINGS_QUI
 A message bubble shows no action buttons on hover any more: right-clicking anywhere on it opens one menu, with the
 quick reactions on its first row (`👍` `👎` `❤️` `😂` `🎉` `👀`, no "add reaction" button), then reply, copy and
 whatever else the message offers, and the time at its foot. The menu opens where the pointer is, stays inside the
-window, and leaves links and text fields their own right-click menus. Display only, behind
+window — flipping above the pointer when it would otherwise run under the composer — and leaves links and text fields
+their own right-click menus. Display only, behind
 `FORK_MESSAGE_MENU_ON_RIGHT_CLICK` in `src/fork/ui-batch-1111.ts`.
 
 In Advanced mode the composer's call button now matches the mic beside it: both are 32px with a 16px glyph, where the
@@ -60,7 +61,7 @@ avatar and 14px medium name, and no rename pencil and no chief tag inside it.
 
 中文：会话气泡不再在鼠标悬停时冒出一排按钮：在气泡任意位置右键就弹出一个菜单，第一排是快捷表情
 （`👍` `👎` `❤️` `😂` `🎉` `👀`，不做「添加表情」），下面是回复、复制和这条消息其余的项，最底下是时间。菜单在指针
-位置弹出、不越出窗口，链接和输入框保留它们自己的右键菜单。纯显示，由 `src/fork/ui-batch-1111.ts` 的
+位置弹出、不越出窗口（下方放不下、会被输入框压住时就往上展开），链接和输入框保留它们自己的右键菜单。纯显示，由 `src/fork/ui-batch-1111.ts` 的
 `FORK_MESSAGE_MENU_ON_RIGHT_CLICK` 控制。
 
 高级模式输入框右边的通话按钮现在和旁边的麦克风一样：都是 32px 方框、16px 图标，不再是白色气泡那版的 28px。
