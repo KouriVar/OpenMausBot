@@ -1,6 +1,6 @@
 // macOS auto-update requires a signed app, so this runs only when packaged. electron-updater is vendored
 // because the packaged app ships no node_modules.
-import { app, clipboard, ipcMain } from "electron";
+import { app, clipboard, ipcMain, shell } from "electron";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -16,6 +16,8 @@ import { openBlankTerminal } from "./terminal-launch.mjs";
 import { UPDATE_TEXT } from "./update-errors.mjs";
 import { createUpdaterCoordinator } from "./updater-coordinator.mjs";
 import { createQuietInstall, installFailed, launchAfter, LOOK_EVERY_MS, updateSeen } from "./update-when-quiet.mjs";
+import { FORK_UPDATES_API, FORK_UPDATES_MANUAL_PAGE, FORK_UPDATES_RELEASES_URL } from "./fork-updates.mjs";
+import { isNewerVersion } from "./updater-coordinator.mjs";
 
 export { quietSignals } from "./update-when-quiet-main.mjs";
 
@@ -120,6 +122,25 @@ function setState(patch) {
   }
 }
 
+/** Fork: the newest release on this fork's GitHub, compared with this build; a newer one opens its page. */
+async function checkForReleasePage() {
+  const current = app.getVersion();
+  try {
+    const response = await fetch(FORK_UPDATES_API, {
+      headers: { accept: "application/vnd.github+json", "user-agent": `OpenMausBot/${current}` },
+    });
+    if (!response.ok) throw new Error(`GitHub answered ${response.status}`);
+    const release = await response.json();
+    const latest = String(release?.tag_name ?? "").replace(/^v/, "");
+    setState({ status: "idle" });
+    if (latest && isNewerVersion(latest, current)) {
+      await shell.openExternal(typeof release?.html_url === "string" ? release.html_url : FORK_UPDATES_RELEASES_URL);
+    }
+  } catch (error) {
+    setState({ status: "error", messageCode: "network", message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 export function sendUpdaterState() {
   setState({});
 }
@@ -131,7 +152,8 @@ export function registerUpdaterIpc({ pageAllowed: allowed }) {
     return handler();
   };
   ipcMain.handle("update:get-state", guarded("update:get-state", view));
-  ipcMain.handle("update:check", guarded("update:check", () => updaterCoordinator?.check(true)));
+  // Fork: an unsigned macOS build cannot be updated in place, so its check looks at the newest release and opens its page.
+  ipcMain.handle("update:check", guarded("update:check", () => (FORK_UPDATES_MANUAL_PAGE && !updaterCoordinator ? checkForReleasePage() : updaterCoordinator?.check(true))));
   ipcMain.handle("update:install", guarded("update:install", () => updaterCoordinator?.install()));
   ipcMain.handle("update:seen", guarded("update:seen", () => {
     if (!launch?.updated) return;

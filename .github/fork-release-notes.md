@@ -9,6 +9,6 @@
 
 上游 `f3b00bb86` 评估后以空提交保留：它修的是官方 `v0.1.151` 之后才引入的 sandbox 权限回归，本基线没有它要改的代码（`advertisedGrants`、app-sandbox e2e）。
 
-安装包未签名、未公证；应用内自动更新已短路（不会连上游更新源，也永远不会被上游版本替换）。界面上原有的汉化、Simple-only、Bloub 头像与各批 UI 定制保持不变。
+安装包未签名、未公证。应用内更新现在跟随**本仓库的 Release**（不再连上游）：Windows 能自己检查、下载并安装到新版本；macOS 因为没有 Developer ID 签名，Squirrel 无法原地替换，点「检查更新」会在有新版本时直接打开发版页。界面上原有的汉化、Simple-only、Bloub 头像与各批 UI 定制保持不变。
 
 **Windows 首次打开**：会弹出 SmartScreen「Windows 已保护你的电脑」提示，点「更多信息 → 仍要运行」即可。

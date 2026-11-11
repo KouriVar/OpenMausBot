@@ -182,6 +182,21 @@ nothing else changes. Display only.
 （`src/components/CursorAvatar.tsx` 的 `EFFECTS`）：未读只由行上那个蓝点表示；`noticing` 仍然按
 `UNREAD_NOTICE_MS`（现在是 8400）驱动吉祥物动画，其他行为不变。纯显示。
 
+### D011 · Updates follow this fork's own releases
+
+The app's updater no longer points at upstream and is no longer switched off. `electron-builder.yml` publishes to
+`KouriVar/OpenMausBot`, and the Fork Release workflow ships the update metadata (`latest.yml`, `latest-mac.yml`) it
+needs and publishes a stable release rather than a pre-release, which electron-updater would ignore. Windows starts
+the updater (`electron/main.mjs`, `FORK_UPDATES` in `electron/fork-updates.mjs`) and installs a new release in place;
+macOS cannot replace an unsigned build, so it starts no updater and its check compares the newest release tag and opens
+that release's page. Display only otherwise: the window's own version line and the About panel are untouched.
+
+中文：应用内更新不再指向上游、也不再被关掉。`electron-builder.yml` 的 publish 指向 `KouriVar/OpenMausBot`，Fork Release
+工作流会把更新器需要的元数据（`latest.yml`、`latest-mac.yml`）一起发出来，并且发**正式** release（electron-updater 默认
+忽略预发布）。Windows 会启动更新器（`electron/main.mjs`，开关在 `electron/fork-updates.mjs` 的 `FORK_UPDATES`），有新版本
+就地下载安装；macOS 因为包未签名无法原地替换，所以不启动 Squirrel，点「检查更新」时比对最新 Release 的 tag，有新版就
+打开发版页。其余不变：界面里的版本行和 About 面板没动。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
