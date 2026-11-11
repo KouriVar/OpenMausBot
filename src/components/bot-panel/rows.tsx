@@ -1,4 +1,4 @@
-import type { ReactNode, Ref } from "react";
+import { useState, type ReactNode, type Ref } from "react";
 import { Check, ChevronLeft, ChevronRight, Trash2, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/cn";
@@ -331,5 +331,33 @@ export function PageHeader({ back, title, intro, onBack }: { back: string; title
       <h3 className="mx-1 mt-1.5 text-[18px] font-semibold text-ink">{title}</h3>
       {intro && <p className="mx-1 mt-1.5 text-[13px] leading-normal text-ink-secondary">{intro}</p>}
     </div>
+  );
+}
+
+/** Fork: a card whose body folds away behind its own title row — the chevron on the right, closed by default, so the
+ * panel reads as a list of headings until something is opened. */
+export function DisclosureCard({ anchor, icon, title, children, defaultOpen = false }: {
+  anchor: string;
+  icon: LucideIcon;
+  title: ReactNode;
+  children: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card anchor={anchor}>
+      <button
+        type="button"
+        data-panel-disclosure={anchor}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className={cn(rowCls, "w-full text-left hover:bg-ink/[0.03]")}
+      >
+        <RowIcon icon={icon} />
+        <RowText title={title} />
+        <ChevronRight size={15} aria-hidden="true" className={cn("shrink-0 text-ink-tertiary transition-transform", open && "rotate-90")} />
+      </button>
+      {open && children}
+    </Card>
   );
 }

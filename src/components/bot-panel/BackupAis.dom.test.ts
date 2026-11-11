@@ -44,7 +44,12 @@ const bot = (fallback?: Bot["fallback"]): Bot => ({
 let host: HTMLDivElement;
 let root: Root;
 const onChange = vi.fn();
-const render = (fallback?: Bot["fallback"]) => flushSync(() => root.render(createElement(BackupAis, { bot: bot(fallback), onChange })));
+const render = (fallback?: Bot["fallback"]) => {
+  flushSync(() => root.render(createElement(BackupAis, { bot: bot(fallback), onChange })));
+  // Fork: the card is folded behind its title row; open it so the rows under it exist to test.
+  const fold = host.querySelector('[data-panel-disclosure="backups"]');
+  if (fold?.getAttribute("aria-expanded") === "false") flushSync(() => fold.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 })));
+};
 const settle = async () => {
   for (let i = 0; i < 3; i++) await new Promise((resolve) => setTimeout(resolve, 0));
 };
@@ -76,7 +81,7 @@ describe("a bot's backup AIs in Simple", () => {
   // Fork: the card keeps its rows but drops the explanatory line (FORK_BOT_SETTINGS_QUIET).
   it("keeps its rows and no switch, without the explanatory line", () => {
     render();
-    const card = host.querySelector("[data-panel-row=backups]")!;
+    const card = host.querySelector('[data-panel-card="backups"]')!;
     expect(card.textContent).toContain("Backup AIs");
     expect(card.textContent).not.toContain("Used only when Scout's AI is at its usage limit");
     expect(card.querySelector('[role="switch"], input[type="checkbox"]')).toBeNull();

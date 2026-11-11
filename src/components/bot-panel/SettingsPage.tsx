@@ -30,7 +30,7 @@ import { BackupAis } from "./BackupAis";
 import { HeavyBotRow } from "./HeavyBotRow";
 import { SoulChanges } from "./SoulChanges";
 import type { SimplePageId } from "./page-registry";
-import { buttonCls, Card, ColRow, NavRow, RowIcon, rowCls, RowText, Segmented, SwitchRow, TrashButton, type SegmentOption } from "./rows";
+import { buttonCls, Card, ColRow, DisclosureCard, NavRow, RowIcon, rowCls, RowText, Segmented, SwitchRow, TrashButton, type SegmentOption } from "./rows";
 
 type Derived = ReturnType<typeof useBotSettingsDerived>;
 
@@ -194,24 +194,16 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
 
       <BackupAis bot={bot} onChange={(fallback) => patch({ fallback })} />
 
-      <Card anchor="call">
+      <DisclosureCard anchor="call" icon={AudioLines} title={t("call.mode.menu")}>
         <ColRow data-panel-row="call-mode">
-          <div className="flex items-center gap-2.5">
-            <RowIcon icon={AudioLines} />
-            <RowText title={t("call.mode.menu")} />
-          </div>
           <div className="pl-[38px]">
             <Segmented attr="data-call-mode" label={t("call.mode.menu")} value={callMode} onChange={setCallMode} options={callOptions} />
           </div>
         </ColRow>
-      </Card>
+      </DisclosureCard>
 
-      <Card anchor="replies">
+      <DisclosureCard anchor="replies" icon={MessageSquareText} title={t("botSettings.replyStyle.title")}>
         <ColRow data-panel-row="reply-style">
-          <div className="flex items-center gap-2.5">
-            <RowIcon icon={MessageSquareText} />
-            <RowText title={t("botSettings.replyStyle.title")} />
-          </div>
           <div className="pl-[38px]">
             <Segmented
               attr="data-reply-style"
@@ -230,7 +222,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
           checked={bot.notifications}
           onChange={toggleNotifications}
         />
-      </Card>
+      </DisclosureCard>
 
       <Card anchor="uses">
         <NavRow

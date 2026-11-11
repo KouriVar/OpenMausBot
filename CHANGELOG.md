@@ -31,13 +31,16 @@ The bot panel's details tab no longer shows the `试着这样问` suggestions �
 height above the conversation list — and it drops the quiet group labels `对话`, `这个对话` and `例行任务`, which spent a
 row each saying what the rows under them already say (the conversations' search control stays, alone on its line). The
 routines row is a flat row like the rest too, no longer a boxed card of its own. The bot settings page behind the gear
+folds its cards away as well: `备用 AI`, `通话模式` and `回复风格` (notifications with it) keep only their title row with a
+chevron, closed until it is clicked, so the page reads as a short list of headings. It then
 goes quiet the same way: no lines under `指示`, `备用 AI`, `Bot API` or `从侧栏隐藏`, no per-conversation approval chip
 row, no list of enabled apps on `可使用的应用` — every row, switch and drill-in stays, only the words go. Display only,
 behind `FORK_BOT_PANEL_ASKS`, `FORK_BOT_PANEL_LABELS` and `FORK_BOT_SETTINGS_QUIET` in `src/fork/bot-panel.ts`.
 
 中文：点开头像胶囊打开的 bot 面板里，「详情」页不再有「试着这样问」那一块 —— 四条固定提问，占掉了一屏高度，把下面的
 对话列表挤下去；同时去掉三个安静的分组标题：`对话`、`这个对话`、`例行任务`，它们各占一行，说的都是下面那些行已经说过的
-事（对话区的搜索按钮保留，单独待在那一行）。「例行任务」那行也改成和其他行一样的平铺行，不再是单独一个带框卡片。齿轮打开的机器人设置页同样「静音」：
+事（对话区的搜索按钮保留，单独待在那一行）。「例行任务」那行也改成和其他行一样的平铺行，不再是单独一个带框卡片。齿轮打开的机器人设置页里，卡片也折起来了：
+`备用 AI`、`通话模式`、`回复风格`（连通知一起）只留一行标题加右箭头，点开才展开，整页看起来就是几行标题。之后同样「静音」：
 `指示`、`备用 AI`、`Bot API`、`从侧栏隐藏` 下面那行说明都不再画，「在这个对话中」的审批状态行去掉，`可使用的应用`
 不再列已启用的应用名 —— 行、开关、可点进去的页面全都在，只是不写字。纯显示，由 `src/fork/bot-panel.ts` 的
 `FORK_BOT_PANEL_ASKS`、`FORK_BOT_PANEL_LABELS`、`FORK_BOT_SETTINGS_QUIET` 控制。

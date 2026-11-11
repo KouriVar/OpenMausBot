@@ -1,6 +1,7 @@
+import { rowCls } from "./rows";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, LifeBuoy, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, LifeBuoy, Plus } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
@@ -219,6 +220,8 @@ export function BackupAis({ bot, onChange }: { bot: Bot; onChange: (fallback: Ba
   const addRef = useRef<HTMLButtonElement>(null);
   const others = (except: number | null) => new Set([bot.modelSelection, ...chain.filter((_, index) => index !== except)]
     .map((entry) => modelKey(entry.instanceId, entry.model)));
+  const [open, setOpen] = useState(false);
+
   const describe = (entry: Backup) => {
     const instance = state.instances.find((candidate) => candidate.instanceId === entry.instanceId);
     const option = instance?.models.options.find((candidate) => candidate.id === entry.model);
@@ -227,12 +230,21 @@ export function BackupAis({ bot, onChange }: { bot: Bot; onChange: (fallback: Ba
   };
 
   return (
+    // Fork: the card folds away behind its title; the chevron opens it, closed by default.
     <Card anchor="backups">
+      <button
+        type="button"
+        data-panel-disclosure="backups"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className={cn(rowCls, "w-full text-left hover:bg-ink/[0.03]")}
+      >
+        <RowIcon icon={LifeBuoy} />
+        <RowText title={t("botPanel.backups.title")} />
+        <ChevronRight size={15} aria-hidden="true" className={cn("shrink-0 text-ink-tertiary transition-transform", open && "rotate-90")} />
+      </button>
+      {open && (
       <ColRow data-panel-row="backups">
-        <div className="flex items-center gap-2.5">
-          <RowIcon icon={LifeBuoy} />
-          <RowText title={t("botPanel.backups.title")} />
-        </div>
         {!FORK_BOT_SETTINGS_QUIET && <p className="-mt-1 pl-[38px] text-[13px] leading-[1.35] text-ink-secondary">{t("botPanel.backups.hint", { name: bot.name })}</p>}
         {chain.length > 0 && (
           <ol aria-label={t("botPanel.backups.title")} className="flex flex-col gap-1 pl-[38px]">
@@ -289,6 +301,7 @@ export function BackupAis({ bot, onChange }: { bot: Bot; onChange: (fallback: Ba
           </div>
         )}
       </ColRow>
+      )}
     </Card>
   );
 }
