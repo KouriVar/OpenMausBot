@@ -81,6 +81,7 @@ beforeAll(async () => {
     }
     if (url.startsWith("/eleven/voices")) return reply(200, { voices: [] });
     if (url.startsWith("/fish/model")) return reply(200, { items: [], total: 0 });
+    if (url.startsWith("/mimo/models")) return reply(200, { data: [] });
     return reply(404, { error: "not in the stand-in" });
   });
   await new Promise<void>((resolve) => stub.listen(0, "127.0.0.1", resolve));
@@ -95,7 +96,7 @@ beforeAll(async () => {
     ...verificationServerEnvironment({}, fixture.info.dataDir, Number(new URL(fixture.info.url).port)),
     OMB_BOAT_API: origin, OMB_COMPOSIO_API: `${origin}/composio`, OMB_COMPOSIO_TOOLKITS_API: `${origin}/composio`,
     OMB_GEMINI_TTS_API: `${origin}/gemini`,
-    OMB_ELEVENLABS_API: `${origin}/eleven`, OMB_FISH_AUDIO_API: `${origin}/fish`, OMB_POSTIZ_CLOUD_URL: `${origin}/postiz`,
+    OMB_ELEVENLABS_API: `${origin}/eleven`, OMB_FISH_AUDIO_API: `${origin}/fish`, OMB_POSTIZ_CLOUD_URL: `${origin}/postiz`, OMB_MIMO_API: `${origin}/mimo`,
   };
   const log = openSync(fixture.info.logPath, "a", 0o600);
   server = spawn(process.execPath, verificationServerArgs(env), { cwd: fileURLToPath(ROOT), env, stdio: ["ignore", log, log] });
@@ -120,7 +121,7 @@ it("saves every kind of credential, reads it back and shows it masked to its las
   setLocale("en");
   expect(saveds.map((entry) => entry.id)).toEqual([
     "openai", "anthropic", "xai", "openrouter", "mistral", "cerebras", "groq", "greenference", "meta", "deepseek", "opencodeGo", "openaiCompat",
-    "liveKey", "elevenlabs", "geminiTts", "fishAudio", "box", "composio", "treg", "postiz", "jev", "openrouterHelper", "workersAi", "imageOpenai", "imageCustom",
+    "liveKey", "elevenlabs", "geminiTts", "fishAudio", "mimoTts", "box", "composio", "treg", "postiz", "jev", "openrouterHelper", "workersAi", "imageOpenai", "imageCustom",
   ]);
   for (const storage of ["", "?secretStorage=external"]) {
     for (const entry of saveds) {
