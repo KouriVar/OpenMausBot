@@ -90,9 +90,9 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
-          size={primary ? 96 : 56}
+          size={primary ? 72 : 56}
           fitBody={primary}
-          frameSize={primary ? 96 : undefined}
+          frameSize={primary ? 72 : undefined}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}

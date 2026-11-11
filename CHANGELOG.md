@@ -139,13 +139,13 @@ The chief of staff's badge is one component now (`src/components/ChiefBadge.tsx`
 ring in the surface behind it, with a filled white five-point star (`RiStarFill`) in place of the crown. The card's
 avatar now draws its body to the frame (`fitBody`), so the mascot fills the 72px box instead of sitting inside it
 with padding, and the badge sits on that box's bottom-right corner: it lands on the round body's edge, overlapping it
-by about a third rather than floating beside it. The card itself is 128px square with a 96px avatar (was 96 and 72),
-the same share of it, while the star, the name and the corner token stay as they were. Display only.
+by about a third rather than floating beside it. The card itself is 128px square while the avatar keeps its 72px and
+the name sits under it, with the star and the corner token as they were. Display only.
 
 中文：主 bot 角标现在是一个组件（`src/components/ChiefBadge.tsx`）：橙色圆底和外圈那道表面色描边不变，里面的皇冠
 换成实心白色五角星（`RiStarFill`）。卡片头像改成 `fitBody`，让主体铺满 72px 的框、不再缩在框里留一圈空白；角标压在
-这个框的右下角，正好落在头像圆的边上、与圆边重叠约三分之一，不再悬在头像旁边。卡片本身改为 128px 正方形、头像
-96px（原 96 / 72），占比不变；星标、名字与圆角 token 都保持原样。纯显示。
+这个框的右下角，正好落在头像圆的边上、与圆边重叠约三分之一，不再悬在头像旁边。卡片本身改为 128px 正方形，头像
+保持 72px、名字在下方；星标与圆角 token 都不变。纯显示。
 
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
