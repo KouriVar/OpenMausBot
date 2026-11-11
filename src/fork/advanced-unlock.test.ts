@@ -56,3 +56,14 @@ describe("the hidden Advanced unlock", () => {
     expect(readAdvancedMode()).toBe(true);
   });
 });
+
+describe("the Advanced switch's visibility", () => {
+  it("only renders once the unlock is on", async () => {
+    const { createElement } = await import("react");
+    const { renderToStaticMarkup } = await import("react-dom/server");
+    const { AdvancedModeRow } = await import("@/components/AppSettingsRows");
+    expect(renderToStaticMarkup(createElement(AdvancedModeRow))).toBe("");
+    setAdvancedUnlocked(true);
+    expect(renderToStaticMarkup(createElement(AdvancedModeRow))).toContain('role="switch"');
+  });
+});

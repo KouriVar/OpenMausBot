@@ -48,5 +48,6 @@ export function setAdvancedUnlocked(unlocked: boolean): void {
 }
 
 export function useAdvancedUnlocked(): boolean {
-  return useSyncExternalStore(subscribe, readAdvancedUnlocked, () => false);
+  // No SSR here: the same reader serves as the server snapshot, so a static render shows what the window shows.
+  return useSyncExternalStore(subscribe, readAdvancedUnlocked, readAdvancedUnlocked);
 }
