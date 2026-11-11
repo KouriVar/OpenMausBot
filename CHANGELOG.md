@@ -133,6 +133,20 @@ Display only, through the existing fork constants.
 外圈是卡片底色描边——就是收起侧栏那块 tile 用的同一个 `chief-badge`，没有另画；状态点则让到卡片右上角，免得两者挤
 同一角。纯显示，沿用已有的 fork 常量。
 
+### D007 · The chief's badge is a white star, tucked onto the avatar
+
+The chief of staff's badge is one component now (`src/components/ChiefBadge.tsx`): the same orange disc and the same
+ring in the surface behind it, with a filled white five-point star (`RiStarFill`) in place of the crown. The card's
+avatar now draws its body to the frame (`fitBody`), so the mascot fills the 72px box instead of sitting inside it
+with padding, and the badge sits on that box's bottom-right corner: it lands on the round body's edge, overlapping it
+by about a third rather than floating beside it. The chief's card has no background of its own: an 80px square
+centres the 64px avatar, the name sits under it and the star keeps its place on the body's edge. Display only.
+
+中文：主 bot 角标现在是一个组件（`src/components/ChiefBadge.tsx`）：橙色圆底和外圈那道表面色描边不变，里面的皇冠
+换成实心白色五角星（`RiStarFill`）。卡片头像改成 `fitBody`，让主体铺满 72px 的框、不再缩在框里留一圈空白；角标压在
+这个框的右下角，正好落在头像圆的边上、与圆边重叠约三分之一，不再悬在头像旁边。主 bot 卡片本身不带背景：80px 方形
+居中放 64px 头像，名字在下方，星标仍在头像圆边上。纯显示。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

@@ -1,4 +1,4 @@
-import { Crown, Loader2, Phone } from "lucide-react";
+import { Loader2, Phone } from "lucide-react";
 import { memo, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import { cn } from "@/lib/cn";
@@ -10,6 +10,7 @@ import { api, openBotRow, useStore, type Bot } from "@/state/store";
 import { useChiefStepOpen } from "@/lib/default-bot";
 
 import { BotAvatar } from "./Avatar";
+import { ChiefBadge } from "./ChiefBadge";
 import { botTooltip } from "./BotModelBadge";
 import { liveBadgeFor } from "./LiveCallPill";
 import { pinnedCircleDragClass, pinnedCircleDragHandlers, usePinnedCircleDrag, type PinnedCircleDragProps } from "./PinnedCircleThreads";
@@ -79,26 +80,26 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
       onKeyDown={onKeyDown}
       onContextMenu={(event) => openBotContextMenu(onMenu, bot.id, event)}
       className={cn(
-        "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 transition-colors duration-150", SIMPLE_ROW_FOCUS,
-        primary ? "size-[96px] pt-1" : "h-[92px] w-[78px] pt-2", ROW_RADIUS_SIMPLE,
-        selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]",
+        "flex shrink-0 cursor-pointer flex-col items-center transition-colors duration-150", SIMPLE_ROW_FOCUS,
+        primary ? "w-20" : "h-[92px] w-[78px] bg-[var(--tile)] px-1 pt-2", ROW_RADIUS_SIMPLE,
+        // The chief's card keeps no background of its own: an 80px square centres the 64px avatar, name under it.
+        !primary && (selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]"),
         pinnedCircleDragClass({ drag, dragging, drop }),
       )}
     >
-      <span className="relative flex">
+      <span className={cn("relative flex", primary && "h-20 w-20 items-center justify-center")}>
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
-          size={primary ? 72 : 56}
+          size={primary ? 64 : 56}
+          fitBody={primary}
+          frameSize={primary ? 64 : undefined}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
-        {primary && bot.chiefOfStaff && (
-          <span data-testid="chief-badge" className={cn("absolute -bottom-px -right-px flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", RING)}>
-            <Crown size={10} strokeWidth={1.5} fill="currentColor" aria-hidden="true" />
-          </span>
-        )}
+        {/* The 80px box centres a 64px avatar, so the star tucks in 8px to sit on the body's edge. */}
+        {primary && bot.chiefOfStaff && <ChiefBadge ring={RING} className="bottom-2 right-2" />}
         {FORK_ONE_AVATAR_DOT ? (
           <>
             {onLiveCall && (
