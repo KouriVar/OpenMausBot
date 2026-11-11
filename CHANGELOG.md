@@ -119,6 +119,20 @@ do not share a corner, while the live-call phone badge stays where it was. Behin
 合并成这一个点；主 bot 的皇冠移到方块左上角，免得和点挤在同一个角，通话中的绿色电话徽章保持原位。由
 `src/fork/avatar-dot.tsx` 的 `FORK_ONE_AVATAR_DOT` 控制：纯显示，两个视图、深浅主题一致。
 
+### D006 · The chief's card grows with its avatar, and its badge takes the corner
+
+The expanded sidebar's chief card is 96px square and its avatar 72px (was 92 and 56), so the face fills the card's
+upper part with the name under it, at the proportion the collapsed rail's chief has; the card keeps
+`ROW_RADIUS_SIMPLE` for its corner. The chief's badge sits back at the avatar's bottom-right, over a corner of it,
+as the orange disc with the white glyph and the card-colour ring — the same `chief-badge` the collapsed tile
+draws, not a second design — and the status dot steps up to the card's top corner so the two never share one.
+Display only, through the existing fork constants.
+
+中文：展开侧栏的主 bot 卡片改成 96px 正方形、头像 72px（原 92 / 56），头像撑满卡片上部、名字在下方，占比与收起
+侧栏时的主 bot 一致；卡片圆角仍用 `ROW_RADIUS_SIMPLE`。主 bot 角标回到头像右下角、压住头像一角：橙色圆底、白色图形、
+外圈是卡片底色描边——就是收起侧栏那块 tile 用的同一个 `chief-badge`，没有另画；状态点则让到卡片右上角，免得两者挤
+同一角。纯显示，沿用已有的 fork 常量。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

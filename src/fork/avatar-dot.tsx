@@ -42,14 +42,14 @@ const AVATAR_DOT_LABEL: Record<AvatarDotState, () => string> = {
 
 /** The dot itself: the working dot's own corner and size on every avatar. `surface` is the ring or border that cuts
  * it out of whichever background it sits on (`--tile`, `--row`, the panel). */
-export function AvatarStatusDot({ state, surface, size = "size-3" }: { state: AvatarDotState; surface: string; size?: string }) {
+export function AvatarStatusDot({ state, surface, size = "size-3", corner = "bottom" }: { state: AvatarDotState; surface: string; size?: string; corner?: "bottom" | "top" }) {
   return (
     <span
       aria-hidden="true"
       data-avatar-dot={state}
       data-testid={`${state === "teammate" ? "teammate-wait-dot" : `${state}-dot`}`}
       title={AVATAR_DOT_LABEL[state]()}
-      className={cn("absolute -right-0.5 -bottom-0.5 rounded-full", size, surface, AVATAR_DOT_TONE[state])}
+      className={cn("absolute -right-0.5 rounded-full", corner === "top" ? "-top-0.5" : "-bottom-0.5", size, surface, AVATAR_DOT_TONE[state])}
     />
   );
 }
