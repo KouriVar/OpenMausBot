@@ -23,6 +23,19 @@ release notes carry.
 
 ## Unreleased / 未发布
 
+## V0.4.2 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+### OD003 · Advanced mode's sidebar is built from Simple's pieces, its bot rows stay its own
+
+Advanced mode's sidebar is being rebuilt on Simple's components: the same top row, search, inbox row, footer account
+and new button, while the bot rows keep Advanced's own layout — names, previews and the thread list a row opens. The
+tools section leaves the footer first: its rows (automations, Team map, apps, Files, pinned panels) now sit in the
+account menu that the avatar opens, alongside usage and settings, so both modes have one place for them.
+
+中文：高级模式的侧边栏正在改用简易模式的组件重做：顶栏、搜索、收件箱行、底部账号和新建按钮都跟简易一致，机器人行保留
+高级模式自己的排版 —— 名字、预览和点开行才有的会话列表。第一步先撤掉底部的「工具」区：里面的行（自动化、团队地图、
+应用、文件、固定面板）搬进头像点开的账号菜单，和用量、设置放在一起，这样两种模式都只有一处入口。
+
 ## V0.4.1 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 ### OD002 · The first patch after 0.4.0: the avatar menu keeps only what this build uses

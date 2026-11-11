@@ -5,6 +5,8 @@ import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { useStore } from "@/state/store";
 import type { ReactNode } from "react";
 import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
+import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
+import { useAdvancedMode } from "@/lib/interface-mode";
 
 import { AccountMoveStatus, useAccountMoveLine } from "./AccountMove";
 import { CloudRoomCard } from "./CloudRoomCard";
@@ -62,10 +64,13 @@ export function SidebarFooter({ density, simple = false, owner = null, archived,
   footerActions?: ReactNode;
 }) {
   const { dispatch } = useStore();
+  const advanced = useAdvancedMode();
   if (simple) return <SimpleSidebarFooter owner={owner} archived={archived} actions={footerActions} />;
+  // Fork: Advanced's sidebar keeps Simple's shape, so the tools section is gone — its rows live in the account menu.
+  const toolsInMenu = advanced && FORK_ADVANCED_SIMPLE_SHELL;
   return (
     <div className={cn("pb-3 pt-2", density === "icons" ? "flex flex-col items-center gap-1 px-2" : "px-3")}>
-      <SidebarFooterNav density={density} collapsed={toolsCollapsed} onToggleCollapsed={onToggleTools} />
+      {!toolsInMenu && <SidebarFooterNav density={density} collapsed={toolsCollapsed} onToggleCollapsed={onToggleTools} />}
       {density === "icons" ? (
         <>
           <SidebarPhoneButton density={density} onOpen={() => dispatch(phoneSettingsAction())} />
