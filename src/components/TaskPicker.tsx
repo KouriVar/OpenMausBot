@@ -247,8 +247,10 @@ function ConversationTaskPicker({
         <ChevronDown size={12} className="shrink-0 @max-4xl/chathead:hidden" />
       </button>
 
+      {/* Fork: the switcher sits at the chat column's left edge, so the menu opens to the right instead of sliding under
+          the sidebar. */}
       {motion.shown && (
-        <div className={cn("absolute right-0 top-full z-40 mt-1 w-[300px] overflow-hidden", MENU_SHEET, motion.className)} {...motion.exitProps}>
+        <div className={cn("absolute left-0 top-full z-40 mt-1 w-[300px] overflow-hidden", MENU_SHEET, motion.className)} {...motion.exitProps}>
           <div>
             <div className="flex items-center gap-2 rounded-md bg-ink/[0.05] px-2 py-1.5 focus-within:ring-2 focus-within:ring-focus/60">
               <Search size={14} className="shrink-0 text-ink-secondary" />

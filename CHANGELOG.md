@@ -59,8 +59,9 @@ their own right-click menus. Display only, behind
 In Advanced mode the composer's call button now matches the mic beside it: both are 32px with a 16px glyph, where the
 call button used to take the white bubble's 28px. The header's `更多` button wears the same round surface as the
 computer button beside it, instead of floating as three bare dots. In a group's conversation the sender's face and name
-above the bubble read at 22px and 14px instead of 18px and 12px, and an `@mention` chip shows its face and name without
-the `@` in front of them — the text keeps its mention all the same.
+above the bubble read at 22px and 14px instead of 18px and 12px, an `@mention` chip shows its face and name without the
+`@` in front of them — the text keeps its mention all the same — and the `全部对话` switcher's menu opens to the right of
+its button rather than under the sidebar.
 
 Both modes draw the conversation header with one component now: the same pill, the same padding, round surface, 24px
 avatar and 14px medium name, and no rename pencil and no chief tag inside it.
@@ -72,7 +73,8 @@ avatar and 14px medium name, and no rename pencil and no chief tag inside it.
 
 高级模式输入框右边的通话按钮现在和旁边的麦克风一样：都是 32px 方框、16px 图标，不再是白色气泡那版的 28px。会话头部
 的「更多」按钮也换上旁边电脑按钮那圈圆底，不再是三个光秃秃的点。群聊里气泡上方发言人那一行，头像从 18px 放大到 22px、
-名字从 12px 放大到 14px；`@提及` 的胶囊里只留头像和名字，前面那个 `@` 去掉了 —— 文本本身还是提及。
+名字从 12px 放大到 14px；`@提及` 的胶囊里只留头像和名字，前面那个 `@` 去掉了 —— 文本本身还是提及；
+「全部对话」那个切换菜单改为从按钮右侧展开，不再钻到侧边栏底下。
 
 两种模式的会话页头部现在用同一个组件画：同样的胶囊、内边距、圆底、24px 头像和 14px 中等字重的名字，胶囊里不再有
 改名铅笔，也不再有「总协调机器人」标签。
