@@ -31,11 +31,13 @@ The first patch after `0.4.0`: `0.4.1` in the bundle, shown as **V0.4.1**, same 
 cherry-picks. Everything since 0.4.0:
 
 - The avatar menu loses four rows — `获取手机应用`, `帮助与支持` with its submenu, the place row (`This computer`) and `切换到…` — and keeps the rest.
+- Advanced mode comes back quietly: the app icon under the updates page takes ten taps and a switch appears there; turning it off returns to Simple and hides the switch again, and this build still opens Simple by default.
 
 中文：**V0.4.1，0.4.0 之后的第一个补丁版**（打包版本号 `0.4.1`，应用内显示 **V0.4.1**，基线与 cherry-pick 同 0.4.0）。
 自 0.4.0 以来的全部改动：
 
 - 头像菜单去掉四行：`获取手机应用`、`帮助与支持`（含它下面的子菜单）、当前所在位置那行（`This computer`）和`切换到…`；其余行都保留。
+- 高级模式悄悄回来：在「更新」页最下面连点应用图标十次，那下面会出现一个高级模式开关；关掉就回到简易并让开关重新消失，这一版默认仍是简易模式。
 
 ## V0.4 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 

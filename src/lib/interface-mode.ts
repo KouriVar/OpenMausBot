@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 
 import { hasPriorRun } from "./prior-run";
 import { SIMPLE_ONLY } from "./simple-only";
+import { readAdvancedUnlocked } from "@/fork/advanced-unlock";
 
 export const ADVANCED_MODE_KEY = "omb-advanced-mode";
 
@@ -10,14 +11,26 @@ const listeners = new Set<() => void>();
 
 function storage(): Storage | undefined {
   try {
-    return globalThis.localStorage;
+    // Fork: the window's storage first — a bare globalThis.localStorage is Node's own stub in a test run.
+    return globalThis.window?.localStorage ?? globalThis.localStorage;
   } catch {
     return undefined;
   }
 }
 
 export function readAdvancedMode(): boolean {
-  if (SIMPLE_ONLY) return false;
+  // Fork: Simple stays the default and the mode is only honoured once the updates page's icon has been tapped open.
+  // A picked "0" is Simple, and a browser that never picked one starts Simple too (upstream would start Advanced for
+  // a returning browser, which would surprise everyone upgrading into this build).
+  if (SIMPLE_ONLY) {
+    if (!readAdvancedUnlocked()) return false;
+    if (sessionChoice !== undefined) return sessionChoice;
+    try {
+      return storage()?.getItem(ADVANCED_MODE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
   if (sessionChoice !== undefined) return sessionChoice;
   try {
     const store = storage();
@@ -62,7 +75,8 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function setAdvancedMode(enabled: boolean): void {
-  if (SIMPLE_ONLY) return;
+  // Fork: reaching this needs the hidden unlock, so the write is allowed while SIMPLE_ONLY still governs the default.
+  if (SIMPLE_ONLY && !readAdvancedUnlocked()) return;
   sessionChoice = enabled;
   try {
     storage()?.setItem(ADVANCED_MODE_KEY, enabled ? "1" : "0");
