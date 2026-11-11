@@ -9,7 +9,7 @@ One ID per release, and each release carries exactly two paragraphs: one English
 release a change shipped in: the initial `0.1.0` is `O001`; after that the minor line gives the letter — `A` for
 0.1.x, `B` for 0.2.x, `C` for 0.3.x, `D` for 0.4.x, and so on, `AA`, `AB`… past 26 — and the number counts the
 releases within that line, the big one first: `0.2.0` is `OB001`, `0.2.1` `OB002`; `0.4.0` is `OD001`, `0.4.1`
-`OD002`. A release's entry is the collection of everything since the previous release, which is what its GitHub
+`OD002`, `0.5.0` `OE001`. A release's entry is the collection of everything since the previous release, which is what its GitHub
 release notes carry.
 
 本文件记录这个 fork 的所有主要改动，跟随
@@ -18,108 +18,42 @@ release notes carry.
 **一个发版一个编号**，每个编号固定两段：先英文、后以「中文：」开头的中文；两段里都按同样的顺序用列表写出这一版
 包含的改动。编号说的是改动随哪一版发出：最初的 `0.1.0` 是 `O001`；之后按小版本取字母 —— 0.1.x 是 `A`、0.2.x 是
 `B`、0.3.x 是 `C`、0.4.x 是 `D`，超过 26 个用 `AA`、`AB`…… —— 数字是该小版本里的第几版，大版本算 001：
-`0.2.0` 是 `OB001`、`0.2.1` 是 `OB002`；`0.4.0` 是 `OD001`、`0.4.1` 是 `OD002`。一个发版的条目就是自上一版以来
+`0.2.0` 是 `OB001`、`0.2.1` 是 `OB002`；`0.4.0` 是 `OD001`、`0.4.1` 是 `OD002`；`0.5.0` 是 `OE001`。一个发版的条目就是自上一版以来
 全部改动的合集，GitHub 的 Release 说明也用它。
 
 ## Unreleased / 未发布
 
-## V0.4.4 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+## V0.5.0 · 2026-11-12 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
-### OD005 · The bot panel drops its conversation starters
+### OE001 · The 0.5.0 round: Advanced mode rebuilt on Simple's pieces, and one menu design
 
-The bot panel's details tab no longer shows the `试着这样问` suggestions — four canned questions that took a screen's
-height above the conversation list — and it drops the quiet group labels `对话`, `这个对话` and `例行任务`, which spent a
-row each saying what the rows under them already say (the conversations' search control stays, alone on its line). The
-routines row is a flat row like the rest too, no longer a boxed card of its own. The bot settings page behind the gear
-folds its cards away as well: `备用 AI`, `通话模式` and `回复风格` (notifications with it) keep only their title row with a
-chevron, closed until it is clicked, so the page reads as a short list of headings. It then
-goes quiet the same way: no lines under `指示`, `备用 AI`, `Bot API` or `从侧栏隐藏`, no per-conversation approval chip
-row, no list of enabled apps on `可使用的应用` — every row, switch and drill-in stays, only the words go. Display only,
-behind `FORK_BOT_PANEL_ASKS`, `FORK_BOT_PANEL_LABELS` and `FORK_BOT_SETTINGS_QUIET` in `src/fork/bot-panel.ts`.
+The fifth personal build: `0.5.0` in the bundle, shown as **V0.5.0**, still cut from official `v0.1.151` with the same
+three upstream cherry-picks as V0.3 and still Simple-only by default. It gathers everything since 0.4.0 — this fork's
+first real pass over Advanced mode, plus one design for the menus and a quieter bot panel:
 
-中文：点开头像胶囊打开的 bot 面板里，「详情」页不再有「试着这样问」那一块 —— 四条固定提问，占掉了一屏高度，把下面的
-对话列表挤下去；同时去掉三个安静的分组标题：`对话`、`这个对话`、`例行任务`，它们各占一行，说的都是下面那些行已经说过的
-事（对话区的搜索按钮保留，单独待在那一行）。「例行任务」那行也改成和其他行一样的平铺行，不再是单独一个带框卡片。齿轮打开的机器人设置页里，卡片也折起来了：
-`备用 AI`、`通话模式`、`回复风格`（连通知一起）只留一行标题加右箭头，点开才展开，整页看起来就是几行标题。之后同样「静音」：
-`指示`、`备用 AI`、`Bot API`、`从侧栏隐藏` 下面那行说明都不再画，「在这个对话中」的审批状态行去掉，`可使用的应用`
-不再列已启用的应用名 —— 行、开关、可点进去的页面全都在，只是不写字。纯显示，由 `src/fork/bot-panel.ts` 的
-`FORK_BOT_PANEL_ASKS`、`FORK_BOT_PANEL_LABELS`、`FORK_BOT_SETTINGS_QUIET` 控制。
+- The avatar menu loses four rows — `获取手机应用`, `帮助与支持` with its submenu, the place row (`This computer`) and `切换到…` — and gains the switch between the two modes as a single row: one click to Advanced, one click back, no switches anywhere.
+- Advanced mode is reachable again: the app icon under `更新` takes ten taps and its switch appears there, and once unlocked the general page's own Advanced row shows too, so the way back out is always on top of `通用`. Simple stays the default for everyone, and turning Advanced off puts both switches away.
+- Advanced's sidebar is built from Simple's pieces: one top row, the magnifier's search pill, Simple's inbox row, Simple's footer account with search/inbox/new beside it, and Simple's 92px rail with its square tiles and selection frame. The footer's tools section is gone — automations, Team map, Files, pinned panels and archived live in the avatar's menu in both modes.
+- One conversation header pill for both modes: the same padding, round surface, 24px avatar and 14px medium name, with no rename pencil and no chief tag inside it.
+- A message's actions live in its right-click menu now: the quick reactions on top, then reply, copy and whatever else the message offers, then the time. It opens where the pointer is and flips above it when it would run under the composer.
+- The group header uses the app's own menu for its two dropdowns (`默认（5 分钟）`, `自动（Jev）`) instead of a native select; the `全部对话` menu opens to the right of its button; the stop pill lines up with the work row; the sender's face and name above a bubble read 22px and 14px; `@mention` chips drop the `@`.
+- The composer's call button is 32px in Advanced, matching the mic; the header's `更多` button wears the computer button's round surface.
+- The inbox panel's list shares its search field's 13px gutter, and its placeholder reads `搜索` in Chinese.
+- The bot panel drops `试着这样问` and the quiet group labels `对话` / `这个对话` / `例行任务`; its cards (`备用 AI`, `通话模式`, `回复风格`) fold behind their title rows, and the bot settings page is left with its rows, switches and drill-ins but without their explanatory lines.
 
-## V0.4.3 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+中文：**V0.5.0，第五个个人构建**（打包版本号 `0.5.0`，应用内显示 **V0.5.0**，基线仍是官方 `v0.1.151`，cherry-pick 与
+V0.3 相同，默认仍为 Simple-only）。它把 0.4.0 以来的改动汇总在一起 —— 这是这个 fork 第一次正经整理高级模式，另外统一了
+菜单设计、让 bot 面板安静下来：
 
-### OD004 · The message bubble's actions live in a right-click menu
-
-A message bubble shows no action buttons on hover any more: right-clicking anywhere on it opens one menu, with the
-quick reactions on its first row (`👍` `👎` `❤️` `😂` `🎉` `👀`, no "add reaction" button), then reply, copy and
-whatever else the message offers, and the time at its foot. The menu opens where the pointer is, stays inside the
-window — flipping above the pointer when it would otherwise run under the composer — and leaves links and text fields
-their own right-click menus. Display only, behind
-`FORK_MESSAGE_MENU_ON_RIGHT_CLICK` in `src/fork/ui-batch-1111.ts`.
-
-In Advanced mode the composer's call button now matches the mic beside it: both are 32px with a 16px glyph, where the
-call button used to take the white bubble's 28px. The header's `更多` button wears the same round surface as the
-computer button beside it, instead of floating as three bare dots. In a group's conversation the sender's face and name
-above the bubble read at 22px and 14px instead of 18px and 12px, an `@mention` chip shows its face and name without the
-`@` in front of them — the text keeps its mention all the same — the `全部对话` switcher's menu opens to the right of
-its button rather than under the sidebar, and the two dropdowns beside it (`默认（5 分钟）` and `自动（Jev）`) draw the app's
-own menu instead of a native `<select>` — one menu design across the header, the switcher and the message right-click.
-
-Both modes draw the conversation header with one component now: the same pill, the same padding, round surface, 24px
-avatar and 14px medium name, and no rename pencil and no chief tag inside it.
-
-中文：会话气泡不再在鼠标悬停时冒出一排按钮：在气泡任意位置右键就弹出一个菜单，第一排是快捷表情
-（`👍` `👎` `❤️` `😂` `🎉` `👀`，不做「添加表情」），下面是回复、复制和这条消息其余的项，最底下是时间。菜单在指针
-位置弹出、不越出窗口（下方放不下、会被输入框压住时就往上展开），链接和输入框保留它们自己的右键菜单。纯显示，由 `src/fork/ui-batch-1111.ts` 的
-`FORK_MESSAGE_MENU_ON_RIGHT_CLICK` 控制。
-
-高级模式输入框右边的通话按钮现在和旁边的麦克风一样：都是 32px 方框、16px 图标，不再是白色气泡那版的 28px。会话头部
-的「更多」按钮也换上旁边电脑按钮那圈圆底，不再是三个光秃秃的点。群聊里气泡上方发言人那一行，头像从 18px 放大到 22px、
-名字从 12px 放大到 14px；`@提及` 的胶囊里只留头像和名字，前面那个 `@` 去掉了 —— 文本本身还是提及；
-「全部对话」那个切换菜单改为从按钮右侧展开，不再钻到侧边栏底下；它旁边那两个下拉（`默认（5 分钟）`、`自动（Jev）`）也
-改成应用自己的菜单，不再用系统 `<select>` —— 会话头部、切换器、消息右键现在是一套菜单设计。
-
-两种模式的会话页头部现在用同一个组件画：同样的胶囊、内边距、圆底、24px 头像和 14px 中等字重的名字，胶囊里不再有
-改名铅笔，也不再有「总协调机器人」标签。
-
-## V0.4.2 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
-
-### OD003 · Advanced mode's sidebar is built from Simple's pieces, its bot rows stay its own
-
-Advanced mode's sidebar is being rebuilt on Simple's components: the same top row, search, inbox row, footer account
-and new button, while the bot rows keep Advanced's own layout — names, previews and the thread list a row opens. The
-tools section leaves the footer first: its rows (automations, Team map, apps, Files, pinned panels) now sit in the
-account menu that the avatar opens, alongside usage and settings, so both modes have one place for them. The inbox panel's list shares the search
-field's 13px gutter, so the two line up and a hovered or open row keeps its own padding inside the panel; its
-placeholder reads `搜索` in Chinese instead of falling back to English. The avatar's menu also
-carries the switch between the two modes as a single row (`高级模式`): one click takes the window to Advanced, the same
-row takes it back to Simple, and no switch is involved. The rest
-follows Simple: one top row (the place pill, then search and new as round buttons), the magnifier that opens the
-search pill instead of a fixed search field, Simple's inbox row, and Simple's footer — the account's round avatar
-and name with search, inbox and new beside it — plus Simple's 92px rail with its square tiles and selection frame.
-
-中文：高级模式的侧边栏正在改用简易模式的组件重做：顶栏、搜索、收件箱行、底部账号和新建按钮都跟简易一致，机器人行保留
-高级模式自己的排版 —— 名字、预览和点开行才有的会话列表。第一步先撤掉底部的「工具」区：里面的行（自动化、团队地图、
-应用、文件、固定面板）搬进头像点开的账号菜单，和用量、设置放在一起，这样两种模式都只有一处入口。收件箱面板的列表改用搜索框那道 13px 内边距，两边因此对齐，悬停或选中的行也不会贴着面板边；搜索框的占位文字在
-中文下是「搜索」，不再回落到英文。头像菜单里还多了一行「高级模式」，点一下这个窗口就切到高级，再点一下就回简易，不用去点开关。
-其余也跟简易走：
-一个顶栏（地点胶囊，然后搜索和新建两个圆按钮）、用放大镜展开搜索胶囊而不是固定搜索框、简易的收件箱行、简易的底部
-（账号的圆形头像和名字，旁边是搜索、收件箱、新建），以及简易那条 92px 图标栏和它的方形格子与选中框。
-
-## V0.4.1 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
-
-### OD002 · The first patch after 0.4.0: the avatar menu keeps only what this build uses
-
-The first patch after `0.4.0`: `0.4.1` in the bundle, shown as **V0.4.1**, same base and the same three upstream
-cherry-picks. Everything since 0.4.0:
-
-- The avatar menu loses four rows — `获取手机应用`, `帮助与支持` with its submenu, the place row (`This computer`) and `切换到…` — and keeps the rest.
-- Advanced mode comes back quietly: the app icon under the updates page takes ten taps and a switch appears there, and once unlocked the general page's own Advanced row shows too, so the way back out is always on top of 通用; turning it off returns to Simple and puts both switches away, and this build still opens Simple by default.
-
-中文：**V0.4.1，0.4.0 之后的第一个补丁版**（打包版本号 `0.4.1`，应用内显示 **V0.4.1**，基线与 cherry-pick 同 0.4.0）。
-自 0.4.0 以来的全部改动：
-
-- 头像菜单去掉四行：`获取手机应用`、`帮助与支持`（含它下面的子菜单）、当前所在位置那行（`This computer`）和`切换到…`；其余行都保留。
-- 高级模式悄悄回来：在「更新」页最下面连点应用图标十次，那下面会出现一个高级模式开关；解锁后高级模式「通用」页最上面本来那行开关也会显示出来，所以回去的路一直在「通用」页顶部；关掉就回到简易、两个开关同时收起，这一版默认仍是简易模式。
+- 头像菜单去掉四行：`获取手机应用`、`帮助与支持`（含子菜单）、当前所在位置那行（`This computer`）和`切换到…`；同时多了一行模式开关：点一下切高级，再点一下回简易，不必去找任何开关。
+- 高级模式重新可达：在「更新」页最下面连点应用图标十次，那里会出现开关；解锁后「通用」页最上面那行开关也会显示，所以回去的路一直在「通用」顶部。默认对所有人仍是简易；关掉高级会把两个开关一起收起。
+- 高级模式侧边栏改用简易的组件：一个顶栏、放大镜展开的搜索胶囊、简易的收件箱行、简易的底部账号区（旁边是搜索/收件箱/新建），以及简易那条 92px 图标栏和它的方形格子与选中框。底部的「工具」区撤掉了 —— 自动化、团队地图、文件、固定面板、归档都在头像菜单里，两种模式同一处入口。
+- 两种模式的会话页头部用同一个胶囊：同样的内边距、圆底、24px 头像和 14px 中等字重的名字，胶囊里没有改名铅笔，也没有「总协调机器人」标签。
+- 消息的操作搬进右键菜单：第一排快捷表情，然后是回复、复制和这条消息其余的项，最后是时间；菜单在指针位置弹出，下方放不下时会翻到指针上方，不会被输入框压住。
+- 群聊头部的两个下拉（`默认（5 分钟）`、`自动（Jev）`）改用应用自己的菜单，不再用系统 `<select>`；「全部对话」菜单从按钮右侧展开；「停止」胶囊与上方工作行左对齐；气泡上方发言人头像 22px、名字 14px；`@提及` 胶囊去掉前面的 `@`。
+- 高级模式输入框右边的通话按钮改成 32px，和麦克风一致；头部的「更多」按钮换上电脑按钮那圈圆底。
+- 收件箱列表与搜索框共用 13px 内边距，两边对齐；占位文字在中文下是「搜索」。
+- bot 面板去掉 `试着这样问` 与三个安静的分组标题 `对话` / `这个对话` / `例行任务`；卡片（`备用 AI`、`通话模式`、`回复风格`）折在各自标题行后面；机器人设置页只留行、开关和可点进去的页面，不再画那些说明文字。
 
 ## V0.4 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
