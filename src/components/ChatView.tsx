@@ -6,6 +6,7 @@ import { useShowThreads } from "@/lib/thread-preferences";
 import { AlertTriangle, ChevronLeft, ChevronRight, Copy, Monitor, RefreshCw, Reply, Square, Webhook } from "lucide-react";
 import { WorkingDots } from "@/components/WorkingIndicator";
 import { ACTION_ICON, ChatBusyContext, CopyButton, MESSAGE_ROW, MessageActions, messageActionClass, ReplyAction, type MessageMenuItem } from "@/components/MessageActions";
+import { FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
 import { copyText } from "@/lib/copy-text";
 import { ReactAction, ReactionChips } from "@/components/Reactions";
 import { useBotMessageMenu, userMessageMenu } from "@/components/message-menu";
@@ -429,7 +430,7 @@ const Bubble = memo(function Bubble({
   const togglePin = () =>
     dispatch({ type: "updateTask", botId, threadId, patch: { pinnedMessageId: pinned ? "" : message.id } });
   const botActions = !user && (
-    <MessageActions side="bot" forceOpen={viewRaw || speaking} menu={simple ? [...replyAndCopy(() => onReply(message), text), ...botMenu] : botMenu}>
+    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={simple ? [...replyAndCopy(() => onReply(message), text), ...botMenu] : botMenu}>
       {!simple && <ReplyAction onReply={() => onReply(message)} />}
       {canReact && !peer && <ReactAction threadId={threadId} message={message} />}
       {!simple && text && <CopyButton text={text} className={messageActionClass} />}
@@ -446,6 +447,7 @@ const Bubble = memo(function Bubble({
         {user && (
           <MessageActions
             side="user"
+            time={formatTime(message.at)}
             menu={[
               ...(simple ? replyAndCopy(() => onReply(message), visibleText) : []),
               ...userMessageMenu({
@@ -573,14 +575,14 @@ const Bubble = memo(function Bubble({
           )}
         </div>
         {!tabled && botActions}
-        <span
+        {!FORK_MESSAGE_TIME_IN_MENU && <span
           className={cn(
             "self-end pb-1 text-[12px] font-medium leading-none tabular-nums text-ink-tertiary opacity-0 transition-opacity group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 rtl:-translate-x-1",
             user ? "order-first mr-2" : "ml-2",
           )}
         >
           {formatTime(message.at)}
-        </span>
+        </span>}
       </div>
       <ReactionChips threadId={threadId} message={message} bots={bots} align={user ? "end" : "start"} canReact={canReact} />
       {forks.length > 1 && (

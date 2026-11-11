@@ -147,6 +147,17 @@ centres the 64px avatar, the name sits under it and the star keeps its place on 
 这个框的右下角，正好落在头像圆的边上、与圆边重叠约三分之一，不再悬在头像旁边。主 bot 卡片本身不带背景：80px 方形
 居中放 64px 头像，名字在下方，星标仍在头像圆边上。纯显示。
 
+### D008 · The message's time lives in its own menu
+
+The hover row beside a message shows only its buttons now: the time it used to print there is the last row of the
+message's menu, a clock icon and the time on the menu's own 14px line, set off by the menu's hairline. `MessageActions`
+takes an optional `time` and draws that row; `ChatView` and `GroupView` pass it and stop rendering the hover-row
+span. Display only, behind `FORK_MESSAGE_TIME_IN_MENU` in `src/fork/ui-batch-1111.ts`.
+
+中文：消息旁边那一行现在只剩按钮：原来印在那里的时间，改成消息菜单的最后一行 —— 时钟图标加时间，字号跟菜单里其他行
+一样是 14px，上面用菜单那条细线隔开。`MessageActions` 新增可选 `time`，由它画这一行；`ChatView` 和 `GroupView` 传值
+并去掉悬停行原来的时间。纯显示，由 `src/fork/ui-batch-1111.ts` 的 `FORK_MESSAGE_TIME_IN_MENU` 控制。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

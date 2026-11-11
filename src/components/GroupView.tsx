@@ -37,6 +37,7 @@ import { SIMPLE_BOT_BUBBLE, SIMPLE_BUBBLE_MAX, SIMPLE_BUBBLE_TEXT, SIMPLE_USER_B
 import { ReplyBlocks } from "./ReplyBlocks";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { CopyButton, MESSAGE_ROW, MessageActions, messageActionClass, ReplyAction } from "./MessageActions";
+import { FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
 import { ReactAction, ReactionChips, useCanReact } from "./Reactions";
 import { ClusterLabel } from "./RoomClusterLabel";
 import { roomPin, useBotMessageMenu, userMessageMenu } from "./message-menu";
@@ -191,7 +192,7 @@ function RoomTextMessage({
   const blocks = useMemo(() => simple && !user && !viewRaw && botText.trim() ? splitReplyBlocks(botText) : null, [simple, user, viewRaw, botText]);
   const tabled = Boolean(blocks?.some((block) => block.kind === "table"));
   const botActions = !user && (
-    <MessageActions side="bot" forceOpen={viewRaw || speaking} menu={botMenu}>
+    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(m.at)} menu={botMenu}>
       <ReplyAction onReply={() => onReply(m)} />
       {canReact && m.from && <ReactAction threadId={group.threadId} message={m} />}
       {botText && <CopyButton text={botText} className={messageActionClass} />}
@@ -204,7 +205,7 @@ function RoomTextMessage({
       {speaker && <div className="mb-0.5 px-1"><SpeakerName label={speaker} botId={speakerBot?.id} fallbackColor={speakerBot?.color} /></div>}
       <div className={cn("flex w-full items-end gap-1.5", user ? "justify-end" : "justify-start")}>
         {user && (
-          <MessageActions side="user" menu={userMessageMenu({ messageId: m.id, pin })}>
+          <MessageActions side="user" time={formatTime(m.at)} menu={userMessageMenu({ messageId: m.id, pin })}>
             <ReplyAction onReply={() => onReply(m)} />
             {Boolean(display.trim()) && <CopyButton text={display} className={messageActionClass} />}
           </MessageActions>
@@ -297,9 +298,9 @@ function RoomTextMessage({
           )}
         </div>
         {!tabled && botActions}
-        <span className="self-end pb-1 text-[12px] font-medium leading-none tabular-nums text-ink-tertiary opacity-0 transition-opacity group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 rtl:-translate-x-1">
+        {!FORK_MESSAGE_TIME_IN_MENU && <span className="self-end pb-1 text-[12px] font-medium leading-none tabular-nums text-ink-tertiary opacity-0 transition-opacity group-hover:opacity-100 translate-x-1 group-hover:translate-x-0 rtl:-translate-x-1">
           {formatTime(m.at)}
-        </span>
+        </span>}
       </div>
       <ReactionChips threadId={group.threadId} message={m} bots={members} align={user ? "end" : "start"} canReact={canReact} />
       {!user && m.routedBy && <RoutedByLine routedBy={m.routedBy} />}
