@@ -10,6 +10,7 @@ import type { useBotSettingsDerived } from "../bot-settings/useBotSettingsDerive
 import { BotConversations } from "./Conversations";
 import type { SimplePageId } from "./page-registry";
 import { TryAsking } from "./TryAsking";
+import { FORK_BOT_PANEL_ASKS } from "@/fork/bot-panel";
 import { Card, CardLabel, LabelAction, panelActionCls, NavRow, RowIcon, rowCls, RowText } from "./rows";
 
 type Derived = ReturnType<typeof useBotSettingsDerived>;
@@ -65,7 +66,7 @@ export function DetailsTab({ bot, derived, onOpen }: {
 
       <BotConversations bot={bot} />
 
-      <TryAsking bot={bot} />
+      {FORK_BOT_PANEL_ASKS && <TryAsking bot={bot} />}
 
       {conversationItems.length > 0 && (
         <section data-panel-card="conversation">

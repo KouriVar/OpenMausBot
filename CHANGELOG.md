@@ -23,6 +23,17 @@ release notes carry.
 
 ## Unreleased / 未发布
 
+## V0.4.4 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+### OD005 · The bot panel drops its conversation starters
+
+The bot panel's details tab no longer shows the `试着这样问` suggestions — four canned questions that took a screen's
+height above the conversation list. Everything under `这个对话` stays. Display only, behind `FORK_BOT_PANEL_ASKS` in
+`src/fork/bot-panel.ts`.
+
+中文：点开头像胶囊打开的 bot 面板里，「详情」页不再有「试着这样问」那一块 —— 四条固定提问，占掉了一屏高度，把下面的
+对话列表挤下去。「这个对话」下面的东西都保留。纯显示，由 `src/fork/bot-panel.ts` 的 `FORK_BOT_PANEL_ASKS` 控制。
+
 ## V0.4.3 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 ### OD004 · The message bubble's actions live in a right-click menu
