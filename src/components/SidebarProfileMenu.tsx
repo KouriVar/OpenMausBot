@@ -10,6 +10,7 @@ import {
   Check,
   CircleUserRound,
   Cloud,
+  Compass,
   Download,
   FolderOpen,
   Gauge,
@@ -39,6 +40,7 @@ import { useCloudPlanSnapshot } from "./CloudTrialNotice";
 import type { WorkspacePlace } from "./DesktopWorkspaceSwitcher";
 import { railShown, usePlaces } from "@/lib/places";
 import { useAutomationsNeedYou } from "./SidebarFooterNav";
+import { useWebPanels } from "@/lib/web-panel-preferences";
 import { useCloudFilesReady } from "@/lib/cloud-files";
 import { SidebarPopoverMenu, type SidebarMenuItem } from "./SidebarPopoverMenu";
 import { ShortcutHint } from "./ShortcutHint";
@@ -344,19 +346,25 @@ export function phoneMenuItems({
   ];
 }
 
-export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, onTeamMap, onFiles, archived }: {
+export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPanel, panels = [], archived }: {
   activeView: string;
+  /** the open pinned panel, so its row reads as current */
+  activePanel?: string | null;
   automationsNeedYou: boolean;
   onAutomations: () => void;
   onTeamMap: () => void;
   /** set once My Cloud's files are ready to open */
   onFiles?: () => void;
+  /** opens a pinned web panel; the sidebar's own rows for them moved into this menu */
+  onPanel?: (id: string) => void;
+  panels?: Array<{ id: string; name: string }>;
   archived?: ArchivedBots;
 }): SidebarMenuItem[] {
   return [
     { key: "automations", label: t("sidebar.nav.automations"), icon: <Zap size={16} />, active: activeView === "routines", attention: automationsNeedYou, onSelect: onAutomations },
     { key: "team-map", label: t("sidebar.nav.teamMap"), icon: <UsersRound size={16} />, active: activeView === "team-map", onSelect: onTeamMap },
     ...(onFiles ? [{ key: "files", label: t("sidebar.nav.files"), icon: <FolderOpen size={16} />, active: activeView === "files", onSelect: onFiles }] : []),
+    ...(onPanel ? panels.map((panel) => ({ key: `web-panel-${panel.id}`, label: panel.name, icon: <Compass size={16} />, active: activeView === "web-panel" && activePanel === panel.id, onSelect: () => onPanel(panel.id) })) : []),
     ...(archived?.count ? [{ key: "archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, value: String(archived.count), onSelect: archived.open }] : []),
   ];
 }
@@ -611,6 +619,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const accounts = useAccounts();
 
   const automationsNeedYou = useAutomationsNeedYou();
+  const panels = useWebPanels();
   const railActions = useRailActions();
   const inboxSupport = useInboxSupport();
   const inboxView = useInboxView();
@@ -656,10 +665,13 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
     tools: toolMenuItems({
       activeView: state.activeView,
+      activePanel: state.webPanelId,
       automationsNeedYou,
       onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
       onTeamMap: () => dispatch({ type: "showTeamMap" }),
       onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPanel: (id) => dispatch({ type: "showWebPanel", id }),
+      panels,
       archived: account?.archived,
     }),
     ...(account ? { simple: {
@@ -694,10 +706,13 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
     tools: toolMenuItems({
       activeView: state.activeView,
+      activePanel: state.webPanelId,
       automationsNeedYou,
       onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
       onTeamMap: () => dispatch({ type: "showTeamMap" }),
       onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPanel: (id) => dispatch({ type: "showWebPanel", id }),
+      panels,
       archived: account?.archived,
     }),
     ...(account ? { simple: {
