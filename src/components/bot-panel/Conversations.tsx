@@ -10,6 +10,7 @@ import { lastLine } from "../sidebar-preview";
 import { isArchived, orderedThreadList, SidebarThreadRow, stampClock, threadRecency, threadRowActions, useRelativeNow } from "../SidebarThreadRow";
 import { filterTasks } from "../TaskPicker";
 import { CardLabel, panelActionCls } from "./rows";
+import { FORK_BOT_PANEL_LABELS } from "@/fork/bot-panel";
 
 export const CONVERSATIONS_SHOWN = 3;
 const PANEL_ROW_LOOK = "[&_.font-semibold]:font-medium [&_time]:text-[12px] [&_time]:text-ink-tertiary [&_span.bg-accent]:size-2";
@@ -119,21 +120,24 @@ export function BotConversations({ bot }: { bot: Bot }) {
     </div>
   );
 
+  const searchButton = (
+    <button
+      type="button"
+      data-conversations-search
+      aria-label={t("botPanel.conversations.search")}
+      title={t("botPanel.conversations.search")}
+      aria-pressed={searching}
+      onClick={() => (searching ? stopSearching() : setSearching(true))}
+      className={cn("-me-1 flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-secondary transition-colors hover:bg-ink/[0.06] hover:text-ink", searching && "bg-ink/[0.06] text-ink")}
+    >
+      <Search size={14} aria-hidden="true" />
+    </button>
+  );
   return (
     <section data-panel-card="conversations" aria-label={t("botPanel.conversations.title")}>
-      <CardLabel action={listed && (
-        <button
-          type="button"
-          data-conversations-search
-          aria-label={t("botPanel.conversations.search")}
-          title={t("botPanel.conversations.search")}
-          aria-pressed={searching}
-          onClick={() => (searching ? stopSearching() : setSearching(true))}
-          className={cn("-me-1 flex size-6 shrink-0 items-center justify-center rounded-[6px] text-ink-secondary transition-colors hover:bg-ink/[0.06] hover:text-ink", searching && "bg-ink/[0.06] text-ink")}
-        >
-          <Search size={14} aria-hidden="true" />
-        </button>
-      )}>{t("botPanel.conversations.title")}</CardLabel>
+      {/* Fork: the section's label text is gone; its search control stays, alone on the same quiet line. */}
+      {FORK_BOT_PANEL_LABELS ? <CardLabel action={listed && searchButton}>{t("botPanel.conversations.title")}</CardLabel>
+        : listed && <div className="flex justify-end">{searchButton}</div>}
       <div className={cn("flex items-center gap-2", listed && "mb-2")}>
         {bot.yourAccess !== "view" && (
           <button
