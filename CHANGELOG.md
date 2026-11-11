@@ -16,6 +16,54 @@ the earliest, later entries append new numbers — and they are never reused, so
 
 ## Unreleased / 未发布
 
+## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
+It cherry-picks the official commits `949cabedd` (recall Chinese and Japanese notes by the words inside a sentence),
+`5beba1276` (every AI provider key in the desktop's encrypted store, migrated to `credentials.bin` on first launch)
+and `d48997f07` (a newly connected app is on for your bots). The official commit `f3b00bb86` was evaluated and kept as
+an empty commit: it repairs a sandbox-scope regression introduced after `v0.1.151`, and the code it patches
+(`advertisedGrants`, the app-sandbox e2e) does not exist on this base. The UI, Chinese strings, Simple-only mode, the
+version label and the updater short-circuit are unchanged.
+
+中文：**V0.3，基于官方 v0.1.151，cherry-pick 官方 3 个提交。** 第三个个人构建：打包版本号 0.3.0，应用内显示 **V0.3**，
+仍基于官方 `v0.1.151`。本版 cherry-pick 官方提交 `949cabedd`（按句中词召回中日文记忆）、`5beba1276`（桌面端把全部
+AI provider 密钥收进系统加密存储，首次启动迁移到 `credentials.bin`）、`d48997f07`（新连接的应用默认对 bot 生效）。
+官方 `f3b00bb86` 评估后以空提交保留：它修的是 `v0.1.151` 之后才引入的 sandbox 权限回归，本基线没有它要改的代码
+（`advertisedGrants`、app-sandbox e2e）。界面、汉化、Simple-only、版本号与 updater 短路均保持原样。
+
+### A032 · Three official fixes cherry-picked for V0.3
+
+`949cabedd` replaces the whole-phrase matching in the memory search with a CJK word index (`server/cjk-search.ts`), so
+a Chinese or Japanese note is recalled by a word inside the sentence; `5beba1276` moves every provider key the desktop
+knows into `credentials.bin` through `safeStorage`, migrates the plaintext fields out of `config.json` on the first
+packaged launch (encrypted write first, so a failure never loses a secret) and hands them to the server child as
+environment variables; `d48997f07` makes a newly connected app usable by a bot once the connection succeeds, with the
+line "Your bots can now use {app}." and the stale per-bot note removed from every locale. The fork's MiMo TTS key
+(`mimoTtsKey`) stays in the credential allowlist, so all three land without touching the fork's UI or Chinese strings.
+Conflicts went to ours: the Chinese `README.md` stays this fork's own file, and `src/types/ogb.d.ts` takes the union of
+upstream's provider names and the fork's `mimoTtsKey`.
+
+中文：`949cabedd` 把记忆检索里的整句匹配换成中日文分词索引（`server/cjk-search.ts`），中文、日文笔记可以按句中某个词
+召回；`5beba1276` 把桌面端认识的每个 provider 密钥通过 `safeStorage` 收进 `credentials.bin`，打包版首次启动时把
+明文从 `config.json` 迁出（先写加密副本，失败不丢密钥），并以环境变量交给 server 子进程；`d48997f07` 让新连接的应用
+在连接成功后直接对 bot 生效，显示「Your bots can now use {app}.」，并从所有语言包删掉过时的按 bot 提示。本 fork 的
+MiMo TTS 密钥（`mimoTtsKey`）保留在凭据白名单里，三项都落地且没动界面与汉化。冲突一律取我方：中文 `README.md`
+保持本仓库自己的版本；`src/types/ogb.d.ts` 取上游 provider 名单与本 fork `mimoTtsKey` 的并集。
+
+### A033 · The key-readback e2e covers the fork's MiMo key slot
+
+The `scripts/testing/key-readback.e2e.test.ts` expectation list now includes `mimoTts`, and the loopback stand-in
+answers MiMo's `/models` key check through a new `/mimo` route plus `OMB_MIMO_API`. This fixes a regression that
+predates V0.3: `feat/mimo-tts` added the MiMo entry to `KEY_CATALOG` without updating this e2e, which has failed on
+`main` since then (reproduced on a clean `5bed5e5d6` worktree), and once listed the check would otherwise reach the
+real `api.xiaomimimo.com` from the test.
+
+中文：`scripts/testing/key-readback.e2e.test.ts` 的期望列表补上 `mimoTts`，并让本地回环 stand-in 通过新增的 `/mimo`
+路由加 `OMB_MIMO_API` 回应 MiMo 的 `/models` 密钥校验。这修的是 V0.3 之前就存在的问题：`feat/mimo-tts` 往
+`KEY_CATALOG` 加了 MiMo 条目却忘了更新这条 e2e，从那以后 `main` 上一直失败（在干净的 `5bed5e5d6` worktree 上同样
+复现）；而且补进列表后，这项校验还会去连真的 `api.xiaomimimo.com`。
+
 ## V0.2 · 2026-11-11 · 基于官方 v0.1.151 / Based on official v0.1.151
 
 The second personal build: the @ mention chip is centred on the text line without being compressed, the

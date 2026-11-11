@@ -2804,8 +2804,8 @@ setCuaStateListener((connection) => {
 });
 
 app.whenReady().then(async () => {
-  // Fork: the app menu's About panel shows this build's own label (V0.2) rather than the bare bundle version.
-  app.setAboutPanelOptions({ applicationVersion: "V0.2" });
+  // Fork: the app menu's About panel shows this build's own label (V0.3) rather than the bare bundle version.
+  app.setAboutPanelOptions({ applicationVersion: "V0.3" });
   await evictStartupCacheOnce({
     userData: app.getPath("userData"),
     currentVersion: app.getVersion(),

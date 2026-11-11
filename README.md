@@ -91,7 +91,7 @@ bash apply-ui-patch.sh
 ## 版本号规则
 
 - `package.json` 用 semver：`0.2.0` 这样。
-- 界面里显示成 `V0.2`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
+- 界面里显示成 `V0.3`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
 - git tag 用 `v0.x.y`，Release 标 pre-release。
 - [CHANGELOG.md](CHANGELOG.md) 每个版本新增一节：写清「基于官方 vX.Y.Z」和本版全部改动；历史 A 编号条目保留、不复用。
 
