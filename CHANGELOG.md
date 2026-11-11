@@ -23,6 +23,17 @@ release notes carry.
 
 ## Unreleased / 未发布
 
+## V0.4.3 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
+
+### OD004 · Advanced's chat head wears Simple's pill
+
+Advanced mode's conversation header now draws the same pill Simple's does — the same padding, the same round surface and
+the same 14px medium name beside the 24px avatar — instead of the wider, semibold variant it had. The pencil that
+renames the bot and the chief's `总协调机器人` tag stay where they were inside the pill. Display only.
+
+中文：高级模式的会话页头部改成和简易一样的胶囊 —— 同样的内边距、同样的圆底、头像 24px 旁边 14px 中等字重的名字，
+不再是原来那版更宽、字更重的。改名用的铅笔和「总协调机器人」那个标签都留在胶囊里原来的位置。纯显示。
+
 ## V0.4.2 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 ### OD003 · Advanced mode's sidebar is built from Simple's pieces, its bot rows stay its own

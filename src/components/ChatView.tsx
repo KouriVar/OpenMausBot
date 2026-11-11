@@ -96,6 +96,7 @@ import { ScreenFrame } from "./ScreenFrame";
 import { CompactionChip, DigestChip } from "./DigestChip";
 import { RenameTitle } from "./RenameTitle"; import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
 import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill"; import { useStoreRef } from "@/state/store-ref";
+import { CHATHEAD_PILL_PAD, CHATHEAD_PILL_PAD_BEFORE, FORK_UI_1111 } from "@/fork/ui-batch-1111";
 import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { ChatHeaderMenu, ChatMoreMenu } from "./ChatMoreMenu"; import { TeamOwnHelperHeader, TeamPrivateFirstLine, TeamPrivateHeader, TeamSharedHeader } from "./TeamPrivateChatsLine";
 import { useChatFindRequests } from "@/lib/chat-find";
@@ -834,8 +835,6 @@ const MessagesList = memo(function MessagesList({
   );
 });
 
-const CHATHEAD_PILL = `flex min-w-0 items-center gap-2 rounded-full py-0.5 pl-1.5 text-ink ${ELEVATED_FLOAT}`;
-
 export function ChatView({ bot: profile }: { bot: Bot }) {
   const bot = useMemo(() => currentTaskBot(profile), [profile]);
   const { state, dispatch } = useStore();
@@ -1052,7 +1051,9 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
               onToggle={() => dispatch({ type: "toggleSettings", open: !state.settingsOpen })}
             />
           ) : advanced ? (
-            <div data-chathead-pill className={cn(CHATHEAD_PILL, "pr-1")}>
+            // Fork: Advanced's chat head wears Simple's pill (its padding, radius and 14px medium name); the pencil and
+            // the chief's tag stay.
+            <div data-chathead-pill className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full text-ink", FORK_UI_1111 ? CHATHEAD_PILL_PAD : CHATHEAD_PILL_PAD_BEFORE, ELEVATED_FLOAT)}>
               <button
                 type="button"
                 onClick={() => dispatch({ type: "toggleSettings", open: true })}
@@ -1084,9 +1085,9 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
                 }}
                 onActivate={() => dispatch({ type: "toggleSettings", open: true })}
                 showEditButton
-                className="truncate text-[14px] font-semibold text-ink"
-                editButtonClassName="size-6 rounded-full"
-                inputClassName="max-w-[220px] rounded-full bg-inset px-2 py-0.5 text-[14px] font-semibold"
+                className="min-w-0 truncate text-[14px] font-medium leading-5 text-ink"
+                editButtonClassName="size-5 rounded-full"
+                inputClassName="max-w-[220px] rounded-full bg-inset px-2 py-0.5 text-[14px] font-medium"
               />
               {chiefOfStaffBadge(bot)}
             </div>
