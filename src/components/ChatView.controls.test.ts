@@ -159,7 +159,7 @@ describe("the Simple header", () => {
       expect(identity.replace(pill[0], "").replace(/<span role="status"[^>]*>[^<]*<\/span>/, "")).not.toMatch(/<(button|a|span)[\s>]/);
       expect(pill[1]).toContain(">Pepper</span>");
       expect(pill[1]).toContain('data-chathead-elsewhere="true"');
-      expect(pill[0].match(/class="([^"]*)"/)![1]!.split(" ")).toEqual(expect.arrayContaining(["rounded-full", "bg-composer", "ring-[0.5px]", "py-[7.5px]", "pr-[13.5px]"]));
+      expect(pill[0].match(/class="([^"]*)"/)![1]!.split(" ")).toEqual(expect.arrayContaining(["rounded-full", "bg-composer", "ring-[0.5px]", "py-[7.5px]", "pr-[11.5px]"]));
       // Away from the bot's main conversation, the pill names the one on screen.
       expect(pill[1]).toContain("data-chathead-conversation");
       for (const gone of ["data-chathead-role", "data-background-activity", "data-chathead-back", 'data-testid="chat-more"']) {

@@ -4,6 +4,7 @@
 import { useRef } from "react";
 
 import { t } from "@/lib/i18n";
+import { EDGE_HANDLE, EDGE_HANDLE_BEFORE, FORK_UI_1111 } from "@/fork/ui-batch-1111";
 
 const DRAG_REVEAL = 24;
 
@@ -35,7 +36,7 @@ export function HiddenSidebarEdge({ onReveal }: { onReveal: () => void }) {
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none block h-16 w-[5px] rounded-full bg-ink/25 transition-colors duration-150 group-hover:bg-ink/45 group-active:bg-ink/60"
+        className={FORK_UI_1111 ? EDGE_HANDLE : EDGE_HANDLE_BEFORE}
       />
     </button>
   );

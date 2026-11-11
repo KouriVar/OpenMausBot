@@ -45,6 +45,31 @@ version is cut.
 `5beba1276`、`d48997f07`，仍为 Simple-only。落进本版的每项改动从 `D001` 开始编号，按条目列在本标题下，
 一项一条；打包日期与收尾的整段概述在该版本发出时补上。
 
+### D001 · The hidden sidebar's edge handle is smaller, fainter and springs under the pointer
+
+The handle on the window's left edge is now 4px wide and 44px tall (it was 5 by 64) at 14% ink instead of 25%, and
+it springs up under the pointer: `scale` and the background transition over 300 ms on
+`cubic-bezier(.34,1.56,.64,1)`, reaching 1.5x wide and 1.1x tall at 35% ink on hover and 50% while pressed, so it
+grows with a slight overshoot and settles back the same way on the way out. Tailwind 4 draws `scale-*` with the
+`scale` property, which is what the transition names; the 12px button keeps its hit area, and `FORK_UI_1111` in
+`src/fork/ui-batch-1111.ts` restores the old look.
+
+中文：隐藏侧栏时左边缘那条提手变窄变淡：4px 宽、44px 高（原 5×64），ink 14%（原 25%），指针靠近时弹起 ——
+`scale` 与背景色用 300ms `cubic-bezier(.34,1.56,.64,1)` 过渡，悬停时宽 1.5 倍、高 1.1 倍、ink 35%，按下 50%，
+进入与退出都带轻微回弹。Tailwind 4 的 `scale-*` 写的是 `scale` 属性，所以过渡按它命名；12px 的按钮命中区域不变，
+`src/fork/ui-batch-1111.ts` 的 `FORK_UI_1111` 可还原旧样式。
+
+### D002 · Simple's chat-head pill gets 4px more on its trailing edge
+
+The pill keeps 7.5px top, bottom and leading padding and takes 11.5px trailing, so the name, the chevron and the
+conversation name do not sit flush against the ring: `py-[7.5px] pl-[7.5px] pr-[11.5px]` behind the same
+`FORK_UI_1111` constant. `ChatView.controls.test.ts` had been asserting a trailing `pr-[13.5px]` the component never
+had; it now expects `pr-[11.5px]`.
+
+中文：简易模式聊天顶部的资料胶囊保持上下与左侧 7.5px 内边距，右侧改为 11.5px（多 4px），名字、箭头与会话名不再顶着
+描边；样式为 `py-[7.5px] pl-[7.5px] pr-[11.5px]`，同样由 `FORK_UI_1111` 控制。`ChatView.controls.test.ts` 原先
+断言的右侧 `pr-[13.5px]` 组件里从来没有过，现改为 `pr-[11.5px]`。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
