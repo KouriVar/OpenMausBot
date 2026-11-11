@@ -20,7 +20,7 @@ const LINES: Record<string, number> = {
   "src/state/store.tsx": 3349,
   "electron/main.mjs": 3181,
   "server/store.ts": 2303,
-  "src/components/Sidebar.tsx": 1721,
+  "src/components/Sidebar.tsx": 1726,
   "server/drivers/claude.ts": 2090,
   "server/drivers/acp/core.ts": 1731,
   "server/drivers/codex.ts": 1718,
@@ -28,9 +28,9 @@ const LINES: Record<string, number> = {
   "src/components/ComputerPanel.tsx": 1782,
   "src/components/RoutineCalendarPage.tsx": 1622,
   "server/config.ts": 1268,
-  "src/components/ChatView.tsx": 1329,
+  "src/components/ChatView.tsx": 1335,
   "server/routine-requests.ts": 1474,
-  "src/components/GroupView.tsx": 1228,
+  "src/components/GroupView.tsx": 1230,
   "src/components/LocalComputerSection.tsx": 1452,
   "src/components/CursorAvatar.tsx": 1324,
   "server/skills.ts": 1380,
@@ -46,7 +46,7 @@ const LINES: Record<string, number> = {
   "server/cli.ts": 1062,
   "src/components/AttachmentPreview.tsx": 1049,
   "server/meetings/meetbot.ts": 1047,
-  "src/components/Composer.tsx": 1011,
+  "src/components/Composer.tsx": 1012,
 };
 
 function sourceFiles(): string[] {
