@@ -477,6 +477,9 @@ const Bubble = memo(function Bubble({
                   : formatted
                     ? cn(formattedReplyWidth(text), "px-1 text-ink")
                     : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
+            // Fork: a bubble that carries a picture keeps the same inset on top as the bubble's sides give it,
+            // instead of the 7px its text rows use.
+            hasImages && !attachmentsOnly && !split && !tabled && "pt-3",
             mixedImages && !split && !tabled && (formatted ? "pb-1" : "pb-3"),
             simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}

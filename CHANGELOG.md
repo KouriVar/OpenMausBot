@@ -158,6 +158,17 @@ span. Display only, behind `FORK_MESSAGE_TIME_IN_MENU` in `src/fork/ui-batch-111
 一样是 14px，上面用菜单那条细线隔开。`MessageActions` 新增可选 `time`，由它画这一行；`ChatView` 和 `GroupView` 传值
 并去掉悬停行原来的时间。纯显示，由 `src/fork/ui-batch-1111.ts` 的 `FORK_MESSAGE_TIME_IN_MENU` 控制。
 
+### D009 · An image bubble's top inset matches its sides
+
+A message bubble that carries a picture kept the text rows' 7px on top while its sides take the bubble's 12px
+padding, so the picture sat 5px tight against the top. The bubble now takes `pt-3` whenever it holds a picture and
+is not the picture-only bubble (which already pads 6px on every side): the picture is as far from the top as from
+the sides, matching the bottom gap the same bubble already gave it. Display only.
+
+中文：带图片的消息气泡，顶部一直沿用文字行的 7px，而左右是气泡的 12px，所以图片离顶边比离侧边紧 5px。现在只要气泡里
+有图片、又不是「纯图片」那种（纯图片本来就是四边 6px），就加 `pt-3`：图片离顶部和离左右一样远，跟这个气泡原本给图片的
+底部间距对齐。纯显示。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.

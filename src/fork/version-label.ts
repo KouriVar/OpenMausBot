@@ -4,7 +4,7 @@ const FORK_VERSION_SEMVER = "0.3.0";
 
 /** The ui build this installed app runs. The bundle version cannot move without repackaging, so every
  * `apply-ui-patch.sh` run bumps this third number instead. */
-export const FORK_UI_BUILD = "0.3.10";
+export const FORK_UI_BUILD = "0.3.11";
 
 /** "V0.3" for this personal build, the version as given for anything else (servers, tests, upstream). */
 export function displayAppVersion(version: string): string {
