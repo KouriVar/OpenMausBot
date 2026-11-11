@@ -1,16 +1,16 @@
 import { useState } from "react";
 
-import { SettingRow, SettingsRows, Switch } from "@/components/SettingsPrimitives";
-import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
+import { SettingsRows } from "@/components/SettingsPrimitives";
+import { AdvancedModeRow } from "@/components/AppSettingsRows";
 import { t } from "@/lib/i18n";
 
 import { FORK_ADVANCED_UNLOCK, FORK_ADVANCED_UNLOCK_TAPS, setAdvancedUnlocked, useAdvancedUnlocked } from "./advanced-unlock";
 
-/** Fork: the quiet spot under the updates page. Tap the app icon FORK_ADVANCED_UNLOCK_TAPS times and the Advanced
- * switch appears; switching it off hides it again, so Simple is always one tap away and nobody stumbles into it. */
+/** Fork: the quiet spot under This app's own settings. Tap the app icon FORK_ADVANCED_UNLOCK_TAPS times and the
+ * Advanced switch (with the 「保持高级模式」 row under it) appears; switching it off hides it again, so Simple is
+ * always one tap away and nobody stumbles into it. */
 export function ForkAdvancedUnlockRow() {
   const unlocked = useAdvancedUnlocked();
-  const advanced = useAdvancedMode();
   const [taps, setTaps] = useState(0);
   if (!FORK_ADVANCED_UNLOCK) return null;
 
@@ -39,21 +39,7 @@ export function ForkAdvancedUnlockRow() {
   return (
     <div data-fork-unlock-switch="" className="mt-8">
       <SettingsRows>
-        <SettingRow title={t("settings.advancedMode.title")} subtitle={t("settings.simple.advancedMode")}>
-          <Switch
-            checked={advanced}
-            aria-label={t("settings.advancedMode.title")}
-            onClick={() => {
-              if (advanced) {
-                setAdvancedMode(false);
-                setAdvancedUnlocked(false);
-                setTaps(0);
-                return;
-              }
-              setAdvancedMode(true);
-            }}
-          />
-        </SettingRow>
+        <AdvancedModeRow simple />
       </SettingsRows>
     </div>
   );
