@@ -84,7 +84,9 @@ avatar and 14px medium name, and no rename pencil and no chief tag inside it.
 Advanced mode's sidebar is being rebuilt on Simple's components: the same top row, search, inbox row, footer account
 and new button, while the bot rows keep Advanced's own layout — names, previews and the thread list a row opens. The
 tools section leaves the footer first: its rows (automations, Team map, apps, Files, pinned panels) now sit in the
-account menu that the avatar opens, alongside usage and settings, so both modes have one place for them. The avatar's menu also
+account menu that the avatar opens, alongside usage and settings, so both modes have one place for them. The inbox panel's list shares the search
+field's 13px gutter, so the two line up and a hovered or open row keeps its own padding inside the panel; its
+placeholder reads `搜索` in Chinese instead of falling back to English. The avatar's menu also
 carries the switch between the two modes as a single row (`高级模式`): one click takes the window to Advanced, the same
 row takes it back to Simple, and no switch is involved. The rest
 follows Simple: one top row (the place pill, then search and new as round buttons), the magnifier that opens the
@@ -93,7 +95,8 @@ and name with search, inbox and new beside it — plus Simple's 92px rail with i
 
 中文：高级模式的侧边栏正在改用简易模式的组件重做：顶栏、搜索、收件箱行、底部账号和新建按钮都跟简易一致，机器人行保留
 高级模式自己的排版 —— 名字、预览和点开行才有的会话列表。第一步先撤掉底部的「工具」区：里面的行（自动化、团队地图、
-应用、文件、固定面板）搬进头像点开的账号菜单，和用量、设置放在一起，这样两种模式都只有一处入口。头像菜单里还多了一行「高级模式」，点一下这个窗口就切到高级，再点一下就回简易，不用去点开关。
+应用、文件、固定面板）搬进头像点开的账号菜单，和用量、设置放在一起，这样两种模式都只有一处入口。收件箱面板的列表改用搜索框那道 13px 内边距，两边因此对齐，悬停或选中的行也不会贴着面板边；搜索框的占位文字在
+中文下是「搜索」，不再回落到英文。头像菜单里还多了一行「高级模式」，点一下这个窗口就切到高级，再点一下就回简易，不用去点开关。
 其余也跟简易走：
 一个顶栏（地点胶囊，然后搜索和新建两个圆按钮）、用放大镜展开搜索胶囊而不是固定搜索框、简易的收件箱行、简易的底部
 （账号的圆形头像和名字，旁边是搜索、收件箱、新建），以及简易那条 92px 图标栏和它的方形格子与选中框。

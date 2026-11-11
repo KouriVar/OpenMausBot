@@ -88,7 +88,9 @@ export function InboxPanel() {
                 <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("inbox.search")} aria-label={t("inbox.search")}
                   className="min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-tertiary [&::-webkit-search-cancel-button]:hidden" />
               </label>}
-              <div role="list" data-inbox-list aria-label={t("inbox.panel.title")} className="space-y-0.5 px-1.5 pb-1.5">
+              {/* Fork: the list keeps the search field's 13px gutter, so the two line up and a hovered or open row still
+                  sits inside the panel rather than against its edge. */}
+              <div role="list" data-inbox-list aria-label={t("inbox.panel.title")} className="space-y-0.5 px-[13px] pb-1.5">
                 {rows.length === 0
                   ? query.trim() && listedRows(view).length
                     ? <p className="px-4 py-8 text-center text-[13px] text-ink-secondary">{t("inbox.noMatch")}</p>
