@@ -180,12 +180,15 @@ describe("bot-first sidebar", () => {
     fixture.showThreads = false;
     const quiet = { ...bot, tasks: [], projects: [], unread: false };
     const waiting = renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", { ...quiet, activity: "waiting-on-you" })));
-    expect(waiting).toContain('data-testid="waiting-dot" title="Waiting for you…" class="size-2 shrink-0 rounded-full bg-warning"');
+    // The fork's one dot: waiting is the same avatar dot in amber, not a second dot on the name line.
+    expect(waiting).toContain('data-avatar-dot="waiting"');
+    expect(waiting).toContain("bg-warning");
     expect(waiting).not.toContain(">!<");
     expect(waiting).not.toContain("font-semibold text-warning");
     expect(waiting).not.toContain('role="status"');
     const working = renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", { ...quiet, busy: true })));
-    expect(working).toContain('data-testid="working-dot" title="Working" class="absolute bottom-0.5 right-0.5 size-2 rounded-full ring-2 ring-[var(--row)] bg-success"');
+    expect(working).toContain('data-avatar-dot="working"');
+    expect(working).toContain("bg-success");
     expect(working).toContain('<span class="sr-only">Working</span>');
     expect(working).not.toContain('role="status"');
     expect(working).toContain("[--row:var(--color-panel)]");

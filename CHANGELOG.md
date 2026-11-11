@@ -103,6 +103,22 @@ bottom padding for the composer rather than a negative margin or a taller scroll
 也没有额外高度。`ChatView` 与 `GroupView` 两个视图都改，由 `src/fork/ui-batch-1111.ts` 的 `FORK_CHAT_PANE_CLIP`
 控制。
 
+### D005 · One dot on every avatar, and its colour is the status
+
+The sidebar's avatars wear one dot now, in the corner the working dot always had: a status colours that dot
+instead of adding another one elsewhere. Amber is waiting for you, green is working, blue is unread (or waiting
+on a teammate) and grey is queued, and one wins in that order, so a bot that is both working and unread shows
+green. The unread dot above the circle avatars and the one on the name line are gone, and the rail tile's amber
+"!" and its own status chain are the same dot; the chief's crown moves to the tile's top-left so it and the dot
+do not share a corner, while the live-call phone badge stays where it was. Behind `FORK_ONE_AVATAR_DOT` in
+`src/fork/avatar-dot.tsx`: display only, both views and both themes.
+
+中文：侧边栏头像现在只戴一个点，位置就是原来工作点所在的那个角落：状态只改这一个点的颜色，不再另找地方加一个。
+琥珀=等你处理，绿=正在工作，蓝=未读（或在等队友），灰=排队中；同时成立时按这个顺序取一个，所以「又在干活又有未读」
+显示绿色。圆形头像上方那个未读点、名字行右端的未读点都去掉了；rail 方块头像原来的琥珀「!」和它自己那套状态点也
+合并成这一个点；主 bot 的皇冠移到方块左上角，免得和点挤在同一个角，通话中的绿色电话徽章保持原位。由
+`src/fork/avatar-dot.tsx` 的 `FORK_ONE_AVATAR_DOT` 控制：纯显示，两个视图、深浅主题一致。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
