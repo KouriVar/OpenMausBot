@@ -178,7 +178,8 @@ describe("the Simple header", () => {
     }
     fixture.showThreads = false;
     const advanced = renderToStaticMarkup(createElement(ChatView, { bot: busyElsewhere }));
-    expect(advanced).not.toContain("data-chathead-elsewhere");
+    // Fork: Advanced wears the same pill, so it keeps the pill's dot as well as its own activity row.
+    expect(advanced).toContain("data-chathead-elsewhere");
     expect(advanced).toContain("data-background-activity");
     expect(advanced).toContain("data-chathead-back");
     expect(advanced).toContain("data-chathead-role");
@@ -209,14 +210,15 @@ describe("header name", () => {
     fixture.advanced = true;
   });
 
-  it("keeps the rename pencil in Advanced mode, inside the same pill as the avatar and name", () => {
+  // Fork: one pill for both modes — no rename pencil, no chief tag, so Advanced matches Simple exactly.
+  it("renders the same pill in Advanced mode as in Simple, without a rename pencil", () => {
     fixture.advanced = true;
     const markup = renderToStaticMarkup(createElement(ChatView, { bot }));
-    const start = markup.indexOf('<div data-chathead-pill="true"');
-    expect(start).toBeGreaterThan(-1);
-    const pill = markup.slice(start, markup.indexOf("data-chathead-controls"));
-    expect(pill).toContain('aria-label="Open Pepper&#x27;s profile"');
-    expect(pill).toContain("Rename Pepper");
+    const pill = markup.match(/<button[^>]*data-chathead-pill="true"[^>]*>([\s\S]*?)<\/button>/)!;
+    expect(pill).toBeTruthy();
+    expect(pill[1]).toContain(">Pepper</span>");
+    expect(pill[0]).not.toContain("Rename Pepper");
+    expect(markup).not.toContain("Chief of Staff");
   });
 
   it("shows the bot's role beside the pill in Advanced mode, taking only the room the name leaves, and leaves it to the bot panel in Simple", () => {
@@ -647,11 +649,9 @@ describe("thread control placement", () => {
     expect(controls[1].split(" ")).toEqual(expect.arrayContaining(["shrink-0", "@max-[30rem]/chathead:ml-auto", "@max-[30rem]/chathead:flex-wrap"]));
   });
 
-  it("keeps the Chief of Staff badge on one line instead of stacking a word per line", () => {
+  it("leaves the Chief of Staff badge out of the header entirely", () => {
     const markup = renderToStaticMarkup(createElement(ChatView, { bot: { ...bot, busy: false, chiefOfStaff: true } }));
-    const badge = /<span title="Chief of Staff" class="([^"]*)"><svg[^>]*lucide-crown[^]*?<\/svg> <span class="([^"]*)">Chief of Staff<\/span>/.exec(markup)!;
-    expect(badge[1].split(" ")).toEqual(expect.arrayContaining(["shrink-0", "whitespace-nowrap"]));
-    expect(badge[2].split(" ")).toContain("@max-4xl/chathead:sr-only");
+    expect(markup).not.toContain("Chief of Staff");
   });
 
   it("keeps the model picker out of the header and permissions inside the composer pill", () => {

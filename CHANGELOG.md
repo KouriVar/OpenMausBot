@@ -47,9 +47,8 @@ window, and leaves links and text fields their own right-click menus. Display on
 In Advanced mode the composer's call button now matches the mic beside it: both are 32px with a 16px glyph, where the
 call button used to take the white bubble's 28px.
 
-Advanced mode's conversation header draws the same pill Simple's does too — the same padding, round surface and 14px
-medium name beside the 24px avatar — instead of the wider, semibold variant it had, while the pencil that renames the
-bot and the chief's `总协调机器人` tag stay inside it.
+Both modes draw the conversation header with one component now: the same pill, the same padding, round surface, 24px
+avatar and 14px medium name, and no rename pencil and no chief tag inside it.
 
 中文：会话气泡不再在鼠标悬停时冒出一排按钮：在气泡任意位置右键就弹出一个菜单，第一排是快捷表情
 （`👍` `👎` `❤️` `😂` `🎉` `👀`，不做「添加表情」），下面是回复、复制和这条消息其余的项，最底下是时间。菜单在指针
@@ -58,8 +57,8 @@ bot and the chief's `总协调机器人` tag stay inside it.
 
 高级模式输入框右边的通话按钮现在和旁边的麦克风一样：都是 32px 方框、16px 图标，不再是白色气泡那版的 28px。
 
-高级模式的会话页头部也换成和简易一样的胶囊 —— 同样的内边距、圆底，头像 24px 旁 14px 中等字重的名字，不再是更宽、
-字更重那版；改名铅笔和「总协调机器人」标签都留在胶囊里。
+两种模式的会话页头部现在用同一个组件画：同样的胶囊、内边距、圆底、24px 头像和 14px 中等字重的名字，胶囊里不再有
+改名铅笔，也不再有「总协调机器人」标签。
 
 ## V0.4.2 · 进行中 / In progress · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
