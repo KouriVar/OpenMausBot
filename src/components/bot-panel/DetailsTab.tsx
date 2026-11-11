@@ -10,7 +10,8 @@ import type { useBotSettingsDerived } from "../bot-settings/useBotSettingsDerive
 import { BotConversations } from "./Conversations";
 import type { SimplePageId } from "./page-registry";
 import { TryAsking } from "./TryAsking";
-import { Card, CardLabel, LabelAction, panelActionCls, NavRow, RowIcon, rowCls, RowText } from "./rows";
+import { FORK_BOT_PANEL_ASKS, FORK_BOT_PANEL_LABELS } from "@/fork/bot-panel";
+import { CardLabel, LabelAction, panelActionCls, NavRow, RowIcon, rowCls, RowText } from "./rows";
 
 type Derived = ReturnType<typeof useBotSettingsDerived>;
 
@@ -65,20 +66,20 @@ export function DetailsTab({ bot, derived, onOpen }: {
 
       <BotConversations bot={bot} />
 
-      <TryAsking bot={bot} />
+      {FORK_BOT_PANEL_ASKS && <TryAsking bot={bot} />}
 
       {conversationItems.length > 0 && (
         <section data-panel-card="conversation">
-          <CardLabel>{t("botPanel.section.conversation")}</CardLabel>
+          {FORK_BOT_PANEL_LABELS && <CardLabel>{t("botPanel.section.conversation")}</CardLabel>}
           {conversationItems.map((item) => <ItemRow key={item.key} item={item} />)}
         </section>
       )}
 
       {derived.botRoutines.length === 0 ? (
         <section data-panel-empty="routines">
-          <CardLabel action={<LabelAction data-panel-automations="" onClick={() => dispatch({ type: "showRoutines", view: "list" })}>{t("sidebar.nav.automations")}</LabelAction>}>
+          {FORK_BOT_PANEL_LABELS && <CardLabel action={<LabelAction data-panel-automations="" onClick={() => dispatch({ type: "showRoutines", view: "list" })}>{t("sidebar.nav.automations")}</LabelAction>}>
             {t("botSettings.simple.routines")}
-          </CardLabel>
+          </CardLabel>}
           <button
             type="button"
             data-panel-page="routines"
@@ -91,7 +92,8 @@ export function DetailsTab({ bot, derived, onOpen }: {
           </button>
         </section>
       ) : (
-        <Card label={t("botSettings.simple.routines")} anchor="routines">
+        // Fork: the routines row is a flat row like every other one, not a boxed card of its own.
+        <section data-panel-card="routines">
           <NavRow
             data-panel-page="routines"
             icon={Calendar}
@@ -99,7 +101,7 @@ export function DetailsTab({ bot, derived, onOpen }: {
             value={routinesOn > 0 ? t("botPanel.routinesOn", { count: routinesOn }) : t("botPanel.none")}
             onClick={() => onOpen("routines")}
           />
-        </Card>
+        </section>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { EyeOff } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
 import { t } from "@/lib/i18n";
 import { DEFAULT_BOT_NAME, myDefaultBot, useViewerEmail } from "@/lib/default-bot";
 import { useStore, type Action, type Bot } from "@/state/store";
@@ -58,7 +59,7 @@ export function DefaultBotHideRow({ bot }: { bot: Bot }) {
         data-panel-row="default-bot-hide"
         icon={EyeOff}
         title={t("defaultBot.hide")}
-        hint={t("defaultBot.hideHint")}
+        hint={FORK_BOT_SETTINGS_QUIET ? undefined : t("defaultBot.hideHint")}
         drill={false}
         onClick={() => showDefaultBot(dispatch, bot, false)}
       />

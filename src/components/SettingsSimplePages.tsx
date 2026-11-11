@@ -2,6 +2,7 @@ import { pageIsThisComputer } from "@/lib/companion-bridge";
 import type { ReactNode } from "react";
 import type { AppSettingsSection } from "@/state/store";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
+import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
 import { displayAppVersion } from "@/fork/version-label";
@@ -291,6 +292,7 @@ export function SimpleUpdatesPage({ remoteActive }: { remoteActive: boolean }) {
         {!remoteActive && <ReplayTourRow />}
         <DiagnosticsRow simple />
       </SettingsRows>
+      <ForkAdvancedUnlockRow />
     </SettingsGroup>
   );
 }

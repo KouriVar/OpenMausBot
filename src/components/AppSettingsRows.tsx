@@ -10,6 +10,7 @@ import { productName } from "../lib/brand";
 import { BrowserProfilesManager } from "./BrowserProfilesManager";
 import { NewBrowserSettings } from "./BrowserSettingsRows";
 import { Card, SettingRow, Switch } from "./SettingsPrimitives";
+import { setAdvancedUnlocked, useAdvancedUnlocked } from "@/fork/advanced-unlock";
 import { LearnedSkillsSettings } from "./ShareLearnedSkillsSettings";
 import { effortLabel } from "./ModelPicker";
 import { EFFORT_LEVELS, isEffortLevel } from "../../shared/wire";
@@ -284,14 +285,20 @@ export function ColorUserBubblesRow({ simple = false }: { simple?: boolean }) {
 
 export function AdvancedModeRow({ simple = false }: { simple?: boolean }) {
   const enabled = useAdvancedMode();
-  if (SIMPLE_ONLY) return null;
+  // Fork: the row only exists once the hidden unlock has been tapped open, so Advanced can always be turned back off
+  // from the top of the general page; switching it off returns to Simple and puts the switch away again.
+  const unlocked = useAdvancedUnlocked();
+  if (SIMPLE_ONLY && !unlocked) return null;
   return (
     <SettingRow className={simple ? undefined : "rounded-2xl border border-accent-border/40 bg-raised-hover/40 py-4"} title={t("settings.advancedMode.title")}
       subtitle={t(simple ? "settings.simple.advancedMode" : "settings.advancedMode.subtitle")}>
       <Switch
         checked={enabled}
         aria-label={t("settings.advancedMode.title")}
-        onClick={() => setAdvancedMode(!enabled)}
+        onClick={() => {
+          setAdvancedMode(!enabled);
+          if (enabled) setAdvancedUnlocked(false);
+        }}
       />
     </SettingRow>
   );

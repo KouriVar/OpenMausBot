@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { parseRoomTurnTimeoutMinutes } from "@/lib/room-turn-timeout";
 import { useStore, type Group } from "@/state/store";
-import { Select } from "./Select";
+import { PillSelectMenu } from "@/fork/PillSelectMenu";
 
 export const PRESET_TURN_LIMITS = [30, 60, 120] as const;
 
@@ -84,35 +84,29 @@ export function ConversationTurnLimit({ group }: { group: Group }) {
     );
   }
 
-  const value = saved == null ? "default" : isPresetTurnLimit(saved) ? String(saved) : "current";
-  return (
-    <Select
-      variant="pill"
-      size="sm"
-      className="shrink-0 max-w-[168px]"
-      title={t("room.turnLimit.help")}
-      aria-label={t("room.turnLimit.aria")}
-      data-testid="conversation-turn-limit"
-      value={value}
-      onChange={(event) => {
-        const next = event.target.value;
-        if (next === "default") save(null);
-        else if (next === "custom") {
-          setDraft(saved == null ? "30" : String(saved));
-          setCustom(true);
-        } else save(Number(next));
-      }}
-    >
-      <option value="default">{t("room.turnLimit.default", { minutes: globalMinutes })}</option>
-      {PRESET_TURN_LIMITS.map((minutes) => (
-        <option key={minutes} value={String(minutes)}>
-          {t("room.turnLimit.minutes", { minutes })}
-        </option>
-      ))}
-      {saved != null && !isPresetTurnLimit(saved) ? (
-        <option value="current">{t("room.turnLimit.minutes", { minutes: saved })}</option>
-      ) : null}
-      <option value="custom">{t("room.turnLimit.custom")}</option>
-    </Select>
-  );
+  // Fork: the app's own menu, not the system's — the same one the conversation switcher and the message menu draw.
+  const current = t("room.turnLimit.minutes", { minutes: saved ?? globalMinutes });
+  const label = saved == null ? t("room.turnLimit.default", { minutes: globalMinutes }) : current;
+  const items = [
+    { key: "default", label: t("room.turnLimit.default", { minutes: globalMinutes }), checked: saved == null, onSelect: () => save(null) },
+    ...PRESET_TURN_LIMITS.map((minutes) => ({
+      key: `preset:${minutes}`,
+      label: t("room.turnLimit.minutes", { minutes }),
+      checked: saved === minutes,
+      onSelect: () => save(minutes),
+    })),
+    ...(saved != null && !isPresetTurnLimit(saved)
+      ? [{ key: "current", label: current, checked: true, onSelect: () => save(saved) }]
+      : []),
+    {
+      key: "custom",
+      label: t("room.turnLimit.custom"),
+      separatorBefore: true,
+      onSelect: () => {
+        setDraft(saved == null ? "30" : String(saved));
+        setCustom(true);
+      },
+    },
+  ];
+  return <PillSelectMenu label={label} title={t("room.turnLimit.help")} ariaLabel={t("room.turnLimit.aria")} testId="conversation-turn-limit" items={items} className="max-w-[168px]" />;
 }

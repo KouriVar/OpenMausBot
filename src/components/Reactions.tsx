@@ -33,7 +33,7 @@ function withOwn(message: Message, by: string, entry: Entry | null | undefined):
 const newestTap = new Map<string, number>();
 let taps = 0;
 
-function useReaction(threadId: string, message: Message) {
+export function useReaction(threadId: string, message: Message) {
   const { dispatch } = useStoreRef();
   const me = useReactor();
   const latest = useRef(message);

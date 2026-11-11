@@ -26,3 +26,10 @@ export const COMPOSER_FADE_BOTTOM = "-bottom-3";
 
 /** The hover row keeps only its buttons: the message's time lives at the foot of its own menu, with a clock. */
 export const FORK_MESSAGE_TIME_IN_MENU = true;
+
+/** The avatar menu keeps only what this build uses: no phone-app row, no support submenu, no place switcher. */
+export const FORK_PROFILE_MENU_MINIMAL = true;
+
+/** The message's actions live in a right-click menu now: the bubble shows no hover buttons, and the menu opens
+ * anywhere on it with the reactions on top. */
+export const FORK_MESSAGE_MENU_ON_RIGHT_CLICK = true;

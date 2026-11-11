@@ -63,10 +63,10 @@ export function useBloubIdentity(botId: string | undefined, fallbackColor: MausC
 }
 
 /** The little face that sits before a sender's name — same shape and colour as the name. */
-function IdentityFace({ shape, colorId }: { shape: string; colorId: string }) {
+function IdentityFace({ shape, colorId, size = 18 }: { shape: string; colorId: string; size?: number }) {
   return (
-    <span className="inline-flex shrink-0" aria-hidden="true" style={{ width: 18, height: 18 }}>
-      <BloubAvatar size={18} frameSize={18} fitBody shape={shape} colorId={colorId} frozenAt={1} animated={false} />
+    <span className="inline-flex shrink-0" aria-hidden="true" style={{ width: size, height: size }}>
+      <BloubAvatar size={size} frameSize={size} fitBody shape={shape} colorId={colorId} frozenAt={1} animated={false} />
     </span>
   );
 }
@@ -74,10 +74,11 @@ function IdentityFace({ shape, colorId }: { shape: string; colorId: string }) {
 /** A group message's sender label: a small face plus the name, both in the bot's Bloub colour. */
 export function SpeakerName({ label, botId, fallbackColor }: { label: string; botId?: string; fallbackColor?: MausColor | string }) {
   const iden = useBloubIdentity(botId, fallbackColor); // hook must run unconditionally
-  if (!botId) return <span className="text-[12px] font-medium text-ink-secondary">{label}</span>;
+  // Fork: the group's sender label is a step louder than upstream's 12px name and 18px face.
+  if (!botId) return <span className="text-[14px] font-medium text-ink-secondary">{label}</span>;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: iden.color }}>
-      <IdentityFace shape={iden.shape} colorId={iden.colorId} />
+    <span className="inline-flex items-center gap-1.5 text-[14px] font-medium" style={{ color: iden.color }}>
+      <IdentityFace shape={iden.shape} colorId={iden.colorId} size={22} />
       {label}
     </span>
   );

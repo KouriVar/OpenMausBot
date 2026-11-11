@@ -22,7 +22,7 @@ import { GroupUsageChip } from "./GroupUsageChip";
 import { PlaceIcon } from "./PlaceIcon";
 import { roomMemberQueueTitle } from "./RoomQueueList";
 import { RoomWorkingFolderChip } from "./RoomWorkingFolder";
-import { Select } from "./Select";
+import { PillSelectMenu } from "@/fork/PillSelectMenu";
 import { GroupTaskPicker } from "./TaskPicker";
 
 export function DefaultResponderSelect({ group, members }: { group: Group; members: Bot[] }) {
@@ -34,29 +34,39 @@ export function DefaultResponderSelect({ group, members }: { group: Group; membe
     dispatch({ type: "patchGroup", groupId: group.id, patch: { defaultResponder: chosenResponder(nextValue, responder) } });
   };
 
+  // Fork: the app's own menu here too, so both dropdowns in this row match the conversation switcher's.
+  const chosen = responderChoice(responder);
+  const optionLabel = (value: string) => {
+    if (value === "auto") return jevOn ? t("room.responder.autoOption") : t("room.responder.autoOptionOff");
+    if (value === "everyone") return t("room.responder.everyoneOption");
+    if (value === "mentions") return t("room.responder.mentionsOption");
+    const member = members.find((candidate) => value === `member:${candidate.id}`);
+    return t("room.responder.leadOption", { name: member?.name ?? "" });
+  };
+  const items = [
+    ...members.map((member, index) => ({
+      key: `member:${member.id}`,
+      label: t("room.responder.leadOption", { name: member.name }),
+      ...(index === 0 ? { heading: t("room.responder.groupLead") } : {}),
+      checked: chosen === `member:${member.id}`,
+      onSelect: () => change(`member:${member.id}`),
+    })),
+    ...["auto", "everyone", "mentions"].map((value, index) => ({
+      key: value,
+      label: optionLabel(value),
+      ...(index === 0 ? { heading: t("room.responder.groupBehavior") } : {}),
+      checked: chosen === value,
+      onSelect: () => change(value),
+    })),
+  ];
   return (
-    <Select
-      variant="pill"
-      size="sm"
-      className="shrink-0 max-w-[190px]"
+    <PillSelectMenu
+      label={optionLabel(chosen)}
       title={responderTitle(group, members, jevOn)}
-      aria-label={t("room.responder.aria")}
-      value={responderChoice(responder)}
-      onChange={(event) => change(event.target.value)}
-    >
-      <optgroup label={t("room.responder.groupLead")}>
-        {members.map((member) => (
-          <option key={member.id} value={`member:${member.id}`}>
-            {t("room.responder.leadOption", { name: member.name })}
-          </option>
-        ))}
-      </optgroup>
-      <optgroup label={t("room.responder.groupBehavior")}>
-        <option value="auto">{jevOn ? t("room.responder.autoOption") : t("room.responder.autoOptionOff")}</option>
-        <option value="everyone">{t("room.responder.everyoneOption")}</option>
-        <option value="mentions">{t("room.responder.mentionsOption")}</option>
-      </optgroup>
-    </Select>
+      ariaLabel={t("room.responder.aria")}
+      items={items}
+      className="max-w-[190px]"
+    />
   );
 }
 

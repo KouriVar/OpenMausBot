@@ -20,25 +20,12 @@ const render = (props: Partial<Omit<Props, "children">> = {}) =>
   );
 
 describe("MessageActions", () => {
-  it("shows only reply and copy, hidden until the message is hovered or focused", () => {
+  // Fork: the bubble shows no hover buttons at all; its right-click menu carries reply, copy and the rest.
+  it("draws no hover row, and keeps the actions in the right-click menu", () => {
     const html = render({ menu: [pin] });
-    expect(html).toContain(">reply<");
-    expect(html).toContain(">copy<");
-    expect(html).toContain("opacity-0");
-    expect(html).toContain("pointer-events-none");
-    expect(html).not.toContain('data-shown="true"');
-  });
-
-  it("moves the rest behind a closed more menu", () => {
-    const html = render({ menu: [pin] });
-    expect(html).toContain('aria-label="Message actions"');
-    expect(html).toContain('aria-haspopup="menu"');
-    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain(">reply<");
+    expect(html).not.toContain('aria-haspopup="menu"');
     expect(html).not.toContain("Pin message");
-  });
-
-  it("drops the more button when nothing is in the menu", () => {
-    expect(render()).not.toContain('aria-haspopup="menu"');
   });
 
   it("stays out while a control must remain reachable", () => {
@@ -47,8 +34,8 @@ describe("MessageActions", () => {
     expect(html).not.toContain("opacity-0");
   });
 
-  it("mirrors the row on the user side so it starts at the bubble", () => {
-    expect(render({ side: "user" })).toContain("flex-row-reverse");
-    expect(render({ side: "bot" })).not.toContain("flex-row-reverse");
+  it("draws nothing of its own for either side, so the bubble alone decides where it sits", () => {
+    expect(render({ side: "user" })).toContain("contents");
+    expect(render({ side: "bot" })).toContain("contents");
   });
 });

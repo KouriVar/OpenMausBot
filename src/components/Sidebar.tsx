@@ -72,6 +72,7 @@ import { PhoneHero } from "./SidebarPhoneHero";
 import { SidebarProfileMenu } from "./SidebarProfileMenu";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { GlassBar, GlassScrollFrame, GlassScroller } from "./GlassScrollFrame";
+import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
 import { DesktopWorkspaceSwitcher, endCloudHowTo } from "./DesktopWorkspaceSwitcher"; import { PlaceTint } from "./PlaceTint"; import { ChromeRailToggle } from "./ChromeRailToggle";
 import { useCloudOwner } from "./CloudOwner";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
@@ -167,7 +168,8 @@ export function GroupListItem({
   const hasThreadList = (group.tasks?.length ?? 1) > 1 || Boolean(query);
   const expanded = !group.dm && threadsOpen && density !== "icons" && hasThreadList;
   const simpleRow = !advanced && density === "comfortable";
-  const railTile = !advanced && density === "icons";
+  // Fork: Advanced's rail uses Simple's square tile (and its selection frame).
+  const railTile = density === "icons" && (!advanced || FORK_ADVANCED_SIMPLE_SHELL);
   const roomBusy = Boolean(group.busyBotId) || Boolean(group.working);
   const members = group.memberIds
     .map((id) => state.bots.find((b) => b.id === id))
@@ -723,7 +725,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   useEffect(() => { if (iconOnly) setRenaming(false); }, [iconOnly]);
   const simpleRow = !advanced && !showThreads && density === "comfortable";
   const simpleList = !advanced && !iconOnly;
-  const railTile = iconOnly && !advanced;
+  const railTile = iconOnly && (!advanced || FORK_ADVANCED_SIMPLE_SHELL);
   const avatarSize = iconOnly ? (railTile ? SIDEBAR_AVATAR_RAIL : SIDEBAR_AVATAR_ADVANCED) : showThreads ? 32 : simpleRow ? 36 + (FORK_UI_1110 ? HERO_AVATAR_BUMP : 0) : 44; const tileRef = useRef<HTMLDivElement>(null);
   const tooltip = simpleList ? botTooltip(bot, instances) : undefined;
   const visible = useVisibleMessages(bot);
@@ -1018,10 +1020,13 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
   const storedDensity = useSidebarDensity();
   const density = collapseToIcons ? "icons" : storedDensity;
   const simple = !advanced && density !== "icons";
-  const simpleDesk = simple && !phone;
-  const rail = !advanced && density === "icons";
+  // Fork: Advanced's sidebar is built from Simple's chrome (top row, search, inbox row, footer, new button); its bot
+  // rows and section headers keep Advanced's own layout.
+  const chrome = simple || (advanced && FORK_ADVANCED_SIMPLE_SHELL && density !== "icons");
+  const simpleDesk = chrome && !phone;
+  const rail = density === "icons" && (!advanced || FORK_ADVANCED_SIMPLE_SHELL);
   const sidePanelOpen = state.computerOpen || state.inspectorOpen;
-  const sizing = useSidebarWidth({ simple: !advanced, sidePanelOpen, sidebarRef });
+  const sizing = useSidebarWidth({ simple: chrome, sidePanelOpen, sidebarRef });
   const [searchOpen, setSearchOpen] = useState(false);
   const searchShown = searchOpen || query !== "";
   const searchToggleRef = useRef<HTMLButtonElement>(null);
@@ -1184,19 +1189,20 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
       ref={importReturnRef}
       onClick={() => setPlusOpen((o) => !o)}
       aria-label={remoteClient ? t("sidebar.new") : t("sidebar.newOrShare")}
-      className={phone ? PHONE_TOP_BUTTON : corner ? SIMPLE_CORNER_BUTTON : rail || simple ? SIMPLE_TOP_BUTTON : cn(
+      className={phone ? PHONE_TOP_BUTTON : corner ? SIMPLE_CORNER_BUTTON : rail || chrome ? SIMPLE_TOP_BUTTON : cn(
         "text-ink-secondary transition-colors hover:bg-ink/[0.06] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         density === "icons" ? SIDEBAR_ICON_BUTTON : "flex size-8 items-center justify-center rounded-full",
       )}
       title={remoteClient ? t("sidebar.new") : t("sidebar.newOrShare")}
     >
-      <Plus size={corner ? 18 : phone || simple || density === "icons" ? SIDEBAR_ICON_SIZE : 18} strokeWidth={phone ? 2 : density === "icons" ? SIDEBAR_ICON_STROKE : 1.5} />
+      <Plus size={corner ? 18 : phone || chrome || density === "icons" ? SIDEBAR_ICON_SIZE : 18} strokeWidth={phone ? 2 : density === "icons" ? SIDEBAR_ICON_STROKE : 1.5} />
     </button>
     {plusMotion.shown && (
       <>
         <div role="menu" aria-label={remoteClient ? t("sidebar.new") : t("sidebar.newOrShare")} onKeyDown={navigateThreadMenu} className={cn(
           "absolute z-40 w-max min-w-[200px] overflow-hidden", MENU_SHEET,
-          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
+          // Fork: the + sits on the footer's action row, so its menu opens upward or it opens past the window.
+          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : FOOTER_ACTIONS ? "bottom-full right-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
           plusMotion.className,
         )} {...plusMotion.exitProps}>
           {advanced && <button
@@ -1314,16 +1320,16 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
         ) : null}{!phone && !framed && <ChromeRailToggle advanced={advanced} icons={density === "icons"} style={windowNoDragStyle} />}
         {rail && <div data-sidebar-rail-top className="flex flex-col items-center gap-2 pt-1" style={windowNoDragStyle} />}
         {density !== "icons" && (simpleDesk ? <div data-sidebar-top-slot className="min-w-0 flex-1" /> : (
-          <div data-sidebar-top-slot className={cn("@container/sidebar-top flex min-w-0 flex-1 items-center", simple && "justify-end")}>
-            {!simple && <div data-sidebar-top-spacer className="min-w-0 flex-1 @min-[96px]/sidebar-top:min-w-6" />}
-            <div data-sidebar-top-switcher className={simple ? "flex min-w-0 items-center" : "flex min-w-0 max-w-[140px] items-center"}>
-              <DesktopWorkspaceSwitcher inline pill={simple} cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} />
+          <div data-sidebar-top-slot className={cn("@container/sidebar-top flex min-w-0 flex-1 items-center", chrome && "justify-end")}>
+            {!chrome && <div data-sidebar-top-spacer className="min-w-0 flex-1 @min-[96px]/sidebar-top:min-w-6" />}
+            <div data-sidebar-top-switcher className={chrome ? "flex min-w-0 items-center" : "flex min-w-0 max-w-[140px] items-center"}>
+              <DesktopWorkspaceSwitcher inline pill={chrome} cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} />
             </div>
           </div>
         ))}
         {!rail && <div
           data-sidebar-top-buttons
-          className={cn("relative flex shrink-0 items-center", density === "icons" ? "flex-col gap-1" : corner ? "pointer-events-auto" : simpleDesk ? "gap-2" : simple ? "gap-1 pl-0.5" : "ml-0.5 gap-0.5")}
+          className={cn("relative flex shrink-0 items-center", density === "icons" ? "flex-col gap-1" : corner ? "pointer-events-auto" : simpleDesk ? "gap-2" : chrome ? "gap-1 pl-0.5" : "ml-0.5 gap-0.5")}
           style={windowNoDragStyle}
         >
           {simpleDesk && !FOOTER_ACTIONS && <SidebarSearchToggle ref={searchToggleRef} corner={corner} open={searchShown} onToggle={() => (searchShown ? closeSearch() : setSearchOpen(true))} />}
@@ -1333,7 +1339,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
       </div>
 
       <OrganizationIdentity compact={density === "icons"} />
-      {phone ? null : simple ? searchShown && <SidebarSearchPill query={query} onQuery={setQuery} onClose={closeSearch} /> : <div className={cn("pt-1 pb-3", density === "icons" ? "hidden" : "px-3")}>
+      {phone ? null : chrome ? searchShown && <SidebarSearchPill query={query} onQuery={setQuery} onClose={closeSearch} /> : <div className={cn("pt-1 pb-3", density === "icons" ? "hidden" : "px-3")}>
         <div className={cn("flex h-8 items-center gap-2 rounded-full px-3 focus-within:ring-focus", ELEVATED_CONTROL)}>
           <Search size={15} className="shrink-0 text-ink-secondary" />
           <input
@@ -1346,7 +1352,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
           />
         </div>
       </div>}
-      {!q && density !== "icons" && !(simpleDesk && FOOTER_ACTIONS) && <SidebarInboxRow icons={false} large={!advanced} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
+      {!q && density !== "icons" && !(simpleDesk && FOOTER_ACTIONS) && <SidebarInboxRow icons={false} large={chrome} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
       {universalPins && pinnedBots.length > 0 && !simpleDesk && (
         <div
           data-sidebar-universal-pins=""
@@ -1396,7 +1402,8 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
         onAvatars={(avatars) => setSidebarDensity(avatars ? "icons" : "comfortable")} style={windowNoDragStyle} />}
 
       <GlassScroller className={rail ? "[scrollbar-gutter:stable_both-edges]" : simpleDesk ? "px-3" : density === "icons" ? "px-2 [scrollbar-gutter:stable_both-edges]" : "px-2"}>
-        <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced ? "gap-0.5" : "gap-1 pb-2 pt-2")}>
+        {/* Fork: the icons rail keeps Simple's 8px breathing room at the top; only Advanced's list runs tighter. */}
+        <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced && density !== "icons" ? "gap-0.5" : "gap-1 pb-2 pt-2")}>
           {matchingBots.length === 0 && visibleGroups.length === 0 && q && q.length < MIN_QUERY && (
             <div className="px-3 py-6 text-center text-[13px] text-ink-secondary">{t("sidebar.noMatch", { query })}</div>
           )}

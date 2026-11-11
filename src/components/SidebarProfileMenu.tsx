@@ -6,10 +6,12 @@ import {
   Plus,
   Puzzle,
   Search,
+  SlidersHorizontal,
   ArrowLeftRight,
   Check,
   CircleUserRound,
   Cloud,
+  Compass,
   Download,
   FolderOpen,
   Gauge,
@@ -39,6 +41,10 @@ import { useCloudPlanSnapshot } from "./CloudTrialNotice";
 import type { WorkspacePlace } from "./DesktopWorkspaceSwitcher";
 import { railShown, usePlaces } from "@/lib/places";
 import { useAutomationsNeedYou } from "./SidebarFooterNav";
+import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
+import { setAdvancedUnlocked } from "@/fork/advanced-unlock";
+import { FORK_MODE_SWITCH_IN_MENU } from "@/fork/mode-switch";
+import { useWebPanels } from "@/lib/web-panel-preferences";
 import { useCloudFilesReady } from "@/lib/cloud-files";
 import { SidebarPopoverMenu, type SidebarMenuItem } from "./SidebarPopoverMenu";
 import { ShortcutHint } from "./ShortcutHint";
@@ -54,6 +60,7 @@ import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { displayAppVersionWithBuild } from "@/fork/version-label";
 import { FORK_MENU_BUILD_STAMP, MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
+import { FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -343,19 +350,25 @@ export function phoneMenuItems({
   ];
 }
 
-export function toolMenuItems({ activeView, automationsNeedYou, onAutomations, onTeamMap, onFiles, archived }: {
+export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPanel, panels = [], archived }: {
   activeView: string;
+  /** the open pinned panel, so its row reads as current */
+  activePanel?: string | null;
   automationsNeedYou: boolean;
   onAutomations: () => void;
   onTeamMap: () => void;
   /** set once My Cloud's files are ready to open */
   onFiles?: () => void;
+  /** opens a pinned web panel; the sidebar's own rows for them moved into this menu */
+  onPanel?: (id: string) => void;
+  panels?: Array<{ id: string; name: string }>;
   archived?: ArchivedBots;
 }): SidebarMenuItem[] {
   return [
     { key: "automations", label: t("sidebar.nav.automations"), icon: <Zap size={16} />, active: activeView === "routines", attention: automationsNeedYou, onSelect: onAutomations },
     { key: "team-map", label: t("sidebar.nav.teamMap"), icon: <UsersRound size={16} />, active: activeView === "team-map", onSelect: onTeamMap },
     ...(onFiles ? [{ key: "files", label: t("sidebar.nav.files"), icon: <FolderOpen size={16} />, active: activeView === "files", onSelect: onFiles }] : []),
+    ...(onPanel ? panels.map((panel) => ({ key: `web-panel-${panel.id}`, label: panel.name, icon: <Compass size={16} />, active: activeView === "web-panel" && activePanel === panel.id, onSelect: () => onPanel(panel.id) })) : []),
     ...(archived?.count ? [{ key: "archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, value: String(archived.count), onSelect: archived.open }] : []),
   ];
 }
@@ -471,6 +484,8 @@ export function profileMenuItems({
   move = [],
   account,
   accounts = [],
+  tools = [],
+  advancedToggle,
   simple,
   onUsage,
   onSettings,
@@ -490,7 +505,11 @@ export function profileMenuItems({
   account: string | null;
   /** who is signed in on this device: the last rows, next to where the menu opens */
   accounts?: SidebarMenuItem[];
-  simple?: { tools: SidebarMenuItem[]; places: SidebarMenuItem[] };
+  /** the sidebar's tools (automations, team map, apps, files): Advanced puts them here instead of the footer */
+  tools?: SidebarMenuItem[];
+  /** the row that takes this window to the other mode */
+  advancedToggle?: SidebarMenuItem | null;
+  simple?: { tools?: SidebarMenuItem[]; places: SidebarMenuItem[] };
   onUsage: () => void;
   onSettings: () => void;
   onShortcuts: () => void;
@@ -525,7 +544,8 @@ export function profileMenuItems({
   const accountItem: SidebarMenuItem | null = account ? { key: "account", label: account, icon: <CircleUserRound size={18} />, onSelect: onAccount } : null;
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
   if (!simple) {
-    const rest = [...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
+    // Fork: Advanced keeps its tools in this menu rather than a footer section, the same rows Simple already lists.
+    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
   const raised: SidebarMenuItem | null = update && updateTop ? {
@@ -538,11 +558,13 @@ export function profileMenuItems({
   const groups = [
     move,
     present(raised),
+    present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
-    simple.tools,
+    simple.tools ?? tools,
     [...present(usageItem), settings],
-    [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
-    [...simple.places, ...present(accountItem)],
+    // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
+    FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
+    FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],
     accounts,
   ].filter((group) => group.length > 0);
   return groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
@@ -604,6 +626,23 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const move = useAccountMove(state.config?.cloudHome === true, { onOpen: openCloudAccount, onPairPhone: () => dispatch(phonePairingSettingsAction()) });
   const accounts = useAccounts();
 
+  const automationsNeedYou = useAutomationsNeedYou();
+  const advancedNow = useAdvancedMode();
+  const advancedToggle: SidebarMenuItem | null = !FORK_MODE_SWITCH_IN_MENU ? null : {
+    key: "advanced-mode",
+    label: t("settings.advancedMode.title"),
+    icon: <SlidersHorizontal size={18} />,
+    onSelect: () => {
+      if (advancedNow) {
+        setAdvancedMode(false);
+        setAdvancedUnlocked(false);
+        return;
+      }
+      setAdvancedUnlocked(true);
+      setAdvancedMode(true);
+    },
+  };
+  const panels = useWebPanels();
   const railActions = useRailActions();
   const inboxSupport = useInboxSupport();
   const inboxView = useInboxView();
@@ -646,15 +685,20 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     move: move.items,
     account: cloudAccount ? cloudRowLabel(accounts.view) : null,
     accounts: accountMenuItems(accounts),
+    advancedToggle,
+    // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
+    tools: toolMenuItems({
+      activeView: state.activeView,
+      activePanel: state.webPanelId,
+      automationsNeedYou,
+      onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
+      onTeamMap: () => dispatch({ type: "showTeamMap" }),
+      onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPanel: (id) => dispatch({ type: "showWebPanel", id }),
+      panels,
+      archived: account?.archived,
+    }),
     ...(account ? { simple: {
-      tools: toolMenuItems({
-        activeView: state.activeView,
-        automationsNeedYou: account.automationsNeedYou,
-        onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
-        onTeamMap: () => dispatch({ type: "showTeamMap" }),
-        onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
-        archived: account.archived,
-      }),
       places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
     } } : {}),
     onUsage: () => dispatch({ type: "toggleAppSettings", open: true, section: "usage" }),
@@ -683,15 +727,20 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     move: move.items,
     account: cloudAccount ? cloudRowLabel(accounts.view) : null,
     accounts: accountMenuItems(accounts),
+    advancedToggle,
+    // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
+    tools: toolMenuItems({
+      activeView: state.activeView,
+      activePanel: state.webPanelId,
+      automationsNeedYou,
+      onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
+      onTeamMap: () => dispatch({ type: "showTeamMap" }),
+      onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPanel: (id) => dispatch({ type: "showWebPanel", id }),
+      panels,
+      archived: account?.archived,
+    }),
     ...(account ? { simple: {
-      tools: toolMenuItems({
-        activeView: state.activeView,
-        automationsNeedYou: account.automationsNeedYou,
-        onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
-        onTeamMap: () => dispatch({ type: "showTeamMap" }),
-        onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
-        archived: account.archived,
-      }),
       places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
     } } : {}),
     onUsage: () => dispatch({ type: "toggleAppSettings", open: true, section: "usage" }),

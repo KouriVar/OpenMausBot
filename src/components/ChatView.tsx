@@ -16,7 +16,6 @@ import { computerStartLine, useScreensWhile } from "@/lib/computer-start";
 import { rememberComputerPanelOpen } from "@/lib/computer-panel-focus";
 import { useCaptionChrome, useDesktopCapabilities } from "@/components/DesktopCapabilities";
 import {
-  api,
   currentTaskBot,
   useStore,
   formatTime,
@@ -94,8 +93,9 @@ import { CallRecordRow } from "./CallRecordRow";
 import { AttachmentGallery, collectMessageFiles, replyAttachmentGroup, splitMessageAttachments } from "./AttachmentGallery";
 import { ScreenFrame } from "./ScreenFrame";
 import { CompactionChip, DigestChip } from "./DigestChip";
-import { RenameTitle } from "./RenameTitle"; import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
+import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
 import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill"; import { useStoreRef } from "@/state/store-ref";
+import { useReaction } from "./Reactions"; import { REACTIONS, type Reaction } from "../../shared/reactions";
 import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { ChatHeaderMenu, ChatMoreMenu } from "./ChatMoreMenu"; import { TeamOwnHelperHeader, TeamPrivateFirstLine, TeamPrivateHeader, TeamSharedHeader } from "./TeamPrivateChatsLine";
 import { useChatFindRequests } from "@/lib/chat-find";
@@ -429,8 +429,11 @@ const Bubble = memo(function Bubble({
   };
   const togglePin = () =>
     dispatch({ type: "updateTask", botId, threadId, patch: { pinnedMessageId: pinned ? "" : message.id } });
+  // Fork: the bubble's right-click menu offers the quick reactions itself, so the row needs them here.
+  const reaction = useReaction(threadId, message);
   const botActions = !user && (
-    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={simple ? [...replyAndCopy(() => onReply(message), text), ...botMenu] : botMenu}>
+    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={[...replyAndCopy(() => onReply(message), text), ...botMenu]}
+      reactions={canReact && !peer ? { emojis: REACTIONS, mine: reaction.mine, onPick: (emoji) => reaction.react(emoji as Reaction) } : null}>
       {!simple && <ReplyAction onReply={() => onReply(message)} />}
       {canReact && !peer && <ReactAction threadId={threadId} message={message} />}
       {!simple && text && <CopyButton text={text} className={messageActionClass} />}
@@ -449,7 +452,7 @@ const Bubble = memo(function Bubble({
             side="user"
             time={formatTime(message.at)}
             menu={[
-              ...(simple ? replyAndCopy(() => onReply(message), visibleText) : []),
+              ...replyAndCopy(() => onReply(message), visibleText),
               ...userMessageMenu({
                 messageId: message.id,
                 onEdit: !speaker && message.kind === "text" && !webhookView && !hasAttachments && !message.id.startsWith("optimistic-")
@@ -834,8 +837,6 @@ const MessagesList = memo(function MessagesList({
   );
 });
 
-const CHATHEAD_PILL = `flex min-w-0 items-center gap-2 rounded-full py-0.5 pl-1.5 text-ink ${ELEVATED_FLOAT}`;
-
 export function ChatView({ bot: profile }: { bot: Bot }) {
   const bot = useMemo(() => currentTaskBot(profile), [profile]);
   const { state, dispatch } = useStore();
@@ -1044,52 +1045,15 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
       >
         <div data-chathead-row className={cn("flex items-center justify-between", phone ? "gap-2" : "@max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:gap-y-1 @min-[30rem]/chathead:grid @min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(max-content,1fr)]")}>
         <div data-chathead-identity className={cn("flex min-w-0 items-center gap-2", phone ? "flex-1" : "@max-[30rem]/chathead:basis-full @min-[30rem]/chathead:col-start-2 @min-[30rem]/chathead:justify-self-center", simpleHead && phone && "justify-center")} style={headerNoDragStyle}>
-          {simpleHead ? (
+          {simpleHead || advanced ? (
+            // Fork: one pill for both modes — no rename pencil, no chief tag; the avatar, the name and the chevron state
+            // alone.
             <ChatHeadPill
               bot={bot}
               avatar={{ state: stateForBot({ ...bot, messages }), motion: mascotMotion?.kind ?? "none", motionKey: mascotMotion?.nonce ?? 0, animated: headerAnimated }}
               privacy={privateChat ? { kind: "private" } : ownHelper ? { kind: "ownHelper" } : sharedChat && team ? { kind: "shared", team: team.name, onlyPeopleAdded: bot.onlyPeopleAdded } : null}
               onToggle={() => dispatch({ type: "toggleSettings", open: !state.settingsOpen })}
             />
-          ) : advanced ? (
-            <div data-chathead-pill className={cn(CHATHEAD_PILL, "pr-1")}>
-              <button
-                type="button"
-                onClick={() => dispatch({ type: "toggleSettings", open: true })}
-                className="flex shrink-0 items-center justify-center rounded-full"
-                title={t("chat.openProfile")}
-                aria-label={t("chat.openProfileAria", { name: bot.name })}
-              >
-                <BotAvatar
-                  bot={bot}
-                  messages={messages}
-                  state={stateForBot({ ...bot, messages })}
-                  size={24}
-                  motion={mascotMotion?.kind ?? "none"}
-                  motionKey={mascotMotion?.nonce ?? 0}
-                  animated={headerAnimated}
-                  sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader}
-                />
-              </button>
-              <RenameTitle
-                value={bot.name}
-                onCommit={(name) => {
-                  if (window.ogb?.remoteClient?.active) {
-                    void api(`/api/bots/${bot.id}/profile`, { method: "PATCH", body: JSON.stringify({ name }) })
-                      .then(({ bot: updated }) => dispatch({ type: "botPatched", bot: updated }))
-                      .catch((cause) => dispatch({ type: "error", message: cause instanceof Error ? cause.message : String(cause) }));
-                  } else {
-                    dispatch({ type: "updateBot", botId: bot.id, patch: { name } });
-                  }
-                }}
-                onActivate={() => dispatch({ type: "toggleSettings", open: true })}
-                showEditButton
-                className="truncate text-[14px] font-semibold text-ink"
-                editButtonClassName="size-6 rounded-full"
-                inputClassName="max-w-[220px] rounded-full bg-inset px-2 py-0.5 text-[14px] font-semibold"
-              />
-              {chiefOfStaffBadge(bot)}
-            </div>
           ) : (
             <button
               type="button"

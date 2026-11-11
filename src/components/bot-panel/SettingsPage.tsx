@@ -1,3 +1,4 @@
+import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
 import { useState } from "react";
 import { AppWindow, AudioLines, Bell, ChevronRight, ExternalLink, Eye, FileText, MessageSquareText, ShieldCheck, Slack, Tag } from "lucide-react";
 
@@ -29,7 +30,7 @@ import { BackupAis } from "./BackupAis";
 import { HeavyBotRow } from "./HeavyBotRow";
 import { SoulChanges } from "./SoulChanges";
 import type { SimplePageId } from "./page-registry";
-import { buttonCls, Card, ColRow, NavRow, RowIcon, rowCls, RowText, Segmented, SwitchRow, TrashButton, type SegmentOption } from "./rows";
+import { buttonCls, Card, ColRow, DisclosureCard, NavRow, RowIcon, rowCls, RowText, Segmented, SwitchRow, TrashButton, type SegmentOption } from "./rows";
 
 type Derived = ReturnType<typeof useBotSettingsDerived>;
 
@@ -141,7 +142,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
             <RowIcon icon={FileText} />
             <RowText
               title={t("botSettings.simple.instructions")}
-              hint={<span className="line-clamp-1">{firstSentence(bot.soul ?? "") || t("botPanel.instructionsHint", { name })}</span>}
+              hint={FORK_BOT_SETTINGS_QUIET ? undefined : <span className="line-clamp-1">{firstSentence(bot.soul ?? "") || t("botPanel.instructionsHint", { name })}</span>}
             />
             <ChevronRight size={15} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
           </button>
@@ -165,7 +166,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
               options={actsOptions}
             />
           </div>
-          {approval.choice && (
+          {approval.choice && !FORK_BOT_SETTINGS_QUIET && (
             <div data-panel-row="thread-approval" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 pl-[38px]">
               <span className="text-[13px] text-ink-secondary">{t("botPanel.thisConversation")}</span>
               <span className="ms-auto flex">
@@ -193,24 +194,16 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
 
       <BackupAis bot={bot} onChange={(fallback) => patch({ fallback })} />
 
-      <Card anchor="call">
+      <DisclosureCard anchor="call" icon={AudioLines} title={t("call.mode.menu")}>
         <ColRow data-panel-row="call-mode">
-          <div className="flex items-center gap-2.5">
-            <RowIcon icon={AudioLines} />
-            <RowText title={t("call.mode.menu")} />
-          </div>
           <div className="pl-[38px]">
             <Segmented attr="data-call-mode" label={t("call.mode.menu")} value={callMode} onChange={setCallMode} options={callOptions} />
           </div>
         </ColRow>
-      </Card>
+      </DisclosureCard>
 
-      <Card anchor="replies">
+      <DisclosureCard anchor="replies" icon={MessageSquareText} title={t("botSettings.replyStyle.title")}>
         <ColRow data-panel-row="reply-style">
-          <div className="flex items-center gap-2.5">
-            <RowIcon icon={MessageSquareText} />
-            <RowText title={t("botSettings.replyStyle.title")} />
-          </div>
           <div className="pl-[38px]">
             <Segmented
               attr="data-reply-style"
@@ -229,14 +222,14 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
           checked={bot.notifications}
           onChange={toggleNotifications}
         />
-      </Card>
+      </DisclosureCard>
 
       <Card anchor="uses">
         <NavRow
           data-panel-page="apps"
           icon={AppWindow}
           title={t("botPanel.appsRow")}
-          value={enabledApps.length > 0 ? enabledApps.join(", ") : t("botPanel.appsNoneYet")}
+          value={FORK_BOT_SETTINGS_QUIET ? undefined : enabledApps.length > 0 ? enabledApps.join(", ") : t("botPanel.appsNoneYet")}
           onClick={() => onOpen?.("apps")}
         />
         <label data-panel-row="job" className={cn(rowCls, "cursor-text")}>
