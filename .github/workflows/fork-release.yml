@@ -91,6 +91,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      # A job without a checkout has no files: body_path would fail with ENOENT and the release body would be empty.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
           path: assets
