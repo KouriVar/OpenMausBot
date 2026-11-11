@@ -98,7 +98,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
-        {primary && bot.chiefOfStaff && <ChiefBadge ring={RING} />}
+        {/* The 80px box centres a 64px avatar, so the star tucks in 8px to sit on the body's edge. */}
+        {primary && bot.chiefOfStaff && <ChiefBadge ring={RING} className="bottom-2 right-2" />}
         {FORK_ONE_AVATAR_DOT ? (
           <>
             {onLiveCall && (
