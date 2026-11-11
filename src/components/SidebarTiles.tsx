@@ -79,8 +79,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
       onKeyDown={onKeyDown}
       onContextMenu={(event) => openBotContextMenu(onMenu, bot.id, event)}
       className={cn(
-        "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 pt-2 transition-colors duration-150", SIMPLE_ROW_FOCUS,
-        primary ? "size-[92px]" : "h-[92px] w-[78px]", ROW_RADIUS_SIMPLE,
+        "flex shrink-0 cursor-pointer flex-col items-center bg-[var(--tile)] px-1 transition-colors duration-150", SIMPLE_ROW_FOCUS,
+        primary ? "size-[96px] pt-1" : "h-[92px] w-[78px] pt-2", ROW_RADIUS_SIMPLE,
         selected ? "[--tile:var(--color-raised)]" : "[--tile:var(--color-panel)] hover:[--tile:color-mix(in_srgb,var(--color-raised)_50%,var(--color-panel))]",
         pinnedCircleDragClass({ drag, dragging, drop }),
       )}
@@ -89,13 +89,13 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
         <BotAvatar
           bot={bot}
           state={stateForBot({ ...bot, messages: visible })}
-          size={56}
+          size={primary ? 72 : 56}
           motion={mascotMotion?.kind ?? "none"}
           motionKey={mascotMotion?.nonce ?? 0}
           animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
         />
         {primary && bot.chiefOfStaff && (
-          <span data-testid="chief-badge" className={cn("absolute flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", FORK_ONE_AVATAR_DOT ? "-left-1 -top-1" : "-bottom-px -right-px", RING)}>
+          <span data-testid="chief-badge" className={cn("absolute -bottom-px -right-px flex size-4 items-center justify-center rounded-full bg-[#E8993A] text-white", RING)}>
             <Crown size={10} strokeWidth={1.5} fill="currentColor" aria-hidden="true" />
           </span>
         )}
@@ -106,7 +106,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
                 <Phone size={9} strokeWidth={2.5} aria-hidden="true" />
               </span>
             )}
-            {tileDot && <AvatarStatusDot state={tileDot} surface={RING} />}
+            {/* The chief's card keeps its badge at the avatar's bottom-right, so the dot takes the top corner there. */}
+            {tileDot && <AvatarStatusDot state={tileDot} surface={RING} corner={primary && bot.chiefOfStaff ? "top" : "bottom"} />}
           </>
         ) : onLiveCall ? (
           <span data-testid="live-call-badge" className={cn("absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-success", RING)}>
@@ -125,7 +126,7 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
           </span>
         )}
       </span>
-      <span className="mt-1.5 flex w-full min-w-0 justify-center">
+      <span className={cn("flex w-full min-w-0 justify-center", primary ? "mt-0.5" : "mt-1.5")}>
         <RenameTitle
           value={bot.name}
           editRequest={renameRequest}
