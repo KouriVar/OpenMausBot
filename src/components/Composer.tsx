@@ -70,6 +70,7 @@ import { useColorScheme } from "@/lib/color-scheme";
 import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
 import { COMPOSER_BOTTOM_FADE, FORK_UI_1110B } from "@/fork/ui-batch-1110b";
+import { COMPOSER_FADE_BOTTOM, COMPOSER_FADE_BOTTOM_SIMPLE, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
 import { CallButton } from "./CallView";
 import { GroupCallButton } from "./GroupCallView";
@@ -786,7 +787,7 @@ export function Composer({
               melts it into the canvas, instead of one opaque block cutting it off at the input's top. The
               layer sits under the composer (which keeps its own opaque pill) and over the bubbles. */}
           {COMPOSER_BOTTOM_FADE ? (
-            <div aria-hidden data-fork-composer-fade className="pointer-events-none absolute -left-5 -right-5 top-0 -bottom-3" />
+            <div aria-hidden data-fork-composer-fade className={cn("pointer-events-none absolute -left-5 -right-5 top-0", !FORK_CHAT_PANE_CLIP && "-bottom-3", FORK_CHAT_PANE_CLIP && (simpleDock ? COMPOSER_FADE_BOTTOM_SIMPLE : COMPOSER_FADE_BOTTOM))} />
           ) : (
             <div
               aria-hidden

@@ -86,6 +86,23 @@ panel is the packaged main process's (`app.setAboutPanelOptions`), so its own pa
 插槽，这行由 `src/fork/ui-batch-1111.ts` 的 `FORK_MENU_BUILD_STAMP` 控制：纯展示，不改任何行为。About 面板属于
 已打包的主进程（`app.setAboutPanelOptions`），它括号里的数字要等 0.4 重新打包才会跟上。
 
+### D004 · The transcript no longer shows below the composer
+
+Simple's composer carries `pb-4`, and the fade layer behind it stopped at `-bottom-3`, 12 of those 16px: a 4px
+strip along the pane's bottom edge kept whatever the transcript, a panel or the next row had drawn there. The
+layer now reaches `-bottom-4` in Simple (Advanced's `pb-3` keeps `-bottom-3`), and the chat pane takes
+`overflow-hidden`, so nothing it draws reaches outside its own box and its rounded corners are the only edge it
+has. The fade is still the canvas colour, so both themes and every skin follow, and the transcript keeps its
+bottom padding for the composer rather than a negative margin or a taller scroll area. Both views get it:
+`ChatView` and `GroupView`, behind `FORK_CHAT_PANE_CLIP` in `src/fork/ui-batch-1111.ts`.
+
+中文：简易模式的输入框自带 `pb-4`，而它背后的渐隐层只到 `-bottom-3`（16px 里的 12px），于是会话面板底边留下
+一条 4px 的缝，正文、侧边面板或下一行画到那里的内容都会露出来。现在简易模式让渐隐层到 `-bottom-4`（高级模式
+`pb-3` 仍用 `-bottom-3`），并给会话面板加 `overflow-hidden`：面板自己画的东西不再越出它的盒子，圆角就是它唯一的
+边界。渐隐依旧是画布色，深浅主题与所有皮肤都自动跟随；消息区仍用 padding-bottom 给输入框留位置，没有负 margin、
+也没有额外高度。`ChatView` 与 `GroupView` 两个视图都改，由 `src/fork/ui-batch-1111.ts` 的 `FORK_CHAT_PANE_CLIP`
+控制。
+
 ## V0.3 · 2026-11-11 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 The third personal build: 0.3.0 in the bundle, shown as **V0.3** in the app, still cut from official `v0.1.151`.
