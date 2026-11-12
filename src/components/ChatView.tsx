@@ -435,7 +435,7 @@ const Bubble = memo(function Bubble({
   );
 
   return (
-    <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", simple && join?.above && SIMPLE_STACKED)}>
+    <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", join?.above && SIMPLE_STACKED)}>
       {message.relay ? <RelayLabel message={message} /> : peer && <PeerLabel peer={peer} />}
       {speaker && <div className="mb-0.5 px-1 text-[12px] font-medium text-ink-secondary">{speaker}</div>}
       <div className={cn("flex w-full items-center gap-1.5", user ? "justify-end" : "justify-start")}>
@@ -474,7 +474,7 @@ const Bubble = memo(function Bubble({
             // instead of the 7px its text rows use.
             hasImages && !attachmentsOnly && !split && !tabled && "pt-3",
             mixedImages && !split && !tabled && "pb-3",
-            simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
+            join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}
           title={workedFor === undefined ? new Date(message.at).toLocaleString(intlLocale()) : `${workedLabel(workedFor)} · ${new Date(message.at).toLocaleString(intlLocale())}`}
@@ -699,7 +699,7 @@ const MessagesList = memo(function MessagesList({
   const focusedId = focus && !focus.consumed ? focus.messageId : null;
   const unreadIds = useMemo(() => unreadMessageIds(messages, unreadDividerId), [messages, unreadDividerId]);
   let dividerPlaced = false;
-  const layout = useMemo(() => simple ? simpleRowLayout(items, { botId, showToolCalls, unreadIds }) : null, [simple, items, unreadIds, showToolCalls, botId]);
+  const layout = useMemo(() => simpleRowLayout(items, { botId, showToolCalls, unreadIds, simple }), [simple, items, unreadIds, showToolCalls, botId]);
   const joins = layout?.joins;
   const durations = useMemo(() => simple ? turnDurations(messages) : null, [messages, simple]);
   // Fork: one notice per turn is enough. A rescue can arrive as two rows (the row with its buttons and
@@ -816,7 +816,7 @@ const MessagesList = memo(function MessagesList({
         })();
         if (!row) return divider && <div key={m.id} className="contents">{divider}</div>;
         return (
-          <div key={m.id} className="contents" data-mid={m.id} data-tuck={layout?.tucks[i] ? "" : undefined}>
+          <div key={m.id} className="contents" data-mid={m.id} data-tuck={simple && layout?.tucks[i] ? "" : undefined}>
             {newDay && <DaySeparator at={m.at} today={today} simple={simple} />}
             {divider}
             {m.automation && <AutomationCaption message={m} line={m.automation} botId={botId} />}{m.inbox && <InboxCaption message={m} />}
@@ -1147,9 +1147,8 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
       >
         <div
           ref={transcriptRef}
-          // Simple mode spaces groups 16px apart, Advanced 12px.
           data-simple-rows={advanced ? undefined : ""}
-          className="glass-scroller-content chat-column relative flex w-full flex-col gap-3 data-[simple-rows]:gap-4"
+          className="glass-scroller-content chat-column relative flex w-full flex-col gap-4"
           style={{ paddingBottom: composerDock.pad }}
           role="log"
           // off: a polite log re-reads every tick and chip while the bot works; TranscriptAnnouncer speaks once when

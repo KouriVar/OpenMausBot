@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE011 · The 0.5.9 round: Advanced mode stacks bubbles the way Simple does
+
+In Simple mode consecutive messages from one bot (or from the person) draw as one block: the corners facing a neighbour
+tighten, the next bubble pulls up and the group reads from top to bottom. Advanced mode drew each message as its own
+separate bubble at full radius. Both modes now join and space bubbles the same way, so a run of replies looks like one
+conversation in either mode.
+
+中文：**V0.5.9 这一轮**让高级模式的气泡和简易模式一样堆叠：同一个 bot（或同一个人）连续几条消息时，相邻那一侧的圆角收小、
+下一条往上一提，整组读起来是一段对话；原来高级模式每条各自一个全圆角气泡。现在两种模式的堆叠方式、气泡间距统一。
+
 ### OE010 · The 0.5.8 round: the profile panel's rows look alike and its search box is as round as the list
 
 In the Advanced profile panel the section whose card is open filled its row with a control tint and darker text; the rest
