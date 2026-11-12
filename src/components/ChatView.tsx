@@ -135,7 +135,7 @@ import { EmptyChat } from "./ChatEmptyState";
 import { PinnedBanner } from "./ChatPinnedBanner";
 import { highlightCitationSource } from "@/lib/citations-dom";
 import { useCanWriteIn, useReactor } from "@/lib/cloud-guest";
-import { formattedReplyWidth, isFormattedReply, splitReplyBlocks } from "@/lib/formatted-reply";
+import { splitReplyBlocks } from "@/lib/formatted-reply";
 import { otherSpeaker } from "@/lib/own-profile";
 import { latestFailure, latestReply, type TranscriptSnapshot } from "@/lib/transcript-announcer";
 import { pendingApprovals } from "./PendingApproval";
@@ -386,7 +386,6 @@ const Bubble = memo(function Bubble({
   // Simple mode draws each table of a reply as its own card between the reply's prose bubbles.
   const blocks = useMemo(() => simple && !user && !peer && !viewRaw && !split && text ? splitReplyBlocks(text) : null, [simple, user, peer, viewRaw, split, text]);
   const tabled = Boolean(blocks?.some((block) => block.kind === "table"));
-  const formatted = !simple && !user && !split && isFormattedReply(text);
   const webhookView = user ? webhookMessageView(text) : null;
   const cited = user && !webhookView ? splitTranscriptCitations(text) : null;
   const attachments = user && !webhookView ? splitTranscriptAttachments(cited?.display ?? text) : null;
@@ -470,13 +469,11 @@ const Bubble = memo(function Bubble({
                 ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, (attachmentsOnly || split) && "p-1.5")
                 : user
                   ? cn("whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]", ownBubbleStyle && "user-bubble-colored", simple && ownBubbleStyle && "antialiased")
-                  : formatted
-                    ? cn(formattedReplyWidth(text), "px-1 text-ink")
-                    : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
+                  : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
             // Fork: a bubble that carries a picture keeps the same inset on top as the bubble's sides give it,
             // instead of the 7px its text rows use.
             hasImages && !attachmentsOnly && !split && !tabled && "pt-3",
-            mixedImages && !split && !tabled && (formatted ? "pb-1" : "pb-3"),
+            mixedImages && !split && !tabled && "pb-3",
             simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}

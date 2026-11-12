@@ -120,7 +120,7 @@ describe("conversational replies", () => {
     expect(menu.querySelector("[data-message-reactions]")?.querySelectorAll("button").length).toBeGreaterThan(0);
   });
 
-  it("puts a formatted reply in the bot's bubble in Simple mode, and on the open page in Advanced", async () => {
+  it("puts a formatted reply in the bot's bubble in both modes, so streaming and the saved message look the same", async () => {
     const bubbleOf = () => document.querySelector("[data-mid='m2'] [data-chat-bubble]")!;
     await draw(profile({}));
     expect(bubbleOf().getAttribute("data-chat-bubble")).toBe("simple");
@@ -129,8 +129,8 @@ describe("conversational replies", () => {
     try {
       await draw(profile({}));
       expect(bubbleOf().getAttribute("data-chat-bubble")).toBe("");
-      expect(bubbleOf().classList).not.toContain("bg-card");
-      expect(bubbleOf().className).toContain("max-w-[min(var(--chat-prose-max),var(--chat-card-pct))]");
+      expect([...bubbleOf().classList]).toEqual(expect.arrayContaining(["bg-card", "rounded-[18px]"]));
+      expect(bubbleOf().className).not.toContain("chat-prose-max");
     } finally {
       setAdvancedMode(false);
     }

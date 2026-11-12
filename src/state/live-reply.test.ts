@@ -223,6 +223,17 @@ describe("a reply keyed by the id the server streams it under", () => {
     expect(liveReplies("t"), "nothing stale once the saved messages land").toEqual([]);
   });
 
+  it("draws one bubble when the draft and its saved message are both in the transcript", () => {
+    // The server stamps the saved message with the item id its words streamed under. Both exist at once: the draft
+    // bubble must draw nothing and the saved message is the one row.
+    said("Monday: gym. ", "a");
+    finished("Monday: gym.", "a");
+    saved("m1", "a");
+    const transcript = [{ id: "m1", itemId: "a" }] as unknown as Message[];
+    expect(liveReplyRows(liveReplies("t"), transcript).rows, "the draft draws nothing").toEqual([]);
+    expect(withLiveRows(liveReplies("t"), transcript, transcript).rows.map((row) => row.id), "one bubble").toEqual(["m1"]);
+  });
+
   it("swaps by id even when the message frame never reached the store, as after a reload", () => {
     said("Answer ", "a");
     finished("Answer.", "a");

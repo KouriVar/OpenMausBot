@@ -27,6 +27,18 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE005 · The 0.5.3 round: a streamed reply no longer shows twice, and bot bubbles look the same
+
+A bot reply that was still streaming showed twice while the turn went on: the live draft bubble and the saved message
+were both drawn, because the saved message did not carry the item id its words streamed under, so the client could not
+swap one for the other. The server now stamps that id on the saved message, and the client removes the draft as soon as
+the saved message arrives. Every bot text message is also drawn in this fork's bubble now, formatted or not, so a reply
+looks the same while it streams and after it lands.
+
+中文：**V0.5.3 这一轮**修掉流式回复重复：回合还在进行时，流式草稿气泡和已落库的消息会同时画出来，因为落库消息没有带上它
+流式时所用的 item id，客户端换不掉草稿。现在服务端在落库消息上带这个 id，客户端在正式消息到达时立刻移除草稿。同时所有
+bot 文本消息（包括格式化回复）都统一用我方气泡样式，流式中和落库后外观一致。
+
 ### OE004 · The 0.5.3 round: one status dot per avatar, again
 
 The 0.5.3 round puts every sidebar avatar back to one status dot. An unread bot in the icon rail no longer wears a second

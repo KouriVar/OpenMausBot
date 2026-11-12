@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { formattedReplyWidth, isFormattedReply, splitReplyBlocks } from "@/lib/formatted-reply";
+import { splitReplyBlocks } from "@/lib/formatted-reply";
 import { activeLocale, intlLocale, t } from "@/lib/i18n";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { useReactor } from "@/lib/cloud-guest";
@@ -218,9 +218,7 @@ function RoomTextMessage({
             !user && emerging && !streamedReply(m.id) && "turn-answer",
             tabled || (!user && !m.text?.trim() && !m.replyToId && m.attachments?.length)
               ? "text-ink"
-              : !simple && !user && isFormattedReply(m.text ?? "")
-                ? cn(formattedReplyWidth(m.text ?? ""), "px-1 text-ink")
-                : user
+              : user
                   ? cn("chat-text whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]")
                   : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
           )}
