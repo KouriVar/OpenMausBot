@@ -242,7 +242,8 @@ function icon(Drawing: RemixiconComponentType, name: string): LucideIcon {
   const base = `lucide lucide-${kebab(name)}`;
   // Remix's props reserve children and forward the rest of SVGProps unchanged.
   const Draw = Drawing as unknown as ComponentType<SVGProps<SVGSVGElement> & { size?: number | string }>;
-  return function Icon({ size = 24, className, ...rest }: LucideProps) {
+  // lucide's absoluteStrokeWidth sizes the stroke; it is not an SVG attribute, so it cannot be forwarded.
+  return function Icon({ size = 24, className, absoluteStrokeWidth: _absoluteStrokeWidth, ...rest }: LucideProps) {
     return <Draw size={size} className={className ? `${base} ${className}` : base} {...rest} />;
   };
 }
