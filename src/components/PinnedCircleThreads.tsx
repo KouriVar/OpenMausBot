@@ -9,6 +9,7 @@ import { stateForBot } from "@/lib/mascot";
 import { cn } from "@/lib/cn";
 import { searchMatchesThreads, useSearchDisclosure } from "@/lib/search-disclosure";
 import { lastNonReceipt } from "@/lib/receipts";
+import { lastTurnFailed } from "@/lib/failed-turn";
 import { t } from "@/lib/i18n";
 import { BotProjectDialog } from "./BotProjects";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -193,8 +194,10 @@ export const PinnedBotCircle = memo(function PinnedBotCircle({
   const unread = bot.unread || activityTasks.some((task) => task.unread);
   const noticing = useUnreadNotice(Boolean(bot.unread));
   const radius = avatarCropRadius(botAvatarProfile(bot).avatarCrop);
-  // Fork: the one dot the avatar wears, in place of the unread dot above and the working and waiting dots below.
-  const pinnedDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ waiting, working, unread }) : null;
+  // Fork: the one dot the avatar wears, at its bottom-right, its colour the one state that matters most.
+  const pinnedDot = FORK_ONE_AVATAR_DOT
+    ? avatarDotState({ error: lastTurnFailed(lastNonReceipt(visible)) || bot.activity === "dead" || bot.activity === "no-signal", waiting, working, unread })
+    : null;
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
       <button
@@ -234,30 +237,7 @@ export const PinnedBotCircle = memo(function PinnedBotCircle({
               animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
             />
           </span>
-          {FORK_ONE_AVATAR_DOT ? (
-            pinnedDot && <AvatarStatusDot state={pinnedDot} surface="border-2 border-panel" />
-          ) : (
-            <>
-              {unread && (
-                <span className="absolute top-0.5 right-0.5 size-2.5 rounded-full border-2 border-panel bg-accent" aria-label={t("task.unreadMany")} />
-              )}
-              {working && (
-                <span
-                  data-testid="working-dot"
-                  className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-panel bg-success"
-                />
-              )}
-              {waiting && (
-                <span
-                  data-testid="waiting-dot"
-                  role="status"
-                  aria-label={t("sidebar.preview.waiting")}
-                  title={t("sidebar.preview.waiting")}
-                  className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-panel bg-warning"
-                />
-              )}
-            </>
-          )}
+          {pinnedDot && <AvatarStatusDot state={pinnedDot} surface="border-2 border-panel" />}
         </span>
         <span className="w-full truncate text-center text-[11px] leading-4 text-ink">{bot.name}</span>
       </button>

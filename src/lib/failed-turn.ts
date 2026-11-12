@@ -29,6 +29,12 @@ export function botEngine(bot: Bot | undefined, instances: InstanceInfo[]): Inst
   return bot && instances.find((instance) => instance.instanceId === bot.modelSelection.instanceId);
 }
 
+/** Whether the newest line says the last turn failed. A turn the person stopped is not an error. */
+export function lastTurnFailed(last: Message | undefined): boolean {
+  const cause = last?.kind === "activity" && last.tool?.name ? failedTurnCause(last.tool.name) : null;
+  return cause !== null && !isClientCancellation(cause);
+}
+
 export function failedTurnNotice(tool: ActivityTool): { cause: string; notice: string | null } {
   const cause = failedTurnCause(tool.name) ?? tool.name;
   return { cause, notice: isNoticeCode(tool.nameCode) ? activityText(tool, cause) : null };

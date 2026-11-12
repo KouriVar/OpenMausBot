@@ -9994,5 +9994,6 @@
   "settings.boldText.subtitle": "Messages and the composer draw one weight heavier. Saved on this device; off by default.",
   "chat.setupCard.greeting": "Hi, I'm {name}. What would you like me to do?",
   "sidebar.hideSidebar": "Hide sidebar",
-  "sidebar.revealHidden": "Show the sidebar"
+  "sidebar.revealHidden": "Show the sidebar",
+  "sidebar.preview.failed": "The last turn failed"
 }

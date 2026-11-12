@@ -17,6 +17,7 @@ import { cn } from "@/lib/cn";
 import { searchMatchesThreads, useSearchDisclosure } from "@/lib/search-disclosure";
 import { useHeldMenuMotion, useMenuMotion } from "./MenuMotion";
 import { lastNonReceipt } from "@/lib/receipts";
+import { lastTurnFailed } from "@/lib/failed-turn";
 import { botPreview, groupPreview } from "./sidebar-preview";
 import { activeLocale, t } from "@/lib/i18n";
 import { copyText } from "@/lib/copy-text";
@@ -95,7 +96,7 @@ import { attentionHasRunningWork, attentionJumpAction, attentionUnpinAction, cro
 import { SidebarNoBots, SidebarTileGrid } from "./SidebarTiles";
 import { BotContextMenu } from "./SidebarBotMenu";
 export { BotContextMenu };
-import { AvatarActivityDot, RowDot, RowStatusText, rowSurface } from "./SidebarRowMarkers";
+import { RowDot, RowStatusText, rowSurface } from "./SidebarRowMarkers";
 import { AvatarStatusDot, avatarDotState, FORK_ONE_AVATAR_DOT } from "@/fork/avatar-dot";
 
 
@@ -744,8 +745,8 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   );
   const { waiting, working, teammateWait, queued } = sidebarBotStatus(bot, pendingQueued);
   const { unread, noticing } = useBotUnread(bot);
-  // Fork: the row's avatar wears one dot, in the working dot's corner; unread is a blue dot there, not a second one.
-  const rowDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ waiting, working, unread, teammate: teammateWait, queued }) : null;
+  // Fork: one dot at the avatar's bottom-right, its colour the one state that matters most.
+  const rowDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ error: lastTurnFailed(last) || bot.activity === "dead" || bot.activity === "no-signal", waiting, working, unread }) : null;
   const onLiveCall = liveBadgeFor(bot.id, liveMedia, liveCall);
   const body = (
     <>
@@ -765,24 +766,9 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         </span>
         {/* Bottom-left, clear of the status dots on the right and of the row's hover actions. */}
         {(iconOnly || !simpleList) && !FORK_HIDE_BOT_BADGES && <BotModelBadge bot={bot} instances={instances} avatarSize={avatarSize} />}
-        {simpleRow && (FORK_ONE_AVATAR_DOT
-          ? rowDot && <AvatarStatusDot state={rowDot} surface="ring-2 ring-[var(--row)]" />
-          : <AvatarActivityDot activity={working ? "working" : teammateWait ? "teammate" : queued && !waiting ? "queued" : null} />)}
-        {!simpleRow && working && (
-          <span
-            data-testid="working-dot"
-            className={cn(
-              "absolute -right-0.5 -bottom-0.5 rounded-full border-2 border-panel bg-success",
-              iconOnly ? "size-3" : "size-2.5",
-            )}
-          />
+        {FORK_ONE_AVATAR_DOT && rowDot && (
+          <AvatarStatusDot state={rowDot} surface={simpleRow ? "ring-2 ring-[var(--row)]" : "border-2 border-panel"} />
         )}
-        {!simpleRow && waiting && <span data-testid="waiting-dot" role="status" aria-label={t("sidebar.preview.waiting")} title={t("sidebar.preview.waiting")}
-          className={cn("absolute -right-0.5 -bottom-0.5 flex items-center justify-center overflow-hidden rounded-full border-2 border-panel bg-warning font-black text-panel", iconOnly ? "size-5 text-[14px]" : "size-4 text-[12px]")}><span aria-hidden="true">!</span></span>}
-        {!simpleRow && teammateWait && <span data-testid="teammate-wait-dot" role="status" aria-label={t("sidebar.preview.waitingOnTeammate")} title={t("sidebar.preview.waitingOnTeammate")}
-          className={cn("absolute -right-0.5 -bottom-0.5 rounded-full border-2 border-panel bg-accent", iconOnly ? "size-3" : "size-2.5")} />}
-        {!simpleRow && !teammateWait && !waiting && !working && queued && <span data-testid="queued-dot" role="status" aria-label={t("task.queued")} title={t("task.queued")}
-          className={cn("absolute -right-0.5 -bottom-0.5 rounded-full border-2 border-panel bg-ink-secondary", iconOnly ? "size-3" : "size-2.5")} />}
         {bot.chiefOfStaff && !FORK_HIDE_BOT_BADGES && !FORK_UI_1110 && (iconOnly || simpleRow) && (
           <span className="absolute -left-1 -top-1 flex rounded-full bg-raised p-[3px]">
             <Crown size={11} strokeWidth={2.25} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
@@ -848,8 +834,6 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               {formatTime(last.at)}
             </span>
           )}
-          {expanded && unread && <span className="size-1.5 shrink-0 rounded-full bg-accent" aria-label={t("task.unreadMany")} />}
-          {simpleRow && !FORK_ONE_AVATAR_DOT && (unread || waiting) && <RowDot waiting={waiting} />}
         </div>
         {(!expanded || deleting) && <div className="flex items-center justify-between gap-2">
           {deleting ? (
@@ -867,7 +851,6 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
             </span>
           )}
           {simpleRow && !FORK_UI_1110 && <BotEngineMark bot={bot} instances={instances} className="ms-auto" />}
-          {!simpleRow && unread && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label={t("task.unreadMany")} />}
         </div>}
         {simpleRow && <RowStatusText working={working} unread={unread} />}
       </div>

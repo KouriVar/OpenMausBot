@@ -9994,5 +9994,6 @@
   "settings.boldText.subtitle": "Mensagens e o compositor aparecem com um peso a mais. Salvo neste dispositivo; desativado por padrão.",
   "chat.setupCard.greeting": "Oi, sou {name}. O que você gostaria que eu fizesse?",
   "sidebar.hideSidebar": "Ocultar barra lateral",
-  "sidebar.revealHidden": "Mostrar a barra lateral"
+  "sidebar.revealHidden": "Mostrar a barra lateral",
+  "sidebar.preview.failed": "O último turno falhou"
 }

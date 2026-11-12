@@ -23,6 +23,20 @@ release notes carry.
 
 ## Unreleased / 未发布
 
+### OE002 · The 0.5.1 round: one status dot on every sidebar avatar
+
+The 0.5.1 round gives the sidebar one status dot per bot, always in the avatar's bottom-right corner where the working
+dot used to be. Its colour is the one state that matters most: red for a failed last turn or an engine that is gone,
+amber while the bot waits for the person to choose or answer, green while it works, and blue for unread output. When
+several states are true at once only the highest one shows, in the order red, amber, green, blue. The blue dot at the
+row's top right and the second dot that appeared on hover are gone; waiting on a teammate and queued work are still
+said in the row's words, without a dot.
+
+中文：**V0.5.1 这一轮**把侧栏每个 bot 的状态收成一个点，固定在头像右下角，也就是原来运行中绿点的位置。点的颜色表示
+当下最重要的那一个状态：红＝最后一个回合失败或引擎已不可达，橙＝正在等你选择或输入，绿＝正在运行，蓝＝有未读。同时
+有多种状态时只显示优先级最高的一个，顺序是红、橙、绿、蓝。行右上角的蓝点、以及悬停时多出来的第二个点都删掉了；等待
+队友和排队仍然只在行内文字里说，不再画点。
+
 ## V0.5.0 · 2026-11-12 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 ### OE001 · The 0.5.0 round: Advanced mode rebuilt on Simple's pieces, and one menu design

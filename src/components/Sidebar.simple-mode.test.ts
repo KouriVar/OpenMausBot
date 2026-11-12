@@ -150,7 +150,7 @@ describe("bot-first sidebar", () => {
     expect(renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable")))).not.toContain('data-testid="bot-role"');
   });
 
-  it("ends a Simple row's preview line with the preview (the fork hides the engine mark), puts the unread dot at the name line's top right where ⋯ shows, and never moves the name", () => {
+  it("ends a Simple row's preview line with the preview (the fork hides the engine mark), wears unread as the avatar dot, and never moves the name", () => {
     fixture.showThreads = false;
     fixture.state = { ...fixture.state, instances: [{ instanceId: "fake", driverKind: "claudeAgent", displayName: "Claude" }] as unknown as AppState["instances"] };
     const candidate = { ...bot, tasks: [], projects: [], unread: true, messages: [{ id: "m", role: "bot", kind: "text", text: "Done.", at: 1 }] } as Bot;
@@ -164,6 +164,7 @@ describe("bot-first sidebar", () => {
     expect(String(findElement(tree, "data-sidebar-bot-row", bot.id)!.props.className)).not.toContain("group-hover:pr-9");
     expect(markup).not.toContain("group-hover:pr-7");
     expect(markup).toMatch(/data-bot-actions="atlas"[^>]*class="[^"]*\bright-2 top-1 translate-y-0\b/);
+    expect(markup).toContain('data-avatar-dot="unread"');
   });
 
   it.skipIf(FORK_HIDE_BOT_BADGES)("fades the collapsed rail's engine badge in both modes", () => {
@@ -310,7 +311,7 @@ describe("bot-first sidebar", () => {
     expect(markup).toContain(`truncate text-ink-secondary ${preview}`);
   });
 
-  it("keeps the queued dot small", () => {
+  it("says a queued bot in the row's words, without a dot", () => {
     const queuedBot: Bot = {
       ...bot,
       unread: false,
@@ -318,11 +319,7 @@ describe("bot-first sidebar", () => {
       tasks: [{ threadId: "queued", title: "Next job", createdAt: 5 }],
     };
     const markup = renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", queuedBot)));
-    const queuedDot = markup.match(/<span[^>]*data-testid="queued-dot"[^>]*>/)?.[0] ?? "";
-    expect(queuedDot).toContain("size-2.5");
-    expect(queuedDot).toContain("bg-ink-secondary");
-    expect(queuedDot).not.toContain("size-4");
-    expect(queuedDot).not.toContain("size-5");
+    expect(markup).not.toContain("queued-dot");
     expect(markup).toContain('class="truncate">Queued</span>');
     expect(markup).not.toContain("font-semibold text-warning");
     expect(markup).not.toContain("waiting-dot");

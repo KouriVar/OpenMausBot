@@ -52,36 +52,30 @@ describe("BotListItem", () => {
     };
     const waiting = renderRow(bot({ activity: "waiting-on-you" }));
     const badge = opening(waiting, "waiting-dot");
-    expect(badge).toContain('role="status"');
-    expect(badge).toContain('aria-label="Waiting for you…"');
+    expect(badge).toContain('aria-hidden="true"');
     expect(badge).toContain('title="Waiting for you…"');
-    expect(badge).toContain("size-4");
+    expect(badge).toContain("size-3");
     expect(badge).toContain("bg-warning");
     expect(badge).toContain("border-2");
     expect(badge).toContain("border-panel");
-    expect(badge).not.toContain("size-2.5");
-    expect(badge).not.toContain("size-3");
-    expect(waiting).toContain('aria-hidden="true">!</span>');
+    expect(badge).not.toContain('role="status"');
+    expect(waiting).not.toContain('aria-hidden="true">!</span>');
     expect(waiting).toContain('class="flex min-w-0 items-center gap-1.5 truncate text-[13px] leading-[18px] font-semibold text-warning"');
     expect(waiting).toContain('class="truncate">Waiting for you…</span>');
 
     const icons = opening(renderRow(bot({ activity: "waiting-on-you" }), "icons"), "waiting-dot");
-    expect(icons).toContain("size-5");
+    expect(icons).toContain("size-3");
     expect(icons).toContain("bg-warning");
-    expect(icons).not.toContain("size-4");
-    expect(icons).not.toContain("size-2.5");
 
     const teammate = renderRow(bot({ waitingForTeammates: true }));
-    const teammateDot = opening(teammate, "teammate-wait-dot");
-    expect(teammateDot).toContain("size-2.5");
-    expect(teammateDot).not.toContain("size-4");
+    expect(teammate).not.toContain("teammate-wait-dot");
     expect(teammate).toContain('class="truncate">Waiting on a teammate…</span>');
     // Fork UI batch: the preview keeps its size and takes one weight step up, so the line reads as text, not a label.
     expect(teammate).toContain("truncate text-[13px] font-medium leading-[18px] text-ink-secondary");
     expect(teammate).not.toContain("font-semibold text-warning");
 
     const working = renderRow(bot({ busy: true }));
-    expect(opening(working, "working-dot")).toContain("size-2.5");
+    expect(opening(working, "working-dot")).toContain("size-3");
     expect(working).not.toContain("waiting-dot");
     expect(working).not.toContain("font-semibold text-warning");
 
@@ -321,6 +315,32 @@ describe("BotListItem", () => {
     expect(markup).not.toContain("animate-status-pulse");
   });
 
+  it("wears the highest state as one dot: a failed turn or a dead engine in red, then waiting, working, unread", () => {
+    const failed = renderRow(bot({
+      messages: [{ id: "f", role: "bot", kind: "activity", text: "The provider refused", at: 1, tool: { name: "error: The provider refused", ok: false } }] as Bot["messages"],
+    }));
+    expect(failed).toContain('data-testid="error-dot"');
+    expect(failed).toContain("bg-danger");
+    expect(failed).not.toContain("working-dot");
+
+    const stopped = renderRow(bot({
+      messages: [{ id: "s", role: "bot", kind: "activity", text: "Stopped", at: 1, tool: { name: "stopped: Stopped", ok: false } }] as Bot["messages"],
+    }));
+    expect(stopped).not.toContain("error-dot");
+
+    expect(renderRow(bot({ activity: "dead" }))).toContain('data-testid="error-dot"');
+    expect(renderRow(bot({ activity: "no-signal" }))).toContain('data-testid="error-dot"');
+
+    const waiting = renderRow(bot({ activity: "waiting-on-you", busy: true, unread: true }));
+    expect(waiting).toContain('data-testid="waiting-dot"');
+    expect(waiting).not.toContain("working-dot");
+    expect(waiting).not.toContain("unread-dot");
+    const working = renderRow(bot({ busy: true, unread: true }));
+    expect(working).toContain('data-testid="working-dot"');
+    expect(working).not.toContain("unread-dot");
+    expect(renderRow(bot({ unread: true }))).toContain('data-testid="unread-dot"');
+  });
+
   it("marks the avatar with a green presence dot only while the bot works", () => {
     expect(renderRow(bot({ busy: true }))).toContain('data-testid="working-dot"');
     expect(renderRow(bot())).not.toContain('data-testid="working-dot"');
@@ -345,9 +365,9 @@ describe("BotListItem", () => {
     expect(icons).toContain('aria-label="Atlas · On a Live call"');
   });
 
-  it("marks an idle bot waiting on a teammate with a quiet dot, never the work signals", () => {
+  it("says a bot waiting on a teammate in the row's words, without a dot", () => {
     const markup = renderRow(bot({ waitingForTeammates: true, busy: false, activity: "idle" }));
-    expect(markup).toContain('data-testid="teammate-wait-dot"');
+    expect(markup).not.toContain("teammate-wait-dot");
     expect(markup).not.toContain('data-testid="working-dot"');
     expect(markup).not.toContain("animate-status-pulse");
     expect(markup).toContain("Waiting on a teammate…");
