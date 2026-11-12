@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE010 · The 0.5.8 round: the profile panel's rows look alike and its search box is as round as the list
+
+In the Advanced profile panel the section whose card is open filled its row with a control tint and darker text; the rest
+stayed plain, so one row looked selected. Every row now draws the same: only the chevron turns to show what is open. The
+search box's corners were also tighter than the list card's; both are one radius now.
+
+中文：**V0.5.8 这一轮**把高级模式资料面板里「展开中的分区」那行的底色去掉了：以前打开的那行会有一层控件色和更深的文字，
+看起来像被选中；现在所有行同一个样子，只靠右侧箭头翻转表示哪一项展开。搜索框的圆角也比下面列表卡片小，现在两者统一成同一个圆角。
+
 ### OE009 · The 0.5.7 round: the bot settings list is one card under the search box
 
 In Advanced mode the profile panel's section list was full-bleed: each row drew its own hairline across the whole panel,

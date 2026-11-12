@@ -204,7 +204,7 @@ export function BotSettingsDialog({ bot, overlay = false }: {
           </span>
         </div>
 
-        <div className="mx-4 mb-2 flex shrink-0 items-center gap-2 rounded-lg border border-transparent bg-control/70 px-2.5 py-2 focus-within:border-focus">
+        <div className="mx-4 mb-2 flex shrink-0 items-center gap-2 rounded-xl border border-transparent bg-control/70 px-2.5 py-2 focus-within:border-focus">
           <Search size={14} className="shrink-0 text-ink-secondary" />
           <input
             value={query}
@@ -257,7 +257,8 @@ export function BotSettingsDialog({ bot, overlay = false }: {
                   aria-expanded={open}
                   className={cn(
                     "flex w-full shrink-0 items-center gap-2 px-2.5 py-2.5 text-left text-[14px]",
-                    open ? "bg-control/60 text-ink" : "text-ink-secondary hover:bg-control/40 hover:text-ink",
+                    // Fork: no selected fill — the open section reads by its chevron alone, every row looks alike.
+                    "text-ink-secondary hover:bg-control/40 hover:text-ink",
                   )}
                 >
                   <Icon size={14} className="shrink-0" />
