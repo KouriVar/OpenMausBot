@@ -534,6 +534,7 @@ export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCard
   sender?: ResolvedSender;
   /** Provider turn that produced this message. */
   turnId?: string;
+  /** A bot reply: the `itemId` its words streamed under, so a client swaps the streamed text for this message. */ itemId?: string;
   /** Server-proven originating user message, including supported harness
    * continuations. Absent means external clients must not infer ownership. */
   requestMessageId?: string;

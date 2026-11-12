@@ -6,6 +6,7 @@ import { useCopyFeedback } from "@/lib/copy-text";
 import { t } from "@/lib/i18n";
 import { MENU_ITEM, MENU_ITEM_SEPARATOR, MENU_SHEET } from "./menu-recipe";
 import { FORK_MESSAGE_MENU_ON_RIGHT_CLICK, FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
+import { StreamingReplyContext } from "@/state/live-reply";
 
 export const ACTION_ICON = { size: 17, strokeWidth: 1.5 } as const;
 
@@ -78,7 +79,8 @@ export function MessageActions({
   const [point, setPoint] = useState<{ left: number; top: number } | null>(null);
   const [menuFlipped, setMenuFlipped] = useState(false);
   const mirrored = side === "user";
-  const shown = forceOpen || menuOpen || hovered || keyboardFocus || tapped;
+  const streaming = use(StreamingReplyContext);
+  const shown = !streaming && (forceOpen || menuOpen || hovered || keyboardFocus || tapped);
   const rightClick = FORK_MESSAGE_MENU_ON_RIGHT_CLICK;
 
   useEffect(() => {
@@ -207,6 +209,7 @@ export function MessageActions({
         className,
       )}
       data-testid="message-actions"
+      inert={streaming || undefined}
       data-shown={shown ? "true" : undefined}
       onKeyDown={(event) => {
         if (menuOpen || forceOpen || !popoverClosesOnKey(event.nativeEvent) || !keyboardFocus) return;
