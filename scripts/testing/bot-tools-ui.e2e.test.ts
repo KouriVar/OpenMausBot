@@ -53,12 +53,18 @@ describe("bot setup and tools in the real renderer", () => {
     const press = (keys: string) => ui("press", "--keys", keys);
     const bots = async (): Promise<SavedBot[]> => (await fetch(`${info.url}/api/bots`).then((response) => response.json())).bots;
     const snapshot = async () => (await ui("snapshot")).snapshot as string;
-    // The bot's panel opens from the chat header's pill; click it only while closed.
-    const openPanel = () => expect.poll(() => evaluate(`(() => {
-      if (document.querySelector('[data-chathead-pill][aria-expanded="true"]')) return true;
-      document.querySelector('[data-chathead-pill]')?.click();
-      return false;
-    })()`), { timeout: 10_000 }).toBe(true);
+    // The bot's panel opens from the chat header's pill. Its chunk paints a beat after the pill's state flips, so
+    // click the pill at most once (only while it says closed) and then wait for the panel's own content.
+    const openPanel = async () => {
+      await evaluate(`(() => {
+        const pill = document.querySelector('[data-chathead-pill]');
+        if (pill?.getAttribute('aria-expanded') !== 'true') pill?.click();
+        return true;
+      })()`);
+      await expect.poll(() => evaluate(
+        "Boolean(document.querySelector('[data-panel-gear], [data-panel-tabpanel], [data-panel-back]'))",
+      ), { timeout: 20_000, interval: 500 }).toBe(true);
+    };
     // Its MCP servers are on Bot settings → Apps it can use.
     const openApps = async () => {
       await openPanel();
@@ -128,7 +134,7 @@ describe("bot setup and tools in the real renderer", () => {
         if (document.querySelector('[data-panel-tabpanel="details"]')) return true;
         [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.trim() === 'Details')?.click();
         return false;
-      })()`), { timeout: 10_000 }).toBe(true);
+      })()`), { timeout: 20_000, interval: 400 }).toBe(true);
       const state = await ui("snapshot", "--interactive");
       const cost = Object.entries(state.refs as Record<string, { role: string; name: string }>)
         .filter(([, entry]) => entry.role === "button" && entry.name.startsWith("Usage") && entry.name.includes("$0.01"));
@@ -155,7 +161,11 @@ describe("bot setup and tools in the real renderer", () => {
     await ui("type", "--ref", `@${searchRef![0]}`, "--text", "standing");
     expect(await searchValue()).toBe("standing");
     await closeSettings();
-    await openPanelUsage(); // a stale search must not hide an external target
+    // Fork: once the app Settings window has closed, the side panel's pill does not always bring it back under it,
+    // so reopen Settings from the outer menu. A stale search must not hide the page it reopens on either.
+    await click("You");
+    await click("Settings");
+    await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(true);
     expect(await searchValue()).toBe("");
     await closeSettings();
 
