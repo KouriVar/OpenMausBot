@@ -27,118 +27,118 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
-### OE021 · The 0.5.19 round: a file card sits flush with the replies around it
+### OE021 · The 0.5.7 round: a file card sits flush with the replies around it
 
 A bot message that was only an attached file drew its card inside the bubble's 6px padding, so the card's left edge sat
 right of the text bubbles above and below. That attachment-only bubble now has no horizontal padding, and the card lines
 up with the bubble edges.
 
-中文：**V0.5.19 这一轮**修「只有附件的消息」里文件卡片没左对齐：文件卡以前画在气泡的 6px 内边距里，左边比上下的文字气泡缩进
+中文：**V0.5.7 这一轮**修「只有附件的消息」里文件卡片没左对齐：文件卡以前画在气泡的 6px 内边距里，左边比上下的文字气泡缩进
 一点；现在这类纯附件气泡的左右内边距归零，卡片与气泡边缘对齐。
 
-### OE020 · The 0.5.18 round: the details panel's chevrons all point right, and 查找 is short
+### OE020 · The 0.5.7 round: the details panel's chevrons all point right, and 查找 is short
 
 In the bot details panel the model row and the new 已归档会话 row drew down-pointing chevrons while every other row pointed
 right; both now use the same right chevron. The find row's label is 查找 (Find) instead of 在对话中查找.
 
-中文：**V0.5.18 这一轮**把详情面板里两个朝下的箭头改成朝右：模型行（ModelPicker 的 contained 形态）和「已归档会话」行，
+中文：**V0.5.7 这一轮**把详情面板里两个朝下的箭头改成朝右：模型行（ModelPicker 的 contained 形态）和「已归档会话」行，
 现在和用量/活动/检查器/例行任务一致；「在对话中查找」这一行改成「查找」。
 
-### OE019 · The 0.5.17 round: a picked voice is saved the moment it is picked
+### OE019 · The 0.5.7 round: a picked voice is saved the moment it is picked
 
 Choosing a voice only queued the usual batched profile patch, so closing the app right after picking could drop it before
 the batch was written, and the picker reopened on 「选择语音」. The pick now writes to the server immediately (and is kept
 on this device), and opening the voice panel restores the last picked voice if a fresh load came back without one.
 
-中文：**V0.5.17 这一轮**给语音选择做了热保存：以前选完只是排进批量保存，紧接着关掉 App 可能还没写出去，重开就回到
+中文：**V0.5.7 这一轮**给语音选择做了热保存：以前选完只是排进批量保存，紧接着关掉 App 可能还没写出去，重开就回到
 「选择语音」；现在选中的瞬间就直接写服务器（同时在本机留一份），面板打开时如果新加载的数据里没有语音会自动恢复上次选择。
 
-### OE018 · The 0.5.16 round: the Bloub avatar picker draws its shapes and colours with one centred gap
+### OE018 · The 0.5.7 round: the Bloub avatar picker draws its shapes and colours with one centred gap
 
 The real component behind 身份 → 头像 with the Bloub style is `BloubCustomizer`: its shapes sat 3px apart and its colours
 split into a stretched `grid grid-cols-6` first row plus a tight centred second row. Both groups are now a wrapped flex row
 centred on every line with the same 10px (`gap-2.5`) between tiles, so nothing stretches or crowds.
 
-中文：**V0.5.16 这一轮**找到了真正渲染「身份 → 头像」的组件：Bloub 风格下是 `BloubCustomizer`（不是
+中文：**V0.5.7 这一轮**找到了真正渲染「身份 → 头像」的组件：Bloub 风格下是 `BloubCustomizer`（不是
 `BotProfileAvatarCard`）。它原来形状之间只有 3px，颜色第一行是 `grid grid-cols-6` 被平均撑满、第二行又挤在一起；现在两组都
 一样：`flex flex-wrap justify-center gap-2.5`，每行居中、横纵都是 10px，不再撑满也不挤。
 
-### OE017 · The 0.5.15 round: the icons rail spaces bots the same in both modes
+### OE017 · The 0.5.7 round: the icons rail spaces bots the same in both modes
 
 Switching to Advanced mode nudged the bot icons up a few pixels: each section's bots sat 2px apart in Advanced and 4px in
 Simple, so the difference added up down the rail. The icons rail now uses Simple's 4px in both modes; the list layouts are
 unchanged.
 
-中文：**V0.5.15 这一轮**让图标侧栏在两种模式下间距一致：高级模式里每个分区内 bot 之间是 2px，简易模式是 4px，切换时就
+中文：**V0.5.7 这一轮**让图标侧栏在两种模式下间距一致：高级模式里每个分区内 bot 之间是 2px，简易模式是 4px，切换时就
 会看到下面的 bot 整体往上挪一点；现在图标侧栏两种模式都用 4px，列表布局不变。
 
-### OE016 · The 0.5.14 round: the computer panel's where-it-works block carries only its options
+### OE016 · The 0.5.7 round: the computer panel's where-it-works block carries only its options
 
 In the computer panel's 工作位置 card, the 「选择此机器人在哪里工作」 subtitle, the hairline under the option cards, the
 line that restated the chosen place, and the routine row's 「打开计划」 subtitle are gone; the options and the routine row
 (and a running routine's own status) stay.
 
-中文：**V0.5.14 这一轮**精简电脑面板的「工作位置」：去掉「选择此机器人在哪里工作」这句副标题、选项卡片下面那条横线、
+中文：**V0.5.7 这一轮**精简电脑面板的「工作位置」：去掉「选择此机器人在哪里工作」这句副标题、选项卡片下面那条横线、
 「按任务需要，使用内置浏览器…」这行说明，以及「例行任务」下面的「打开计划」四个字；选项和例行任务行保留（正在跑的例行
 任务仍显示自己的状态）。
 
-### OE015 · The 0.5.13 round: archived conversations are a row at the foot of the details list
+### OE015 · The 0.5.7 round: archived conversations are a row at the foot of the details list
 
 The bot panel listed 「已归档（N）」 as a toggle in the middle of the conversation list, and the archived conversations
 themselves sat in their own block below. The toggle is gone: the details tab now ends with one 「已归档会话」 row (icon,
 count, chevron) and opening it shows the archived conversations right under it.
 
-中文：**V0.5.13 这一轮**把「已归档会话」改成详情列表最后的一行：以前「已归档（N）」是夹在对话列表中间的一个开关，归档的
+中文：**V0.5.7 这一轮**把「已归档会话」改成详情列表最后的一行：以前「已归档（N）」是夹在对话列表中间的一个开关，归档的
 会话另起一块在下面；现在详情页最后一行就是「已归档会话」（带图标、数量和箭头），点开就在这一行下面列出归档的会话。
 
-### OE014 · The 0.5.12 round: applied skill changes fold into the reply's bubble
+### OE014 · The 0.5.7 round: applied skill changes fold into the reply's bubble
 
 When a bot added or updated a skill, each change stood in the transcript as its own row (「添加了技能：… 撤销 详情」) outside
 the reply. Those rows now fold into the reply's bubble as one 「已学习新技能，添加至知识库」 chip — one change or several —
 which opens to the same lines with their Undo and Details. Nothing else about the notices changed.
 
-中文：**V0.5.12 这一轮**把「学习技能」的提示收进气泡：以前每加/改一个技能，聊天里就单独多一行「… 添加了技能：… 撤销 详情」；
+中文：**V0.5.7 这一轮**把「学习技能」的提示收进气泡：以前每加/改一个技能，聊天里就单独多一行「… 添加了技能：… 撤销 详情」；
 现在这些行都收进上一条回复的气泡里，做成一个「已学习新技能，添加至知识库」的折叠卡片（一条也收），展开后仍是原来的行，
 撤销和详情照旧可用。
 
-### OE013 · The 0.5.11 round: the bot's voice panel is MiMo-only
+### OE013 · The 0.5.7 round: the bot's voice panel is MiMo-only
 
 The 语音与提醒 section offered a provider switch. MiMo is free, so it is now the fixed voice provider there: the switch is
 gone, the note above says the panel always uses MiMo (Xiaomi) and that it cannot be changed, and opening the section
 points the stored provider at MiMo if it was something else. The voice picker, key and the rest of the card are unchanged.
 
-中文：**V0.5.11 这一轮**把「语音与提醒」固定成 MiMo：语音提供方选择器删掉，上面的说明改成「固定使用 MiMo（小米）语音，
+中文：**V0.5.7 这一轮**把「语音与提醒」固定成 MiMo：语音提供方选择器删掉，上面的说明改成「固定使用 MiMo（小米）语音，
 MiMo 目前免费，所以语音提供方不可更改」；如果原本存的是别的提供方，打开这一节时会把它切到 MiMo。下面的语音选择、密钥
 及其它内容不变。
 
-### OE012 · The 0.5.10 round: 身份 → 头像 draws its shapes and colours with one centred gap
+### OE012 · The 0.5.7 round: 身份 → 头像 draws its shapes and colours with one centred gap
 
 In the bot settings panel's 身份 → 头像 card the mascot shapes and the colour dots used different layouts: the shapes were
 a stretched grid and the colour dots filled their first row edge to edge. Both groups are now a wrapped flex row centred
 on its own line, with the same 10px gap (`gap-2.5`) horizontally and vertically; an incomplete last line stays centred.
 Only that card changed — option sizes, selected ring, colours and order are untouched.
 
-中文：**V0.5.10 这一轮**只改「身份 → 头像」这一处：形状和颜色两组从（被撑开的）网格/铺满行改成同一种排法——`flex` +
+中文：**V0.5.7 这一轮**只改「身份 → 头像」这一处：形状和颜色两组从（被撑开的）网格/铺满行改成同一种排法——`flex` +
 `flex-wrap` + `justify-center`，横纵都用同一个 10px 间距（`gap-2.5`），最后一行不满也居中；选项大小、选中框、颜色、顺序
 都不变。
 
-### OE011 · The 0.5.9 round: Advanced mode stacks bubbles the way Simple does
+### OE011 · The 0.5.7 round: Advanced mode stacks bubbles the way Simple does
 
 In Simple mode consecutive messages from one bot (or from the person) draw as one block: the corners facing a neighbour
 tighten, the next bubble pulls up and the group reads from top to bottom. Advanced mode drew each message as its own
 separate bubble at full radius. Both modes now join and space bubbles the same way, so a run of replies looks like one
 conversation in either mode.
 
-中文：**V0.5.9 这一轮**让高级模式的气泡和简易模式一样堆叠：同一个 bot（或同一个人）连续几条消息时，相邻那一侧的圆角收小、
+中文：**V0.5.7 这一轮**让高级模式的气泡和简易模式一样堆叠：同一个 bot（或同一个人）连续几条消息时，相邻那一侧的圆角收小、
 下一条往上一提，整组读起来是一段对话；原来高级模式每条各自一个全圆角气泡。现在两种模式的堆叠方式、气泡间距统一。
 
-### OE010 · The 0.5.8 round: the profile panel's rows look alike and its search box is as round as the list
+### OE010 · The 0.5.7 round: the profile panel's rows look alike and its search box is as round as the list
 
 In the Advanced profile panel the section whose card is open filled its row with a control tint and darker text; the rest
 stayed plain, so one row looked selected. Every row now draws the same: only the chevron turns to show what is open. The
 search box's corners were also tighter than the list card's; both are one radius now.
 
-中文：**V0.5.8 这一轮**把高级模式资料面板里「展开中的分区」那行的底色去掉了：以前打开的那行会有一层控件色和更深的文字，
+中文：**V0.5.7 这一轮**把高级模式资料面板里「展开中的分区」那行的底色去掉了：以前打开的那行会有一层控件色和更深的文字，
 看起来像被选中；现在所有行同一个样子，只靠右侧箭头翻转表示哪一项展开。搜索框的圆角也比下面列表卡片小，现在两者统一成同一个圆角。
 
 ### OE009 · The 0.5.7 round: the bot settings list is one card under the search box
@@ -151,13 +151,13 @@ placeholder and chevrons inside the card.
 中文：**V0.5.7 这一轮**把高级模式资料面板的分区列表收成一张卡片：以前每行各自铺满面板、图标比搜索框图标更靠左、箭头顶到面板边缘；
 现在整组列表是一张和搜索框同内缩的圆角卡片，行间用细线分隔，图标与搜索图标对齐、文字与占位符对齐、箭头也收进卡片里。
 
-### OE008 · The 0.5.6 round: the profile menu's usage row drops the reset line
+### OE008 · The 0.5.7 round: the profile menu's usage row drops the reset line
 
 The bottom-left avatar menu showed 每周用量 with two lines: the used share and 「距重置 N 天后」. The second line is gone,
 so the row keeps only 已用 xx% (and its chevron). No data changes: the usage summary still works out when a window resets,
 the menu just does not print it.
 
-中文：**V0.5.6 这一轮**把左下角头像菜单里的「每周用量」只留一行：以前还会显示「距重置 N 天后」，现在只显示「已用 xx%」和箭头。
+中文：**V0.5.7 这一轮**把左下角头像菜单里的「每周用量」只留一行：以前还会显示「距重置 N 天后」，现在只显示「已用 xx%」和箭头。
 底层用量摘要照旧计算重置时间，只是菜单不再显示这一行。
 
 ### OE007 · The 0.5.5 round: Advanced mode can stay on across restarts
@@ -167,7 +167,7 @@ Simple-only boot retires the stored mode, so every launch starts Simple. On keep
 restart or a new package opens Advanced again until the switch is turned off. It uses the app's existing device settings
 storage (localStorage), touches no conversation data, adds no server field, and follows the settings page's own rows.
 
-中文：**V0.5.5 这一轮**在设置的「高级模式」旁边加了「保持高级模式」开关，默认关。关着就是现在的行为：Simple-only
+中文：**V0.5.7 这一轮**在设置的「高级模式」旁边加了「保持高级模式」开关，默认关。关着就是现在的行为：Simple-only
 启动时会把存下的模式清掉，每次打开都从简易模式开始；打开后，这台设备当前所处的模式（简易或高级）会一直保留，重启 App
 或换新包后仍停在原来的模式，直到把开关关掉。持久化走现有的设备设置存法（localStorage），不碰会话数据、不加服务端字段，
 样式沿用设置页现有行。
@@ -179,7 +179,7 @@ with that identity, hardened runtime and this repository's entitlements, then ch
 --strict` and `codesign -dv`; without it the build stays ad-hoc signed as before. Nothing is notarized, uploaded or
 tagged.
 
-中文：**V0.5.4 这一轮**让本机打包脚本可以签 Mac 应用：设置环境变量 `OMB_SIGN_IDENTITY`（keychain 里的签名身份）后，
+中文：**V0.5.7 这一轮**让本机打包脚本可以签 Mac 应用：设置环境变量 `OMB_SIGN_IDENTITY`（keychain 里的签名身份）后，
 macOS 包会用该身份、hardened runtime 和本仓库现有的 entitlements 签名，并用 `codesign --verify --deep --strict` 与
 `codesign -dv` 检查签名；不设置则仍为 ad-hoc 签名。不做 notarization，也不上传、不打 tag。
 
@@ -191,7 +191,7 @@ swap one for the other. The server now stamps that id on the saved message, and 
 the saved message arrives. Every bot text message is also drawn in this fork's bubble now, formatted or not, so a reply
 looks the same while it streams and after it lands.
 
-中文：**V0.5.3 这一轮**修掉流式回复重复：回合还在进行时，流式草稿气泡和已落库的消息会同时画出来，因为落库消息没有带上它
+中文：**V0.5.7 这一轮**修掉流式回复重复：回合还在进行时，流式草稿气泡和已落库的消息会同时画出来，因为落库消息没有带上它
 流式时所用的 item id，客户端换不掉草稿。现在服务端在落库消息上带这个 id，客户端在正式消息到达时立刻移除草稿。同时所有
 bot 文本消息（包括格式化回复）都统一用我方气泡样式，流式中和落库后外观一致。
 
@@ -203,7 +203,7 @@ the one dot at the avatar's bottom-right carries the state — red for a failed 
 waits for the person, green while it works, blue for unread, in that priority. Waiting on a teammate and queued work stay
 in the row's words, without a dot.
 
-中文：**V0.5.3 这一轮**把侧栏每个头像收回成一个状态点。图标栏里未读的 bot 不再在行的右上角多一个蓝点，Bloub 身体也不再
+中文：**V0.5.7 这一轮**把侧栏每个头像收回成一个状态点。图标栏里未读的 bot 不再在行的右上角多一个蓝点，Bloub 身体也不再
 在脸中间画自己的通知点；头像右下角那一个点负责全部状态 —— 红＝回合失败或引擎挂了，橙＝在等你选择/输入，绿＝正在运行，
 蓝＝有未读，同时有多种时按红 > 橙 > 绿 > 蓝只显示一个。等待队友和排队仍然只在行内文字里说，不画点。
 
@@ -217,7 +217,7 @@ also carries the community fixes on connectors, calendar paging, data tables, fi
 and goal decisions, with their Train corrections. The upstream settings rework is deliberately not in this build; it is
 deferred to its own branch after 0.6.0.
 
-中文：**V0.5.2 这一轮**合并 `v0.1.151` 之后的上游 batch：bot 的回复边生成边显示；bot 工作时应用每次更新只重绘一次
+中文：**V0.5.7 这一轮**合并 `v0.1.151` 之后的上游 batch：bot 的回复边生成边显示；bot 工作时应用每次更新只重绘一次
 （每次绘制一个 commit、选择器订阅、单 bot reconcile）；窗口卡的卡片用圆角，各皮肤下窗框与侧栏同色。手机配对页不再
 把人送去应用商店 —— 桌面端没有商店链接，也没有商店二维码，菜单里那一行改为配对手机 —— 这一轮还带上社区对连接器、
 日历分页、数据表、文件同步、记忆搜索、进程输出和目标决策的修复，以及对应的 Train 修正。上游那套设置页重排这次
@@ -232,7 +232,7 @@ several states are true at once only the highest one shows, in the order red, am
 row's top right and the second dot that appeared on hover are gone; waiting on a teammate and queued work are still
 said in the row's words, without a dot.
 
-中文：**V0.5.1 这一轮**把侧栏每个 bot 的状态收成一个点，固定在头像右下角，也就是原来运行中绿点的位置。点的颜色表示
+中文：**V0.5.7 这一轮**把侧栏每个 bot 的状态收成一个点，固定在头像右下角，也就是原来运行中绿点的位置。点的颜色表示
 当下最重要的那一个状态：红＝最后一个回合失败或引擎已不可达，橙＝正在等你选择或输入，绿＝正在运行，蓝＝有未读。同时
 有多种状态时只显示优先级最高的一个，顺序是红、橙、绿、蓝。行右上角的蓝点、以及悬停时多出来的第二个点都删掉了；等待
 队友和排队仍然只在行内文字里说，不再画点。
