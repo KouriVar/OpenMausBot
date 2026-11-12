@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE008 · The 0.5.6 round: the profile menu's usage row drops the reset line
+
+The bottom-left avatar menu showed 每周用量 with two lines: the used share and 「距重置 N 天后」. The second line is gone,
+so the row keeps only 已用 xx% (and its chevron). No data changes: the usage summary still works out when a window resets,
+the menu just does not print it.
+
+中文：**V0.5.6 这一轮**把左下角头像菜单里的「每周用量」只留一行：以前还会显示「距重置 N 天后」，现在只显示「已用 xx%」和箭头。
+底层用量摘要照旧计算重置时间，只是菜单不再显示这一行。
+
 ### OE007 · The 0.5.5 round: Advanced mode can stay on across restarts
 
 Settings gains a 「保持高级模式」 switch next to Advanced mode, off by default. Off keeps today's behaviour: the

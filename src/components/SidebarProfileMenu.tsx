@@ -534,7 +534,7 @@ export function profileMenuItems({
     key: "usage",
     label: usageSummary?.weekly ? t("sidebar.menu.weeklyUsage") : t("settings.section.usage"),
     ...(usageSummary ? { value: usageSummary.value } : {}),
-    ...(usageSummary?.resets ? { subtitle: usageSummary.resets } : {}),
+    // Fork: the menu keeps only the used share; when a window resets is not shown here.
     ...(simple ? { chevron: true } : {}),
     icon: <Gauge size={18} />,
     onSelect: onUsage,
