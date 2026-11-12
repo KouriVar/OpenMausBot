@@ -27,6 +27,17 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE012 · The 0.5.10 round: 身份 → 头像 draws its shapes and colours with one centred gap
+
+In the bot settings panel's 身份 → 头像 card the mascot shapes and the colour dots used different layouts: the shapes were
+a stretched grid and the colour dots filled their first row edge to edge. Both groups are now a wrapped flex row centred
+on its own line, with the same 10px gap (`gap-2.5`) horizontally and vertically; an incomplete last line stays centred.
+Only that card changed — option sizes, selected ring, colours and order are untouched.
+
+中文：**V0.5.10 这一轮**只改「身份 → 头像」这一处：形状和颜色两组从（被撑开的）网格/铺满行改成同一种排法——`flex` +
+`flex-wrap` + `justify-center`，横纵都用同一个 10px 间距（`gap-2.5`），最后一行不满也居中；选项大小、选中框、颜色、顺序
+都不变。
+
 ### OE011 · The 0.5.9 round: Advanced mode stacks bubbles the way Simple does
 
 In Simple mode consecutive messages from one bot (or from the person) draw as one block: the corners facing a neighbour

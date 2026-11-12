@@ -127,7 +127,7 @@ export function BotProfileAvatarCard({
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
               {t("botIdentity.expression")}
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="flex flex-wrap justify-center gap-2.5">
               {PICKABLE_STATES.map((expression) => (
                 <button
                   key={expression}
@@ -150,7 +150,7 @@ export function BotProfileAvatarCard({
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
               {t("botIdentity.color")}
             </div>
-            <div className="flex flex-wrap gap-2.5">
+            <div className="flex flex-wrap justify-center gap-2.5">
               {MAUS_COLOR_NAMES.map((color) => (
                 <button
                   key={color}
@@ -172,7 +172,7 @@ export function BotProfileAvatarCard({
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
               {t("botIdentity.body")}
             </div>
-            <div className="grid grid-cols-5 gap-1.5">
+            <div className="flex flex-wrap justify-center gap-2.5">
               {MASCOT_BODY_IDS.map((id) => (
                 <BodyButton key={id} id={id} name={bodyName(id)} bot={bot} busy={busy} onPatch={onPatch} />
               ))}
@@ -182,7 +182,7 @@ export function BotProfileAvatarCard({
                 <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
                   {festivalName(festival)}
                 </div>
-                <div className="grid grid-cols-5 gap-1.5" data-festival-bodies={festival}>
+                <div className="flex flex-wrap justify-center gap-2.5" data-festival-bodies={festival}>
                   {FESTIVALS[festival].bodies.map((id) => (
                     <BodyButton key={id} id={id} name={bodyName(id)} bot={bot} busy={busy} onPatch={onPatch} />
                   ))}
