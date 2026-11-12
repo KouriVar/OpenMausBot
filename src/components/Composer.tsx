@@ -425,8 +425,7 @@ export function Composer({
     requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(learn.length, learn.length); });
   };
 
-  const queuedMessages = state.queued ?? [];
-  const pendingCount = queuedMessages.length;
+  const queuedMessages = state.queued ?? []; const pendingCount = queuedMessages.length;
   const canSteerQueued = composerCanSteerQueuedMessages(
     busy,
     locked,
