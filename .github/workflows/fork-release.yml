@@ -1,6 +1,8 @@
-# Fork release: one tag (v*) builds the personal build's macOS arm64 and Windows x64 packages,
+# Fork release: a manual run builds the personal build's macOS arm64 and Windows x64 packages,
 # unsigns them, and publishes a stable release with the installers, their checksums and the
 # electron-builder update metadata (latest.yml / latest-mac.yml) the app's own updater reads.
+# Pushing a tag no longer starts this workflow: the fork's releases are published by hand, from
+# either this run or scripts/fork/upload-release.sh with a locally built release-out/<version>/ directory.
 #
 # No secrets are used: the macOS app is built unsigned and the Windows NSIS installer is unsigned,
 # so SmartScreen shows its first-run prompt. Windows installs updates in place from these releases
@@ -9,10 +11,11 @@
 name: Fork Release
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Tag to publish, e.g. v0.5.1 (must already exist)"
+        required: true
 
 permissions:
   contents: read
@@ -119,8 +122,8 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}
           prerelease: false
           body_path: .github/fork-release-notes.md
           files: |

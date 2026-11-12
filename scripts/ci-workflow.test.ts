@@ -32,9 +32,9 @@ function gateNeeds(selected: string[]) {
 }
 
 describe("CI concurrency", () => {
-  it("supersedes old PR checks but never cancels a running main or merge-queue run", () => {
-    expect(workflow.on.push.branches).toEqual(["main"]);
-    expect(workflow.on).toHaveProperty("merge_group");
+  it("supersedes old PR checks and runs the fork's feature branches, not main", () => {
+    expect(workflow.on.push.branches).toEqual(["**", "!main"]);
+    expect(workflow.on).not.toHaveProperty("merge_group");
     expect(workflow.concurrency["cancel-in-progress"]).toBe("${{ github.event_name == 'pull_request' }}");
   });
 
@@ -49,8 +49,8 @@ describe("CI concurrency", () => {
     );
   });
 
-  it("runs the full lane every night", () => {
-    expect(workflow.on.schedule).toEqual([{ cron: expect.stringMatching(/^\d+ \d+ \* \* \*$/) }]);
+  it("leaves the nightly lane to upstream", () => {
+    expect(workflow.on).not.toHaveProperty("schedule");
   });
 
   it("stops a closed PR's run by joining ci.yml's PR group", () => {
@@ -71,8 +71,7 @@ describe("CI concurrency", () => {
   });
 
   it("allows cancelled summary jobs to stop without skipping failure reporting", () => {
-    // A fork's scheduled run skips every job, so its gate has nothing to report.
-    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot') }}");
+    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() }}");
     expect(workflow.jobs.gate.needs).toEqual(["static", ...requiredRuntimeJobs]);
   });
 
@@ -246,8 +245,7 @@ describe("CI concurrency", () => {
 
   it("always starts the workflow and validates selection and docs before fanout", () => {
     expect(workflow.on.pull_request).toBeNull();
-    // Every push and PR starts static; only a fork's scheduled run skips it, and with it every job.
-    expect(workflow.jobs.static.if).toBe("${{ github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot' }}");
+    expect(workflow.jobs.static.if).toBeUndefined();
     expect(workflow.jobs.static.steps[0].with["fetch-depth"]).toBe(0);
     expect(workflow.jobs.static.steps.find((step: { id?: string }) => step.id === "scope").run).toBe("node scripts/ci-scope.mjs");
     expect(workflow.jobs.static.outputs).toEqual({

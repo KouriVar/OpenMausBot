@@ -1,45 +1,33 @@
 # Boat (https://docs.boat.dev/ci): while the repository variable BOAT_CI is "on", a run from this repository's own
-# branches (a push to main, a pull request, a merge group) that the repository owner both authored and started does its
+# branches (a push to a branch or a pull request) that the repository owner both authored and started does its
 # Linux work on one 16 vCPU Boat VM, one Boat start per run: the static job runs on boat-xlarge and, after its checks,
 # runs the Linux vitest shards, behavior evals and the Linux packaged server smoke side by side
 # (scripts/ci-linux-lanes.mjs) instead of as GitHub-hosted jobs. Boat runs a public repository's job only for the users
-# on its allow-list (`boat ci public`) and fails any other at once, so every other run, a fork's, the nightly and manual
+# on its allow-list (`boat ci public`) and fails any other at once, so every other run, a fork's and manual
 # runs (the release lane among them), and every run while BOAT_CI is anything else run on GitHub's runners exactly as
 # before. `boat ci` and the dashboard's CI on Boat VMs tab list the Boat jobs (docs/ci.md).
 name: CI
 
 on:
+  # Fork: this repository tests its own feature branches, pull requests and manual runs. A push to
+  # main and the nightly lane belong to upstream, so neither starts CI here (docs/ci.md).
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - "**"
+      - "!main"
   pull_request:
-  # The merge queue runs CI on the PR merged onto the current main BEFORE it
-  # lands, so a PR that is green alone but red together with what just
-  # merged is stopped in the queue instead of on main (that shape reddened
-  # main twice in Sep 2026). Turning the queue on is a branch-ruleset
-  # setting, which GitHub offers only once an organization owns the
-  # repository (docs/ci.md); this trigger is what lets CI report on those runs.
-  merge_group:
-  # The full lane every night on main's newest commit: every platform's shards
-  # and smokes, which pushes to main and merge groups leave out (docs/ci.md).
-  schedule:
-    - cron: "17 21 * * *"
 
 # least privilege: CI only reads the checkout, it never writes back
 permissions:
   contents: read
 
 concurrency:
-  # A new PR push supersedes that PR's older checks. Main's pushes keep one run
-  # going and one waiting: each merge replaces the waiting run, so a burst of
-  # merges costs two runs, not one per merge (fifteen queued behind each other
-  # in October 2026). The running one always finishes. Every other run has a
-  # group no push can join: a merge group its own ref, the nightly run and each
-  # manual run (the release branch's, and the release-ci/v<version> lane that
-  # scripts/release-ci.mjs starts) their event and branch. A PR's group is
-  # named by its number, never by github.ref: a merged PR's closed event
-  # reports the base branch as github.ref, so a ref-named group let every merge
-  # cancel main's run (ci-stop-closed.yml).
+  # A new PR push supersedes that PR's older checks; a feature-branch push keeps its own group so a
+  # later push supersedes it. A manual run has a group no push can join: its event and branch. A PR's
+  # group is named by its number, never by github.ref: a merged PR's closed event reports the base
+  # branch as github.ref, so a ref-named group let the stop run cancel the wrong checks
+  # (ci-stop-closed.yml).
   group: ci-${{ github.event_name == 'merge_group' && github.event.merge_group.head_ref || github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'push' && github.ref || format('{0}-{1}', github.event_name, github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -55,9 +43,6 @@ jobs:
       && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
       && github.event.pull_request.user.login == github.repository_owner)
       && 'preflight + Linux tests (Boat)' || 'preflight' }}
-    # The nightly lane is the upstream repository's: on a fork it would only repeat what that fork's
-    # pushes and PRs already run, so a scheduled run here skips every job and ends green.
-    if: ${{ github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot' }}
     runs-on: >-
       ${{ vars.BOAT_CI == 'on' && contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name)
       && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
@@ -382,9 +367,8 @@ jobs:
     name: CI
     needs: [static, build, vitest, behavior-evals, packaged-server, windows-cua, electron-smokes]
     # Still report failed/skipped dependencies, but don't keep a superseded
-    # workflow alive just to schedule its summary jobs. A fork's scheduled run
-    # skipped every job above, so its gate has nothing to report.
-    if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot') }}
+    # workflow alive just to schedule its summary jobs.
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
