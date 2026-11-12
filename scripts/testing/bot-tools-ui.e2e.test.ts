@@ -139,18 +139,17 @@ describe("bot setup and tools in the real renderer", () => {
     // The bot panel's close button has the same name, so press the one in the Settings dialog.
     const closeSettings = async () => {
       // Spending is an Advanced page, so opening it turned Advanced mode on; Simple's chat head comes back with it off.
-      await evaluate("document.querySelector('[data-settings-advanced-switch][aria-checked=\"true\"]')?.click(); true");
+      await evaluate(`(() => {
+        localStorage.setItem("omb-advanced-mode", "0");
+        window.dispatchEvent(new StorageEvent("storage", { key: "omb-advanced-mode", storageArea: localStorage }));
+        return true;
+      })()`);
       await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
       await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
     };
-    // Fork: Simple-only hides the nav-footer Advanced switch; unlock the device's Advanced mode the way the app
-    // itself records it (the hidden unlock flag plus the mode), and wake the store with a storage event.
-    await evaluate(`(() => {
-      localStorage.setItem("omb-advanced-unlocked", "1");
-      localStorage.setItem("omb-advanced-mode", "1");
-      window.dispatchEvent(new StorageEvent("storage", { key: "omb-advanced-mode", storageArea: localStorage }));
-      return true;
-    })()`);
+    // Fork: Simple-only hides the nav-footer Advanced switch, so unlock the device first: the window then turns
+    // Advanced on by itself when the panel's Usage row lands on Spending, just as the old switch would have.
+    await evaluate(`(() => { localStorage.setItem("omb-advanced-unlocked", "1"); return true; })()`);
     await openPanelUsage();
     await ui("screenshot", "--out", `${info.logPath}.settings.png`);
     const search = await ui("snapshot", "--interactive");
