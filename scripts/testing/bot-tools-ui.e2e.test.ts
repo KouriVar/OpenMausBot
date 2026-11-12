@@ -122,6 +122,49 @@ describe("bot setup and tools in the real renderer", () => {
     expect((await runControlOmb(["wait", "--bot", created[0].id, "--timeout", "20", "--url", info.url]) as { status: string }).status).toBe("settled");
     await openApps();
     expect(await evaluate("Boolean(document.querySelector('[data-simple-mcp]'))")).toBe(false);
+    // Add the server where every app is added, from the panel's Connect another app.
+    await openApps();
+    await evaluate("document.querySelector('[data-panel-link=\"add-app\"]').click(); true");
+    await click("MCP servers");
+    // The registry loads on mount; Add MCP server is disabled until it finishes.
+    await expect.poll(() => evaluate("[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Add MCP server')?.disabled"), { timeout: 10_000 }).toBe(false);
+    await click("Add MCP server");
+    await expect.poll(() => evaluate("Boolean(document.querySelector('textarea[aria-label=\"Server link or setup command\"]'))"), { timeout: 10_000 }).toBe(true);
+    const pasted = await ui("snapshot", "--interactive");
+    const textarea = Object.entries(pasted.refs as Record<string, { role: string; name: string }>)
+      .find(([, entry]) => entry.role === "textbox" && entry.name === "Server link or setup command");
+    expect(textarea).toBeDefined();
+    await ui("type", "--ref", `@${textarea![0]}`, "--text", JSON.stringify({ mcpServers: {
+      fixture: { command: process.execPath, args: ["-e", "process.exit(0)"] },
+    } }));
+    // The composer's Add shares the name: press the one beside the pasted setup.
+    await evaluate(`(() => {
+      for (let box = document.querySelector('textarea[aria-label="Server link or setup command"]'); box; box = box.parentElement) {
+        const add = [...box.querySelectorAll('button')].find((button) => button.textContent.trim() === 'Add');
+        if (add) { add.click(); return true; }
+      }
+      return false;
+    })()`);
+    const registry = async () => (await fetch(`${info.url}/api/mcp/servers`).then((response) => response.json())).servers;
+    // It exits before answering, so it is saved but stays off, with the reason on its row.
+    await expect.poll(registry, { timeout: 10_000 }).toMatchObject([{ name: "fixture", enabled: false }]);
+    await expect.poll(() => evaluate("document.body.textContent.includes(\"Saved, but off: the test failed.\")"), { timeout: 20_000 }).toBe(true);
+    await expect.poll(snapshot, { timeout: 10_000 }).toContain("Turn fixture on");
+    await click("Turn fixture on");
+    await expect.poll(registry, { timeout: 10_000 }).toMatchObject([{ name: "fixture", enabled: true }]);
+    await press("Escape");
+    const useFixture = `${created[0].name} can use fixture`;
+    const fixtureSwitch = () => evaluate(`document.querySelector(${JSON.stringify(`[aria-label="${useFixture}"]`)})?.getAttribute('aria-checked') ?? null`);
+    await openApps();
+    await expect.poll(fixtureSwitch, { timeout: 10_000 }).toBe("true");
+    await click(useFixture);
+    await expect.poll(async () => (await bots()).find((bot) => bot.id === created[0].id)?.mcpServers, { timeout: 10_000 }).toEqual([]);
+    await press("Escape");
+    await openApps();
+    await expect.poll(fixtureSwitch, { timeout: 10_000 }).toBe("false");
+
+    // New bot from above settings puts the new bot's chat in front: no
+    // modal is left behind to hold the focus.
     const settingsPage = () => evaluate("document.querySelector('[data-settings-page][aria-current=\"page\"]')?.getAttribute('data-settings-page') ?? null");
     const searchValue = () => evaluate("document.querySelector('[data-settings-search]')?.value ?? null");
     // The panel's Usage row shows what this bot has spent and opens Settings on Spending, in Advanced mode.
@@ -169,49 +212,7 @@ describe("bot setup and tools in the real renderer", () => {
     expect(await searchValue()).toBe("");
     await closeSettings();
 
-    // Add the server where every app is added, from the panel's Connect another app.
-    await openApps();
-    await evaluate("document.querySelector('[data-panel-link=\"add-app\"]').click(); true");
-    await click("MCP servers");
-    // The registry loads on mount; Add MCP server is disabled until it finishes.
-    await expect.poll(() => evaluate("[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Add MCP server')?.disabled"), { timeout: 10_000 }).toBe(false);
-    await click("Add MCP server");
-    await expect.poll(() => evaluate("Boolean(document.querySelector('textarea[aria-label=\"Server link or setup command\"]'))"), { timeout: 10_000 }).toBe(true);
-    const pasted = await ui("snapshot", "--interactive");
-    const textarea = Object.entries(pasted.refs as Record<string, { role: string; name: string }>)
-      .find(([, entry]) => entry.role === "textbox" && entry.name === "Server link or setup command");
-    expect(textarea).toBeDefined();
-    await ui("type", "--ref", `@${textarea![0]}`, "--text", JSON.stringify({ mcpServers: {
-      fixture: { command: process.execPath, args: ["-e", "process.exit(0)"] },
-    } }));
-    // The composer's Add shares the name: press the one beside the pasted setup.
-    await evaluate(`(() => {
-      for (let box = document.querySelector('textarea[aria-label="Server link or setup command"]'); box; box = box.parentElement) {
-        const add = [...box.querySelectorAll('button')].find((button) => button.textContent.trim() === 'Add');
-        if (add) { add.click(); return true; }
-      }
-      return false;
-    })()`);
-    const registry = async () => (await fetch(`${info.url}/api/mcp/servers`).then((response) => response.json())).servers;
-    // It exits before answering, so it is saved but stays off, with the reason on its row.
-    await expect.poll(registry, { timeout: 10_000 }).toMatchObject([{ name: "fixture", enabled: false }]);
-    await expect.poll(() => evaluate("document.body.textContent.includes(\"Saved, but off: the test failed.\")"), { timeout: 20_000 }).toBe(true);
-    await expect.poll(snapshot, { timeout: 10_000 }).toContain("Turn fixture on");
-    await click("Turn fixture on");
-    await expect.poll(registry, { timeout: 10_000 }).toMatchObject([{ name: "fixture", enabled: true }]);
-    await press("Escape");
-    const useFixture = `${created[0].name} can use fixture`;
-    const fixtureSwitch = () => evaluate(`document.querySelector(${JSON.stringify(`[aria-label="${useFixture}"]`)})?.getAttribute('aria-checked') ?? null`);
-    await openApps();
-    await expect.poll(fixtureSwitch, { timeout: 10_000 }).toBe("true");
-    await click(useFixture);
-    await expect.poll(async () => (await bots()).find((bot) => bot.id === created[0].id)?.mcpServers, { timeout: 10_000 }).toEqual([]);
-    await press("Escape");
-    await openApps();
-    await expect.poll(fixtureSwitch, { timeout: 10_000 }).toBe("false");
 
-    // New bot from above settings puts the new bot's chat in front: no
-    // modal is left behind to hold the focus.
     const beforeShortcut = await bots();
     await press("Control+n");
     await expect.poll(async () => (await bots()).length, { timeout: 10_000 }).toBe(beforeShortcut.length + 1);
