@@ -716,11 +716,6 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.static.outputs.vitest_os) }}
-        # The Ubuntu entry's container leg runs as another user inside the server image, where the test
-        # cannot read GITHUB_REPOSITORY; that leg drops the upload stream on this fork's runners, so the
-        # fork skips only that entry and keeps macOS and Windows. The host leg and both other platforms
-        # still run there.
-        exclude: ${{ fromJSON(github.repository == 'KouriVar/OpenMausBot' && '[{"os":"ubuntu-latest"}]' || '[]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
