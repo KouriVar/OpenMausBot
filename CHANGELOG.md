@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE021 · The 0.5.19 round: a file card sits flush with the replies around it
+
+A bot message that was only an attached file drew its card inside the bubble's 6px padding, so the card's left edge sat
+right of the text bubbles above and below. That attachment-only bubble now has no horizontal padding, and the card lines
+up with the bubble edges.
+
+中文：**V0.5.19 这一轮**修「只有附件的消息」里文件卡片没左对齐：文件卡以前画在气泡的 6px 内边距里，左边比上下的文字气泡缩进
+一点；现在这类纯附件气泡的左右内边距归零，卡片与气泡边缘对齐。
+
 ### OE020 · The 0.5.18 round: the details panel's chevrons all point right, and 查找 is short
 
 In the bot details panel the model row and the new 已归档会话 row drew down-pointing chevrons while every other row pointed

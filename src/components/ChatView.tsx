@@ -470,7 +470,9 @@ const Bubble = memo(function Bubble({
             user && webhookView
               ? cn("overflow-hidden border border-accent/25 bg-card text-ink", simple ? cn("rounded-[18px]", SIMPLE_BUBBLE_TEXT) : "shadow-[0_10px_30px_rgba(0,0,0,0.18)]")
               : attachmentsOnly || split || tabled
-                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, (attachmentsOnly || split) && "p-1.5")
+                // Fork: a bubble holding only attachments draws its file card flush with the bubble's own left edge,
+                // so the card lines up with the replies above and below instead of sitting inset by the bubble padding.
+                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, split && "p-1.5", attachmentsOnly && "p-0")
                 : user
                   ? cn("whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]", ownBubbleStyle && "user-bubble-colored", simple && ownBubbleStyle && "antialiased")
                   : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
