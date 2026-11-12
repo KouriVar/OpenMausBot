@@ -33,9 +33,10 @@ export function bloubSessionState(bot: Bot, messages: readonly Message[] | undef
   const last = lastNonReceipt((messages ?? []) as Message[]);
   if (last?.kind === "activity" && last.tool?.ok === false) return "exclaim";
   if (bot.busy) return toolRunning(last, true) ? "orbit" : "thinking";
-  if (bot.unread) return "notify";
   // Bloub's `sleep` is a 16%-wide bouncing ball with no face, so a resting bot stays idle and keeps
   // its expression instead. (Sleep is never shown for an avatar; it would be the "one dot".)
+  // Unread is the avatar's one status dot, not a glyph on the body. (Fork: no `notify` face; the
+  // body's notification dot was the third blue dot on a bot's avatar.)
   return "idle";
 }
 

@@ -341,6 +341,15 @@ describe("BotListItem", () => {
     expect(renderRow(bot({ unread: true }))).toContain('data-testid="unread-dot"');
   });
 
+  it("wears one dot per avatar, with no row dot beside it in either density", () => {
+    for (const density of ["comfortable", "icons"] as const) {
+      const markup = renderRow(bot({ unread: true }), density);
+      expect(markup).toContain('data-avatar-dot="unread"');
+      expect(markup.match(/data-avatar-dot=/g) ?? []).toHaveLength(1);
+      expect(markup).not.toContain("pointer-events-none absolute size-2 rounded-full border border-panel bg-accent");
+    }
+  });
+
   it("marks the avatar with a green presence dot only while the bot works", () => {
     expect(renderRow(bot({ busy: true }))).toContain('data-testid="working-dot"');
     expect(renderRow(bot())).not.toContain('data-testid="working-dot"');

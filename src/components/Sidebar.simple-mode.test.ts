@@ -561,7 +561,8 @@ describe("bot-first sidebar", () => {
     expect(unread.includes('data-sidebar-activity-row="unread"')).toBe(density !== "icons");
     const read = renderToStaticMarkup(createElement(BotListItem, rowProps(density, { ...bot, unread: false, tasks: [bot.tasks![0]!, bot.tasks![1]!, bot.tasks![3]!] })));
     expect(read).not.toContain("data-sidebar-activity-row");
-    expect(unread).toContain(density === "icons" ? "rounded-full border border-panel bg-accent" : density === "comfortable" ? 'data-testid="unread-dot"' : 'aria-label="Unread threads"');
+    expect(unread).toContain('data-avatar-dot="unread"');
+    expect(unread).not.toContain("pointer-events-none absolute size-2 rounded-full border border-panel bg-accent");
     forgetSearchDisclosuresForTests();
   });
 

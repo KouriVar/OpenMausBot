@@ -23,19 +23,17 @@ release notes carry.
 
 ## Unreleased / 未发布
 
-### OE002 · The 0.5.1 round: one status dot on every sidebar avatar
+### OE004 · The 0.5.3 round: one status dot per avatar, again
 
-The 0.5.1 round gives the sidebar one status dot per bot, always in the avatar's bottom-right corner where the working
-dot used to be. Its colour is the one state that matters most: red for a failed last turn or an engine that is gone,
-amber while the bot waits for the person to choose or answer, green while it works, and blue for unread output. When
-several states are true at once only the highest one shows, in the order red, amber, green, blue. The blue dot at the
-row's top right and the second dot that appeared on hover are gone; waiting on a teammate and queued work are still
-said in the row's words, without a dot.
+The 0.5.3 round puts every sidebar avatar back to one status dot. An unread bot in the icon rail no longer wears a second
+blue dot at the row's top-right, and the Bloub body no longer paints its own notification dot in the middle of the face;
+the one dot at the avatar's bottom-right carries the state — red for a failed turn or a gone engine, amber while the bot
+waits for the person, green while it works, blue for unread, in that priority. Waiting on a teammate and queued work stay
+in the row's words, without a dot.
 
-中文：**V0.5.1 这一轮**把侧栏每个 bot 的状态收成一个点，固定在头像右下角，也就是原来运行中绿点的位置。点的颜色表示
-当下最重要的那一个状态：红＝最后一个回合失败或引擎已不可达，橙＝正在等你选择或输入，绿＝正在运行，蓝＝有未读。同时
-有多种状态时只显示优先级最高的一个，顺序是红、橙、绿、蓝。行右上角的蓝点、以及悬停时多出来的第二个点都删掉了；等待
-队友和排队仍然只在行内文字里说，不再画点。
+中文：**V0.5.3 这一轮**把侧栏每个头像收回成一个状态点。图标栏里未读的 bot 不再在行的右上角多一个蓝点，Bloub 身体也不再
+在脸中间画自己的通知点；头像右下角那一个点负责全部状态 —— 红＝回合失败或引擎挂了，橙＝在等你选择/输入，绿＝正在运行，
+蓝＝有未读，同时有多种时按红 > 橙 > 绿 > 蓝只显示一个。等待队友和排队仍然只在行内文字里说，不画点。
 
 ### OE003 · The 0.5.2 round: upstream's chat streaming, smoother painting and the window frame
 
@@ -52,6 +50,20 @@ deferred to its own branch after 0.6.0.
 把人送去应用商店 —— 桌面端没有商店链接，也没有商店二维码，菜单里那一行改为配对手机 —— 这一轮还带上社区对连接器、
 日历分页、数据表、文件同步、记忆搜索、进程输出和目标决策的修复，以及对应的 Train 修正。上游那套设置页重排这次
 故意不合，推迟到 0.6.0 之后单独分支。
+
+### OE002 · The 0.5.1 round: one status dot on every sidebar avatar
+
+The 0.5.1 round gives the sidebar one status dot per bot, always in the avatar's bottom-right corner where the working
+dot used to be. Its colour is the one state that matters most: red for a failed last turn or an engine that is gone,
+amber while the bot waits for the person to choose or answer, green while it works, and blue for unread output. When
+several states are true at once only the highest one shows, in the order red, amber, green, blue. The blue dot at the
+row's top right and the second dot that appeared on hover are gone; waiting on a teammate and queued work are still
+said in the row's words, without a dot.
+
+中文：**V0.5.1 这一轮**把侧栏每个 bot 的状态收成一个点，固定在头像右下角，也就是原来运行中绿点的位置。点的颜色表示
+当下最重要的那一个状态：红＝最后一个回合失败或引擎已不可达，橙＝正在等你选择或输入，绿＝正在运行，蓝＝有未读。同时
+有多种状态时只显示优先级最高的一个，顺序是红、橙、绿、蓝。行右上角的蓝点、以及悬停时多出来的第二个点都删掉了；等待
+队友和排队仍然只在行内文字里说，不再画点。
 
 ## V0.5.0 · 2026-11-12 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 

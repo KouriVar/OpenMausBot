@@ -22,8 +22,8 @@ describe("a bot's turn on Bloub's states", () => {
     expect(bloubSessionState(bot({ busy: true }), [done], NOW)).toBe("thinking");
   });
 
-  it("notifies unread, sleeps long idle, else idles", () => {
-    expect(bloubSessionState(bot({ unread: true }), [said({ at: NOW - 100 })], NOW)).toBe("notify");
+  it("draws no glyph for unread (the avatar's one dot says it), sleeps long idle, else idles", () => {
+    expect(bloubSessionState(bot({ unread: true }), [said({ at: NOW - 100 })], NOW)).toBe("idle");
     expect(bloubSessionState(bot({ activity: "idle" }), [said({ at: NOW - 11 * 60_000 })], NOW)).toBe("idle");
     expect(bloubSessionState(bot(), [said({ at: NOW - 11 * 60_000 })], NOW)).toBe("idle");
     expect(bloubSessionState(bot(), [said({ at: NOW - 1000 })], NOW)).toBe("idle");
