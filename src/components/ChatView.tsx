@@ -716,7 +716,8 @@ const MessagesList = memo(function MessagesList({
     const consumed = new Set<string>();
     let host: Message | null = null;
     for (const item of items) {
-      if (item.kind !== "message") { host = null; continue; }
+      // A run of tool chips or a digest between the reply and its skill card does not move the card to another bubble.
+      if (item.kind !== "message") continue;
       const m = item.message;
       if (appliedSkillCard(m)) {
         if (host) {
@@ -725,7 +726,8 @@ const MessagesList = memo(function MessagesList({
         }
         continue;
       }
-      host = m.role === "bot" && m.kind === "text" ? m : null;
+      if (m.role === "user") host = null;
+      else if (m.role === "bot" && m.kind === "text") host = m;
     }
     return { hosts, consumed };
   }, [items]);
