@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE019 · The 0.5.17 round: a picked voice is saved the moment it is picked
+
+Choosing a voice only queued the usual batched profile patch, so closing the app right after picking could drop it before
+the batch was written, and the picker reopened on 「选择语音」. The pick now writes to the server immediately (and is kept
+on this device), and opening the voice panel restores the last picked voice if a fresh load came back without one.
+
+中文：**V0.5.17 这一轮**给语音选择做了热保存：以前选完只是排进批量保存，紧接着关掉 App 可能还没写出去，重开就回到
+「选择语音」；现在选中的瞬间就直接写服务器（同时在本机留一份），面板打开时如果新加载的数据里没有语音会自动恢复上次选择。
+
 ### OE018 · The 0.5.16 round: the Bloub avatar picker draws its shapes and colours with one centred gap
 
 The real component behind 身份 → 头像 with the Bloub style is `BloubCustomizer`: its shapes sat 3px apart and its colours

@@ -201,6 +201,15 @@ export function VoiceSettings({
     setError(null);
   };
 
+  // Fork: the picked voice is kept on this device and saved the moment it is picked, so closing the app right after
+  // picking (before the batched patch would flush) cannot lose it.
+  const voiceBackupKey = `omb-voice-${bot.id}`;
+  const rememberVoice = (voiceId: string) => {
+    try {
+      globalThis.window?.localStorage.setItem(voiceBackupKey, voiceId);
+    } catch {
+    }
+  };
   const chooseVoice = (voiceId: string) => {
     if (usesLocalSystem) {
       setRemoteSystemVoice(bot.id, voiceId);
@@ -208,8 +217,23 @@ export function VoiceSettings({
       return;
     }
     currentBot.current = { id: bot.id, voice: voiceId };
+    rememberVoice(voiceId);
     onPatch({ voice: voiceId });
+    void api(`/api/bots/${bot.id}`, { method: "PATCH", body: JSON.stringify({ voice: voiceId }) }).catch(() => {});
   };
+
+  useEffect(() => {
+    if (usesLocalSystem) return;
+    try {
+      if (bot.voice) {
+        globalThis.window?.localStorage.setItem(voiceBackupKey, bot.voice);
+        return;
+      }
+      const saved = globalThis.window?.localStorage.getItem(voiceBackupKey);
+      if (saved) onPatch({ voice: saved });
+    } catch {
+    }
+  }, [bot.id, bot.voice, usesLocalSystem]);
 
   // An add that settles after the bot or the provider changed belongs to neither: it must not set this voice.
   useEffect(() => {
