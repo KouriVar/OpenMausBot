@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE009 · The 0.5.7 round: the bot settings list is one card under the search box
+
+In Advanced mode the profile panel's section list was full-bleed: each row drew its own hairline across the whole panel,
+its icon sat left of the search box's icon and its chevron touched the panel edge. The sections now live in one rounded
+card inset like the search box, with hairlines between rows, icons aligned with the search icon, labels with the
+placeholder and chevrons inside the card.
+
+中文：**V0.5.7 这一轮**把高级模式资料面板的分区列表收成一张卡片：以前每行各自铺满面板、图标比搜索框图标更靠左、箭头顶到面板边缘；
+现在整组列表是一张和搜索框同内缩的圆角卡片，行间用细线分隔，图标与搜索图标对齐、文字与占位符对齐、箭头也收进卡片里。
+
 ### OE008 · The 0.5.6 round: the profile menu's usage row drops the reset line
 
 The bottom-left avatar menu showed 每周用量 with two lines: the used share and 「距重置 N 天后」. The second line is gone,
