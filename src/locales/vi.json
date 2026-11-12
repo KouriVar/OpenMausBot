@@ -5599,7 +5599,6 @@
   "phone.code.installAndScan": "Cài {app} trên điện thoại từ App Store hoặc Google Play, rồi quét mã này trong ứng dụng.",
   "phone.code.notCamera": "Hãy quét mã trong ứng dụng {app}, không dùng máy ảnh.",
   "remote.serverPairing.camera": "Hoặc quét bằng máy ảnh của điện thoại để mở trong trình duyệt.",
-  "place.view.ccNoHours.lineTrial": "Đã dùng hết số giờ desktop đám mây của bản dùng thử miễn phí. Hạn mức đầy đủ bắt đầu từ lần thanh toán đầu tiên.",
   "botLimit.created.title": "Đã tạo {name}, tạm dừng lúc này",
   "botLimit.created.body": "Starter giữ {count} bot hoạt động, nên bot này đang tạm dừng. Chọn {count} bot tiếp tục hoạt động, hoặc nâng cấp để đánh thức tất cả.",
   "phoneUpdate.title": "Cập nhật MausBot trên điện thoại",

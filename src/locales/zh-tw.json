@@ -9833,7 +9833,6 @@
   "phone.code.installAndScan": "從 App Store 或 Google Play 在手機上安裝 {app}，然後在 App 中掃描此 QR 碼。",
   "phone.code.notCamera": "請在 {app} App 內掃描，不要用相機。",
   "remote.serverPairing.camera": "也可以用手機相機掃描，在瀏覽器中開啟。",
-  "place.view.ccNoHours.lineTrial": "免費試用的雲端桌面時數已用完。完整額度從第一次付款開始。",
   "botLimit.created.title": "已建立 {name}，暫時暫停",
   "botLimit.created.body": "Starter 只讓 {count} 個機器人保持運作，所以這個已暫停。選擇要保持運作的 {count} 個，或升級以喚醒全部。",
   "hostedMcp.keyLabel": "{service} API 金鑰",

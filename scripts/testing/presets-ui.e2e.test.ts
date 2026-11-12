@@ -62,6 +62,14 @@ describe("Preset bots in the real renderer", () => {
     })()`);
 
     await expect.poll(snapshot, { timeout: 10_000 }).toContain('button "You"');
+    // Fork: Simple-only hides the nav-footer Advanced switch; unlock the device's Advanced mode the way the app
+    // itself records it (the hidden unlock flag plus the mode), and wake the store with a storage event.
+    await evaluate(`(() => {
+      localStorage.setItem("omb-advanced-unlocked", "1");
+      localStorage.setItem("omb-advanced-mode", "1");
+      window.dispatchEvent(new StorageEvent("storage", { key: "omb-advanced-mode", storageArea: localStorage }));
+      return true;
+    })()`);
     await click("You");
     await click("Settings");
     // New bot defaults sit on You and your bots, a page of Advanced mode; its switch is at the bottom of Settings.

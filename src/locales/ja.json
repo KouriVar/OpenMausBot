@@ -7773,7 +7773,6 @@
   "phone.code.installAndScan": "スマートフォンに App Store または Google Play から {app} をインストールし、アプリでこのコードをスキャンしてください。",
   "phone.code.notCamera": "カメラではなく、{app} アプリの中からスキャンしてください。",
   "remote.serverPairing.camera": "スマートフォンのカメラでスキャンすると、ブラウザーで開くこともできます。",
-  "place.view.ccNoHours.lineTrial": "無料トライアルのクラウドデスクトップ利用時間を使い切りました。最初のお支払いから通常の利用枠が始まります。",
   "botLimit.created.title": "{name} を作成しました。いまは一時停止中です",
   "botLimit.created.body": "Starter で起動しておけるボットは {count} 体なので、このボットは一時停止中です。起動しておく {count} 体を選ぶか、アップグレードしてすべて起こしてください。",
   "phoneUpdate.title": "スマホの MausBot を更新してください",

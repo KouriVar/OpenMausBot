@@ -6860,7 +6860,6 @@
   "phone.code.installAndScan": "Zainstaluj {app} na telefonie z App Store lub Google Play, a potem zeskanuj ten kod w aplikacji.",
   "phone.code.notCamera": "Zeskanuj go w aplikacji {app}, nie aparatem.",
   "remote.serverPairing.camera": "Możesz też zeskanować go aparatem telefonu, aby otworzyć go w przeglądarce.",
-  "place.view.ccNoHours.lineTrial": "Wykorzystano wszystkie godziny pulpitu w chmurze z bezpłatnego okresu próbnego. Pełny limit zaczyna się od pierwszej płatności.",
   "botLimit.created.title": "Utworzono {name}, na razie wstrzymany",
   "botLimit.created.body": "Starter utrzymuje aktywne {count} boty, więc ten jest wstrzymany. Wybierz, które {count} mają pozostać aktywne, albo zmień plan, aby obudzić wszystkie.",
   "phoneUpdate.title": "Zaktualizuj MausBot na telefonie",

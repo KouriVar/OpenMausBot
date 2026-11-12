@@ -84,13 +84,15 @@ describe("Computer panel Works on", () => {
   it("lists this computer and a private desktop on a desktop or self-hosted server", () => {
     const markup = computerTab({});
     expect(places(markup)).toEqual(["Auto", "Cloud desktop", "Private desktop", "This computer", "Browser", "Off"]);
-    expect(markup).toContain("Choose where this bot works.</p>");
+    // The 0.5.7 round trimmed the card's subtitle; the options themselves stay.
+    expect(markup).not.toContain("Choose where this bot works.");
   });
 
   it("lists neither on My Cloud, and says why", () => {
     const markup = computerTab({ cloudHome: true });
     expect(places(markup)).toEqual(["Auto", "Cloud desktop", "Browser", "Off"]);
-    expect(markup).toContain("Choose where this bot works. It can also use your computer whenever MausBot is open on it.");
+    // Same trim on My Cloud, where the two options and the reason stay.
+    expect(markup).not.toContain("Choose where this bot works.");
   });
 });
 

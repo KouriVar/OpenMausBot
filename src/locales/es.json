@@ -6098,7 +6098,6 @@
   "phone.code.installAndScan": "Instala {app} en tu teléfono desde la App Store o Google Play y luego escanea este código en la app.",
   "phone.code.notCamera": "Escanéalo desde la app {app}, no con la cámara.",
   "remote.serverPairing.camera": "O escanéalo con la cámara del teléfono para abrirlo en el navegador.",
-  "place.view.ccNoHours.lineTrial": "Se agotaron las horas de escritorio en la nube de la prueba gratis. La asignación completa empieza con el primer pago.",
   "botLimit.created.title": "{name} creado, en pausa por ahora",
   "botLimit.created.body": "Starter mantiene {count} bots despiertos, así que este está en pausa. Elige cuáles {count} siguen despiertos, o mejora el plan para despertarlos a todos.",
   "phoneUpdate.title": "Actualiza MausBot en tu teléfono",

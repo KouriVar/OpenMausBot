@@ -3457,7 +3457,6 @@
   "phone.code.installAndScan": "Installiere {app} auf deinem Handy aus dem App Store oder von Google Play und scanne diesen Code dann in der App.",
   "phone.code.notCamera": "Scanne ihn in der {app}-App, nicht mit der Kamera.",
   "remote.serverPairing.camera": "Oder scanne ihn mit der Kamera deines Handys, um ihn im Browser zu öffnen.",
-  "place.view.ccNoHours.lineTrial": "Die Cloud-Desktop-Stunden der kostenlosen Testphase sind aufgebraucht. Das volle Kontingent beginnt mit der ersten Zahlung.",
   "botLimit.created.title": "{name} erstellt, vorerst pausiert",
   "botLimit.created.body": "Starter hält {count} Bots wach, deshalb ist dieser pausiert. Wähle, welche {count} wach bleiben, oder führe ein Upgrade durch, um alle zu wecken.",
   "phoneUpdate.title": "MausBot auf Ihrem Telefon aktualisieren",

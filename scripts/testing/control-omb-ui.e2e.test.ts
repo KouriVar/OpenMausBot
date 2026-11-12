@@ -124,7 +124,7 @@ describe("control-omb ui drives the real renderer", () => {
     await ui("wait-settle", info.ui, "--timeout", "60");
     // The chat's ⋯ items live in the bot panel, which the chat header's pill opens.
     await ui("click", info.ui, "--name", "Open Pepper's profile");
-    await ui("click", info.ui, "--name", "Find in conversation");
+    await ui("click", info.ui, "--name", "Find");
     await ui("type", info.ui, "--name", "Find in this conversation", "--text", "zebra");
     const highlighted = async () => (await ui("eval", info.ui, "--js", "[...CSS.highlights.get('search-result-text') ?? []][0]?.toString() ?? null")).result;
     await expect.poll(async () => (await ui("snapshot", info.ui)).snapshot, { timeout: 10_000 }).toContain("1 of 1");

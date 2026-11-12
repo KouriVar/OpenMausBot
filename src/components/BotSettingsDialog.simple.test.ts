@@ -685,7 +685,7 @@ describe("the Details tab", () => {
   it("lists Find, Activity and the Inspector for this conversation as rows that run them, leaving Copy and Download to Share", () => {
     const rendered = botTab(makeBot());
     expect([...rendered.html.matchAll(/data-panel-item="(\w+)"/g)].map((match) => match[1])).toEqual(["find", "activity", "inspector"]);
-    expect(rendered.html).toContain(">Find in conversation<");
+    expect(rendered.html).toContain(">Find<");
     const run = (key: string) => (rendered.nodes.find((node) => (node.props.item as { key?: string } | undefined)?.key === key)!.props.item as { onSelect: () => void }).onSelect();
     run("activity");
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "toggleActivity" });

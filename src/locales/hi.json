@@ -3174,7 +3174,6 @@
   "phone.code.installAndScan": "अपने फ़ोन पर App Store या Google Play से {app} इंस्टॉल करें, फिर ऐप में यह कोड स्कैन करें।",
   "phone.code.notCamera": "इसे {app} ऐप के अंदर से स्कैन करें, कैमरे से नहीं।",
   "remote.serverPairing.camera": "या इसे ब्राउज़र में खोलने के लिए अपने फ़ोन के कैमरे से स्कैन करें।",
-  "place.view.ccNoHours.lineTrial": "मुफ़्त ट्रायल के क्लाउड डेस्कटॉप घंटे खत्म हो गए हैं। पूरा कोटा पहले भुगतान से शुरू होता है।",
   "botLimit.created.title": "{name} बन गया, अभी रुका हुआ है",
   "botLimit.created.body": "Starter {count} बॉट जगाए रखता है, इसलिए यह रुका हुआ है। चुनें कि कौन से {count} जगे रहें, या सबको जगाने के लिए अपग्रेड करें।",
   "phoneUpdate.title": "अपने फ़ोन पर MausBot अपडेट करें",

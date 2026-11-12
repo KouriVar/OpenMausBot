@@ -3322,7 +3322,6 @@
   "phone.code.installAndScan": "Installez {app} sur votre téléphone depuis l'App Store ou Google Play, puis scannez ce code dans l'app.",
   "phone.code.notCamera": "Scannez-le depuis l'app {app}, pas avec l'appareil photo.",
   "remote.serverPairing.camera": "Ou scannez-le avec l'appareil photo de votre téléphone pour l'ouvrir dans le navigateur.",
-  "place.view.ccNoHours.lineTrial": "Les heures de bureau cloud de l'essai gratuit sont épuisées. L'allocation complète commence avec le premier paiement.",
   "botLimit.created.title": "{name} créé, en pause pour l'instant",
   "botLimit.created.body": "Starter garde {count} bots éveillés, donc celui-ci est en pause. Choisissez les {count} qui restent éveillés, ou passez à un plan supérieur pour tous les réveiller.",
   "phoneUpdate.title": "Mettez à jour MausBot sur votre téléphone",

@@ -23,7 +23,7 @@ vi.mock("@/lib/use-media-query", async (importOriginal) => ({
   useMediaQuery: () => fixture.wide,
 }));
 
-const { BotConversations, CONVERSATIONS_SHOWN, forgetConversationLines } = await import("./Conversations");
+const { ArchivedConversations, BotConversations, CONVERSATIONS_SHOWN, forgetConversationLines } = await import("./Conversations");
 
 const now = Date.now();
 const task = (threadId: string, title: string, order: number, extra: Partial<Task> = {}): Task =>
@@ -251,21 +251,23 @@ describe("a bot's conversations in its panel", () => {
     expect(host.textContent).toContain("Nothing matches “deck”");
   });
 
-  it("keeps the open conversation listed when it is archived and the only one left", () => {
+  it("keeps the open conversation listed when it is archived and the only one left, while archived ones move to the details row", () => {
     const two = [task("who", "Who am I?", 2, { archivedAt: now - 1000 }), task("deck", "Summarise the board deck", 4, { archivedAt: now - 2000 })];
     render(research({ tasks: two }));
     expect(listed()).toEqual(["who"]);
-    expect(host.querySelector("[data-conversations-archived]")!.textContent).toBe("Archived (1)");
+    // 0.5.7 moved the archived list out of the conversations panel, into the details tab's own row.
+    expect(host.querySelector("[data-panel-archived]")).toBeNull();
   });
 
-  it("lists archived conversations under Archived (N), where they can be unarchived", () => {
-    render(research({ tasks: tasks.map((task) => task.threadId === "launch" || task.threadId === "deck" ? { ...task, archivedAt: now - 1000 } : task) }));
-    expect(listed()).toEqual(["hiring", "who", "pricing"]);
-    const archivedToggle = host.querySelector("[data-conversations-archived]")!;
-    expect(archivedToggle.textContent).toBe("Archived (2)");
+  it("lists archived conversations behind their own row in the details tab, where they can be unarchived", () => {
+    const archivedBot = research({ tasks: tasks.map((task) => task.threadId === "launch" || task.threadId === "deck" ? { ...task, archivedAt: now - 1000 } : task) });
+    flushSync(() => root.render(createElement(ArchivedConversations, { bot: archivedBot })));
+    const archivedToggle = host.querySelector("[data-panel-archived]")!;
+    expect(archivedToggle.textContent).toContain("Archived conversations");
+    expect(archivedToggle.textContent).toContain("2");
     expect(archivedToggle.getAttribute("aria-expanded")).toBe("false");
     click(archivedToggle);
-    expect(listed()).toEqual(["hiring", "who", "pricing", "launch", "deck"]);
+    expect(listed()).toEqual(["launch", "deck"]);
     click(host.querySelector('[aria-label="Actions for Summarise the board deck"]'));
     const unarchive = [...document.querySelector('[data-thread-overlay][aria-label="Actions for Summarise the board deck"]')!.querySelectorAll("button")]
       .find((button) => button.textContent === "Unarchive")!;

@@ -5599,7 +5599,6 @@
   "phone.code.installAndScan": "{app} uygulamasını telefonunuza App Store'dan veya Google Play'den yükleyin, ardından bu kodu uygulamada tarayın.",
   "phone.code.notCamera": "Kamerayla değil, {app} uygulamasının içinden tarayın.",
   "remote.serverPairing.camera": "Ya da tarayıcıda açmak için telefonunuzun kamerasıyla tarayın.",
-  "place.view.ccNoHours.lineTrial": "Ücretsiz denemenin bulut masaüstü saatleri tükendi. Tam kullanım hakkı ilk ödemeyle başlar.",
   "botLimit.created.title": "{name} oluşturuldu, şimdilik duraklatıldı",
   "botLimit.created.body": "Starter {count} botu uyanık tutar, bu yüzden bu bot duraklatıldı. Hangi {count} botun uyanık kalacağını seçin ya da hepsini uyandırmak için yükseltin.",
   "phoneUpdate.title": "Telefonunuzda MausBot'u güncelleyin",

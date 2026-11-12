@@ -143,6 +143,14 @@ describe("bot setup and tools in the real renderer", () => {
       await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
       await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
     };
+    // Fork: Simple-only hides the nav-footer Advanced switch; unlock the device's Advanced mode the way the app
+    // itself records it (the hidden unlock flag plus the mode), and wake the store with a storage event.
+    await evaluate(`(() => {
+      localStorage.setItem("omb-advanced-unlocked", "1");
+      localStorage.setItem("omb-advanced-mode", "1");
+      window.dispatchEvent(new StorageEvent("storage", { key: "omb-advanced-mode", storageArea: localStorage }));
+      return true;
+    })()`);
     await openPanelUsage();
     await ui("screenshot", "--out", `${info.logPath}.settings.png`);
     const search = await ui("snapshot", "--interactive");
