@@ -35,10 +35,13 @@ export function VoiceSettings({
   bot,
   onPatch,
   workspaceConfigurationLocked = false,
+  fixedProvider,
 }: {
   bot: Bot;
   onPatch: (patch: Partial<Pick<Bot, "voice" | "speakReplies" | "voiceNotes" | "voiceNoteEveryReply">>) => void;
   workspaceConfigurationLocked?: boolean;
+  /** Fork: this surface always uses this provider and offers no switch; MiMo is free, so the bot panel pins it. */
+  fixedProvider?: "mimo";
 }) {
   const { state, dispatch } = useStore();
   const tts = state.config?.tts;
@@ -67,7 +70,19 @@ export function VoiceSettings({
   const [deviceProvider, setDeviceProvider] = useState<RemoteVoiceProvider>(() => remoteVoiceProvider());
   const [deviceVoice, setDeviceVoice] = useState(() => remoteSystemVoice(bot.id));
   const usesLocalSystem = localMacClient && deviceProvider === "system";
-  const provider = tts?.provider ?? "elevenlabs";
+  const configuredProvider = tts?.provider ?? "elevenlabs";
+  const provider = fixedProvider ?? configuredProvider;
+  const syncingFixedProvider = useRef(false);
+  useEffect(() => {
+    if (!fixedProvider || configuredProvider === fixedProvider || syncingFixedProvider.current) return;
+    syncingFixedProvider.current = true;
+    api("/api/config", { method: "PUT", body: JSON.stringify({ tts: { provider: fixedProvider } }) })
+      .then(() => api<ConfigStatus>("/api/config"))
+      .then((status: ConfigStatus) => dispatch({ type: "configStatus", config: status }))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => { syncingFixedProvider.current = false; });
+  }, [configuredProvider, dispatch, fixedProvider]);
+
   const searchable = (provider === "fish" || provider === "elevenlabs" || provider === "gemini") && !usesLocalSystem;
   const voiceSearch = searchable && provider !== "gemini" ? searchedQuery : "";
   const pickedVoice = searchable && provider !== "gemini" ? (bot.voice ?? "") : "";
@@ -186,6 +201,15 @@ export function VoiceSettings({
     setError(null);
   };
 
+  // Fork: the picked voice is kept on this device and saved the moment it is picked, so closing the app right after
+  // picking (before the batched patch would flush) cannot lose it.
+  const voiceBackupKey = `omb-voice-${bot.id}`;
+  const rememberVoice = (voiceId: string) => {
+    try {
+      globalThis.window?.localStorage.setItem(voiceBackupKey, voiceId);
+    } catch {
+    }
+  };
   const chooseVoice = (voiceId: string) => {
     if (usesLocalSystem) {
       setRemoteSystemVoice(bot.id, voiceId);
@@ -193,8 +217,23 @@ export function VoiceSettings({
       return;
     }
     currentBot.current = { id: bot.id, voice: voiceId };
+    rememberVoice(voiceId);
     onPatch({ voice: voiceId });
+    void api(`/api/bots/${bot.id}`, { method: "PATCH", body: JSON.stringify({ voice: voiceId }) }).catch(() => {});
   };
+
+  useEffect(() => {
+    if (usesLocalSystem) return;
+    try {
+      if (bot.voice) {
+        globalThis.window?.localStorage.setItem(voiceBackupKey, bot.voice);
+        return;
+      }
+      const saved = globalThis.window?.localStorage.getItem(voiceBackupKey);
+      if (saved) onPatch({ voice: saved });
+    } catch {
+    }
+  }, [bot.id, bot.voice, usesLocalSystem]);
 
   // An add that settles after the bot or the provider changed belongs to neither: it must not set this voice.
   useEffect(() => {
@@ -294,7 +333,9 @@ export function VoiceSettings({
     <div className="rounded-xl bg-card p-4">
       <div className="text-[15px] font-medium text-ink">{t("voice.title")}</div>
       <div className="mt-0.5 text-[13px] text-ink-secondary">
-        {localMacClient
+        {fixedProvider
+          ? t("voice.fixedProvider")
+          : localMacClient
           ? t("voice.macChoice")
           : workspaceConfigurationLocked
             ? t("voice.agentChoice")
@@ -338,7 +379,7 @@ export function VoiceSettings({
         </div>
       )}
 
-      {!workspaceConfigurationLocked && (
+      {!workspaceConfigurationLocked && !fixedProvider && (
         <div className="mt-4">
           <div className="mb-2 text-[13px] text-ink-secondary">{t("voice.engine")}</div>
           <div className="grid grid-cols-4 gap-1 rounded-xl bg-inset p-1" role="radiogroup" aria-label={t("voice.engine")}>

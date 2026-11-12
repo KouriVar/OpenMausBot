@@ -204,7 +204,7 @@ export function BotSettingsDialog({ bot, overlay = false }: {
           </span>
         </div>
 
-        <div className="mx-4 mb-2 flex shrink-0 items-center gap-2 rounded-lg border border-transparent bg-control/70 px-2.5 py-2 focus-within:border-focus">
+        <div className="mx-4 mb-2 flex shrink-0 items-center gap-2 rounded-xl border border-transparent bg-control/70 px-2.5 py-2 focus-within:border-focus">
           <Search size={14} className="shrink-0 text-ink-secondary" />
           <input
             value={query}
@@ -224,9 +224,12 @@ export function BotSettingsDialog({ bot, overlay = false }: {
           />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {/* Fork: the section list is one card under the search box, so the icons line up with the search icon and the
+            chevrons sit inside the card instead of on the panel's edge. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3">
+          <div data-bot-settings-list className="overflow-hidden rounded-xl border border-hairline/40 bg-control/20 divide-y divide-hairline/30">
           {visibleSections.length === 0 && (
-            <div className="px-4 py-4 text-[13px] leading-relaxed text-ink-secondary">
+            <div className="px-2.5 py-4 text-[13px] leading-relaxed text-ink-secondary">
               {t("botSettings.searchNone", { query: query.trim() })}
             </div>
           )}
@@ -240,7 +243,6 @@ export function BotSettingsDialog({ bot, overlay = false }: {
               <div
                 key={id}
                 data-bot-settings-section={id}
-                className="border-b border-hairline/30"
                 hidden={!matched}
               >
                 <button
@@ -254,11 +256,12 @@ export function BotSettingsDialog({ bot, overlay = false }: {
                   }}
                   aria-expanded={open}
                   className={cn(
-                    "flex w-full shrink-0 items-center gap-2.5 px-4 py-2.5 text-left text-[14px]",
-                    open ? "bg-control/60 text-ink" : "text-ink-secondary hover:bg-control/40 hover:text-ink",
+                    "flex w-full shrink-0 items-center gap-2 px-2.5 py-2.5 text-left text-[14px]",
+                    // Fork: no selected fill — the open section reads by its chevron alone, every row looks alike.
+                    "text-ink-secondary hover:bg-control/40 hover:text-ink",
                   )}
                 >
-                  <Icon size={15} className="shrink-0" />
+                  <Icon size={14} className="shrink-0" />
                   <span className="min-w-0 flex-1 truncate">{label}</span>
                   <ChevronDown
                     size={16}
@@ -270,15 +273,16 @@ export function BotSettingsDialog({ bot, overlay = false }: {
                 </button>
                 {/* Memory stays mounted (hidden when collapsed) so its unsaved draft survives. */}
                 {id === "memory" ? (
-                  <div hidden={!open} className="px-4 pb-4 pt-1">
+                  <div hidden={!open} className="px-2.5 pb-3 pt-0.5">
                     {renderSectionBody("memory")}
                   </div>
                 ) : (
-                  open && <div className="px-4 pb-4 pt-1">{renderSectionBody(id)}</div>
+                  open && <div className="px-2.5 pb-3 pt-0.5">{renderSectionBody(id)}</div>
                 )}
               </div>
             );
           })}
+          </div>
         </div>
         </>}
       </aside>

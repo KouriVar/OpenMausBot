@@ -1664,19 +1664,13 @@ export function ComputerPanel({
         {advanced ? <>
           <div className="mt-4 rounded-xl bg-card p-4">
             <div className="text-[15px] font-medium text-ink">{t("computer.worksOn")}</div>
-            <p className="mt-1 text-[12px] leading-5 text-ink-secondary">
-              {t(state.config?.cloudHome ? "computer.worksOnHintCloudHome" : "computer.worksOnHint")}
-            </p>
           <WorksOnGrid options={placeOptions} onSelect={selectPlace} />
           {livePin && (
             <p className="mt-2 text-[12px] leading-5 text-ink-secondary" data-testid="place-pinned-note">
               {t("place.pinnedNote", { place: t(placeLabelKey(livePin)) })}
             </p>
           )}
-          <div className="mt-3 border-t border-hairline/40 pt-3 text-[12px] leading-5 text-ink-secondary" aria-live="polite" data-testid="place-line">
-            {worksOnView.line}
-            {placeActionButton(worksOnView, "mt-1 block font-medium text-accent hover:underline")}
-          </div>
+          {placeActionButton(worksOnView, "mt-3 block text-[12px] font-medium leading-5 text-accent hover:underline")}
           {profileBot.computer === "cloud" && (
             <CloudBackendPicker
               compact
@@ -1690,7 +1684,9 @@ export function ComputerPanel({
           <CalendarClock size={17} className="mt-0.5 shrink-0 text-accent" />
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-medium text-ink">{t("computer.tab.routines")} <span className="ml-1 text-[11px] text-ink-secondary">{botRoutines.length}</span></span>
-            <span className={cn("mt-1 block truncate text-[12px]", activeRoutineRun ? routineRunTone(activeRoutineRun) : "text-ink-secondary")}>{activeRoutineRun ? `${activeRoutineRun.routineName} · ${routineRunLabel(activeRoutineRun)}` : t("computer.routines.openTitle")}</span>
+            {activeRoutineRun && (
+              <span className={cn("mt-1 block truncate text-[12px]", routineRunTone(activeRoutineRun))}>{`${activeRoutineRun.routineName} · ${routineRunLabel(activeRoutineRun)}`}</span>
+            )}
           </span>
           <ChevronRight size={14} className="shrink-0 text-ink-secondary rtl:-scale-x-100" aria-hidden="true" />
         </button>

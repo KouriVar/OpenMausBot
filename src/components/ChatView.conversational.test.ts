@@ -61,6 +61,27 @@ afterAll(() => {
   vi.unstubAllGlobals();
 });
 
+describe("consecutive bot bubbles", () => {
+  it("stack in Advanced mode exactly as in Simple: tight middle corners and the same spacing", async () => {
+    setAdvancedMode(true);
+    try {
+      const chat: Message[] = [
+        { id: "m1", role: "user", kind: "text", text: "hi", at: 1 },
+        { id: "m2", parentId: "m1", role: "bot", kind: "text", text: "First", at: 2 },
+        { id: "m3", parentId: "m2", role: "bot", kind: "text", text: "Second", at: 3 },
+      ];
+      await draw(profile({ messages: chat, activeLeafId: "m3" }));
+      const bubble = (mid: string) => document.querySelector<HTMLElement>(`[data-mid="${mid}"] [data-chat-bubble]`)!;
+      const row = (mid: string) => document.querySelector<HTMLElement>(`[data-mid="${mid}"] [data-message-row]`)!;
+      expect([...bubble("m2").classList], "the bubble above tightens its bottom corner").toEqual(expect.arrayContaining(["rounded-es-[6px]"]));
+      expect([...bubble("m3").classList], "the one below tightens its top corner").toEqual(expect.arrayContaining(["rounded-ss-[6px]"]));
+      expect([...row("m3").classList], "and sits at Simple's stacked spacing").toEqual(expect.arrayContaining(["-mt-3"]));
+    } finally {
+      setAdvancedMode(false);
+    }
+  });
+});
+
 describe("conversational replies", () => {
   it("draws one bubble per message break and keeps the code block whole", async () => {
     await draw(profile({ replyStyle: "conversational" }));

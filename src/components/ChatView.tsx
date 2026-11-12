@@ -1,4 +1,4 @@
-import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch } from "react";
+import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type ReactNode } from "react";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
@@ -78,6 +78,7 @@ import { ThreadRefText } from "./ThreadRefs"; import { WatchScreenButton } from 
 import { optionsCardRow } from "./OptionsCardRow";
 import { MessageBoundary } from "./MessageBoundary";
 import { RichMessageRow, UserLineNote, richRowKind } from "./RichMessageRow"; import { SetupOffer } from "./SetupOffer"; import { SavedStepsChip } from "./SavedStepsChip";
+import { LearnedSkillsChip } from "./LearnedSkillsChip";
 import { Composer } from "./Composer";
 import { ChatErrorBanner, ChatNotice } from "./ChatErrorBanner";
 import { ThreadContextWarning } from "./ContextWarning";
@@ -318,6 +319,7 @@ const Bubble = memo(function Bubble({
   onRegenerate,
   replyTarget,
   onReply,
+  learnedSkills,
 }: {
   message: Message;
   emerging?: boolean;
@@ -336,6 +338,8 @@ const Bubble = memo(function Bubble({
   onRegenerate?: () => void;
   replyTarget?: Message;
   onReply: (message: Message) => void;
+  /** Fork: the applied skill changes this reply made, drawn inside its bubble. */
+  learnedSkills?: ReactNode;
 }) {
   const { botId, threadId, botName, voiceId, tts, localVoice, bots, mentionPeers, mentionPerson, focus, dispatch, onBranch, bubbleStyle, conversational, simple, canReact, openedAt, speakerViewer } = useChatRows(), busy = onRegenerate || versions ? use(ChatBusyContext) : false;
   const remoteClient = window.ogb?.remoteClient?.active === true;
@@ -435,7 +439,7 @@ const Bubble = memo(function Bubble({
   );
 
   return (
-    <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", simple && join?.above && SIMPLE_STACKED)}>
+    <div {...{ [MESSAGE_ROW]: "" }} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", join?.above && SIMPLE_STACKED)}>
       {message.relay ? <RelayLabel message={message} /> : peer && <PeerLabel peer={peer} />}
       {speaker && <div className="mb-0.5 px-1 text-[12px] font-medium text-ink-secondary">{speaker}</div>}
       <div className={cn("flex w-full items-center gap-1.5", user ? "justify-end" : "justify-start")}>
@@ -466,7 +470,9 @@ const Bubble = memo(function Bubble({
             user && webhookView
               ? cn("overflow-hidden border border-accent/25 bg-card text-ink", simple ? cn("rounded-[18px]", SIMPLE_BUBBLE_TEXT) : "shadow-[0_10px_30px_rgba(0,0,0,0.18)]")
               : attachmentsOnly || split || tabled
-                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, (attachmentsOnly || split) && "p-1.5")
+                // Fork: a bubble holding only attachments draws its file card flush with the bubble's own left edge,
+                // so the card lines up with the replies above and below instead of sitting inset by the bubble padding.
+                ? cn("text-ink", simple && SIMPLE_BUBBLE_TEXT, split && "p-1.5", attachmentsOnly && "p-0")
                 : user
                   ? cn("whitespace-pre-wrap [overflow-wrap:anywhere] text-ink", simple ? SIMPLE_USER_BUBBLE : "bg-bubble-user px-3 py-[7px]", ownBubbleStyle && "user-bubble-colored", simple && ownBubbleStyle && "antialiased")
                   : simple ? SIMPLE_BOT_BUBBLE : "bg-card px-3 py-[7px] text-ink",
@@ -474,7 +480,7 @@ const Bubble = memo(function Bubble({
             // instead of the 7px its text rows use.
             hasImages && !attachmentsOnly && !split && !tabled && "pt-3",
             mixedImages && !split && !tabled && "pb-3",
-            simple && join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
+            join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}
           title={workedFor === undefined ? new Date(message.at).toLocaleString(intlLocale()) : `${workedLabel(workedFor)} · ${new Date(message.at).toLocaleString(intlLocale())}`}
@@ -567,6 +573,7 @@ const Bubble = memo(function Bubble({
                 <div data-citation-source={message.id} data-citation-owner-type="bot" data-citation-owner={botId} data-citation-thread={threadId}><ChatMarkdown text={text} mentionPeers={mentionPeers} mentionPerson={mentionPerson} message={{ threadId, messageId: message.id }} delivered={group?.delivered} originals={group?.originals} /></div>
               ) : null}
               {group && <AttachmentGallery images={group.images} files={group.files} originals={group.originals} message={{ threadId, messageId: message.id }} eager={eagerAttachments} beneath />}
+              {learnedSkills}
             </MessageBoundary>
           )}
         </div>
@@ -647,6 +654,11 @@ const ActivityChip = memo(function ActivityChip({ message, place = "auto" }: { m
 });
 
 const RoomHandoffChip = ({ message, comm, bots, dispatch }: { message: Message; comm: NonNullable<Message["comm"]>; bots: readonly Bot[]; dispatch: Dispatch<Action> }) => { const store = useStoreRef(); return <HandoffChip message={message} bots={bots} title={t("chat.openConversationWith", { name: comm.withName })} onClick={() => openRoomThread(dispatch, comm, store.state().groups)} />; };
+/** Fork: an applied skill change belongs to the reply that made it; the transcript folds it into that bubble. */
+const appliedSkillCard = (message: Message) =>
+  message.kind === "options" && message.card?.autoApplied === true && message.card.answered === "allow" && !message.card.held
+  && Boolean(message.card.skillRequest);
+
 const MessagesList = memo(function MessagesList({
   messages: saved,
   transcript,
@@ -699,7 +711,29 @@ const MessagesList = memo(function MessagesList({
   const focusedId = focus && !focus.consumed ? focus.messageId : null;
   const unreadIds = useMemo(() => unreadMessageIds(messages, unreadDividerId), [messages, unreadDividerId]);
   let dividerPlaced = false;
-  const layout = useMemo(() => simple ? simpleRowLayout(items, { botId, showToolCalls, unreadIds }) : null, [simple, items, unreadIds, showToolCalls, botId]);
+  const layout = useMemo(() => simpleRowLayout(items, { botId, showToolCalls, unreadIds, simple }), [simple, items, unreadIds, showToolCalls, botId]);
+  // Fork: fold each run of applied skill changes into the bot reply right above them, so the transcript keeps one bubble.
+  const learnedSkills = useMemo(() => {
+    const hosts = new Map<string, Message[]>();
+    const consumed = new Set<string>();
+    let host: Message | null = null;
+    for (const item of items) {
+      // A run of tool chips or a digest between the reply and its skill card does not move the card to another bubble.
+      if (item.kind !== "message") continue;
+      const m = item.message;
+      if (appliedSkillCard(m)) {
+        if (host) {
+          consumed.add(m.id);
+          hosts.set(host.id, [...(hosts.get(host.id) ?? []), m]);
+        }
+        continue;
+      }
+      if (m.role === "user") host = null;
+      else if (m.role === "bot" && m.kind === "text") host = m;
+    }
+    return { hosts, consumed };
+  }, [items]);
+
   const joins = layout?.joins;
   const durations = useMemo(() => simple ? turnDurations(messages) : null, [messages, simple]);
   // Fork: one notice per turn is enough. A rescue can arrive as two rows (the row with its buttons and
@@ -733,6 +767,7 @@ const MessagesList = memo(function MessagesList({
           );
         }
         const m = item.message;
+        if (learnedSkills.consumed.has(m.id)) return divider && <div key={m.id} className="contents">{divider}</div>;
         const row = (() => {
           if (isCancelledTranscriptRow(m)) {
             return (
@@ -809,6 +844,11 @@ const MessagesList = memo(function MessagesList({
                   onRegenerate={m.id === lastBotTextId && !m.automation ? onRegenerate : undefined}
                   replyTarget={lookups.replyTarget(m)}
                   onReply={onReply}
+                  learnedSkills={learnedSkills.hosts.has(m.id) ? (
+                    <LearnedSkillsChip rows={learnedSkills.hosts.get(m.id)!.map((card) => (
+                      <div key={card.id}>{optionsCardRow({ message: card, transcript, botId, botName, botColor, threadId, asker: bots.find((one) => one.id === (card.inbox?.from.botId ?? botId)) })}</div>
+                    ))} />
+                  ) : undefined}
                 />
               );
             }
@@ -816,7 +856,7 @@ const MessagesList = memo(function MessagesList({
         })();
         if (!row) return divider && <div key={m.id} className="contents">{divider}</div>;
         return (
-          <div key={m.id} className="contents" data-mid={m.id} data-tuck={layout?.tucks[i] ? "" : undefined}>
+          <div key={m.id} className="contents" data-mid={m.id} data-tuck={simple && layout?.tucks[i] ? "" : undefined}>
             {newDay && <DaySeparator at={m.at} today={today} simple={simple} />}
             {divider}
             {m.automation && <AutomationCaption message={m} line={m.automation} botId={botId} />}{m.inbox && <InboxCaption message={m} />}
@@ -1147,9 +1187,8 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
       >
         <div
           ref={transcriptRef}
-          // Simple mode spaces groups 16px apart, Advanced 12px.
           data-simple-rows={advanced ? undefined : ""}
-          className="glass-scroller-content chat-column relative flex w-full flex-col gap-3 data-[simple-rows]:gap-4"
+          className="glass-scroller-content chat-column relative flex w-full flex-col gap-4"
           style={{ paddingBottom: composerDock.pad }}
           role="log"
           // off: a polite log re-reads every tick and chip while the bot works; TranscriptAnnouncer speaks once when

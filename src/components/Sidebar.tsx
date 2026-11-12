@@ -1435,7 +1435,8 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
                 {...drops.zone(id, layout.zone(id))}
                 className={cn(
                   "flex flex-col",
-                  advanced || simpleDesk ? "gap-0.5" : "gap-1",
+                  // Fork: the icons rail keeps Simple's 4px between bots in both modes, so switching never nudges them.
+                  advanced && density !== "icons" || simpleDesk ? "gap-0.5" : "gap-1",
                   density !== "icons" && index > 0 && !simple && "pt-3",
                 )}
               >

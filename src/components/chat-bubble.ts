@@ -118,15 +118,16 @@ export function needsStamp(prev: Message | undefined, first: Message, simple: bo
   return !prev || localDay(prev.at) !== localDay(first.at) || (simple && first.at - prev.at >= STAMP_GAP_MS);
 }
 
-/** How Simple mode lays out a transcript's rows: which bubbles join, and which cards tuck under their bot's bubble. */
-export function simpleRowLayout(items: readonly TranscriptItem[], { botId, showToolCalls, unreadIds }: {
-  botId: string; showToolCalls: boolean; unreadIds: ReadonlySet<string> | null;
+/** Lays out a transcript's rows: which bubbles join, and which cards tuck under their bot's bubble. Bubbles join the
+ * same way in both modes; only the stamping cadence and the card tucks are Simple's. */
+export function simpleRowLayout(items: readonly TranscriptItem[], { botId, showToolCalls, unreadIds, simple = true }: {
+  botId: string; showToolCalls: boolean; unreadIds: ReadonlySet<string> | null; simple?: boolean;
 }): { joins: BubbleJoin[]; tucks: boolean[] } {
   const rowsOf = (item: TranscriptItem) => item.kind === "message" ? [item.message] : item.messages;
   const dividerAt = unreadIds ? items.findIndex((item) => rowsOf(item).some((row) => unreadIds.has(row.id))) : -1;
   const slots = items.map((item, i): TranscriptSlot => {
     const previous = items[i - 1];
-    const stamped = needsStamp(previous && rowsOf(previous).at(-1), rowsOf(item)[0]!, true) && i > 0 || i === dividerAt;
+    const stamped = needsStamp(previous && rowsOf(previous).at(-1), rowsOf(item)[0]!, simple) && i > 0 || i === dividerAt;
     if (item.kind !== "message") return { group: null, hidden: !showToolCalls, breakBefore: stamped || i === 0, breakAfter: false, stamped };
     const m = item.message;
     const group = isCancelledTranscriptRow(m) ? null : bubbleGroup(m, botId);

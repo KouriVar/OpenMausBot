@@ -462,10 +462,12 @@ describe("Simple mode's account menu", () => {
     expect(simpleUpdateTop(null)).toBeNull();
   });
 
-  it("gives the usage row a trailing meta and a chevron, with the reset as its second line", () => {
+  it("gives the usage row a trailing meta and a chevron, and no reset line", () => {
     const usageRow = (items: SidebarMenuItem[]) => items.find((item) => item.key === "usage")!;
     expect(usageRow(build({ usageSummary: { value: "12% used", weekly: true, resets: "Resets in 3 days" } })))
-      .toMatchObject({ label: "Weekly usage", value: "12% used", subtitle: "Resets in 3 days", chevron: true });
+      .toMatchObject({ label: "Weekly usage", value: "12% used", chevron: true });
+    expect(usageRow(build({ usageSummary: { value: "12% used", weekly: true, resets: "Resets in 3 days" } })).subtitle)
+      .toBeUndefined();
     expect(usageRow(build())).toMatchObject({ label: "Usage", chevron: true });
     expect(usageRow(build()).value).toBeUndefined();
   });

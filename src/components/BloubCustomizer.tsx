@@ -53,18 +53,10 @@ export function BloubCustomizer({ botId, color }: { botId: string | undefined; c
   return (
     <div>
       <div className={heading}>{t("bloubCustomizer.shape")}</div>
-      {(() => {
-        const rows = [shapes.slice(0, 5), shapes.slice(5, 10), shapes.slice(10)];
-        return (
-          <div className="flex flex-col items-center" style={{ gap: 3 }}>
-            {rows.map((row, index) => (
-              <div key={index} className="flex justify-center" style={{ gap: 3 }}>
-                {row.map(tile)}
-              </div>
-            ))}
-          </div>
-        );
-      })()}
+      {/* Fork: one wrapped, centred row with the same 10px between tiles both ways; no stretched rows. */}
+      <div className="flex flex-wrap justify-center gap-2.5">
+        {shapes.map(tile)}
+      </div>
 
       {!FORK_HIDE_EXPRESSIONS_IN_PANEL && (
         <>
@@ -91,10 +83,11 @@ export function BloubCustomizer({ botId, color }: { botId: string | undefined; c
               style={{ background: bloubSwatch(entry.id, scheme) }} />
           </button>
         );
-        return (<>
-          <div className="grid grid-cols-6 gap-1.5">{choices.slice(0, 6).map(swatch)}</div>
-          <div className="mt-1.5 flex justify-center gap-1.5">{choices.slice(6).map(swatch)}</div>
-        </>);
+        return (
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {choices.map(swatch)}
+          </div>
+        );
       })()}
     </div>
   );

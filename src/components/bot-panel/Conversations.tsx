@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, Search, SquarePen } from "lucide-react";
+import { Archive, ChevronDown, ChevronRight, ChevronUp, Search, SquarePen } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { llmThreadTitlesEnabled } from "@/lib/feature-flags";
@@ -61,7 +61,6 @@ export function BotConversations({ bot }: { bot: Bot }) {
   const [query, setQuery] = useState("");
   const [searching, setSearching] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [showArchived, setShowArchived] = useState(false);
   const generatedTitles = llmThreadTitlesEnabled(state.config);
   const actions = useMemo(() => {
     const { onRename, onRegenerateTitle, onDelete, onMove, onPin, onArchive } = threadRowActions(bot.id, dispatch, generatedTitles);
@@ -78,10 +77,9 @@ export function BotConversations({ bot }: { bot: Bot }) {
       };
     });
   const conversations = orderedThreadList(threads.filter((task) => !isArchived(task) || task.threadId === bot.threadId));
-  const archived = orderedThreadList(threads.filter((task) => isArchived(task) && task.threadId !== bot.threadId));
   const needle = query.trim();
   const collapsed = conversations.filter((task, index) => index < CONVERSATIONS_SHOWN || task.threadId === bot.threadId);
-  const recent = useRecentMessages(bot, [...(needle || expanded ? conversations : collapsed), ...(showArchived ? archived : [])]);
+  const recent = useRecentMessages(bot, needle || expanded ? conversations : collapsed);
   const preview = (threadId: string) => {
     const messages = recent(threadId);
     return messages ? lastLine(currentTaskBot(bot, threadId), messages, state.instances, false) : undefined;
@@ -188,21 +186,60 @@ export function BotConversations({ bot }: { bot: Bot }) {
           {expanded ? t("botPanel.conversations.showFewer") : t("botPanel.conversations.showMore", { count: hidden })}
         </button>
       )}
-      {!needle && archived.length > 0 && (
-        <button
-          type="button"
-          data-conversations-archived
-          aria-expanded={showArchived}
-          onClick={() => setShowArchived((open) => !open)}
-          className="mt-0.5 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] text-ink-secondary hover:bg-ink/[0.04] hover:text-ink"
-        >
-          {showArchived ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
-          {t("task.archivedList", { count: archived.length })}
-        </button>
-      )}
-      {!needle && showArchived && archived.length > 0 && (
-        <div role="list" aria-label={t("task.archivedList", { count: archived.length })} className={cn("flex flex-col gap-px", PANEL_ROW_LOOK)}>
-          {archived.map(row)}
+    </section>
+  );
+}
+
+/** Fork: archived conversations are their own row at the foot of the details tab, not a toggle in the middle of the
+ * conversation list. Opening the row shows the archived conversations where it stands. */
+export function ArchivedConversations({ bot }: { bot: Bot }) {
+  const { state, dispatch } = useStore();
+  const now = useRelativeNow();
+  const [open, setOpen] = useState(false);
+  const generatedTitles = llmThreadTitlesEnabled(state.config);
+  const actions = useMemo(() => {
+    const { onRename, onRegenerateTitle, onDelete, onMove, onPin, onArchive } = threadRowActions(bot.id, dispatch, generatedTitles);
+    return { onRename, onRegenerateTitle, onDelete, onMove, onPin, onArchive };
+  }, [bot.id, dispatch, generatedTitles]);
+  const threads = (bot.tasks ?? [])
+    .filter((task) => !task.routineRunId)
+    .map((task) => {
+      const thread = currentTaskBot(bot, task.threadId);
+      return {
+        ...task, busy: thread.busy, activity: thread.activity, waitingForTeammates: thread.waitingForTeammates,
+        turnStartedAt: thread.turnStartedAt ?? undefined, queued: Boolean(state.pendingQueued[task.threadId]?.length),
+      };
+    });
+  const archived = orderedThreadList(threads.filter((task) => isArchived(task) && task.threadId !== bot.threadId));
+  const recent = useRecentMessages(bot, open ? archived : []);
+  const preview = (threadId: string) => {
+    const messages = recent(threadId);
+    return messages ? lastLine(currentTaskBot(bot, threadId), messages, state.instances, false) : undefined;
+  };
+  if (archived.length === 0) return null;
+  return (
+    <section data-panel-card="archived">
+      <button
+        type="button"
+        data-panel-archived
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className={cn(panelActionCls, "w-full")}
+      >
+        <Archive size={15} aria-hidden="true" className="shrink-0 text-ink-secondary" />
+        <span className="flex-1 truncate text-left">{t("botPanel.conversations.archived")}</span>
+        <span className="shrink-0 text-[12px] text-ink-tertiary">{archived.length}</span>
+        <ChevronRight size={14} aria-hidden="true" className="shrink-0 rtl:-scale-x-100" />
+      </button>
+      {open && (
+        <div role="list" aria-label={t("botPanel.conversations.archived")} className={cn("flex flex-col gap-px", PANEL_ROW_LOOK)}>
+          {archived.map((task) => (
+            <div role="listitem" key={task.threadId} data-conversation={task.threadId}>
+              <SidebarThreadRow panel preview={preview(task.threadId)} task={task} ownerId={bot.id} current={task.threadId === bot.threadId}
+                folders={bot.projects} now={stampClock(threadRecency(task), now)} locale={activeLocale()}
+                onSelect={() => { if (task.threadId !== bot.threadId) openBotThread(dispatch, bot, task.threadId, false); }} {...actions} />
+            </div>
+          ))}
         </div>
       )}
     </section>
