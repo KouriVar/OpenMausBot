@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { parse as parseYaml } from "yaml";
 import { LICENSE_FILES } from "./cua-linux-release.mjs";
 import {
   CLOUDFLARED_ASSETS,
@@ -68,12 +69,25 @@ function requirePackageType(resources, label, expected) {
   }
 }
 
+function updaterTarget() {
+  // electron-builder writes app-update.yml from this file's publish block, so verify against the
+  // feed this build is configured to use: the fork points its updates at its own releases.
+  const builder = parseYaml(readFileSync(path.join(root, "electron-builder.yml"), "utf8"));
+  const publish = Array.isArray(builder?.publish) ? builder.publish[0] : builder?.publish;
+  if (publish?.provider !== "github" || typeof publish.owner !== "string" || typeof publish.repo !== "string") {
+    fail("electron-builder.yml has no github publish owner/repo");
+  }
+  return { owner: publish.owner, repo: publish.repo };
+}
+
 function requireUpdaterTarget(resources, label) {
   const updateFile = path.join(resources, "app-update.yml");
   requireFile(updateFile);
   const update = readFileSync(updateFile, "utf8");
-  if (!/^owner: milind-soni$/m.test(update) || !/^repo: OpenMausBot$/m.test(update)) {
-    fail(`${label} app-update.yml does not point at milind-soni/OpenMausBot`);
+  const { owner, repo } = updaterTarget();
+  const exact = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (!new RegExp(`^owner: ${exact(owner)}$`, "m").test(update) || !new RegExp(`^repo: ${exact(repo)}$`, "m").test(update)) {
+    fail(`${label} app-update.yml does not point at ${owner}/${repo}`);
   }
 }
 
