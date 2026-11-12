@@ -55,6 +55,9 @@ jobs:
       && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
       && github.event.pull_request.user.login == github.repository_owner)
       && 'preflight + Linux tests (Boat)' || 'preflight' }}
+    # The nightly lane is the upstream repository's: on a fork it would only repeat what that fork's
+    # pushes and PRs already run, so a scheduled run here skips every job and ends green.
+    if: ${{ github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot' }}
     runs-on: >-
       ${{ vars.BOAT_CI == 'on' && contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name)
       && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
@@ -208,6 +211,15 @@ jobs:
         # before Vitest starts so a cold download cannot consume the fixture
         # timeout.
         run: node --input-type=commonjs -e "require('electron')"
+      - name: Run the suite without the bot box, as upstream's Linux lanes do
+        if: runner.os == 'Linux'
+        # These suites are written for a host without a working bwrap: a Cloud
+        # home or Team Cloud would box every turn, and the fixtures' synthetic
+        # engines and dumps live under /tmp, which a box makes private. Boat's
+        # lanes get the same host by deleting bwrap (docs/ci.md, "Linux lanes");
+        # GitHub's ubuntu-24.04 image now ships a working one, so delete it here
+        # too. The box's own acceptance suites then skip, as they do there.
+        run: sudo rm -f /usr/bin/bwrap
       - name: Run tests
         # The github-actions reporter turns each failure into an annotation
         # on the PR, so the failing test and its assertion are readable
@@ -370,8 +382,9 @@ jobs:
     name: CI
     needs: [static, build, vitest, behavior-evals, packaged-server, windows-cua, electron-smokes]
     # Still report failed/skipped dependencies, but don't keep a superseded
-    # workflow alive just to schedule its summary jobs.
-    if: ${{ !cancelled() }}
+    # workflow alive just to schedule its summary jobs. A fork's scheduled run
+    # skipped every job above, so its gate has nothing to report.
+    if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

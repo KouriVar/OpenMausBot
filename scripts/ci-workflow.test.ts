@@ -71,7 +71,8 @@ describe("CI concurrency", () => {
   });
 
   it("allows cancelled summary jobs to stop without skipping failure reporting", () => {
-    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() }}");
+    // A fork's scheduled run skips every job, so its gate has nothing to report.
+    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot') }}");
     expect(workflow.jobs.gate.needs).toEqual(["static", ...requiredRuntimeJobs]);
   });
 
@@ -245,7 +246,8 @@ describe("CI concurrency", () => {
 
   it("always starts the workflow and validates selection and docs before fanout", () => {
     expect(workflow.on.pull_request).toBeNull();
-    expect(workflow.jobs.static.if).toBeUndefined();
+    // Every push and PR starts static; only a fork's scheduled run skips it, and with it every job.
+    expect(workflow.jobs.static.if).toBe("${{ github.event_name != 'schedule' || github.repository == 'milind-soni/OpenMausBot' }}");
     expect(workflow.jobs.static.steps[0].with["fetch-depth"]).toBe(0);
     expect(workflow.jobs.static.steps.find((step: { id?: string }) => step.id === "scope").run).toBe("node scripts/ci-scope.mjs");
     expect(workflow.jobs.static.outputs).toEqual({
