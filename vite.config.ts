@@ -34,12 +34,15 @@ function railPage(): Plugin {
 /** The app's screens draw Remix Icon through src/lib/icons.tsx; a sandboxed JSX page and a server test keep lucide. */
 function appIcons(): Plugin {
   const icons = page("./src/lib/icons.tsx");
-  const appSource = page("./src/");
+  // Vite hands importers with forward slashes on every platform; fileURLToPath keeps a Windows
+  // path's backslashes, so compare one shape or Windows resolves the real lucide.
+  const posix = (path: string) => path.replace(/\\/g, "/");
+  const appSource = posix(page("./src/"));
   return {
     name: "app-icons",
     enforce: "pre",
     resolveId(source, importer) {
-      if (source === "lucide-react" && importer?.startsWith(appSource)) return icons;
+      if (source === "lucide-react" && importer && posix(importer).startsWith(appSource)) return icons;
     },
   };
 }

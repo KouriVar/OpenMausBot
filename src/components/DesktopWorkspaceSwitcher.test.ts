@@ -79,7 +79,7 @@ it("draws Simple mode's switcher as a rounded pill that names the server in full
   expect(pill).toMatch(/aria-label="Switch server: Servers" aria-haspopup="menu" aria-expanded="false"[^>]*class="[^"]*\bh-8\b[^"]*\brounded-full\b[^"]*\bbg-raised\/50\b[^"]*\btext-\[13px\][^"]*\bfont-medium\b/);
   expect(pill).toContain('<span class="min-w-0 truncate @max-[124px]/sidebar-top:hidden">Servers</span>');
   expect(pill).toContain("lucide-chevron-down");
-  expect(pill).toContain('class="lucide lucide-laptop hidden shrink-0 text-ink-secondary @max-[124px]/sidebar-top:block"');
+  expect(pill).toContain('class="remixicon lucide lucide-laptop hidden shrink-0 text-ink-secondary @max-[124px]/sidebar-top:block"');
   expect(pill).not.toContain("@max-[96px]");
   const inline = renderToStaticMarkup(createElement(DesktopWorkspaceSwitcher, { inline: true }));
   expect(inline).toContain("lucide-laptop");
