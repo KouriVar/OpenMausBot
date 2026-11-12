@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n";
 import { appVersion } from "@/lib/app-links";
 import { displayAppVersion } from "@/fork/version-label";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
+import { useAdvancedUnlocked } from "@/fork/advanced-unlock";
 import type { LocaleKey } from "@/locales";
 import { productName } from "../lib/brand";
 import { AnalyticsRow } from "./AnalyticsRow";
@@ -67,6 +68,8 @@ export const SIMPLE_MORE_LIMITS: readonly LocaleKey[] = [
 type Has = (id: AppSettingsSection) => boolean;
 
 export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: Has; peopleOpen: boolean; onLooks: () => void; onMore?: () => void }) {
+  // Fork: the hidden unlock reveals the Advanced switch here too, so the general page can always turn it back off.
+  const unlocked = useAdvancedUnlocked();
   return (
     <>
       {(has("general") || has("people")) && (
@@ -129,7 +132,7 @@ export function SimpleGeneralPage({ has, peopleOpen, onLooks, onMore }: { has: H
           </SettingsRows>
         </div>
       )}
-      {!SIMPLE_ONLY && <div data-settings-block="advanced-mode" className="scroll-mt-4">
+      {(!SIMPLE_ONLY || unlocked) && <div data-settings-block="advanced-mode" className="scroll-mt-4">
         <SettingsRows><AdvancedModeRow simple /></SettingsRows>
       </div>}
     </>

@@ -37,6 +37,20 @@ afterEach(() => {
 });
 
 describe("the move to Simple as the only mode", () => {
+  it("keeps the stored mode across launches when the keep switch is on", async () => {
+    for (const [key, value] of Object.entries({ "omb-advanced-mode": "1", "omb-advanced-unlocked": "1", "omb-keep-advanced": "1" })) values.set(key, value);
+    const booted = await boot();
+    expect(values.get("omb-advanced-mode"), "the boot no longer retires the mode").toBe("1");
+    expect(booted.mode.readAdvancedMode(), "and Advanced is what opens").toBe(true);
+  });
+
+  it("still retires the mode key when the keep switch is off", async () => {
+    for (const [key, value] of Object.entries({ "omb-advanced-mode": "1", "omb-advanced-unlocked": "1" })) values.set(key, value);
+    const booted = await boot();
+    expect(values.has("omb-advanced-mode"), "off is today's behaviour").toBe(false);
+    expect(booted.mode.readAdvancedMode()).toBe(false);
+  });
+
   it("owes the notice to a browser that chose Advanced, retires its mode key, and puts Advanced's own settings back once", async () => {
     for (const [key, value] of Object.entries({ ...ADVANCED_PREFS, ...KEPT, "omb-advanced-mode": "1" })) values.set(key, value);
     const first = await boot();

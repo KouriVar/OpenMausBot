@@ -21,6 +21,7 @@ import { SIMPLE_ONLY } from "@/lib/simple-only";
 import { setPinnedCircles, setUniversalPins, usePinnedCircles, useUniversalPins } from "@/lib/sidebar-preferences";
 import { setShowRunCard, useShowRunCard } from "@/lib/run-card-preferences";
 import { setForkAvatarStyle, useForkAvatarStyle } from "@/fork/avatar-style";
+import { setKeepAdvanced, useKeepAdvanced } from "@/fork/keep-advanced";
 import { BloubStudioButton } from "./BloubStudio";
 import { parseSendKey, SEND_KEYS, sendKeyLabel, setSendKey, useSendKey } from "@/lib/send-key";
 import { alternateSendLabel, parseFollowUpDefault, setFollowUpDefault, useFollowUpDefault } from "@/lib/follow-up";
@@ -290,14 +291,37 @@ export function AdvancedModeRow({ simple = false }: { simple?: boolean }) {
   const unlocked = useAdvancedUnlocked();
   if (SIMPLE_ONLY && !unlocked) return null;
   return (
-    <SettingRow className={simple ? undefined : "rounded-2xl border border-accent-border/40 bg-raised-hover/40 py-4"} title={t("settings.advancedMode.title")}
-      subtitle={t(simple ? "settings.simple.advancedMode" : "settings.advancedMode.subtitle")}>
+    <>
+      <SettingRow className={simple ? undefined : "rounded-2xl border border-accent-border/40 bg-raised-hover/40 py-4"} title={t("settings.advancedMode.title")}
+        subtitle={t(simple ? "settings.simple.advancedMode" : "settings.advancedMode.subtitle")}>
+        <Switch
+          checked={enabled}
+          aria-label={t("settings.advancedMode.title")}
+          onClick={() => {
+            setAdvancedMode(!enabled);
+            if (enabled) setAdvancedUnlocked(false);
+          }}
+        />
+      </SettingRow>
+      <KeepAdvancedRow simple={simple} />
+    </>
+  );
+}
+
+/** Fork: keeps the mode this device is in across restarts and updates; off means every start begins Simple. */
+export function KeepAdvancedRow({ simple = false }: { simple?: boolean }) {
+  const keep = useKeepAdvanced();
+  const advanced = useAdvancedMode();
+  return (
+    <SettingRow title={t("settings.keepAdvanced.title")} subtitle={t(simple ? "settings.simple.keepAdvanced" : "settings.keepAdvanced.subtitle")}>
       <Switch
-        checked={enabled}
-        aria-label={t("settings.advancedMode.title")}
+        checked={keep}
+        aria-label={t("settings.keepAdvanced.title")}
         onClick={() => {
-          setAdvancedMode(!enabled);
-          if (enabled) setAdvancedUnlocked(false);
+          const next = !keep;
+          setKeepAdvanced(next);
+          // Turning it on pins the mode this device is in right now, so the next boot opens the same way.
+          if (next) setAdvancedMode(advanced);
         }}
       />
     </SettingRow>

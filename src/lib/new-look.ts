@@ -6,6 +6,7 @@ import { ADVANCED_MODE_KEY, setAdvancedMode, settleAdvancedModeDefault } from ".
 import { hasPriorRun } from "./prior-run";
 import { RUN_CARD_KEY } from "./run-card-preferences";
 import { SIMPLE_ONLY } from "./simple-only";
+import { readKeepAdvanced } from "@/fork/keep-advanced";
 import { SHOW_THREADS_KEY } from "./thread-preferences";
 import { WEB_PANELS_KEY } from "./web-panel-preferences";
 
@@ -47,7 +48,9 @@ export function settleInterfaceMode(): void {
       for (const key of ADVANCED_ONLY_PREFS) store.removeItem(key);
       store.setItem(NEW_LOOK_KEY, advanced ? "due" : "none");
     }
-    store.removeItem(ADVANCED_MODE_KEY);
+    // Fork: 「保持高级模式」 keeps the mode the person picked across this launch; without it the key is retired so
+    // every start begins Simple again.
+    if (!readKeepAdvanced()) store.removeItem(ADVANCED_MODE_KEY);
   } catch {
   }
 }

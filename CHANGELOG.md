@@ -27,6 +27,18 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE007 · The 0.5.5 round: Advanced mode can stay on across restarts
+
+Settings gains a 「保持高级模式」 switch next to Advanced mode, off by default. Off keeps today's behaviour: the
+Simple-only boot retires the stored mode, so every launch starts Simple. On keeps the mode this device is in, so an app
+restart or a new package opens Advanced again until the switch is turned off. It uses the app's existing device settings
+storage (localStorage), touches no conversation data, adds no server field, and follows the settings page's own rows.
+
+中文：**V0.5.5 这一轮**在设置的「高级模式」旁边加了「保持高级模式」开关，默认关。关着就是现在的行为：Simple-only
+启动时会把存下的模式清掉，每次打开都从简易模式开始；打开后，这台设备当前所处的模式（简易或高级）会一直保留，重启 App
+或换新包后仍停在原来的模式，直到把开关关掉。持久化走现有的设备设置存法（localStorage），不碰会话数据、不加服务端字段，
+样式沿用设置页现有行。
+
 ### OE006 · The 0.5.4 round: the local release build can sign the Mac app
 
 `scripts/fork/release-local.sh` accepts `OMB_SIGN_IDENTITY`: when it names a keychain identity the macOS app is signed
