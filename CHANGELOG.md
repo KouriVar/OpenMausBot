@@ -27,6 +27,29 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE023 · The 0.6.0 round: the 0.5.1–0.5.7 work, one release
+
+0.6.0 gathers the rounds since 0.5.0. The sidebar gained one status dot per bot, always in the avatar's bottom-right
+corner; 0.5.2 merged upstream's chat streaming, its one-commit-per-paint work while bots run and the rounded window frame,
+and the phone pairing screens stopped sending anyone to an app store; 0.5.3 stopped a streamed reply from showing twice
+and gave every bot text message the fork's bubble; 0.5.4 let the local release build sign the Mac app with an Apple
+Development identity; 0.5.5 added the 「保持高级模式」 switch next to Advanced; 0.5.6 merged upstream's one-window Settings
+with this fork's style, its local-only pages and its ten-tap Advanced unlock; 0.5.7 quieted the last screens (a single-line
+usage row in the avatar menu, one card for the bot settings list, the 10px gaps in both avatar pickers, MiMo as the fixed
+voice provider, skill changes folded into their reply's bubble, archived conversations as the last details row, a trimmed
+computer panel, Simple's bubble stacking in Advanced, right-pointing chevrons, and file cards flush with their bubble).
+Also in this round: the CHANGELOG's 0.5.6 Settings entry is OE022, the release notes accumulate every round, and the
+version label and About panel say V0.6.0.
+
+中文：**V0.6.0 这一轮**把 0.5.0 以来的各轮并成一个正式版本。侧栏每个 bot 一颗状态点，永远在头像右下角；0.5.2 合入上游的
+流式回复、bot 工作时每次更新只绘一次的绘制优化和圆角窗框，手机配对页不再把人送去应用商店；0.5.3 修掉流式回复重复、让
+每条 bot 文字消息都用本 fork 的气泡；0.5.4 让本机发布包可以用 Apple Development 身份签名；0.5.5 在「高级模式」旁边加了
+「保持高级模式」开关；0.5.6 把上游那套一扇窗口的设置页按本 fork 的样式合入，保留 local-only 页面与连点十次的高级模式解锁；
+0.5.7 收尾最后几处界面（头像菜单里的用量行只留一行、bot 设置列表收成一张卡片、两处头像选择器统一 10px 间距、语音固定用
+MiMo、学习到的技能折进回复气泡、已归档会话成为详情列表最后一行、精简电脑面板、高级模式沿用简易模式的气泡堆叠、详情面板
+箭头朝右、只有附件的消息文件卡片与气泡齐平）。这一轮还把 CHANGELOG 里 0.5.6 的设置条目编成 OE022，发布说明汇总各轮，
+版本标签和「关于」面板写 V0.6.0。
+
 ### OE022 · The 0.5.6 round: upstream's one-window Settings, in this fork's style
 
 The 0.5.6 round merges upstream's Settings rework (#5503) and its follow-up (#5516): Settings is one window with a
