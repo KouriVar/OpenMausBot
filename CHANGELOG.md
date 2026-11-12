@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE015 · The 0.5.13 round: archived conversations are a row at the foot of the details list
+
+The bot panel listed 「已归档（N）」 as a toggle in the middle of the conversation list, and the archived conversations
+themselves sat in their own block below. The toggle is gone: the details tab now ends with one 「已归档会话」 row (icon,
+count, chevron) and opening it shows the archived conversations right under it.
+
+中文：**V0.5.13 这一轮**把「已归档会话」改成详情列表最后的一行：以前「已归档（N）」是夹在对话列表中间的一个开关，归档的
+会话另起一块在下面；现在详情页最后一行就是「已归档会话」（带图标、数量和箭头），点开就在这一行下面列出归档的会话。
+
 ### OE014 · The 0.5.12 round: applied skill changes fold into the reply's bubble
 
 When a bot added or updated a skill, each change stood in the transcript as its own row (「添加了技能：… 撤销 详情」) outside

@@ -7,7 +7,7 @@ import { useChatMoreItems } from "../ChatMoreMenu";
 import { ModelPicker } from "../ModelPicker";
 import type { SidebarMenuItem } from "../SidebarPopoverMenu";
 import type { useBotSettingsDerived } from "../bot-settings/useBotSettingsDerived";
-import { BotConversations } from "./Conversations";
+import { ArchivedConversations, BotConversations } from "./Conversations";
 import type { SimplePageId } from "./page-registry";
 import { TryAsking } from "./TryAsking";
 import { FORK_BOT_PANEL_ASKS, FORK_BOT_PANEL_LABELS } from "@/fork/bot-panel";
@@ -103,6 +103,8 @@ export function DetailsTab({ bot, derived, onOpen }: {
           />
         </section>
       )}
+
+      <ArchivedConversations bot={bot} />
     </div>
   );
 }

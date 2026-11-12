@@ -7381,6 +7381,7 @@
   "botPanel.conversations.title": "Conversas",
   "botPanel.conversations.search": "Buscar conversas",
   "botPanel.conversations.searchPlaceholder": "Buscar nas conversas com {name}",
+  "botPanel.conversations.archived": "Conversas arquivadas",
   "botPanel.conversations.new": "Nova conversa",
   "botPanel.conversations.showMore": "Mostrar mais {count}",
   "botPanel.conversations.showFewer": "Mostrar menos",

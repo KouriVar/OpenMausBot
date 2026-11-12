@@ -4299,6 +4299,7 @@
   "botPanel.conversations.title": "Conversations",
   "botPanel.conversations.search": "Search conversations",
   "botPanel.conversations.searchPlaceholder": "Search {name}'s conversations",
+  "botPanel.conversations.archived": "Archived conversations",
   "botPanel.conversations.new": "New conversation",
   "botPanel.conversations.showMore": "Show {count} more",
   "botPanel.conversations.showFewer": "Show fewer",
