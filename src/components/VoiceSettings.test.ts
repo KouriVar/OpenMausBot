@@ -28,6 +28,8 @@ let host: HTMLDivElement;
 let root: Root;
 beforeEach(() => {
   fixture.config = { tts: { configured: true, provider: "elevenlabs", voice: "" } };
+  // A voice picked in one test is remembered on this device; each test starts from no remembered voice.
+  try { globalThis.window?.localStorage.clear(); } catch { /* no storage in this environment */ }
   document.documentElement.dataset.reducedMotion = "true";
   host = document.createElement("div");
   document.body.append(host);
@@ -49,6 +51,7 @@ function addLater() {
 
 const render = (forBot: Bot, onPatch: (patch: Record<string, unknown>) => void) =>
   act(async () => root.render(createElement(VoiceSettings, { bot: forBot, onPatch })));
+const settle = () => act(async () => { await new Promise((done) => setTimeout(done, 0)); });
 const trigger = () => host.querySelector<HTMLButtonElement>("[data-voice-picker]")!;
 
 async function pickLibraryVoice() {
@@ -78,6 +81,7 @@ describe("VoiceSettings", () => {
     await pickLibraryVoice();
 
     await render(bot("salt"), onPatch);
+    await settle();
     expect(trigger().textContent).not.toContain("Adding…");
     await act(async () => resolve({ voiceId: "added-1" }));
     expect(onPatch).not.toHaveBeenCalled();
@@ -120,6 +124,7 @@ describe("OpenAI voice settings", () => {
     await render(bot("pepper"), onPatch);
     await act(async () => openaiRadio().click());
     await render(bot("salt"), onPatch);
+    await settle();
     await act(async () => resolve({ tts: { provider: "openai" } }));
     expect(onPatch).not.toHaveBeenCalled();
   });
@@ -147,6 +152,7 @@ it("sets the default voice even when the provider broadcast arrives before the s
   await act(async () => radio.click());
   fixture.config = { tts: { provider: "openai", configured: true } };
   await render(pepper, onPatch);
+  await settle();
   await act(async () => resolve({ tts: { provider: "openai", configured: true } }));
   expect(onPatch).toHaveBeenCalledExactlyOnceWith({ voice: "marin" });
 });
@@ -163,8 +169,10 @@ it("keeps a voice selected before the pending provider save completes, even befo
   await act(async () => radio.click());
   fixture.config = { tts: { provider: "openai", configured: true } };
   await render(pepper, onPatch);
+  await settle();
   const picker = host.querySelector<HTMLSelectElement>('select[data-voice-picker]')!;
   await act(async () => { picker.value = "cedar"; picker.dispatchEvent(new Event("change", { bubbles: true })); });
+  await settle();
   await act(async () => resolve({ tts: { provider: "openai", configured: true } }));
   expect(onPatch).toHaveBeenCalledExactlyOnceWith({ voice: "cedar" });
 });
