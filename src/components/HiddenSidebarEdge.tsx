@@ -1,6 +1,7 @@
 "use client";
 // Fork: the sliver left on the window's edge while the sidebar is hidden. Click it, or drag it to the
-// right, to bring the collapsed sidebar back. It is a dozen pixels wide and takes nothing else.
+// right, to bring the collapsed sidebar back. It is a dozen pixels wide and takes nothing else. It sits
+// beside the desktop rail, which the page makes room for with --rail-beside (see rail-safe-fixed.test.ts).
 import { useRef } from "react";
 
 import { t } from "@/lib/i18n";
@@ -32,7 +33,7 @@ export function HiddenSidebarEdge({ onReveal }: { onReveal: () => void }) {
         if (grab?.moved) onReveal();
       }}
       onClick={() => onReveal()}
-      className="group fixed left-0 top-1/2 z-30 flex h-24 w-3 -translate-y-1/2 items-center justify-start pl-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+      className="group fixed left-[var(--rail-beside,0px)] top-1/2 z-30 flex h-24 w-3 -translate-y-1/2 items-center justify-start pl-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
     >
       <span
         aria-hidden="true"
