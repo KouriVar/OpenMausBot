@@ -711,6 +711,7 @@
   "voice.macChoice": "选择这台 Mac 使用本机已安装的语音，还是使用宿主机生成的音频。",
   "voice.agentChoice": "选择这个机器人的语音和朗读回复的偏好。",
   "voice.description": "为这个机器人设置通话和朗读回复用的语音。语音由这个机器人单独选择；",
+  "voice.fixedProvider": "固定使用 MiMo（小米）语音。MiMo 目前免费，所以语音提供方不可更改。",
   "voice.macInstalled": "可选语音就是这台 Mac 上已安装的那些。",
   "voice.macUnavailable": "此处的 Mac 内置语音不可用。改用托管语音提供方即可继续使用语音。",
   "voice.chatterboxShared": "Chatterbox 服务器地址由此安装共用。",

@@ -18,7 +18,7 @@ export function VoiceSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <VoiceSettings bot={bot} onPatch={patch} />
+      <VoiceSettings bot={bot} onPatch={patch} fixedProvider="mimo" />
 
       <div className="flex items-center justify-between gap-4 rounded-xl bg-card p-4">
         <div>

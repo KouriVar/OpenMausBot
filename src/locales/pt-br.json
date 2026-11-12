@@ -789,6 +789,7 @@
   "voice.macChoice": "Escolha se este Mac fala com as vozes instaladas nele ou com áudio gerado pelo computador anfitrião.",
   "voice.agentChoice": "Escolha a voz deste agente e defina se ele deve responder por voz.",
   "voice.description": "Dê uma voz a este agente para chamadas e respostas faladas. A voz escolhida é específica deste agente;",
+  "voice.fixedProvider": "Sempre usa a voz MiMo (Xiaomi). A MiMo é gratuita por enquanto, então o provedor de voz não pode ser alterado.",
   "voice.macInstalled": "as vozes são as que já estão instaladas neste Mac.",
   "voice.macUnavailable": "as vozes integradas do Mac não estão disponíveis aqui. Para continuar usando voz, escolha um provedor de voz que funcione em um servidor.",
   "voice.chatterboxShared": "o endereço do servidor Chatterbox é o mesmo em toda a instalação.",

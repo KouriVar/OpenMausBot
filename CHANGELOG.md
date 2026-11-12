@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE013 · The 0.5.11 round: the bot's voice panel is MiMo-only
+
+The 语音与提醒 section offered a provider switch. MiMo is free, so it is now the fixed voice provider there: the switch is
+gone, the note above says the panel always uses MiMo (Xiaomi) and that it cannot be changed, and opening the section
+points the stored provider at MiMo if it was something else. The voice picker, key and the rest of the card are unchanged.
+
+中文：**V0.5.11 这一轮**把「语音与提醒」固定成 MiMo：语音提供方选择器删掉，上面的说明改成「固定使用 MiMo（小米）语音，
+MiMo 目前免费，所以语音提供方不可更改」；如果原本存的是别的提供方，打开这一节时会把它切到 MiMo。下面的语音选择、密钥
+及其它内容不变。
+
 ### OE012 · The 0.5.10 round: 身份 → 头像 draws its shapes and colours with one centred gap
 
 In the bot settings panel's 身份 → 头像 card the mascot shapes and the colour dots used different layouts: the shapes were
