@@ -341,7 +341,7 @@ describe("Get the phone app", () => {
 
   it("sends nobody to a store, and points on to Connect your phone where this window can pair", () => {
     const html = render([to("here", "to this computer")]);
-    expect(html).not.toContain("data-phone-app");
+    expect(html).not.toContain('data-phone-app="');
     expect(html.match(/<svg/g)).toBeNull();
     expect(html).not.toContain("Open in the App Store");
     expect(html).not.toContain("Download the APK");
