@@ -9,7 +9,7 @@ import {
   filterToolsListFrame,
   parseConnectorAllowedToolsEnv,
   parseConnectorServiceSlugsEnv,
-  withAuthConfigParameter,
+  withConnectionParameters,
 } from "./connector-advertisement.ts";
 import { APP_TOOL_NAMES_ENV, APP_TOOLS_ENV, appToolAnswer, appToolCall, appToolEntries, parseAppToolsEnv } from "./connector-app-tools.ts";
 import { ARGUMENT_REFUSAL, argumentRefusalNote, fitArguments, fittedArgumentsNote } from "./connector-arguments.ts";
@@ -204,18 +204,30 @@ function connectorAdds(args: unknown): { requests: ConnectorRequest[]; badAuthCo
   return { requests: checked, badAuthConfig };
 }
 
-/** Resolves to the harness's lines on which auth config each toolkit connects with, and on apps already connected, when it has any. */
-async function showConnectorCards(items: ConnectorRequest[]): Promise<{ notes: string; nothingToSignIn: boolean }> {
+/** Resolves to the harness's line on which auth config each toolkit connects with, when it names one. */
+async function showConnectorCards(items: ConnectorRequest[]): Promise<string> {
   const response = await fetch(`${HARNESS}/api/internal/connectors/request`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
     body: JSON.stringify({ botId: BOT_ID, threadId: THREAD_ID, items, resumeKey: randomUUID() }),
     signal: AbortSignal.timeout(30_000),
   });
-  const body = (await response.json().catch(() => ({}))) as { error?: unknown; authConfigNote?: unknown; connectedNote?: unknown; nothingToSignIn?: unknown };
+  const body = (await response.json().catch(() => ({}))) as { error?: unknown; authConfigNote?: unknown };
   if (!response.ok) throw new Error(String(body.error ?? `could not show connection card (HTTP ${response.status})`));
-  const notes = [body.authConfigNote, body.connectedNote].map((note) => (typeof note === "string" && note ? ` ${note}` : "")).join("");
-  return { notes, nothingToSignIn: body.nothingToSignIn === true };
+  return typeof body.authConfigNote === "string" && body.authConfigNote ? ` ${body.authConfigNote}` : "";
+}
+
+/** The harness's answer to a bot's search of the catalog. */
+async function findApps(query: string): Promise<string> {
+  const response = await fetch(`${HARNESS}/api/internal/connectors/find`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
+    body: JSON.stringify({ botId: BOT_ID, threadId: THREAD_ID, query }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  const body = (await response.json().catch(() => ({}))) as { error?: unknown; text?: unknown };
+  if (!response.ok || typeof body.text !== "string") throw new Error(String(body.error ?? `could not search the apps (HTTP ${response.status})`));
+  return body.text;
 }
 
 /** The upstream list with the app tools after it, unless it already has one by that name. */
@@ -295,14 +307,17 @@ async function handle(received: Json): Promise<void> {
       return;
     }
     if (requests.length) {
-      const { notes, nothingToSignIn } = await showConnectorCards(requests);
+      const authConfigNote = await showConnectorCards(requests);
       const labels = requests.map((r) => (r.alias ? `${r.slug} (${r.alias})` : r.slug)).join(", ");
       send(textResult(
         id,
-        nothingToSignIn
-          ? `OpenMausBot showed the user a card that ${labels} is already connected; no sign-in started.${notes} Do not end this turn: carry on now.`
-          : `OpenMausBot showed the user a secure connection card for ${labels}.${notes} End this turn now. The app will continue the task automatically after the connection finishes.`,
+        `OpenMausBot showed the user a secure connection card for ${labels}.${authConfigNote} End this turn now. The app will continue the task automatically after the connection finishes.`,
       ));
+      return;
+    }
+    const find = /MANAGE_CONNECTIONS$/i.test(name) ? (params.arguments as { find?: unknown } | undefined)?.find : undefined;
+    if (typeof find === "string" && find.trim()) {
+      send(textResult(id, await findApps(find)));
       return;
     }
     if (/WAIT_FOR_CONNECTIONS$/i.test(name)) {
@@ -324,7 +339,7 @@ async function handle(received: Json): Promise<void> {
       : await relay(message);
     if (response && id !== undefined) {
       const name = String((message.params as Json | undefined)?.name ?? "");
-      send(method === "tools/list" ? fittedList(rememberSchemas(withAppTools(withAuthConfigParameter(ALLOWED_TOOLS ? filterToolsListFrame(response, ALLOWED_TOOLS, SERVICE_SLUGS) : response))))
+      send(method === "tools/list" ? fittedList(rememberSchemas(withAppTools(withConnectionParameters(ALLOWED_TOOLS ? filterToolsListFrame(response, ALLOWED_TOOLS, SERVICE_SLUGS) : response))))
         : method === "tools/call" ? withArgumentNotes(name, withSignedOutHint(message, response, SERVICE_SLUGS), changed) : response);
     }
   } catch (error) {
