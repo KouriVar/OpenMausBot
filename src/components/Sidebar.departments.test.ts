@@ -49,7 +49,7 @@ import { BOTS_SECTION_ID, CHANNELS_SECTION_ID, userSectionId } from "@/lib/sideb
 import { SIDEBAR_DENSITY_KEY } from "@/lib/sidebar-preferences";
 import { PHONE_LAYOUT } from "@/lib/use-media-query";
 import { BotContextMenu, BotListItem, Sidebar, TeamMenuItems } from "./Sidebar";
-const drawSidebar = (Sidebar as unknown as { type: (props: import("react").ComponentProps<typeof Sidebar>) => import("react").ReactNode }).type;
+const drawSidebar = Sidebar;
 import { NEW_DEPARTMENT } from "./SidebarBotDrag";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
 import { ConfirmDialog } from "./ConfirmDialog";

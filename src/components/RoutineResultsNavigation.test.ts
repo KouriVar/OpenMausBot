@@ -24,7 +24,7 @@ vi.mock("@/lib/analytics", () => ({ track: vi.fn() }));
 const { initialState } = await import("@/state/store");
 const { EventDetails } = await import("./RoutineCalendarPage");
 const { ChatView } = await import("./ChatView");
-const drawChatView = (ChatView as unknown as { type: (props: import("react").ComponentProps<typeof ChatView>) => import("react").ReactNode }).type;
+const drawChatView = ChatView;
 
 const bot: Bot = {
   id: "runner", threadId: "execution", name: "Runner", title: "", description: "", color: "green",

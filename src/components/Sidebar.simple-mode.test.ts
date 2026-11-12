@@ -302,7 +302,7 @@ describe("bot-first sidebar", () => {
     fixture.advanced = advanced;
     const group: Group = { id: "room", threadId: "room-thread", name: "Launch", memberIds: [bot.id], messages: [], defaultResponder: { kind: "mentions" }, bulletin: "", unread: false, createdAt: 1 };
     let tree: ReactNode;
-    function Capture() { tree = (GroupListItem as unknown as { type: (props: ComponentProps<typeof GroupListItem>) => ReactElement }).type({ group, density, onMenu: vi.fn() }); return tree; }
+    function Capture() { tree = GroupListItem({ group, density, onMenu: vi.fn() }); return tree; }
     const markup = renderToStaticMarkup(createElement(Capture));
     const row = findElement(tree, "data-sidebar-group-row", group.id)!;
     expect(String(row.props.className).split(" ")).toEqual(expect.arrayContaining([...spacing]));

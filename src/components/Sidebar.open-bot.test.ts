@@ -45,7 +45,7 @@ vi.mock("@/state/store", async (importOriginal) => {
 import { initialState } from "@/state/store";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ArchivedBotsPanel, BotContextMenu, Sidebar } from "./Sidebar";
-const drawSidebar = (Sidebar as unknown as { type: (props: ComponentProps<typeof Sidebar>) => ReactNode }).type;
+const drawSidebar = Sidebar;
 
 const left = (id: string, extra: Partial<Bot> = {}): Bot => ({
   id, threadId: `${id}-left`, mainThreadId: `${id}-main`, name: id, title: "", description: "", notifications: true,
