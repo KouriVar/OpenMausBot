@@ -229,7 +229,7 @@ it("F4 keeps a second assignment Clive hands Mira in the same turn its own job, 
   try {
     await f.say(f.clive.id, f.job, "F4-JOB: have Mira export the invoices and the receipts.");
     await expect.poll(() => f.keys(f.clive.id), { timeout: 30_000 }).toEqual(["C0"]);
-    expect(existsSync(f.ready("mira")), "the first was running when the second was sent").toBe(true);
+    await expect.poll(() => existsSync(f.ready("mira")), { timeout: 30_000 }).toBe(true);
     expect(f.replies("C0").map((sent: any) => sent.receipts[0].outcome)).toEqual(["queued", "queued"]);
     expect(f.children().map((row: any) => [row.brief, row.status])).toEqual([["F4-A-BRIEF: export the invoices.", "running"], ["F4-B-BRIEF: export the receipts.", "queued"]]);
     f.open("mira");

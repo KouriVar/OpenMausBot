@@ -267,6 +267,9 @@ describe("control-omb ui drives the real renderer", () => {
     const nextModel = options.find((option: any) => option.id !== originalModel);
     // The picker sets the bot's model, which every chat of it uses.
     const threadModel = async () => (await savedBot()).tasks.find((task: any) => task.threadId === originalBot.threadId).modelSelection.model;
+    // 0.5.0 has no chat-head picker: the model button lives in the bot panel, which the chat head's pill opens.
+    await ui("click", info.ui, "--name", "Open Pepper's profile");
+    await expect.poll(async () => (await ui("snapshot", info.ui)).snapshot, { timeout: 10_000 }).toContain(`button "${originalLabel}"`);
     await ui("click", info.ui, "--name", originalLabel);
     await expect.poll(async () => (await ui("snapshot", info.ui)).snapshot, { timeout: 10_000 }).toContain("Pepper's model, used in all its chats");
     mkdirSync(evidenceDir, { recursive: true });
@@ -288,6 +291,8 @@ describe("control-omb ui drives the real renderer", () => {
     await ui("press", info.ui, "--keys", "Escape");
     await expect.poll(async () => (await ui("eval", info.ui, "--js", "String(Boolean(document.querySelector('[data-model-picker-content]')))")).result,
       { timeout: 10_000 }).toBe("false");
+    // Hand the window back to the chat: the later steps open the panel again by the same pill.
+    await ui("click", info.ui, "--name", "Open Pepper's profile");
 
     const before = await ui("snapshot", info.ui, "--interactive");
     expect(before.ok).toBe(true);
