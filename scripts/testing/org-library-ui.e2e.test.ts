@@ -67,12 +67,15 @@ describe("the organization library in the real renderer", () => {
     }, { timeout: launchTimeout, interval: 250 }).toBe(true);
     const ui = (verb: string, ...args: string[]) => runControlOmb(["ui", verb, "--ui", info.ui, ...args]) as Promise<Record<string, any>>;
     const click = (name: string) => ui("click", "--name", name);
+    // The sidebar's footer button can still be covered for a frame by what just
+    // closed; agent-browser refuses a covered click without sending it, so a retry is safe.
+    const clickWhenFree = (name: string) => expect.poll(() => click(name).then(() => true, () => false), { timeout: 10_000 }).toBe(true);
     const press = (keys: string) => ui("press", "--keys", keys);
     const snapshot = async () => (await ui("snapshot")).snapshot as string;
     const api = (path: string, method = "GET", body?: unknown) => request(path, { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) }, info.url);
     const evidence = (name: string) => ui("screenshot", "--out", join(ROOT, ".omb-scratch", "verify-evidence", name));
 
-    await click("New or share");
+    await clickWhenFree("New or share");
     await click("Templates");
     await expect.poll(snapshot, { timeout: 10_000 }).toContain("Community templates");
     expect(await snapshot()).not.toContain("From Customer Co");
@@ -92,7 +95,7 @@ describe("the organization library in the real renderer", () => {
     });
     expect(relayed.status).toBe(200);
 
-    await click("New or share");
+    await clickWhenFree("New or share");
     await click("Templates");
     await expect.poll(snapshot, { timeout: 10_000 }).toContain("Packages Customer Co shares with you");
     let shelf = await snapshot();
@@ -115,7 +118,7 @@ describe("the organization library in the real renderer", () => {
     }
     expect((await api("/api/routines")).routines.every((routine: { enabled: boolean }) => !routine.enabled)).toBe(true);
 
-    await click("New or share");
+    await clickWhenFree("New or share");
     await click("Templates");
     await expect.poll(snapshot, { timeout: 10_000 }).toContain("Packages Customer Co shares with you");
     shelf = await snapshot();

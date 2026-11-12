@@ -280,10 +280,24 @@ describe("control-omb ui drives the real renderer", () => {
     // A model with reasoning levels keeps the menu open after the pick, so its level can be set next.
     expect(await ui("eval", info.ui, "--js", "String(Boolean(document.querySelector('[data-model-picker-content]')))"))
       .toMatchObject({ result: "true" });
-    const modelSnapshot = await ui("snapshot", info.ui, "--interactive");
-    const [originalRow] = refsNamed(modelSnapshot, originalLabel, "button");
-    expect(originalRow).toBeDefined();
-    await ui("click", info.ui, "--ref", originalRow);
+    // The menu's rows are the same buttons whichever surface opened it; read the row back by
+    // its label so a snapshot ref taken while the panel re-rendered cannot point at nothing.
+    const pickRow = async (label: string) => {
+      const picked = await ui("eval", info.ui, "--js", `(() => {
+        const rows = [...(document.querySelector('[data-model-picker-content]')?.querySelectorAll('[data-menu-row]') ?? [])];
+        const name = (row) => row.getAttribute('aria-label') ?? (row.textContent ?? '').trim();
+        const wanted = ${JSON.stringify(label)};
+        const row = rows.find((candidate) => {
+          const shown = name(candidate);
+          return shown === wanted || shown.startsWith(wanted + ' · ') || shown.startsWith(wanted + ', ');
+        });
+        if (!row) return 'missing: ' + rows.map(name).join(' | ');
+        row.click();
+        return 'picked';
+      })()`);
+      expect(picked.result).toBe("picked");
+    };
+    await pickRow(originalLabel);
     await expect.poll(async () => (await savedBot()).modelSelection.model, { timeout: 10_000 }).toBe(originalModel);
     expect(await threadModel()).toBe(originalModel);
     expect((await savedBot()).approvalMode).toBe(originalBot.approvalMode);
