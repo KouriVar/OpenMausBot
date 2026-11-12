@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE016 · The 0.5.14 round: the computer panel's where-it-works block carries only its options
+
+In the computer panel's 工作位置 card, the 「选择此机器人在哪里工作」 subtitle, the hairline under the option cards, the
+line that restated the chosen place, and the routine row's 「打开计划」 subtitle are gone; the options and the routine row
+(and a running routine's own status) stay.
+
+中文：**V0.5.14 这一轮**精简电脑面板的「工作位置」：去掉「选择此机器人在哪里工作」这句副标题、选项卡片下面那条横线、
+「按任务需要，使用内置浏览器…」这行说明，以及「例行任务」下面的「打开计划」四个字；选项和例行任务行保留（正在跑的例行
+任务仍显示自己的状态）。
+
 ### OE015 · The 0.5.13 round: archived conversations are a row at the foot of the details list
 
 The bot panel listed 「已归档（N）」 as a toggle in the middle of the conversation list, and the archived conversations
