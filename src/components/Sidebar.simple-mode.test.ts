@@ -534,6 +534,7 @@ describe("bot-first sidebar", () => {
     ]);
   });
 
+  // fork 定制：头像只保留右下单点，合上游时此处一律取我方。
   it.each(densities)("lists the bot with no thread tree in Simple mode, only a row for each thread that waits on the person, keeping its dots, in %s density", (density) => {
     // Its threads were left expanded in Advanced mode.
     fixture.advanced = true;

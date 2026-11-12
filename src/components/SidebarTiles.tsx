@@ -110,6 +110,8 @@ export const SidebarBotTile = memo(function SidebarBotTile({ primary = false, dr
               </span>
             )}
             {/* The chief's card keeps its badge at the avatar's bottom-right, so the dot takes the top corner there. */}
+{/* fork 定制：头像只保留右下单点，合上游时此处一律取我方。 */}
+{/* Fork: one status dot per avatar, bottom-right; an upstream merge always keeps our side here. */}
             {tileDot && <AvatarStatusDot state={tileDot} surface={RING} />}
           </>
         ) : onLiveCall ? (

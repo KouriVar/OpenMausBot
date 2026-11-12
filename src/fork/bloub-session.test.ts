@@ -22,6 +22,7 @@ describe("a bot's turn on Bloub's states", () => {
     expect(bloubSessionState(bot({ busy: true }), [done], NOW)).toBe("thinking");
   });
 
+  // fork 定制：头像只保留右下单点，合上游时此处一律取我方。
   it("draws no glyph for unread (the avatar's one dot says it), sleeps long idle, else idles", () => {
     expect(bloubSessionState(bot({ unread: true }), [said({ at: NOW - 100 })], NOW)).toBe("idle");
     expect(bloubSessionState(bot({ activity: "idle" }), [said({ at: NOW - 11 * 60_000 })], NOW)).toBe("idle");

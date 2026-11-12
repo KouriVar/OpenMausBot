@@ -341,6 +341,7 @@ describe("BotListItem", () => {
     expect(renderRow(bot({ unread: true }))).toContain('data-testid="unread-dot"');
   });
 
+// fork 定制：头像只保留右下单点，合上游时此处一律取我方。
   it("wears one dot per avatar, with no row dot beside it in either density", () => {
     for (const density of ["comfortable", "icons"] as const) {
       const markup = renderRow(bot({ unread: true }), density);

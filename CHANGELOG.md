@@ -21,6 +21,10 @@ release notes carry.
 `0.2.0` 是 `OB001`、`0.2.1` 是 `OB002`；`0.4.0` 是 `OD001`、`0.4.1` 是 `OD002`；`0.5.0` 是 `OE001`。一个发版的条目就是自上一版以来
 全部改动的合集，GitHub 的 Release 说明也用它。
 
+**合上游的固定规则 / An upstream-merge rule**：凡是改侧栏头像状态点、未读点（含头像身体上画的点）的上游改动，一律不合；
+冲突时这一处永远取我方。 / Never take an upstream change that touches the sidebar's avatar status dot or unread dots,
+including dots painted on the mascot body; on conflict this place always keeps our side.
+
 ## Unreleased / 未发布
 
 ### OE004 · The 0.5.3 round: one status dot per avatar, again

@@ -628,6 +628,7 @@ export const BloubAvatar = forwardRef<BloubAvatarHandle, BloubAvatarProps>(funct
           </g>
         )}
 
+        {/* fork 定制：头像只保留右下单点，合上游时此处一律取我方。Bloub 的 notify 点会把第三个蓝点画到脸上，所以这里永不渲染。 */}
         {frame.notif && <circle cx={frame.notif.x} cy={frame.notif.y} r={frame.notif.r} fill={NOTIF_BLUE} />}
 
         <g fill="none" strokeLinecap="round">

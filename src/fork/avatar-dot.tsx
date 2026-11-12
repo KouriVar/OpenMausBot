@@ -1,3 +1,5 @@
+// fork 定制：头像只保留右下单点，合上游时此处一律取我方。
+// Fork: one status dot per avatar, bottom-right; an upstream merge always keeps our side here.
 // Fork: one dot, one place — every sidebar avatar wears it at the bottom-right, where the working dot
 // always was. Its colour carries the one state that matters most: a failed turn (or an engine that is
 // gone), a wait for the person, work in progress, or unread output. Display only; no data changes.

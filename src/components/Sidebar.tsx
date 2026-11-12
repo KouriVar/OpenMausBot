@@ -766,6 +766,8 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         </span>
         {/* Bottom-left, clear of the status dots on the right and of the row's hover actions. */}
         {(iconOnly || !simpleList) && !FORK_HIDE_BOT_BADGES && <BotModelBadge bot={bot} instances={instances} avatarSize={avatarSize} />}
+{/* fork 定制：头像只保留右下单点，合上游时此处一律取我方。 */}
+{/* Fork: one status dot per avatar, bottom-right; an upstream merge always keeps our side here. */}
         {FORK_ONE_AVATAR_DOT && rowDot && (
           <AvatarStatusDot state={rowDot} surface={simpleRow ? "ring-2 ring-[var(--row)]" : "border-2 border-panel"} />
         )}

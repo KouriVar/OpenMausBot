@@ -237,6 +237,8 @@ export const PinnedBotCircle = memo(function PinnedBotCircle({
               animated={working || noticing || (mascotMotion?.kind ?? "none") !== "none"}
             />
           </span>
+{/* fork 定制：头像只保留右下单点，合上游时此处一律取我方。 */}
+{/* Fork: one status dot per avatar, bottom-right; an upstream merge always keeps our side here. */}
           {pinnedDot && <AvatarStatusDot state={pinnedDot} surface="border-2 border-panel" />}
         </span>
         <span className="w-full truncate text-center text-[11px] leading-4 text-ink">{bot.name}</span>
