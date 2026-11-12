@@ -37,6 +37,22 @@ said in the row's words, without a dot.
 有多种状态时只显示优先级最高的一个，顺序是红、橙、绿、蓝。行右上角的蓝点、以及悬停时多出来的第二个点都删掉了；等待
 队友和排队仍然只在行内文字里说，不再画点。
 
+### OE003 · The 0.5.2 round: upstream's chat streaming, smoother painting and the window frame
+
+The 0.5.2 round merges upstream's batch after `v0.1.151`: a bot's reply appears as it streams, the app paints once per
+update while bots work (one commit per paint, selector subscriptions, one-bot reconcile), and the window frame's cards
+have round corners with the frame in the sidebar's colour in every skin. The phone pairing screens no longer send anyone
+to an app store — the desktop app has no store links or store QR codes, and the menu row pairs a phone — and the round
+also carries the community fixes on connectors, calendar paging, data tables, file sync, memory search, process output
+and goal decisions, with their Train corrections. The upstream settings rework is deliberately not in this build; it is
+deferred to its own branch after 0.6.0.
+
+中文：**V0.5.2 这一轮**合并 `v0.1.151` 之后的上游 batch：bot 的回复边生成边显示；bot 工作时应用每次更新只重绘一次
+（每次绘制一个 commit、选择器订阅、单 bot reconcile）；窗口卡的卡片用圆角，各皮肤下窗框与侧栏同色。手机配对页不再
+把人送去应用商店 —— 桌面端没有商店链接，也没有商店二维码，菜单里那一行改为配对手机 —— 这一轮还带上社区对连接器、
+日历分页、数据表、文件同步、记忆搜索、进程输出和目标决策的修复，以及对应的 Train 修正。上游那套设置页重排这次
+故意不合，推迟到 0.6.0 之后单独分支。
+
 ## V0.5.0 · 2026-11-12 · 基于官方 v0.1.151 + cherry-pick 官方 3 个提交 / Based on official v0.1.151 with three upstream cherry-picks
 
 ### OE001 · The 0.5.0 round: Advanced mode rebuilt on Simple's pieces, and one menu design
