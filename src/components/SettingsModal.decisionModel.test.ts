@@ -13,7 +13,7 @@ vi.mock("@/lib/analytics", () => ({
   setAnalyticsEnabled: () => {},
 }));
 
-describe("Settings › AI › Routing and extraction", () => {
+describe("Settings → Decision and extraction", () => {
   it("is a section of AI now, Routing and extraction, and old links land there", async () => {
     const { fullContext, resolveSettingsTarget } = await import("./settings/settings-index");
     expect(resolveSettingsTarget("decisionModel", fullContext())).toEqual({ page: "ai", anchor: "routing" });
