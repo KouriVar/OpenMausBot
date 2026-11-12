@@ -9,7 +9,7 @@ import { Select } from "./Select";
 export function FontRow() {
   const [current, setCurrent] = useState<FontId>(readFont);
   return (
-    <SettingRow title={t("settings.font.title")} subtitle={t("settings.font.line")}>
+    <SettingRow title={t("settings.font.title")} subtitle={t("settings.font.subtitle")}>
       <Select size="sm" className="w-full max-w-[240px]"
         value={current}
         aria-label={t("settings.font.aria")}
@@ -31,7 +31,7 @@ export function FontRow() {
 export function ChatWidthRow() {
   const [current, setCurrent] = useState<ChatWidthId>(readChatWidth);
   return (
-    <SettingRow title={t("settings.chatWidth.title")} subtitle={t("settings.chatWidth.line")}>
+    <SettingRow title={t("settings.chatWidth.title")} subtitle={t("settings.chatWidth.subtitle")}>
       <Select size="sm" className="w-full max-w-[240px]"
         value={current}
         aria-label={t("settings.chatWidth.aria")}

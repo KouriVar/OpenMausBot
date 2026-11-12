@@ -105,7 +105,7 @@ describe("sidebar phone status", () => {
     expect(phoneSettingsAction()).toEqual({
       type: "toggleAppSettings",
       open: true,
-      section: "phone",
+      section: "companion",
       phonePairing: true,
     });
   });

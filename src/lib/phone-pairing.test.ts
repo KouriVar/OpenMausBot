@@ -15,7 +15,6 @@ import {
   resetPhonePairingAccess,
   revealPhonePairing,
   takePhonePairingRequest,
-  takePairOnOpen,
   type PhonePairingAccess,
 } from "./phone-pairing";
 
@@ -119,28 +118,24 @@ describe("asking the server", () => {
 });
 
 describe("opening Settings on the phone pairing", () => {
-  it("is Phone & devices, asking for the pairing to be revealed", () => {
-    expect(phonePairingSettingsAction()).toEqual({ type: "toggleAppSettings", open: true, section: "phone", phonePairing: true });
+  it("is Remote access, asking for the pairing to be revealed", () => {
+    expect(phonePairingSettingsAction()).toEqual({ type: "toggleAppSettings", open: true, section: "companion", phonePairing: true });
   });
 
   type Focusable = { focus: (options?: FocusOptions) => void };
   const focusable = () => ({ focus: vi.fn<(options?: FocusOptions) => void>() });
-  const pane = { scrollTop: 0, clientHeight: 600, getBoundingClientRect: () => ({ top: 100 }), querySelector: () => ({ offsetHeight: 88 }) };
   const element = (action: Focusable | null) => ({
-    closest: vi.fn((_selector: string) => pane as unknown as Element),
-    getBoundingClientRect: () => ({ top: 500 }),
+    scrollIntoView: vi.fn<(options: ScrollIntoViewOptions) => void>(),
     focus: vi.fn<(options?: FocusOptions) => void>(),
     querySelector: vi.fn((_selector: string) => action),
   });
   const now = (callback: () => void) => callback();
 
-  it("scrolls only the Settings pane to the card, never the sheet, and focuses the button that shows the code", () => {
+  it("scrolls the card into view and focuses the button that shows the code", () => {
     const action = focusable();
     const root = element(action);
-    pane.scrollTop = 0;
     expect(revealPhonePairing(root, now)).toBe(true);
-    expect(root.closest).toHaveBeenCalledWith("[data-settings-scroll]");
-    expect(pane.scrollTop).toBe(304);
+    expect(root.scrollIntoView).toHaveBeenCalledWith({ block: "start" });
     expect(root.querySelector).toHaveBeenCalledWith("[data-phone-pairing-action]:not([disabled])");
     expect(action.focus).toHaveBeenCalledWith({ preventScroll: true });
     expect(root.focus).not.toHaveBeenCalled();
@@ -156,9 +151,9 @@ describe("opening Settings on the phone pairing", () => {
     const root = element(focusable());
     const frames: Array<() => void> = [];
     revealPhonePairing(root, (callback) => frames.push(callback));
-    expect(root.closest).not.toHaveBeenCalled();
+    expect(root.scrollIntoView).not.toHaveBeenCalled();
     frames[0]!();
-    expect(root.closest).toHaveBeenCalled();
+    expect(root.scrollIntoView).toHaveBeenCalled();
     expect(revealPhonePairing(null, now)).toBe(false);
   });
 });
@@ -171,16 +166,7 @@ describe("the ?desktop-settings=phone request", () => {
     expect(takePhonePairingRequest("https://home.fly.dev/")).toBeNull();
   });
 
-  it("asks once for Pair a phone with pair=open, in the desktop window only, and drops the flag from the address", () => {
-    expect(takePhonePairingRequest("https://home.fly.dev/?desktop-settings=phone&pair=open", false)).toBe("/");
-    expect(takePairOnOpen()).toBe(false);
-    expect(takePhonePairingRequest("https://home.fly.dev/?desktop-settings=phone&pair=open", true)).toBe("/");
-    expect(takePairOnOpen()).toBe(true);
-    expect(takePairOnOpen()).toBe(false);
-  });
-
   it("survives pairing, and nothing else does", () => {
-    expect(pairedDestination("?desktop-settings=phone&pair=open")).toBe("/?desktop-settings=phone&pair=open");
     expect(pairedDestination("?desktop-settings=phone")).toBe("/?desktop-settings=phone");
     expect(pairedDestination("?desktop-settings=phone&next=https://evil.example")).toBe("/?desktop-settings=phone");
     expect(pairedDestination("?desktop-settings=workspaces")).toBe("/");
