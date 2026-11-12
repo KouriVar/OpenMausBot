@@ -27,6 +27,36 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE008 · The 0.5.6 round: upstream's one-window Settings, in this fork's style
+
+The 0.5.6 round merges upstream's Settings rework (#5503) and its follow-up (#5516): Settings is one window with a
+grouped outer menu (the place, your account, this app), a search field over pages and rows, and pages for Phone &
+devices, AI, Vault, Spending, Data, General, Appearance, Your account and Plan & billing, with the phone pairing line
+and the links that name "AI › Other services" the follow-up adds. The structure is upstream's; the colours, corner
+radii, spacing and fonts stay this fork's. Everything the fork added stays: the build is local-only, so no MausBot Cloud
+or organization row appears; Simple is still the only mode, with the ten-tap unlock on This app revealing the Advanced
+switch and the 「保持高级模式」 row inside the new structure; the outer avatar menu is still the fork's own; Appearance
+keeps the Bold text and Bloub avatar rows. Where an upstream page builds on commits this fork has not merged (Ollama
+one-click, Amazon Bedrock, ModelGo, Tailnet computers, the retired-phone notices, the server self-update button), that
+page keeps this fork's own implementation or drops that one entry, so the window is whole without taking those commits:
+the AI provider list is the fork's, the key page keeps its rows without the Ollama panel, Phone & devices keeps Wi-Fi
+and Keep awake without the relay, Tailnet and retired-phone pieces, Vault keeps its card, a server's version row uses
+the menu's own update item, and the away-emails row is not shown. zh and pt-br keep every Settings key; the other
+language packs fall back to English for a key they do not carry. No conversation data, no server field, no new enabled
+tab: it is the same Settings, regrouped.
+
+中文：**V0.5.6 这一轮**合入上游的设置页重排（#5503）及其后续（#5516）：设置变成一扇窗口 —— 分组的外层菜单（这个位置、
+你的账号、这个 App）、覆盖页面和行的搜索框，以及「手机与设备 / AI / 保险库 / 花费 / 数据 / 通用 / 外观 / 你的账号 /
+套餐与账单」这些页面，并带上后续那轮的手机配对说明和「AI › 其他服务」链接。分组与组件结构用上游，颜色、圆角、间距、
+字体保留本 fork 的样式。我方加的东西都留着：本构建仍是 local-only，不出现 MausBot Cloud 或组织条目；Simple 仍是唯一
+模式，在「这个 App」连点十次解锁后，新结构里照样出现「高级模式」开关和「保持高级模式」一行；外层头像菜单仍是我方那套；
+外观页保留「粗体文字」和 Bloub 头像两行。有些上游页面依赖本 fork 没合的前置提交（Ollama 一键添加、Amazon Bedrock、
+ModelGo、Tailnet 电脑、旧手机链接提醒、服务器自更新按钮），这些页面就保留我方现有实现，或去掉对应的一个入口，不补上游
+提交：AI 提供方列表用我方的，密钥页保留原有行但不带 Ollama 面板，手机与设备保留 Wi-Fi 与「保持唤醒」两行、去掉 relay、
+Tailnet 和旧手机提醒，保险库保留我方卡片，服务器版本行改用菜单里现成的更新项，离开邮件那一行不显示。zh、pt-br 补齐所有
+设置键，其余语言包缺的键回退英文。不改会话数据、不加服务端字段、也不让任何标签页重新亮起：还是同一扇设置窗口，只是重新
+分了组。
+
 ### OE007 · The 0.5.5 round: Advanced mode can stay on across restarts
 
 Settings gains a 「保持高级模式」 switch next to Advanced mode, off by default. Off keeps today's behaviour: the
@@ -81,14 +111,14 @@ update while bots work (one commit per paint, selector subscriptions, one-bot re
 have round corners with the frame in the sidebar's colour in every skin. The phone pairing screens no longer send anyone
 to an app store — the desktop app has no store links or store QR codes, and the menu row pairs a phone — and the round
 also carries the community fixes on connectors, calendar paging, data tables, file sync, memory search, process output
-and goal decisions, with their Train corrections. The upstream settings rework is deliberately not in this build; it is
-deferred to its own branch after 0.6.0.
+and goal decisions, with their Train corrections. The upstream settings rework was deliberately not in this build; it has since
+landed in the 0.5.6 round (OE008).
 
 中文：**V0.5.2 这一轮**合并 `v0.1.151` 之后的上游 batch：bot 的回复边生成边显示；bot 工作时应用每次更新只重绘一次
 （每次绘制一个 commit、选择器订阅、单 bot reconcile）；窗口卡的卡片用圆角，各皮肤下窗框与侧栏同色。手机配对页不再
 把人送去应用商店 —— 桌面端没有商店链接，也没有商店二维码，菜单里那一行改为配对手机 —— 这一轮还带上社区对连接器、
 日历分页、数据表、文件同步、记忆搜索、进程输出和目标决策的修复，以及对应的 Train 修正。上游那套设置页重排这次
-故意不合，推迟到 0.6.0 之后单独分支。
+故意不合，后来在 V0.5.6 那一轮补上（OE008）。
 
 ### OE002 · The 0.5.1 round: one status dot on every sidebar avatar
 
