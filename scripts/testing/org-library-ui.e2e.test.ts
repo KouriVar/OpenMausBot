@@ -141,10 +141,10 @@ describe("the organization library in the real renderer", () => {
     const opened = (await profileName())!;
     await click(opened);
     // The bot's panel: where it came from on Bot settings, the organization's skills on Library → Skills.
-    await ui("eval", "--js", "document.querySelector('[data-panel-gear]').click(); true");
+    await clickWhenFree("Bot settings");
     await expect.poll(snapshot, { timeout: 10_000 }).toContain("From Sales desk 1.3.0 · Acme Partners");
-    await ui("eval", "--js", "document.querySelector('[data-panel-back]').click(); true");
-    await ui("eval", "--js", "document.querySelector('[data-panel-tab=\"library\"]').click(); true");
+    await clickWhenFree("Details");
+    await clickWhenFree("Library");
     await ui("eval", "--js", "document.querySelector('[data-panel-page=\"skills\"]').click(); true");
     await expect.poll(snapshot, { timeout: 10_000 }).toContain("Skills your organization shares");
     await evidence("org-library-bot-skills.png");

@@ -305,8 +305,9 @@ describe("control-omb ui drives the real renderer", () => {
     await ui("press", info.ui, "--keys", "Escape");
     await expect.poll(async () => (await ui("eval", info.ui, "--js", "String(Boolean(document.querySelector('[data-model-picker-content]')))")).result,
       { timeout: 10_000 }).toBe("false");
-    // Hand the window back to the chat: the later steps open the panel again by the same pill.
-    await ui("click", info.ui, "--name", "Open Pepper's profile");
+    // Hand the window back to the chat, closing the panel only if it is still open: a pick can
+    // close it, and the later steps open it again by the same pill.
+    await ui("eval", info.ui, "--js", "(() => { const close = document.querySelector('[aria-label=\"Close settings\"]'); if (close) close.click(); return Boolean(close); })()");
 
     const before = await ui("snapshot", info.ui, "--interactive");
     expect(before.ok).toBe(true);
