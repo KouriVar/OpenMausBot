@@ -12,6 +12,11 @@
 # electron-builder builds each platform with the host's tools: macOS artifacts need a Mac, the
 # NSIS setup needs wine when built off Windows, and the AppImage needs Docker when built off
 # Linux. --only lets a machine build just the platforms it can.
+#
+# macOS signing: set OMB_SIGN_IDENTITY to a keychain identity ("Apple Development: ... (TEAMID)")
+# to sign the app with hardened runtime and this repo's entitlements (build/entitlements.mac.plist
+# through electron-builder) and then verify it. Without it the app is ad-hoc signed, as before.
+# Nothing is notarized either way.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -88,7 +93,23 @@ build() {
 
 if want mac; then
   rm -rf "$BUILD"
-  build env CSC_IDENTITY_AUTO_DISCOVERY=false pnpm package:mac:arm64
+  if [[ -n "${OMB_SIGN_IDENTITY:-}" ]]; then
+    # electron-builder signs while it packages, with the mac block's hardened runtime and
+    # entitlements; the same identity signs the app again here so a hand-built bundle matches.
+    build env CSC_NAME="$OMB_SIGN_IDENTITY" pnpm package:mac:arm64
+    codesign --force --deep --options runtime --entitlements "$REPO_ROOT/build/entitlements.mac.plist" --sign "$OMB_SIGN_IDENTITY" "$BUILD/mac-arm64/OpenMausBot.app"
+    echo "==> codesign --verify"
+    codesign --verify --deep --strict "$BUILD/mac-arm64/OpenMausBot.app"
+    echo "==> codesign -dv"
+    codesign -dv "$BUILD/mac-arm64/OpenMausBot.app" 2>&1 | sed -n '1,10p'
+  else
+    build env CSC_IDENTITY_AUTO_DISCOVERY=false pnpm package:mac:arm64
+    codesign --force --deep --sign - "$BUILD/mac-arm64/OpenMausBot.app"
+    echo "==> codesign --verify"
+    codesign --verify --deep --strict "$BUILD/mac-arm64/OpenMausBot.app"
+    echo "==> codesign -dv"
+    codesign -dv "$BUILD/mac-arm64/OpenMausBot.app" 2>&1 | sed -n '1,10p'
+  fi
   collect "macOS" "$BUILD/*.dmg" "$BUILD/*.zip" "$BUILD/latest-mac.yml"
 fi
 

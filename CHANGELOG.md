@@ -27,6 +27,17 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE006 · The 0.5.4 round: the local release build can sign the Mac app
+
+`scripts/fork/release-local.sh` accepts `OMB_SIGN_IDENTITY`: when it names a keychain identity the macOS app is signed
+with that identity, hardened runtime and this repository's entitlements, then checked with `codesign --verify --deep
+--strict` and `codesign -dv`; without it the build stays ad-hoc signed as before. Nothing is notarized, uploaded or
+tagged.
+
+中文：**V0.5.4 这一轮**让本机打包脚本可以签 Mac 应用：设置环境变量 `OMB_SIGN_IDENTITY`（keychain 里的签名身份）后，
+macOS 包会用该身份、hardened runtime 和本仓库现有的 entitlements 签名，并用 `codesign --verify --deep --strict` 与
+`codesign -dv` 检查签名；不设置则仍为 ad-hoc 签名。不做 notarization，也不上传、不打 tag。
+
 ### OE005 · The 0.5.3 round: a streamed reply no longer shows twice, and bot bubbles look the same
 
 A bot reply that was still streaming showed twice while the turn went on: the live draft bubble and the saved message
