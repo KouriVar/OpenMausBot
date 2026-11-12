@@ -2641,6 +2641,7 @@
   "chat.showConversations": "Show {name}'s conversations",
   "chat.find": "Find in conversation",
   "chat.findShortcut": "Find in conversation (⌘F)",
+  "chat.findShort": "Find",
   "chat.stop": "Stop",
   "chat.stopTurn": "Stop this turn",
   "chat.computer": "Bot's screen",

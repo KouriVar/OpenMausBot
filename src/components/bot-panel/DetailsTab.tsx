@@ -71,7 +71,7 @@ export function DetailsTab({ bot, derived, onOpen }: {
       {conversationItems.length > 0 && (
         <section data-panel-card="conversation">
           {FORK_BOT_PANEL_LABELS && <CardLabel>{t("botPanel.section.conversation")}</CardLabel>}
-          {conversationItems.map((item) => <ItemRow key={item.key} item={item} />)}
+          {conversationItems.map((item) => <ItemRow key={item.key} item={item.key === "find" ? { ...item, label: t("chat.findShort") } : item} />)}
         </section>
       )}
 

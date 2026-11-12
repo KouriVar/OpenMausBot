@@ -638,14 +638,16 @@ export function ModelPicker({
         )}
       </span>
       <UsageBars engine={selection.instanceId} compact={!contained} />
-      <ChevronDown
-        size={12}
-        className={cn(
-          "text-ink-tertiary transition-transform",
-          open && "rotate-180",
-          !contained && active && "@max-4xl/chathead:hidden",
-        )}
-      />
+      {contained
+        ? <ChevronRight size={14} strokeWidth={2} aria-hidden="true" className="shrink-0 text-ink-tertiary" />
+        : <ChevronDown
+          size={12}
+          className={cn(
+            "text-ink-tertiary transition-transform",
+            open && "rotate-180",
+            active && "@max-4xl/chathead:hidden",
+          )}
+        />}
     </button>
   ) : (
     <button

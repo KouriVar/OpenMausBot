@@ -2501,6 +2501,7 @@
   "chat.showConversations": "Ver as conversas com {name}",
   "chat.find": "Buscar na conversa",
   "chat.findShortcut": "Buscar na conversa (⌘F)",
+  "chat.findShort": "Buscar",
   "chat.stop": "Parar",
   "chat.stopTurn": "Parar esta sessão",
   "chat.computer": "Tela do bot",

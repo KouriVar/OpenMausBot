@@ -27,6 +27,14 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE020 · The 0.5.18 round: the details panel's chevrons all point right, and 查找 is short
+
+In the bot details panel the model row and the new 已归档会话 row drew down-pointing chevrons while every other row pointed
+right; both now use the same right chevron. The find row's label is 查找 (Find) instead of 在对话中查找.
+
+中文：**V0.5.18 这一轮**把详情面板里两个朝下的箭头改成朝右：模型行（ModelPicker 的 contained 形态）和「已归档会话」行，
+现在和用量/活动/检查器/例行任务一致；「在对话中查找」这一行改成「查找」。
+
 ### OE019 · The 0.5.17 round: a picked voice is saved the moment it is picked
 
 Choosing a voice only queued the usual batched profile patch, so closing the app right after picking could drop it before

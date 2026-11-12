@@ -2466,6 +2466,7 @@
   "chat.showConversations": "查看与 {name} 的对话",
   "chat.find": "在对话中查找",
   "chat.findShortcut": "在对话中查找（⌘F）",
+  "chat.findShort": "查找",
   "chat.stop": "停止",
   "chat.stopTurn": "停止本轮",
   "chat.computer": "机器人的屏幕",

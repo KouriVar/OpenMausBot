@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, ChevronDown, ChevronUp, Search, SquarePen } from "lucide-react";
+import { Archive, ChevronDown, ChevronRight, ChevronUp, Search, SquarePen } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { llmThreadTitlesEnabled } from "@/lib/feature-flags";
@@ -229,7 +229,7 @@ export function ArchivedConversations({ bot }: { bot: Bot }) {
         <Archive size={15} aria-hidden="true" className="shrink-0 text-ink-secondary" />
         <span className="flex-1 truncate text-left">{t("botPanel.conversations.archived")}</span>
         <span className="shrink-0 text-[12px] text-ink-tertiary">{archived.length}</span>
-        <ChevronDown size={14} aria-hidden="true" className={cn("shrink-0 transition-transform", open && "rotate-180")} />
+        <ChevronRight size={14} aria-hidden="true" className="shrink-0 rtl:-scale-x-100" />
       </button>
       {open && (
         <div role="list" aria-label={t("botPanel.conversations.archived")} className={cn("flex flex-col gap-px", PANEL_ROW_LOOK)}>
