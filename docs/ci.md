@@ -49,6 +49,12 @@ run the union of their jobs. Why the mapping is what it is:
 
 ## Lanes: pull requests, main and the full lane
 
+**Fork:** this fork starts CI only by hand (`workflow_dispatch`) or on the
+nightly run (`schedule`, 18:00 UTC — 02:00 Beijing — and only when the
+repository is `KouriVar/OpenMausBot`). Pushes and pull requests do not start a
+run here; the `pull_request`, `push` and `merge_group` rows below describe
+upstream's lanes, which this copy keeps documentation for.
+
 Only pull requests use the areas. Every other event runs one of two fixed
 sets (`laneOf` in `scripts/ci-scope.mjs`):
 

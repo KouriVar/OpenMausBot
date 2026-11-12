@@ -1,5 +1,5 @@
 # Boat (https://docs.boat.dev/ci): while the repository variable BOAT_CI is "on", a run from this repository's own
-# branches (a push to a branch or a pull request) that the repository owner both authored and started does its
+# branches (a push to a branch, a pull request or a manual run) that the repository owner both authored and started does its
 # Linux work on one 16 vCPU Boat VM, one Boat start per run: the static job runs on boat-xlarge and, after its checks,
 # runs the Linux vitest shards, behavior evals and the Linux packaged server smoke side by side
 # (scripts/ci-linux-lanes.mjs) instead of as GitHub-hosted jobs. Boat runs a public repository's job only for the users
@@ -9,25 +9,23 @@
 name: CI
 
 on:
-  # Fork: this repository tests its own feature branches, pull requests and manual runs. A push to
-  # main and the nightly lane belong to upstream, so neither starts CI here (docs/ci.md).
+  # Fork: this repository starts CI only by hand or on the nightly run. Pushes and pull requests
+  # belong to upstream, so neither starts a run here (docs/ci.md).
   workflow_dispatch:
-  push:
-    branches:
-      - "**"
-      - "!main"
-  pull_request:
+  # The full lane every night at 02:00 Beijing time (18:00 UTC the day before): every platform's
+  # shards and smokes. Only KouriVar/OpenMausBot runs it: the static job skips the rest.
+  schedule:
+    - cron: "0 18 * * *"
 
 # least privilege: CI only reads the checkout, it never writes back
 permissions:
   contents: read
 
 concurrency:
-  # A new PR push supersedes that PR's older checks; a feature-branch push keeps its own group so a
-  # later push supersedes it. A manual run has a group no push can join: its event and branch. A PR's
-  # group is named by its number, never by github.ref: a merged PR's closed event reports the base
-  # branch as github.ref, so a ref-named group let the stop run cancel the wrong checks
-  # (ci-stop-closed.yml).
+  # This fork starts CI only by hand or on the nightly run, and each gets a group no other run can
+  # join: its event and branch. A PR's group is named by its number, never by github.ref: a merged
+  # PR's closed event reports the base branch as github.ref, so a ref-named group would let the stop
+  # run cancel the wrong checks (ci-stop-closed.yml).
   group: ci-${{ github.event_name == 'merge_group' && github.event.merge_group.head_ref || github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.event_name == 'push' && github.ref || format('{0}-{1}', github.event_name, github.ref) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -37,6 +35,9 @@ jobs:
   # platform, and every smoke reports on its own. One final `CI` check
   # aggregates the required jobs (see docs/ci.md for ruleset migration).
   static:
+    # The fork's nightly run is the only scheduled one; any other repository's schedule ends green
+    # without running a thing.
+    if: ${{ github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot' }}
     name: >-
       ${{ vars.BOAT_CI == 'on' && contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name)
       && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
@@ -367,8 +368,9 @@ jobs:
     name: CI
     needs: [static, build, vitest, behavior-evals, packaged-server, windows-cua, electron-smokes]
     # Still report failed/skipped dependencies, but don't keep a superseded
-    # workflow alive just to schedule its summary jobs.
-    if: ${{ !cancelled() }}
+    # workflow alive just to schedule its summary jobs. A scheduled run in any
+    # other repository ends green without a gate.
+    if: ${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

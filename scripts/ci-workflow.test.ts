@@ -32,8 +32,10 @@ function gateNeeds(selected: string[]) {
 }
 
 describe("CI concurrency", () => {
-  it("supersedes old PR checks and runs the fork's feature branches, not main", () => {
-    expect(workflow.on.push.branches).toEqual(["**", "!main"]);
+  it("starts only by hand or on the nightly run, never on a push or a pull request", () => {
+    expect(Object.keys(workflow.on).sort()).toEqual(["schedule", "workflow_dispatch"]);
+    expect(workflow.on.push).toBeUndefined();
+    expect(workflow.on.pull_request).toBeUndefined();
     expect(workflow.on).not.toHaveProperty("merge_group");
     expect(workflow.concurrency["cancel-in-progress"]).toBe("${{ github.event_name == 'pull_request' }}");
   });
@@ -49,8 +51,10 @@ describe("CI concurrency", () => {
     );
   });
 
-  it("leaves the nightly lane to upstream", () => {
-    expect(workflow.on).not.toHaveProperty("schedule");
+  it("runs the nightly lane on the fork only", () => {
+    expect(workflow.on.schedule).toEqual([{ cron: "0 18 * * *" }]);
+    expect(workflow.jobs.static.if).toBe("${{ github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot' }}");
+    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot') }}");
   });
 
   it("stops a closed PR's run by joining ci.yml's PR group", () => {
@@ -71,7 +75,7 @@ describe("CI concurrency", () => {
   });
 
   it("allows cancelled summary jobs to stop without skipping failure reporting", () => {
-    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() }}");
+    expect(workflow.jobs.gate.if).toBe("${{ !cancelled() && (github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot') }}");
     expect(workflow.jobs.gate.needs).toEqual(["static", ...requiredRuntimeJobs]);
   });
 
@@ -244,8 +248,8 @@ describe("CI concurrency", () => {
   });
 
   it("always starts the workflow and validates selection and docs before fanout", () => {
-    expect(workflow.on.pull_request).toBeNull();
-    expect(workflow.jobs.static.if).toBeUndefined();
+    expect(workflow.on.pull_request).toBeUndefined();
+    expect(workflow.jobs.static.if).toBe("${{ github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot' }}");
     expect(workflow.jobs.static.steps[0].with["fetch-depth"]).toBe(0);
     expect(workflow.jobs.static.steps.find((step: { id?: string }) => step.id === "scope").run).toBe("node scripts/ci-scope.mjs");
     expect(workflow.jobs.static.outputs).toEqual({
