@@ -27,6 +27,15 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE017 · The 0.5.15 round: the icons rail spaces bots the same in both modes
+
+Switching to Advanced mode nudged the bot icons up a few pixels: each section's bots sat 2px apart in Advanced and 4px in
+Simple, so the difference added up down the rail. The icons rail now uses Simple's 4px in both modes; the list layouts are
+unchanged.
+
+中文：**V0.5.15 这一轮**让图标侧栏在两种模式下间距一致：高级模式里每个分区内 bot 之间是 2px，简易模式是 4px，切换时就
+会看到下面的 bot 整体往上挪一点；现在图标侧栏两种模式都用 4px，列表布局不变。
+
 ### OE016 · The 0.5.14 round: the computer panel's where-it-works block carries only its options
 
 In the computer panel's 工作位置 card, the 「选择此机器人在哪里工作」 subtitle, the hairline under the option cards, the
