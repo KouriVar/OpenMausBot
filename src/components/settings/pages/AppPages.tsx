@@ -119,7 +119,7 @@ function PlacesFromHere() {
 }
 
 export function GeneralPage() {
-  const { ctx, place, go } = useSettingsShell();
+  const { ctx } = useSettingsShell();
   return <>
     <SettingsGroup label={t("settings.simple.group.typing")} block="typing">
       <SettingsRows selectWidth={208}>
@@ -129,8 +129,8 @@ export function GeneralPage() {
         {window.ogb?.talkShortcut ? <TalkShortcutRow /> : elsewhere(window.ogb?.talkShortcut, ctx) && ctx.cloud ? <InertRow title={t("settings.search.talk")} control={<span className="text-[13px] leading-5 text-ink-secondary">{t("settings.general.talkOff")}</span>} /> : null}
       </SettingsRows>
     </SettingsGroup>
-    <SettingsGroup label={t("notifications.title")} block="notifications"
-      footnote={!ctx.client && <>{t("settings.general.awayEmails")}{" "}<button type="button" className="cursor-pointer text-accent-text hover:underline" onClick={() => go("bots", "about-you")}>{`${place.name} › ${t("settings.page.bots")}`}</button></>}>
+    {/* Fork: this build has no away-emails row on the bots page, so the footnote that linked to it is gone too. */}
+    <SettingsGroup label={t("notifications.title")} block="notifications">
       <SettingsRows><NotificationRows simple /></SettingsRows>
     </SettingsGroup>
     {ctx.desktop && !ctx.client && (
