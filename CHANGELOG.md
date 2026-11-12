@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE018 · The 0.5.16 round: the Bloub avatar picker draws its shapes and colours with one centred gap
+
+The real component behind 身份 → 头像 with the Bloub style is `BloubCustomizer`: its shapes sat 3px apart and its colours
+split into a stretched `grid grid-cols-6` first row plus a tight centred second row. Both groups are now a wrapped flex row
+centred on every line with the same 10px (`gap-2.5`) between tiles, so nothing stretches or crowds.
+
+中文：**V0.5.16 这一轮**找到了真正渲染「身份 → 头像」的组件：Bloub 风格下是 `BloubCustomizer`（不是
+`BotProfileAvatarCard`）。它原来形状之间只有 3px，颜色第一行是 `grid grid-cols-6` 被平均撑满、第二行又挤在一起；现在两组都
+一样：`flex flex-wrap justify-center gap-2.5`，每行居中、横纵都是 10px，不再撑满也不挤。
+
 ### OE017 · The 0.5.15 round: the icons rail spaces bots the same in both modes
 
 Switching to Advanced mode nudged the bot icons up a few pixels: each section's bots sat 2px apart in Advanced and 4px in
