@@ -123,12 +123,10 @@ export interface Message extends Pick<import("../../shared/wire").WireMessage, "
   signIn?: import("../../shared/wire").SignInRequestCardData;
   routineRun?: RoutineRunCardData;
   goalRun?: GroupGoalRunCardData;
-  /** A bot reply: the id its words streamed under, so the live draft swaps for this message by id. */
-  itemId?: string;
   call?: import("../../shared/wire").LiveCallRecord;
   channelMode?: "chat" | "goal";
   tool?: { name: string; ok?: boolean; spoken?: string; setup?: boolean; claudeUpdate?: boolean; place?: PlaceRow; limitResetsAt?: number; partial?: boolean; summary?: string; input?: string; output?: string ; itemId?: string; outputPath?: string; fullResult?: boolean; clipped?: boolean; nameCode?: string; nameParams?: Record<string, string | number>; summaryCode?: string; summaryParams?: Record<string, string | number>; rescue?: import("../../shared/first-reply-rescue").FirstReplyRescue; step?: import("../../shared/turn-progress").LiveStep; whose?: { person: string; app: string }; label?: string };
-  steered?: boolean;
+  steered?: boolean; /** A bot reply: the id its words streamed under, so the live draft swaps for it by id. */ itemId?: string;
   via?: "api" | "call";
   callId?: string;
   requestMessageId?: string;
