@@ -7301,6 +7301,7 @@
   "roomCard.current": "此 Cloud 已是新容量。",
   "roomCard.restartFailed": "现在无法重启。它会在下次空闲时获得新容量。",
   "chat.savedSteps.learned": "已保存这些步骤 · 下次无需 AI",
+  "chat.learnedSkills.title": "已学习新技能，添加至知识库",
   "chat.savedSteps.replayed": "重复使用了已保存的步骤 · 无需 AI",
   "chat.savedSteps.forget": "忘记",
   "chat.savedSteps.forgotten": "已忘记",

@@ -27,6 +27,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE014 · The 0.5.12 round: applied skill changes fold into the reply's bubble
+
+When a bot added or updated a skill, each change stood in the transcript as its own row (「添加了技能：… 撤销 详情」) outside
+the reply. Those rows now fold into the reply's bubble as one 「已学习新技能，添加至知识库」 chip — one change or several —
+which opens to the same lines with their Undo and Details. Nothing else about the notices changed.
+
+中文：**V0.5.12 这一轮**把「学习技能」的提示收进气泡：以前每加/改一个技能，聊天里就单独多一行「… 添加了技能：… 撤销 详情」；
+现在这些行都收进上一条回复的气泡里，做成一个「已学习新技能，添加至知识库」的折叠卡片（一条也收），展开后仍是原来的行，
+撤销和详情照旧可用。
+
 ### OE013 · The 0.5.11 round: the bot's voice panel is MiMo-only
 
 The 语音与提醒 section offered a provider switch. MiMo is free, so it is now the fixed voice provider there: the switch is

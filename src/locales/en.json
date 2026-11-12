@@ -7646,6 +7646,7 @@
   "roomCard.current": "This Cloud already has its new size.",
   "roomCard.restartFailed": "Couldn't restart it now. It gets its new size the next time it's not busy.",
   "chat.savedSteps.learned": "Saved these steps · next time no AI",
+  "chat.learnedSkills.title": "New skills learned · added to the library",
   "chat.savedSteps.replayed": "Repeated saved steps · no AI",
   "chat.savedSteps.forget": "Forget",
   "chat.savedSteps.forgotten": "Forgotten",
