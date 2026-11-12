@@ -138,12 +138,8 @@ describe("bot setup and tools in the real renderer", () => {
     };
     // The bot panel's close button has the same name, so press the one in the Settings dialog.
     const closeSettings = async () => {
-      // Spending is an Advanced page, so opening it turned Advanced mode on; Simple's chat head comes back with it off.
-      await evaluate(`(() => {
-        localStorage.setItem("omb-advanced-mode", "0");
-        window.dispatchEvent(new StorageEvent("storage", { key: "omb-advanced-mode", storageArea: localStorage }));
-        return true;
-      })()`);
+      // Fork: the panel's Usage row turned Advanced on through the window's own effect, and the hidden switch has no
+      // way to turn it back off mid-run — leaving it on is what keeps the panel's tabs reachable for the next check.
       await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
       await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
     };
