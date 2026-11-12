@@ -9989,5 +9989,10 @@
   "voice.mimo.keyPlaceholder": "Cole sua chave de API do MiMo",
   "voice.mimo.freeNotice": "A voz do MiMo é gratuita por tempo limitado. Quando a Xiaomi começar a cobrar, você paga pelo uso, e o app avisa quando o saldo estiver baixo.",
   "keys.label.mimoTts": "Chave de API de voz do MiMo",
-  "keys.purpose.mimoTts": "Vozes do MiMo para respostas faladas, mensagens de voz e chamadas"
+  "keys.purpose.mimoTts": "Vozes do MiMo para respostas faladas, mensagens de voz e chamadas",
+  "settings.boldText.title": "Texto em negrito",
+  "settings.boldText.subtitle": "Mensagens e o compositor aparecem com um peso a mais. Salvo neste dispositivo; desativado por padrão.",
+  "chat.setupCard.greeting": "Oi, sou {name}. O que você gostaria que eu fizesse?",
+  "sidebar.hideSidebar": "Ocultar barra lateral",
+  "sidebar.revealHidden": "Mostrar a barra lateral"
 }
