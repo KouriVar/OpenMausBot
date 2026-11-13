@@ -10629,5 +10629,6 @@
   "settings.domain.httpsFirst": "Turn on HTTPS for this address first, then connect it here.",
   "settings.backTo": "Back to Settings",
   "devices.route.httpsAccount": "Uses your {app} account.",
-  "backup.importAction": "Import…"
+  "backup.importAction": "Import…",
+  "settings.page.thisComputer": "About this computer"
 }

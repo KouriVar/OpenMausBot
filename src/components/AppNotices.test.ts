@@ -836,116 +836,20 @@ describe("What's new after the update", () => {
   });
 });
 
-describe("the product-updates question after the update", () => {
-  const QUESTION = "Get MausBot updates?", POPUP = "Meet the new MausBot Cloud";
-  const RECEIPT = "R".repeat(43);
-  let saved: unknown;
-  let accountAnswer: { status: string; textVersion: string } | null;
-  let client: Record<string, ReturnType<typeof vi.fn>>;
-  /** Main's own consent for this desktop, behind its real IPC: the real record and logic, a fake Cloud client. */
-  const wireConsent = () => {
-    const prefs = createDesktopPrefs({ read: () => saved, write: value => { saved = JSON.parse(JSON.stringify(value)); } });
-    const consent = createUpdatesConsent({ prefs, account: () => client as never, available: async () => true, now: () => now });
-    registerUpdatesConsent({ ipcMain: { handle: (channel, handler) => void desk.handlers.set(channel, handler as Handler) }, page: event => (event as { page: Page }).page, consent });
-  };
-  const answer = () => (saved as { updatesConsent?: { status: string } } | null)?.updatesConsent ?? null;
-  const type = (value: string) => { const input = tree().find(node => node.type === "input" && node.props.type === "email")!; expect(input).toBeTruthy(); input.props.onChange({ target: { value } }); };
-
-  beforeEach(() => {
-    saved = null; accountAnswer = null;
-    client = { state: vi.fn(() => account), updatesConsent: vi.fn(async () => ({ cloudContractVersion: 1, consent: accountAnswer })),
-      recordUpdatesConsent: vi.fn(async (status: string, textVersion: string) => { accountAnswer = { status, textVersion }; }),
-      updatesConsentByEmail: vi.fn(async () => RECEIPT), withdrawUpdatesConsent: vi.fn(async () => {}) };
-    wireConsent();
-  });
-
-  it("comes after What's new, never with it, and right after it closes; No thanks is kept and it is never asked again", async () => {
+describe("no product-updates question", () => {
+  // Fork: this build asks nothing by email, so the question never follows What's new or anything else.
+  it("never asks about product updates, even with main's consent bridge answering", async () => {
+    const prefs = createDesktopPrefs({ read: () => null, write: () => {} });
+    const client = { state: vi.fn(() => account), updatesConsent: vi.fn(async () => ({ cloudContractVersion: 1, consent: null })), recordUpdatesConsent: vi.fn(async () => {}),
+      updatesConsentByEmail: vi.fn(async () => "R".repeat(43)), withdrawUpdatesConsent: vi.fn(async () => {}) };
+    registerUpdatesConsent({ ipcMain: { handle: (channel, handler) => void desk.handlers.set(channel, handler as Handler) }, page: event => (event as { page: Page }).page,
+      consent: createUpdatesConsent({ prefs, account: () => client as never, available: async () => true, now: () => now }) });
     desk.saved = null; storage.delete(WHATS_NEW_NOTICE);
     const first = await launch();
-    expect(first).toContain(POPUP); expect(first).not.toContain(QUESTION);
-    press("Not now"); await flush();
-    expect(render(), "right after it closes").toContain(QUESTION);
-    const next = await launch();
-    expect(next, "and after a reload in the same launch").toContain(QUESTION); expect(next).not.toContain(POPUP);
-    for (const text of ["about new features and tips, about twice a month. You can unsubscribe any time.", "Your email", "Yes, send me updates", "No thanks"])
-      expect(next).toContain(text);
-    for (const part of ['role="dialog"', 'aria-modal="true"', 'aria-labelledby="updates-consent-title"', 'type="email"', 'value=""']) expect(next).toContain(part);
-    expect(next).not.toContain('type="checkbox"');
-    press("No thanks"); await flush();
-    expect(render()).toBe("");
-    expect(answer()).toMatchObject({ status: "declined" });
-    expect(client.updatesConsentByEmail).not.toHaveBeenCalled();
-    expect(await launch()).not.toContain(QUESTION);
-    wireConsent();
-    expect(await launch(), "a restart reads it from the desktop's file").not.toContain(QUESTION);
-  });
-
-  it("waits for a new install's first reply and for a launch after the one whose welcome finished, then keeps its place after What's new", async () => {
-    desk.saved = null; storage.delete(WHATS_NEW_NOTICE);
-    f.state.bots = [];
-    markWelcomeFinished();
-    const first = await launch();
-    expect(first, "the welcome just closed and no bot has answered").not.toContain(QUESTION); expect(first).not.toContain(POPUP);
-    f.state.bots = structuredClone(FIRST_REPLY);
-    const answered = await launch();
-    expect(answered, "a bot has answered, but in the launch the welcome finished").not.toContain(QUESTION); expect(answered).not.toContain(POPUP);
-    session.clear();
-    const later = await launch();
-    expect(later).toContain(POPUP); expect(later).not.toContain(QUESTION);
-    press("Not now"); await flush();
-    expect(render(), "right after the popup closes, as #3379 orders it").toContain(QUESTION);
-  });
-
-  it("waits while MausBot's first-launch card is due, then follows it in the same launch once it closes", async () => {
-    f.viewerEmail = null;
-    f.state.bots = [{ ...structuredClone(FIRST_REPLY[0]), id: "maus", defaultBot: {} }];
-    expect(await launch(), "the card is due: the question waits for it").not.toContain(QUESTION);
-    markLaunchDialog("mausbot"); f.state.bots[0].welcomed = true;
-    const after = await launch();
-    expect(after, "the card closed in this launch: the question follows it, as it follows the popup").toContain(QUESTION);
-    expect(after, "the popup still waits for a later launch").not.toContain(POPUP);
-  });
-
-  it("never during onboarding, the tour or Settings; it shows once they are done, before the other cards", async () => {
-    returning();
-    f.state.welcomeOpen = true; expect(await launch()).toBe("");
-    f.state.welcomeOpen = false; f.state.appSettingsOpen = true; expect(await launch()).toBe("");
-    f.state.appSettingsOpen = false;
-    const html = await launch();
-    expect(html).toContain(QUESTION); expect(html).not.toContain(STAR);
-  });
-
-  it("signed out: an optional email; Yes sends it with no account and keeps the receipt. Signed in: one tap, on the account", async () => {
-    await launch(); expect(await settle()).toContain(QUESTION);
-    type("not-an-email"); press("Yes, send me updates"); await flush();
-    expect(render()).toContain("Enter a valid email address.");
-    expect(client.updatesConsentByEmail).not.toHaveBeenCalled();
-    type("person@example.test"); press("Yes, send me updates");
-    for (let i = 0; i < 5; i++) await flush();
-    expect(client.updatesConsentByEmail).toHaveBeenCalledWith(expect.objectContaining({ email: "person@example.test", textVersion: "2026-10-23" }));
-    expect(answer()).toMatchObject({ status: "opted_in", email: "person@example.test", receipt: RECEIPT });
-    expect(render()).toBe("");
-
-    saved = null; account = free; wireConsent();
-    await launch(); const signedIn = await settle();
-    expect(signedIn).toContain(QUESTION); expect(signedIn).not.toContain('type="email"');
-    press("Yes, send me updates");
-    for (let i = 0; i < 5; i++) await flush();
-    expect(client.recordUpdatesConsent).toHaveBeenCalledWith("opted_in", "2026-10-23");
-    expect(answer()).toMatchObject({ status: "opted_in", account: "a" });
-    expect(await launch()).not.toContain(QUESTION);
-  });
-
-  it("not on a branded build, a saved server's page, or in a remote client's window; My Cloud's own page asks too", async () => {
-    f.brand = "file"; expect(await launch()).not.toContain(QUESTION);
-    f.brand = "default";
-    viewer = { hosted: true, canSave: true }; showWindow(VPS); expect(await launch()).not.toContain(QUESTION);
-    showWindow(LOCAL_ORIGIN); viewer = LOCAL_VIEWER; (window.ogb as Record<string, any>).remoteClient.active = true;
-    expect(await launch()).not.toContain(QUESTION);
-    snapshot = { status: "none" }; viewer = { hosted: false, canSave: true, cloudHome: true }; f.state.config.cloudHome = true;
-    f.state.config.onboarding.hintsSeen = [...withTourFinished(undefined), "cloud-setup-hidden"]; showWindow(MY_CLOUD);
-    expect(await launch()).toContain(QUESTION);
-    expect(answer()).toBeNull();
+    expect(first).not.toContain("Get MausBot updates?");
+    if (first.includes("Meet the new MausBot Cloud")) { press("Not now"); await flush(); }
+    expect(render()).not.toContain("Get MausBot updates?");
+    expect(await launch()).not.toContain("Get MausBot updates?");
   });
 });
 
@@ -1432,18 +1336,12 @@ describe.skip("ModelGo's sponsor card (upstream feature not in this fork)", () =
     await gone();
   });
 
-  it("follows the product-updates question when that follows What's new", async () => {
+  it("follows What's new once the popup closes, with no product-updates question in between", async () => {
     desk.saved = null; storage.delete(WHATS_NEW_NOTICE);
-    const prefs = createDesktopPrefs({ read: () => null, write: () => {} });
-    const client = { state: vi.fn(() => account), updatesConsent: vi.fn(async () => ({ cloudContractVersion: 1, consent: null })), recordUpdatesConsent: vi.fn(async () => {}),
-      updatesConsentByEmail: vi.fn(async () => "R".repeat(43)), withdrawUpdatesConsent: vi.fn(async () => {}) };
-    registerUpdatesConsent({ ipcMain: { handle: (channel, handler) => void desk.handlers.set(channel, handler as Handler) }, page: event => (event as { page: Page }).page,
-      consent: createUpdatesConsent({ prefs, account: () => client as never, available: async () => true, now: () => now }) });
     await launch(); press("Not now"); await flush();
-    const question = await settle();
-    expect(question).toContain("Get MausBot updates?"); expect(question).not.toContain(TITLE);
-    press("No thanks"); await flush();
-    expect(await settle(), "then the card, in the same launch").toContain(TITLE);
+    const card = await settle();
+    expect(card).toContain(TITLE);
+    expect(card).not.toContain("Get MausBot updates?");
   });
 
   it("a notice to act on keeps its place: the move popup or a trial's notice comes first, and the card follows it once closed", async () => {

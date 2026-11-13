@@ -31,10 +31,16 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 - The switches in Settings read as a light track and a white knob when off, with no dark outline around them; on is
   unchanged.
-- The Settings left column is one list: This computer heads it as a plain row, an icon on the same 24px slot the page
-  rows use, on one line, with no badge tile and no bots count; Your account and This app left the middle of the list and
-  sit pinned at its bottom, avatar and second line kept, while the list above scrolls. Simple and Advanced share the
-  layout.
+- The Settings left column is one list: this computer's page heads it as a plain row, an icon on the same 24px slot the
+  page rows use, on one line, with no badge tile and no bots count; This app left the middle of the list and sits pinned
+  at its bottom, icon and second line kept, while the list above scrolls; the app's pages follow the place's with no gap
+  left over from a group head that is no longer drawn. Simple and Advanced share the layout.
+- The column says what a person looks for: this computer's page is now "About this computer" (list and page title alike),
+  Phone & devices reads "Connected devices", AI reads "Models" and You and your bots reads "Profile"; Desktops & browser,
+  Vault, Spending, Data, General and Appearance keep their names. The Vault's own rows are in the app's language too,
+  where they had been left in English.
+- The Your account page is gone: it only repeated rows the Profile page and This app already hold. With it goes the
+  product-updates-by-email question — neither the settings row nor the popup that used to ask it appears any more.
 - The macOS menu bar follows the app's language: the App menu (About, Open at Login, Hide, Hide Others, Show All, Quit)
   and File, Edit, Server, View and Window with every item under them are written in the app's own words, Electron's own
   role items labelled too, and they re-label when the language changes. The app is named OpenMausBot there and in About,
@@ -46,9 +52,14 @@ including dots painted on the mascot body; on conflict this place always keeps o
 中文：**V0.6.5：设置左栏更整齐，菜单栏跟着 App 的语言走**
 
 - 设置里的开关，关的时候只剩浅灰的轨道和白色圆点，外面那圈深色描边去掉了；开的状态不变。
-- 设置左栏合成一列：「这台电脑」像普通行一样打头，裸图标占和页面行一样的 24px 位置，一行显示，不再有图标外框、
-  也不再显示机器人数量；「你的账号」和「这个应用」从列表中间移到最底部固定住，头像和第二行副标题都保留，上面的列表
-  照常滚动。简易模式和高级模式共用这套布局。
+- 设置左栏合成一列：「关于本机」像普通行一样打头，裸图标占和页面行一样的 24px 位置，一行显示，不再有图标外框、
+  也不再显示机器人数量；「这个应用」从列表中间移到最底部固定住，图标和第二行副标题都保留，上面的列表照常滚动；App 的
+  几页紧跟在这台电脑的页后面，不再留出分组标题留下的空档。简易模式和高级模式共用这套布局。
+- 左栏的词也改成人找东西时的说法：这台电脑的页现在叫「关于本机」，列表和页面标题都一样；「手机和设备」改为「互联设备」，
+  「AI」改为「模型」，「你和你的机器人」改为「个人资料」；「桌面和浏览器」「保险库」「花费」「数据」「通用」「外观」名字不变。
+  保险库里面那几行也一起汉化了，之前还留着英文。
+- 「你的账号」这一页删掉了：它只是重复「个人资料」和「这个应用」里已有的行。跟着一起删的还有「通过邮件接收产品更新」
+  那个功能 —— 设置里的那一行和启动时那个弹窗都不再出现。
 - macOS 顶部菜单栏跟着 App 的语言走：App 菜单（关于、登录时打开、隐藏、隐藏其他、全部显示、退出）以及文件、编辑、
   服务器、显示、窗口和它们下面的每一项，都用 App 当前语言显示，Electron 自带的 role 项也带上了对应文案；切换语言后
   菜单会跟着刷新。App 名在菜单和关于里统一显示为「OpenMausBot」，不再用小写的包名 `openmausbot` —— 只改显示名，

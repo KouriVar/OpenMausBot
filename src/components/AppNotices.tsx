@@ -33,7 +33,6 @@ import { GrokMoveDialog } from "./lazy-screens";
 import { LinkButton, NoticeCard, NoticeToast, NotNowButton } from "./NoticeCard";
 import { useDesktopNotices, useOtherDialogOpen } from "./notice-dialogs";
 import { localDesktopPage } from "./onboarding/WelcomeGate";
-import { UpdatesConsentDialog, updatesConsentBridge, useUpdatesConsent } from "./UpdatesConsent";
 import { useMausBotWelcomeDue } from "./MausBotWelcome";
 import { NewLookNotice, reportNewLook } from "./NewLookNotice";
 import { reportSimpleModePrompt, SimpleModePrompt } from "./SimpleModePrompt";
@@ -89,9 +88,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const [grokShown, setGrokShown] = useState(false);
   const [grokOpen, setGrokOpen] = useState(false);
   const [grokLanded, setGrokLanded] = useState(false);
-  const consentHere = (local || viewer?.cloudHome === true) && brandStatus().source !== "file";
-  const consent = useUpdatesConsent(consentHere ? updatesConsentBridge() : undefined);
-  const [consentDone, setConsentDone] = useState(false);
   const updater = useUpdaterState();
   const intent = useCloudIntent();
   const moving = useMoveQuiet(now);
@@ -143,9 +139,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   const whatsNewState = whatsNewDue === false ? "none" : whatsNewView(account, !bridge?.offer ? null : offerFor === offerKey ? offer : undefined);
   const whatsNew = typeof whatsNewState === "object" ? whatsNewState : null;
   const whatsNewBlocked = useOtherDialogOpen(whatsNewDue !== false) || Boolean(state.liveCall && state.liveCall.status !== "ended");
-  const consentDue = consent.state?.available === true && consent.state.due && !consentDone;
-  const consentBlocked = useOtherDialogOpen(consentDue) || Boolean(state.liveCall && state.liveCall.status !== "ended");
-  const consentFact = !consentHere || consentDone ? false : consent.state === undefined ? null : consentDue ? (consentBlocked ? null : true) : false;
   // Every page with the app's chrome, desktop or Cloud, new install or not: once per browser, as the mode is. With Simple
   // the only mode, its place goes to the word about the new look, only where Advanced was on.
   const promptSeen = useSimpleModePromptSeen(), newLookDue = useNewLookDue();
@@ -177,9 +170,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   // MausBot's first-launch card goes first: the popup and the question wait while it is due. The popup skips a launch the
   // card used; the question may follow the card once it closes, as it follows the popup.
   const afterWelcome = welcomeFinishedThisLaunch() || launchDialogShown() === "mausbot" || firstChat;
-  const consentWaits = welcomeFinishedThisLaunch() || firstChat;
   const mausBotFirst = mausBot.due;
-  const consentNow = consentWaits === true || consentFact === false ? false : consentWaits === null || mausBotFirst ? null : consentFact;
   // The Grok Bot popup: once for everyone who can add a bot, the one thing a first chat may be interrupted by. Nothing reads
   // this computer for it: GrokMoveDialog does that, once opened.
   const grokDue = !remote && viewer?.canSave !== false && !state.config?.team && brandStatus().source !== "file" && organization !== true && moving !== true
@@ -195,15 +186,15 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     : !viewer || (desktop && !desktopState) || organization === null || firstChat === null || mausBotFirst || moving === null || grokLanding || grokBlocked ? null : true;
   const launch = launchNotice();
   // After a closed popup only the product-updates question may follow in this launch; nothing else does.
-  const notice = waits ? null : closed ? (consentNow === true ? UPDATES_CONSENT_NOTICE : null)
+  const notice = waits ? null : closed ? null
     : firstChatQuiet(state) ? (grokNow === true && (launch === null || launch === GROK_MOVE_NOTICE) ? GROK_MOVE_NOTICE : null)
-    : cards || whatsNewHere || consentHere || simpleDue || boatHere || twoFact !== false || grokNow !== false ? nextNotice({
+    : cards || whatsNewHere || simpleDue || boatHere || twoFact !== false || grokNow !== false ? nextNotice({
     [GROK_MOVE_NOTICE]: grokNow,
     // As the What's new popup: never in the launch whose welcome just finished, nor over MausBot's first-launch card.
     [SIMPLE_MODE_NOTICE]: !simpleDue || afterWelcome === true ? false : afterWelcome === null || mausBotFirst || simpleBlocked ? null : true,
     [WHATS_NEW_NOTICE]: whatsNewDue === false || whatsNewState === "none" || moving || afterWelcome === true ? false
       : whatsNewDue === null || whatsNewState === "loading" || !viewer || afterWelcome === null || mausBotFirst || moving === null || whatsNewBlocked ? null : true,
-    [UPDATES_CONSENT_NOTICE]: consentNow,
+    [UPDATES_CONSENT_NOTICE]: false,
     [TWO_PLACES_NOTICE]: twoFact,
     [PRODUCT_HUNT_NOTICE]: !cards || moving || firstChat === true || brandStatus().source === "file" || now() >= PRODUCT_HUNT_UNTIL ? false
       : organization === null || moving === null || firstChat === null ? null : !organization,
@@ -271,12 +262,6 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
     return <WhatsNewPopup view={whatsNew} report={report} onDone={done} onBuy={FORK_LOCAL_ONLY ? undefined : slide => dispatch({ type: "openCloudAdd", source: WHATS_NEW_SOURCES[slide] })} />;
   }
 
-  if (notice === UPDATES_CONSENT_NOTICE && consent.state) {
-    const done = () => { setConsentDone(true); close(); };
-    return <UpdatesConsentDialog signedIn={consent.state.signedIn}
-      onYes={async email => { await consent.choose("opted_in", email); done(); }}
-      onNo={() => { done(); void consent.choose("declined").catch(() => {}); }} />;
-  }
   if (notice === CLOUD_INTRO && offer && !FORK_LOCAL_ONLY) {
     const done = (action: string) => { track("cloud_card_action", { action }); close(); save(CLOUD_INTRO); };
     return <CloudTrialIntroCard offer={offer}

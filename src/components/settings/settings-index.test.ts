@@ -24,8 +24,8 @@ const PEOPLE = {
 };
 
 describe("the pages", () => {
-  it("lists the place's pages, then Your account, then This app, in one fixed order", () => {
-    expect(ids(fullContext())).toEqual([...PLACE_PAGES, "account", "plan", "app", "general", "appearance"]);
+  it("lists the place's pages, then This app's, in one fixed order", () => {
+    expect(ids(fullContext())).toEqual([...PLACE_PAGES, "plan", "app", "general", "appearance"]);
   });
 
   it.each(Object.entries(PEOPLE))("keeps the same place pages, in the same order, for %s", (who, ctx) => {
@@ -38,7 +38,7 @@ describe("the pages", () => {
   // Data and General in their places.
   it.each(["local only", "This computer, with My Cloud", "My Cloud's page in the desktop window", "My Cloud in a browser (owner)"] as const)(
     "shows Simple's eight entries for %s", (who) => {
-      expect(ids({ ...PEOPLE[who], advanced: false })).toEqual(["overview", "phone", "ai", "vault", "account", "plan", "app", "appearance"]);
+      expect(ids({ ...PEOPLE[who], advanced: false })).toEqual(["overview", "phone", "ai", "vault", "plan", "app", "appearance"]);
     });
 
   it("is shorter in Simple: the five Advanced pages come back in Advanced, in place", () => {
@@ -97,7 +97,7 @@ describe("the pages", () => {
   });
 
   it("drops the place's pages and Plan & billing for a paired client, which keeps This app", () => {
-    expect(ids(fullContext({ client: true }))).toEqual(["overview", "account", "app", "general", "appearance"]);
+    expect(ids(fullContext({ client: true }))).toEqual(["overview", "app", "general", "appearance"]);
   });
 });
 
@@ -122,8 +122,9 @@ describe("old links", () => {
     expect(where("computer")).toEqual({ page: "desktops" });
     expect(where("logins")).toEqual({ page: "vault" });
     expect(where("cloudAccount")).toEqual({ page: "plan", anchor: "plan" });
-    expect(resolveSettingsTarget("cloudAccount", fullContext({ plan: false }))).toEqual({ page: "account" });
-    expect(where("organization")).toEqual({ page: "account", anchor: "organization" });
+    expect(resolveSettingsTarget("cloudAccount", fullContext({ plan: false }))).toEqual({ page: "app" });
+    expect(where("organization")).toEqual({ page: "bots", anchor: "about-you" });
+    expect(where("account")).toEqual({ page: "bots", anchor: "about-you" });
     expect(where("desktopWorkspaces")).toEqual({ page: "app", anchor: "your-computers" });
     expect(where("backups")).toEqual({ page: "data", anchor: "backups" });
     expect(where("import")).toEqual({ page: "data", anchor: "bring-in" });
@@ -153,7 +154,6 @@ describe("search", () => {
   it.each(["notifications", "sounds"])("puts General › Notifications first for “%s”", (query) => expect(first(query)?.anchor).toBe("notifications"));
   it.each(["password", "login"])("puts Vault first for “%s”", (query) => expect(first(query)?.page).toBe("vault"));
   it.each(["dark mode", "night mode"])("puts Light or dark first for “%s”", (query) => expect(first(query)?.id).toBe("light-dark"));
-  it.each(["sign in", "log in", "log out"])("puts Your account first for “%s”", (query) => expect(first(query)?.page).toBe("account"));
   it.each(["wallpaper", "background"])("puts Sidebar picture first for “%s”", (query) => expect(first(query)?.id).toBe("sidebar-picture"));
   it.each(["cancel", "billing", "invoice", "subscription", "refund"])("puts Plan & billing first for “%s”", (query) => expect(first(query)?.page).toBe("plan"));
   it.each(["voice", "microphone", "dictation"])("puts the Talk shortcut first for “%s” on the desktop", (query) => expect(first(query)?.id).toBe("talk"));

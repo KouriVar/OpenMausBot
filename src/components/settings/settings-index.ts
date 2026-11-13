@@ -6,7 +6,7 @@ import type { LocaleKey } from "@/locales";
 import type { AppSettingsSection, SettingsPageId } from "@/state/store";
 
 export type { SettingsPageId };
-export type SettingsOwner = "place" | "account" | "app";
+export type SettingsOwner = "place" | "app";
 
 /** What this page can show, read once per render from the bridge, the server's config and the session. */
 export interface SettingsContext {
@@ -49,8 +49,8 @@ const notClient = (ctx: SettingsContext) => !ctx.client;
 const adminPage = (ctx: SettingsContext) => !ctx.client && !(ctx.team && !ctx.admin);
 /** A page Simple mode leaves out: its everyday rows show elsewhere in Simple (Overview, This app, Plan & billing). */
 const advancedOnly = (when: (ctx: SettingsContext) => boolean) => (ctx: SettingsContext) => ctx.advanced && when(ctx);
-/** Simple mode's eight entries: the place (Overview, Phone & devices, AI, Vault), Your account (Plan & billing) and
- * This app (Appearance). Advanced adds You and your bots, Desktops & browser, Spending, Data and General. */
+/** Simple mode's eight entries: the place (Overview, Phone & devices, AI, Vault) and This app (Appearance). Advanced adds
+ * You and your bots, Desktops & browser, Spending, Data and General. */
 export const ADVANCED_PAGES: readonly SettingsPageId[] = ["bots", "desktops", "usage", "data", "general"];
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
@@ -74,9 +74,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["people", "members", "invite", "roles", "bot access", "sharing", "team"] },
   { id: "installations", owner: "place", labelKey: "settings.section.workspaces", icon: Server, when: (ctx) => !ctx.client && ctx.installations,
     synonyms: ["installations", "fleet", "clients", "tenants"] },
-  { id: "account", owner: "account", labelKey: "settings.page.account", when: () => true,
-    synonyms: ["account", "sign in", "log in", "log out", "sign out", "email", "organization", "mausbot cloud"] },
-  { id: "plan", owner: "account", labelKey: "settings.page.plan", icon: CreditCard, when: (ctx) => !ctx.client && ctx.plan,
+  { id: "plan", owner: "app", labelKey: "settings.page.plan", icon: CreditCard, when: (ctx) => !ctx.client && ctx.plan,
     synonyms: ["plan", "billing", "subscription", "invoice", "receipt", "payment", "card", "upgrade", "trial", "cancel", "refund", "usage & billing", "mausbot cloud", "weekly", "limits"] },
   { id: "app", owner: "app", labelKey: "settings.page.app", when: () => true,
     synonyms: ["this app", "updates", "update", "version", "help", "about", "servers", "your computers", "environments", "diagnostics", "logs", "tour"] },
@@ -86,7 +84,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["appearance", "theme", "skin", "looks", "dark mode", "light mode", "font", "chat width", "layout", "threads", "pins"] },
 ];
 
-export const OWNERS: readonly SettingsOwner[] = ["place", "account", "app"];
+export const OWNERS: readonly SettingsOwner[] = ["place", "app"];
 
 export const pageById = (id: SettingsPageId): SettingsPage => SETTINGS_PAGES.find((page) => page.id === id)!;
 
@@ -102,8 +100,9 @@ export interface SettingsTarget {
 /** Every older page name, as notices, links and the native menu still send them, and where it now lives. */
 export const LEGACY_SETTINGS: Record<Exclude<AppSettingsSection, SettingsPageId>, (ctx: SettingsContext) => SettingsTarget> = {
   desktopWorkspaces: () => ({ page: "app", anchor: "your-computers" }),
-  organization: () => ({ page: "account", anchor: "organization" }),
-  cloudAccount: (ctx) => (ctx.plan ? { page: "plan", anchor: "plan" } : { page: "account" }),
+  organization: () => ({ page: "bots", anchor: "about-you" }),
+  cloudAccount: (ctx) => (ctx.plan ? { page: "plan", anchor: "plan" } : { page: "app" }),
+  account: () => ({ page: "bots", anchor: "about-you" }),
   experimental: () => ({ page: "bots", anchor: "early" }),
   connections: () => ({ page: "ai", anchor: "ai-keys" }),
   decisionModel: () => ({ page: "ai", anchor: "routing" }),
@@ -206,9 +205,7 @@ export const SETTINGS_INDEX: readonly SettingsIndexEntry[] = [
   { id: "activity", page: "data", anchor: "activity", labelKey: "settings.section.activity", when: browserAdmin, topFor: ["activity", "audit", "audit log"], synonyms: ["history", "who did what"] },
   { id: "members", page: "people", anchor: "members", labelKey: "settings.people.members", synonyms: ["invite", "roles", "admins"] },
   { id: "bot-access", page: "people", anchor: "bot-access", labelKey: "settings.section.botAccess", synonyms: ["who can", "share", "permissions"] },
-  { id: "account", page: "account", labelKey: "settings.page.account", topFor: ["sign in", "log in", "log out", "sign out", "email"], synonyms: ["account", "mausbot cloud"] },
-  { id: "organization", page: "account", anchor: "organization", labelKey: "settings.section.organization", when: (ctx) => ctx.organization, synonyms: ["company", "organisation", "managed"] },
-  { id: "emails", page: "account", anchor: "emails", labelKey: "settings.account.emails", when: desk, synonyms: ["newsletter", "product updates", "email updates"] },
+  { id: "organization", page: "app", anchor: "your-computers", labelKey: "settings.section.organization", when: (ctx) => ctx.organization, synonyms: ["company", "organisation", "managed"] },
   { id: "plan", page: "plan", anchor: "plan", labelKey: "settings.page.plan", topFor: ["billing", "subscription", "invoice", "receipt", "payment", "card", "upgrade", "plan", "trial", "cancel", "cancel plan", "cancel subscription", "cancel trial", "unsubscribe", "refund"], synonyms: ["usage & billing", "manage subscription"] },
   { id: "this-week", page: "plan", anchor: "this-week", labelKey: "settings.plan.thisWeek", sectionKey: "settings.page.plan", synonyms: ["usage", "weekly", "limits", "cloud desktop hours", "voice replies"] },
   { id: "updates", page: "app", anchor: "updates", labelKey: "settings.updates.title", when: desk, synonyms: ["update", "version", "check for updates", "release"] },

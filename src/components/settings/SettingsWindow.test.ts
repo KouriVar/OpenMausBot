@@ -52,20 +52,19 @@ const render = (section: AppSettingsSection = fixture.section) => { fixture.sect
 const navPages = (html: string) => [...html.matchAll(/data-settings-page="([a-z]+)"/g)].map((match) => match[1]);
 
 describe("the Settings window", () => {
-  it("heads the list with the place as one bare-icon row, and pins Your account and This app to its foot", () => {
+  it("heads the list with this computer's About row, and pins This app to its foot", () => {
     fixture.advanced = true;
     const html = render();
-    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "data", "general", "appearance", "account", "app"]);
-    expect(html).toContain("This computer");
-    expect(html).toContain("Your account");
+    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "data", "general", "appearance", "app"]);
+    expect(html).toContain("About this computer");
     expect(html).toContain("This app");
+    expect(html).not.toContain("Your account");
     expect(html).toContain('aria-current="page"');
-    // The foot holds the two identity rows, after the scrolling list, so the list can scroll under them.
+    // The foot holds This app's row, after the scrolling list, so the list can scroll under it.
     const foot = html.indexOf("data-settings-footer");
     expect(foot).toBeGreaterThan(html.indexOf('data-settings-page="overview"'));
     expect(html.indexOf('data-settings-page="appearance"')).toBeLessThan(foot);
-    expect(html.indexOf('data-settings-page="account"')).toBeGreaterThan(foot);
-    expect(html.indexOf('data-settings-page="app"')).toBeGreaterThan(html.indexOf('data-settings-page="account"'));
+    expect(html.indexOf('data-settings-page="app"')).toBeGreaterThan(foot);
     // The place row is one plain line, like the page rows: no badge tile and no second line under it.
     const identity = html.indexOf("data-settings-identity");
     const placeRow = html.slice(identity, html.indexOf("</button>", identity));
@@ -73,24 +72,22 @@ describe("the Settings window", () => {
     expect(placeRow.match(/<span/g)?.length).toBe(2);
   });
 
-  it("titles Overview with the place's name and its status line, never For …", () => {
+  it("titles Overview with this computer's About name and its status line, never For …", () => {
     const html = render("overview");
-    expect(html).toMatch(/<h2[^>]*>This computer<\/h2>/);
+    expect(html).toMatch(/<h2[^>]*>About this computer<\/h2>/);
     expect(html).toContain("Updates with the app");
     expect(html).not.toMatch(/data-settings-scope[^>]*>[^<]*For /);
   });
 
-  it("says which place a place page changes, and that account and app pages stay the same, without “place” for a person with one place", () => {
+  it("says which place a place page changes, and that app pages stay the same, without “place” for a person with one place", () => {
     expect(render("phone")).toContain("This computer");
-    const account = render("account");
-    expect(account).toContain("Your MausBot account");
-    expect(account).not.toContain("Same on every place");
     expect(render("appearance")).toContain("MausBot on this device");
+    expect(render("appearance")).toContain("This app");
   });
 
   // Owner decision (Nov 11): Simple's nav is shorter, the same for every person and every rail. Fork: this build is
   // local-only, so Plan & billing is not offered and the list has seven entries.
-  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "appearance", "account", "app"];
+  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "appearance", "app"];
   const SIMPLE_PEOPLE: Array<[string, () => void]> = [
     ["a person with only this computer", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} } }))],
     ["This computer's rail, with My Cloud", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} }, workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) } }))],
@@ -161,7 +158,7 @@ describe("the Settings window", () => {
     expect(app).toContain('data-settings-inert=""');
   });
 
-  it("decides This app's rows and the account's place from one home: a Cloud page that is the app's home has them live", () => {
+  it("decides This app's rows from one home: a Cloud page that is the app's home has them live", () => {
     fixture.advanced = true;
     fixture.config = { cloudHome: true };
     const cloudPage = (home: boolean) => vi.stubGlobal("window", { ogb: { platform: "darwin", workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) },
@@ -172,7 +169,6 @@ describe("the Settings window", () => {
     expect(render("app")).toMatch(/Logs and diagnostics[\s\S]*data-settings-reason/);
     cloudPage(true);
     expect(render("general")).not.toContain('data-settings-inert=""');
-    expect(render("account")).not.toContain("On This computer");
   });
 
   it("in a browser: This browser, saved in this browser, with no startup or window rows", () => {

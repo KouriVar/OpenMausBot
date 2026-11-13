@@ -11,8 +11,8 @@ import { useStore } from "@/state/store";
 import { InitialsAvatar } from "../Avatar";
 import { PlaceMark } from "../PlacesRail";
 import { profileInitials } from "../SidebarProfileMenu";
+import { useYou } from "./account-summary";
 import { Switch, SettingsTag } from "../SettingsPrimitives";
-import { accountLine, useAccountSummary, useYou } from "./account-summary";
 import { usePhonePlaceState } from "./phone-status";
 import type { SettingsPlace } from "./settings-context";
 import { OWNERS, pageById, type SearchHit, type SettingsContext, type SettingsOwner, type SettingsPage, type SettingsPageId } from "./settings-index";
@@ -73,14 +73,18 @@ export function useAppSubLine(desktop: boolean): string {
 }
 
 export function ownerLabel(owner: SettingsOwner, place: SettingsPlace, desktop: boolean): string {
-  if (owner === "place") return place.name;
-  if (owner === "account") return t("settings.page.account");
+  if (owner === "place") return placeName(place);
   return desktop ? t("settings.page.app") : t("settings.page.browser");
 }
 
+/** The place's name in Settings: this computer's page is its About page, so it says so rather than naming the place. */
+export function placeName(place: SettingsPlace): string {
+  return place.kind === "computer" ? t("settings.page.thisComputer") : place.name;
+}
+
 export function pageLabel(page: SettingsPage, place: SettingsPlace, desktop: boolean): string {
-  if (page.id === "overview") return place.name;
-  if (page.id === "account" || page.id === "app") return ownerLabel(page.owner, place, desktop);
+  if (page.id === "overview") return placeName(place);
+  if (page.id === "app") return ownerLabel(page.owner, place, desktop);
   return t(page.labelKey);
 }
 
@@ -188,18 +192,12 @@ function moveFocus(event: ReactKeyboardEvent<HTMLElement>) {
 }
 
 export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, onKey, onQuery, onOpen, onHit, onClose, narrow, onAdvanced = setAdvancedMode }: NavProps) {
-  const summary = useAccountSummary();
-  const { profile } = useYou();
-  // Until main shares the account with a Cloud's page, its email is the one the place knows you by.
-  const account = { ...summary, email: summary.email ?? (summary.plan ? profile?.email ?? null : null) };
   const placeLine = usePlaceSubLine(place);
   const appLine = useAppSubLine(ctx.desktop);
   const phone = usePhonePlaceState(!ctx.client);
   const listRef = useRef<HTMLDivElement>(null);
-  const openSource = ctx.desktop && !window.ogb?.cloudAccount && !window.ogb?.cloudPlan;
   const lines: Record<SettingsOwner, { badge: ReactNode; name: string; line: string; page: SettingsPageId }> = {
-    place: { badge: <PlaceBadge place={place} size={24} />, name: place.name, line: placeLine, page: "overview" },
-    account: { badge: <YouAvatar size={24} />, name: t("settings.page.account"), line: accountLine(account, { browser: !ctx.desktop, place: place.name, openSource }), page: "account" },
+    place: { badge: <PlaceBadge place={place} size={24} />, name: placeName(place), line: placeLine, page: "overview" },
     app: { badge: <AppIcon size={24} />, name: ctx.desktop ? t("settings.page.app") : t("settings.page.browser"), line: appLine, page: "app" },
   };
   const dot = (page: SettingsPageId) => page === "phone" && phone.kind === "paired" && phone.connected ? "success" as const
@@ -215,11 +213,11 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
         {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : OWNERS.map((owner, index) => {
           const group = pages.filter((page) => page.owner === owner && page.id !== lines[owner].page);
           const identity = lines[owner];
-          // This computer heads the list as one more row; the account and the app live at the bottom instead.
+          // This computer heads the list as one more row; the app's pages simply follow it.
           const heads = owner === "place";
           if (!heads && group.length === 0) return null;
           return (
-            <div key={owner} role="group" aria-label={identity.name} data-settings-group={owner} className={cn("flex flex-col gap-0.5", (heads ? index > 0 : true) && "mt-4")}>
+            <div key={owner} role="group" aria-label={identity.name} data-settings-group={owner} className={cn("flex flex-col gap-0.5", heads && index > 0 && "mt-4")}>
               {heads && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
               <div className={cn("flex flex-col gap-0.5", heads && "mt-0.5")}>
                 {group.map((page) => narrow ? (
@@ -238,14 +236,9 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
           );
         })}
       </div>
-      {/* The account and the app stay put at the bottom while the list above scrolls. */}
+      {/* This app stays put at the bottom while the list above scrolls. */}
       <div data-settings-footer="" className={cn("shrink-0 shadow-[inset_0_0.5px_0_var(--settings-edge)]", narrow ? "px-2 pb-2 pt-1" : "px-3 pb-3 pt-1.5")}>
-        <div className="flex flex-col gap-0.5">
-          {(["account", "app"] as const).map((owner) => {
-            const identity = lines[owner];
-            return <IdentityRow key={owner} page={identity.page} current={current === identity.page} badge={identity.badge} name={identity.name} line={identity.line} narrow={narrow} onOpen={() => onOpen(identity.page)} />;
-          })}
-        </div>
+        <IdentityRow page={lines.app.page} current={current === lines.app.page} badge={lines.app.badge} name={lines.app.name} line={lines.app.line} narrow={narrow} onOpen={() => onOpen(lines.app.page)} />
       </div>
       {!SIMPLE_ONLY && <AdvancedModeFooter narrow={narrow} onChange={onAdvanced} />}
     </nav>
@@ -345,7 +338,7 @@ function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place
 
 const PAGE_OWNER: Record<SettingsPageId, SettingsOwner> = {
   overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", data: "place",
-  people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app",
+  people: "place", installations: "place", plan: "app", app: "app", general: "app", appearance: "app",
 };
 
 const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
@@ -358,7 +351,7 @@ const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
 export function searchWhere(hit: SearchHit, place: SettingsPlace, ctx: SettingsContext): { owner: string; page?: string } | null {
   const entry = hit.entry;
   if (entry.jump) return { owner: searchLocation(hit, place, ctx) };
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return null;
+  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "app")) return null;
   const owner = PAGE_OWNER[entry.page];
   const ownerName = hit.elsewhere ? t("rail.thisComputer") : owner === "place" ? place.name : ownerLabel(owner, place, ctx.desktop);
   const pageKey = PAGE_KEY[entry.page];
@@ -380,7 +373,7 @@ export function searchLocation(hit: SearchHit, place: SettingsPlace, ctx: Settin
   if (pageKey && !entry.id.startsWith("page:")) parts.push(t(pageKey));
   const label = hitLabel(hit, place, ctx.desktop);
   if (entry.sectionKey && t(entry.sectionKey) !== label) parts.push(t(entry.sectionKey));
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return "";
+  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "app")) return "";
   return parts.join(" › ");
 }
 

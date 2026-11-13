@@ -10391,7 +10391,7 @@
   "settings.otherPlaces": "Nos seus outros lugares",
   "settings.overview.address": "Endereço",
   "settings.overview.glance": "Num relance",
-  "settings.overview.grouped": "As configurações agora estão agrupadas: {place}, sua conta e este app.",
+  "settings.overview.grouped": "As configurações agora estão agrupadas: {place} e este app.",
   "settings.overview.sidebar": "Na barra lateral",
   "settings.overview.updatesWithApp": "Atualiza junto com o app",
   "settings.overview.version": "{app} {version}",
@@ -10561,7 +10561,7 @@
   "keys.row.pasteKey": "Cole sua chave",
   "settings.ai.needsAccountOrKey": "Use sua conta ou uma chave",
   "settings.ai.needsKey": "Use uma chave",
-  "settings.overview.groupedBrowser": "As configurações agora estão agrupadas: {place}, sua conta e este navegador.",
+  "settings.overview.groupedBrowser": "As configurações agora estão agrupadas: {place} e este navegador.",
   "settings.updates.fromPackage": "As atualizações vêm com seu pacote ou loja.",
   "settings.app.languageNotifications": "Idioma e notificações",
   "settings.app.introSimple": "Atualizações, idioma, notificações e ajuda. A aparência fica em Aparência.",
@@ -10629,5 +10629,6 @@
   "settings.domain.httpsFirst": "Ative o HTTPS neste endereço primeiro e depois conecte-o aqui.",
   "settings.backTo": "Voltar às Configurações",
   "devices.route.httpsAccount": "Usa sua conta do {app}.",
-  "backup.importAction": "Importar…"
+  "backup.importAction": "Importar…",
+  "settings.page.thisComputer": "Sobre este computador"
 }
