@@ -87,6 +87,8 @@ async function openApp(server: { url: string; port: number; dataDir: string; log
   const clickCard = (sentence: string, label: string) => evaluate(`(() => { const button = [...(${card(sentence)}?.querySelectorAll("button") ?? [])].find((candidate) => candidate.textContent.trim() === ${JSON.stringify(label)}); button?.click(); return Boolean(button); })()`);
   const reload = async () => { await evaluate("location.reload(); true"); await expect.poll(() => evaluate("Boolean(document.querySelector('nav'))"), { timeout: 30_000 }).toBe(true); };
   const openAutomations = async () => {
+    // TODO: red on main too, before any of the journey runs: "Open bot list" opens the sidebar, but no nav row reads
+    // "Automations", so both cases stop at the poll below. Left as is on purpose.
     // A narrow window keeps the sidebar behind its menu button.
     await evaluate(`document.querySelector('button[aria-label="Open bot list"]')?.click(); true`);
     await expect.poll(() => evaluate(`(() => { const entry = [...document.querySelectorAll("nav button")].find((button) => button.textContent.trim() === "Automations"); entry?.click(); return Boolean(entry); })()`)).toBe(true);
