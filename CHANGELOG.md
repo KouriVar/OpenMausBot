@@ -38,7 +38,10 @@ settings panel's own `bg-panel`/`border-l`, the computer panel's, the inspector'
 The panel's title bar sits in the card, level with the chat head, and the card's width follows the panel's own opening
 animation, so nothing jumps. Its measurements are tokens: `--inset-gap`, `--inset-radius`, `--inset-divider`,
 `--inset-edge` (one hairline drawn as a ring, not a border and a shadow) and `--inset-card` (white on the light skins, the
-chat's own dark on the dark ones). Both modes, every platform; Settings, sheets and dialogs are untouched.
+chat's own dark on the dark ones). Both modes, every platform; Settings, sheets and dialogs are untouched. Two follow-ups took the stray lines off the
+card's left edge: that was the sidebar's own right border (its inset shadow, in the icon column) and the conversation
+pane's edge showing once the card sat 8px in — inside the card neither draws one now, and the card's single ring (3.5% of
+the ink on the dark skins, 9% on the light ones) is the only edge, with no shadow added.
 
 中文：**V0.6.11：内嵌布局，只有一张卡片**
 
@@ -50,7 +53,8 @@ chat's own dark on the dark ones). Both modes, every platform; Settings, sheets 
 `--inset-edge`（一层很淡的描边，用 ring 画，不加阴影）、`--inset-card`（浅色皮肤白、深色皮肤用现在聊天区的深色）。高级/简易、
 所有平台都支持；设置窗口、弹层、对话框不受影响。第二轮把深色下卡片左边缘那条亮线去掉了：那是侧栏自己的右边框（图标栏里是它的
 内阴影）贴着卡片画出来的，所以内嵌模式下侧栏不再有右边框，卡片那圈很淡的描边在深色皮肤上降到墨色的 3.5%（浅色 9%）——描边仍是唯一
-的边，没有再叠阴影。
+的边，没有再叠阴影。会话区自己也去掉边框：内缩 8px 之后它原来那条边框会变成卡片左边一条突兀的细线，所以卡片里面它不再画边框，经典
+模式保持原样。
 
 ### OE032 · The 0.6.10 round: the Inbox moves into the account menu
 

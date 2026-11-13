@@ -3777,6 +3777,14 @@ button:disabled.bg-danger {
 :root[data-inset-layout="inset"] [data-inset-card] > main {
   background-color: transparent;
 }
+/* The conversation keeps no edge of its own either: with the card inset 8px from the window, any border or inset shadow
+   the pane carried would read as a stray line down the card's left side. The card's own ring is the only edge. */
+:root[data-inset-layout="inset"] [data-inset-card] > main,
+:root[data-inset-layout="inset"] [data-inset-card] > main > [data-glass-frame] {
+  border-inline-start-width: 0;
+  border-inline-end-width: 0;
+  box-shadow: none;
+}
 /* Every panel beside the chat, inside the one card: no frame of its own, just the divider. */
 :root[data-inset-layout="inset"] [data-inset-card] > aside {
   background-color: transparent;
