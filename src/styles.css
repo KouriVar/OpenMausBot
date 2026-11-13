@@ -3753,16 +3753,26 @@ button:disabled.bg-danger {
   --inset-radius: 12px;
   --inset-divider: var(--color-hairline);
   /* One hairline, drawn as a shadow ring rather than a border, so it never eats into the card's width. */
-  --inset-edge: color-mix(in srgb, var(--color-ink) 10%, transparent);
+  /* One hairline, drawn as a ring and never as a shadow too. On the dark skins it is nearly invisible: a lit edge there
+     reads as a stray line down the card's left side. */
+  --inset-edge: color-mix(in srgb, var(--color-ink) 3.5%, transparent);
   --inset-card: var(--color-app);
 }
-/* The light skins' card is white, as the person asked: their app ground is a warm off-white. */
+/* The light skins' card is white, as the person asked: their app ground is a warm off-white, and their edge is the one
+   that may still be seen. */
 :root:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="daylight"], [data-skin="meadow"], [data-skin="pop"]) {
   --inset-card: #ffffff;
+  --inset-edge: color-mix(in srgb, var(--color-ink) 9%, transparent);
 }
 :root[data-inset-layout="inset"] [data-inset-card] {
   /* The card's own ground is the page's; the panes inside it paint nothing. */
   isolation: isolate;
+}
+/* The card is the only edge between the sidebar and the content: the sidebar's own right border (or its inset shadow, in
+   the icon column) would draw a second, brighter line there. */
+:root[data-inset-layout="inset"] [data-sidebar] {
+  border-inline-end-width: 0;
+  box-shadow: none;
 }
 :root[data-inset-layout="inset"] [data-inset-card] > main {
   background-color: transparent;

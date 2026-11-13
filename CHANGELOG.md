@@ -48,7 +48,9 @@ chat's own dark on the dark ones). Both modes, every platform; Settings, sheets 
 包括设置面板的 `bg-panel`/`border-l`、电脑面板、检查器、活动面板和收件箱面板。面板自己的标题栏也在卡片里，和聊天头顶边对齐；
 面板开合时卡片宽度跟着它自己的动画平滑变化，不跳。尺寸全是 token：`--inset-gap`、`--inset-radius`、`--inset-divider`、
 `--inset-edge`（一层很淡的描边，用 ring 画，不加阴影）、`--inset-card`（浅色皮肤白、深色皮肤用现在聊天区的深色）。高级/简易、
-所有平台都支持；设置窗口、弹层、对话框不受影响。
+所有平台都支持；设置窗口、弹层、对话框不受影响。第二轮把深色下卡片左边缘那条亮线去掉了：那是侧栏自己的右边框（图标栏里是它的
+内阴影）贴着卡片画出来的，所以内嵌模式下侧栏不再有右边框，卡片那圈很淡的描边在深色皮肤上降到墨色的 3.5%（浅色 9%）——描边仍是唯一
+的边，没有再叠阴影。
 
 ### OE032 · The 0.6.10 round: the Inbox moves into the account menu
 
