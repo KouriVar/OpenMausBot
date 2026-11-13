@@ -34,13 +34,16 @@ kinds still sat as rows between the bubbles — an automation it updated, a memo
 card that applied itself, its Undo still there and nothing held back, folds into the bot reply above it, one card or
 several. The chip names what landed: skills alone read "New skills learned · added to the library", automations alone
 "Automation updated", and a mixed run gives how many changes applied. Opening it shows the same rows as before, Undo and
-Details included, and one component (AutoAppliedChangesChip) draws every kind.
+Details included, and one component (AutoAppliedChangesChip) draws every kind. The chip itself is one card: a single chevron
+rotates from right to up as it opens, the rows grow inside the same surface, every row's Undo and Details meet the card's
+right edge, the title reads a size above the rows, and the card keeps the bubble's own inset at its sides and its bottom.
 
 中文：**V0.6.2 这一轮**把「bot 自己生效的变更」全部收进它那条回复的气泡。0.6.0 起这个 fork 就开始这样收，但只收了学到的
 技能；其它自动生效的变更（改动过的自动化、写入的记忆、改过的资料等）仍一条条散在气泡之间。现在凡是自动生效、没被挂起、
 仍带「撤销/详情」的变更卡，不论一条还是几条，都折进上方那条 bot 回复。卡片标题按内容来：只有技能是「已学习新技能，添加至
 知识库」，只有自动化是「已更新自动化」，混合的显示「已应用 N 项变更」。展开后还是原来的行，撤销和详情照旧可用；所有类型
-共用一个 AutoAppliedChangesChip 组件。
+共用一个 AutoAppliedChangesChip 组件。卡片本身合成一张：一个 chevron 随展开从朝右转到朝上，展开的行长在同一张卡片里，
+每行的撤销/详情对齐到卡片右边，标题比下面的行大一档，卡片左右和底部留出与气泡一致的内边距。
 
 ### OE024 · The 0.6.1 round: the bot panel survives the Settings window, and Advanced gets its own menu
 
