@@ -485,6 +485,7 @@ export function profileMenuItems({
   account,
   accounts = [],
   tools = [],
+  inbox = null,
   advancedToggle,
   simple,
   menu,
@@ -509,6 +510,8 @@ export function profileMenuItems({
   accounts?: SidebarMenuItem[];
   /** the sidebar's tools (automations, team map, apps, files): Advanced puts them here instead of the footer */
   tools?: SidebarMenuItem[];
+  /** the Inbox row, in the tools group (right under Apps when the menu has it) */
+  inbox?: SidebarMenuItem | null;
   /** the row that takes this window to the other mode */
   advancedToggle?: SidebarMenuItem | null;
   simple?: { tools?: SidebarMenuItem[]; places: SidebarMenuItem[] };
@@ -556,7 +559,7 @@ export function profileMenuItems({
     const usageRow: SidebarMenuItem | null = usageItem ? { ...usageItem, chevron: true } : null;
     const groups: SidebarMenuItem[][] = [
       present(advancedToggle ?? null),
-      present(...tools, apps),
+      present(...tools, apps, inbox),
       present(usageRow, settings),
       phone,
       [support],
@@ -583,7 +586,7 @@ export function profileMenuItems({
     present(raised),
     present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
-    simple.tools ?? tools,
+    [...(simple.tools ?? tools), ...present(inbox)],
     [...present(usageItem), settings],
     // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
     FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
@@ -672,6 +675,22 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const inboxPanel = useInboxPanel();
   const inboxTeam = useTeamPeople();
   const inboxCount = inboxSupport === "no" ? 0 : waitingCount(inboxView) + inboxFixes(inboxTeam?.needsYou, inboxView).length;
+  const toggleInbox = () => {
+    if (inboxPanel.open) closeInbox();
+    else openInbox();
+  };
+  // Fork: the Inbox is a row of this menu in both modes, drawn like the tools rows around it. What waits on the person
+  // raises a green dot at the row's far end, level with the chevrons of the rows above it, and only while it waits.
+  const inboxRow: SidebarMenuItem | null = inboxSupport === "no" ? null : {
+    key: "inbox",
+    label: t("inbox.panel.title"),
+    icon: <Inbox size={16} />,
+    active: inboxPanel.open,
+    onSelect: toggleInbox,
+    trailing: inboxCount > 0
+      ? <span data-inbox-dot="" aria-hidden="true" className="-me-0.5 size-2 shrink-0 rounded-full bg-success" />
+      : undefined,
+  };
   const railItems: SidebarMenuItem[] = railActions && RAIL_MENU_ACTIONS ? [
     {
       key: "rail-inbox",
@@ -710,6 +729,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     accounts: accountMenuItems(accounts),
     advancedToggle,
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
+    inbox: inboxRow,
     tools: toolMenuItems({
       activeView: state.activeView,
       activePanel: state.webPanelId,
@@ -756,6 +776,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     accounts: accountMenuItems(accounts),
     advancedToggle,
     // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
+    inbox: inboxRow,
     tools: toolMenuItems({
       activeView: state.activeView,
       activePanel: state.webPanelId,

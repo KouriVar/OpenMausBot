@@ -77,7 +77,7 @@ import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
 import { DesktopWorkspaceSwitcher, endCloudHowTo } from "./DesktopWorkspaceSwitcher"; import { PlaceTint } from "./PlaceTint"; import { ChromeRailToggle } from "./ChromeRailToggle";
 import { useCloudOwner } from "./CloudOwner";
 import { SidebarSectionHeader } from "./SidebarSectionHeader";
-import { NeedsYouButton, OwnerPickerHost, pickOwnerOf } from "./TeamOwner"; import { SidebarPeople } from "./SidebarPeople"; import { SidebarInboxRow } from "./SidebarInboxRow"; import { SidebarActiveThreads } from "./SidebarActiveThreads"; import { setAttentionPinned, useAttentionPinned } from "./inbox/attention-pinned"; import { useInboxSupport } from "@/state/inbox";
+import { NeedsYouButton, OwnerPickerHost, pickOwnerOf } from "./TeamOwner"; import { SidebarPeople } from "./SidebarPeople"; import { SidebarActiveThreads } from "./SidebarActiveThreads"; import { setAttentionPinned, useAttentionPinned } from "./inbox/attention-pinned"; import { useInboxSupport } from "@/state/inbox";
 import { showWhoReportsToWhom, TeamMenuItems } from "./SidebarTeamMenu";
 import { MENU_ITEM, MENU_ITEM_SEPARATOR, MENU_SHEET } from "./menu-recipe";
 import { ELEVATED_CONTROL } from "./elevated";
@@ -92,7 +92,7 @@ import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { useBotUnread } from "./unread-notice";
-import { attentionHasRunningWork, attentionJumpAction, attentionUnpinAction, crossBotAttentionThreads, crossBotPinnedThreads, runningRoutineRun, SidebarBotActivity, sidebarBotActivityTasks, sidebarBotStatus } from "./SidebarBotActivity";
+import { attentionJumpAction, attentionUnpinAction, crossBotAttentionThreads, crossBotPinnedThreads, runningRoutineRun, SidebarBotActivity, sidebarBotActivityTasks, sidebarBotStatus } from "./SidebarBotActivity";
 import { SidebarNoBots, SidebarTileGrid } from "./SidebarTiles";
 import { BotContextMenu } from "./SidebarBotMenu";
 export { BotContextMenu };
@@ -1340,7 +1340,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
           />
         </div>
       </div>}
-      {!q && density !== "icons" && !(simpleDesk && FOOTER_ACTIONS) && <SidebarInboxRow icons={false} large={chrome} running={attentionHasRunningWork(attention)} onOpened={phone ? onClose : undefined} />}
       {universalPins && pinnedBots.length > 0 && !simpleDesk && (
         <div
           data-sidebar-universal-pins=""
@@ -1520,14 +1519,13 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
         iconOnly={density === "icons"}
       />
 
-      {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} place={!q ? <DesktopWorkspaceSwitcher compact cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} /> : null} inbox={!q ? <SidebarInboxRow icons large={false} running={attentionHasRunningWork(attention)} /> : null} />}
+      {bottomActions && <SidebarBottomActions onSearch={openCommandPalette} searchLabel={t("sidebar.searchAria")} plus={plusControl} place={!q ? <DesktopWorkspaceSwitcher compact cloudHome={state.config?.cloudHome === true} place={state.config?.team?.name} owner={cloudOwner} howTo={state.cloudHowTo} onMenuClosed={endHowTo} /> : null} />}
 
       {rail ? <RailActionsProvider actions={{ onSearch: railSearch, onNew: () => setNewChatOpen(true), onPlugins: () => dispatch({ type: "togglePlugins", open: true }) }}>
         <SimpleRailFooter
           owner={cloudOwner}
           archived={archivedEntry}
           topActions={RAIL_MENU_ACTIONS ? undefined : <div data-sidebar-rail-bottom-actions className="flex flex-col items-center gap-2">
-            {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
             <button type="button" onClick={railSearch} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
               <Search size={18} strokeWidth={1.5} aria-hidden="true" />
             </button>
@@ -1539,7 +1537,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
           <button type="button" onClick={searchShown ? closeSearch : () => setSearchOpen(true)} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
             <Search size={18} strokeWidth={1.5} aria-hidden="true" />
           </button>
-          {!q && <SidebarInboxRow icons rail large={false} running={attentionHasRunningWork(attention)} />}
           <div className="relative flex">{plusControl}</div>
         </> : undefined} />}
       </GlassBar>

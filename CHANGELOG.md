@@ -27,6 +27,20 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE032 · The 0.6.10 round: the Inbox moves into the account menu
+
+The Inbox is no longer a button in the sidebar's foot: the bottom bar keeps the avatar, search and +, spaced the way they
+were, and the Inbox is a row of the account menu, right under Apps, with the same icon it had and the same effect (it opens
+and closes the Inbox panel, and reads as current while it is open). While anything waits on the person, a green dot sits at
+the row's far right, its edge level with the chevrons of the rows above it and centred in the row; nothing waiting, no dot.
+Simple and Advanced draw the same row from the same place. The sidebar's bottom bar and the rail keep no Inbox button.
+
+中文：**V0.6.10：收件箱挪进头像菜单**
+
+侧栏底栏不再有「收件箱」按钮：底部只留头像、搜索和加号，间距照旧；收件箱变成头像菜单里的一行，紧挨「应用」下面，图标沿用原来的，
+点击效果也一样（开/关收件箱面板，面板开着时这一行显示为当前）。有东西等人处理时，这一行最右边出现一个绿点，右边缘和上面几行的箭头
+对齐、在行内垂直居中；没有就不显示。简易和高级模式画的是同一行。底栏和图标栏都不再保留收件箱按钮。
+
 ### OE031 · The 0.6.9 round: a Mac sidebar made of the wallpaper
 
 On a Mac the left column now asks the system for a sidebar material, the one Finder's and Aside's columns use, so the

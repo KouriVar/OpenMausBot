@@ -57,12 +57,13 @@ afterEach(() => {
 const MODES = [{ advanced: false, name: "Simple" }, { advanced: true, name: "Advanced" }] as const;
 
 describe("the sidebar shell, in both modes", () => {
-  it.each(MODES)("$name keeps the Inbox and the + in the list, and puts them in the account's menu in the rail", ({ advanced }) => {
+  it.each(MODES)("$name keeps the + in the list and no Inbox button anywhere: the Inbox is a row of the account menu", ({ advanced }) => {
     fixture.advanced = advanced;
 
     fixture.density = "comfortable";
     const list = render();
-    expect(list).toContain('aria-label="Inbox"');
+    // Fork 0.6.10: the Inbox moved into the account's menu, so no sidebar bar carries its button any more.
+    expect(list).not.toContain('aria-label="Inbox"');
     expect(list).toContain('aria-label="New or share"');
     expect(list).not.toContain('aria-label="Active Threads"');
 
