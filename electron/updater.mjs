@@ -129,6 +129,11 @@ async function checkForReleasePage() {
     const response = await fetch(FORK_UPDATES_API, {
       headers: { accept: "application/vnd.github+json", "user-agent": `OpenMausBot/${current}` },
     });
+    // No release published yet (404), or GitHub's anonymous rate limit (403): nothing newer to tell the person about.
+    if (response.status === 404 || response.status === 403) {
+      setState({ status: "idle" });
+      return;
+    }
     if (!response.ok) throw new Error(`GitHub answered ${response.status}`);
     const release = await response.json();
     const latest = String(release?.tag_name ?? "").replace(/^v/, "");

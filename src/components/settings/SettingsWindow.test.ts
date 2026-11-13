@@ -166,7 +166,7 @@ describe("the Settings window", () => {
       ...(home ? { home: {}, openAtLogin: { state: () => new Promise(() => {}), set: () => new Promise(() => {}) }, exportDiagnostics: () => Promise.resolve() } : {}) } });
     cloudPage(false);
     expect(render("general")).toContain('data-settings-inert=""');
-    expect(render("app")).toMatch(/Logs and diagnostics[\s\S]*data-settings-reason/);
+    expect(render("app")).toMatch(/Check for updates from This computer[\s\S]*data-settings-reason/);
     cloudPage(true);
     expect(render("general")).not.toContain('data-settings-inert=""');
   });

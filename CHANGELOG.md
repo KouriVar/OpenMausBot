@@ -41,6 +41,12 @@ including dots painted on the mascot body; on conflict this place always keeps o
   where they had been left in English.
 - The Your account page is gone: it only repeated rows the Profile page and This app already hold. With it goes the
   product-updates-by-email question — neither the settings row nor the popup that used to ask it appears any more.
+- This app no longer offers the help centre, feedback, the two tour replays or the logs-and-diagnostics row; Keyboard
+  shortcuts and About stay.
+- "Check for updates" only speaks about news that exists: a repository with no release published yet, or a rate-limited
+  answer, reads as up to date instead of a red failure, and the update errors it can report are translated (the zh
+  pack was missing all eleven update.error keys). The avatar no longer raises a red dot for that check.
+- The composer's stop button keeps its box at rest instead of growing one under the pointer.
 - The macOS menu bar follows the app's language: the App menu (About, Open at Login, Hide, Hide Others, Show All, Quit)
   and File, Edit, Server, View and Window with every item under them are written in the app's own words, Electron's own
   role items labelled too, and they re-label when the language changes. The app is named OpenMausBot there and in About,
@@ -60,6 +66,10 @@ including dots painted on the mascot body; on conflict this place always keeps o
   保险库里面那几行也一起汉化了，之前还留着英文。
 - 「你的账号」这一页删掉了：它只是重复「个人资料」和「这个应用」里已有的行。跟着一起删的还有「通过邮件接收产品更新」
   那个功能 —— 设置里的那一行和启动时那个弹窗都不再出现。
+- 「这个应用」里不再有「帮助中心」「发送反馈」两个重播导览和「日志和诊断」那一行，只留「键盘快捷键」和「关于」。
+- 「检查更新」只讲真有的事：仓库还没发布发行版、或 API 被限流时，按「已是最新」处理，不再报红色失败；它确实会报的更新
+  错误也都汉化了（zh 里原先 11 个 update.error 键一个都没有）。头像菜单不再为这次检查点红点。
+- 输入框的「停止」按钮默认就有底色，不是只在鼠标悬停时才出现。
 - macOS 顶部菜单栏跟着 App 的语言走：App 菜单（关于、登录时打开、隐藏、隐藏其他、全部显示、退出）以及文件、编辑、
   服务器、显示、窗口和它们下面的每一项，都用 App 当前语言显示，Electron 自带的 role 项也带上了对应文案；切换语言后
   菜单会跟着刷新。App 名在菜单和关于里统一显示为「OpenMausBot」，不再用小写的包名 `openmausbot` —— 只改显示名，

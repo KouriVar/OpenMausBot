@@ -963,7 +963,7 @@ export function Composer({
             data-composer-stop={simpleDock ? (stopInSlot ? "slot" : "beside") : undefined}
             className={cn(
               "flex shrink-0 items-center justify-center rounded-full",
-              !simpleDock ? "size-8 text-ink-secondary hover:bg-raised hover:text-ink"
+              !simpleDock ? "size-8 bg-ink/[0.05] text-ink-secondary ring-[0.5px] ring-ink/[0.07] ring-inset hover:bg-ink/[0.09] hover:text-ink"
                 : stopInSlot ? cn("size-7", slot.button.className)
                 : SIMPLE_CONTROL,
             )}
