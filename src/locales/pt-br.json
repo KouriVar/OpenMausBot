@@ -10639,5 +10639,9 @@
   "settings.sidebarVibrancy.overlay.subtitle": "A cor sobre o material; as palavras acompanham",
   "settings.sidebarVibrancy.overlay.auto": "Seguir o tema",
   "settings.sidebarVibrancy.overlay.light": "Clara",
-  "settings.sidebarVibrancy.overlay.dark": "Escura"
+  "settings.sidebarVibrancy.overlay.dark": "Escura",
+  "settings.insetLayout.title": "Layout",
+  "settings.insetLayout.classic": "Clássico",
+  "settings.insetLayout.inset": "Embutido",
+  "settings.insetLayout.note": "Embutido: o conteúdo principal vira um cartão arredondado sobre um fundo suave"
 }

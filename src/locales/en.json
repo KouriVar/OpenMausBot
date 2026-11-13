@@ -10639,5 +10639,9 @@
   "settings.sidebarVibrancy.overlay.subtitle": "The colour laid over the material; the words follow it",
   "settings.sidebarVibrancy.overlay.auto": "Follow theme",
   "settings.sidebarVibrancy.overlay.light": "Light",
-  "settings.sidebarVibrancy.overlay.dark": "Dark"
+  "settings.sidebarVibrancy.overlay.dark": "Dark",
+  "settings.insetLayout.title": "Layout",
+  "settings.insetLayout.classic": "Classic",
+  "settings.insetLayout.inset": "Inset",
+  "settings.insetLayout.note": "Inset: the main content becomes a rounded card on a soft ground"
 }

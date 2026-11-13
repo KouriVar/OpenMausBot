@@ -27,6 +27,7 @@ import {
   PluginsPanel, preloadScreens, RemoteAgentSettingsPanel, RemoteDesktopPanel, RoomPanel, SettingsModal, TeamMapPage, TriggersPage,
 } from "@/components/lazy-screens";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { useInsetLayout } from "@/fork/inset-layout";
 import { useRoomPanelShown } from "@/lib/room-panel";
 import { WorkspaceBackupRecovery } from "@/components/WorkspaceBackupSettings";
 import { NotificationRail, NotificationsPanel } from "@/components/NotificationsPanel";
@@ -165,6 +166,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const bot = group || chiefStep ? undefined : (state.bots.find((b) => b.id === state.selectedId) ?? state.bots[0]);
   const notificationFeed = useNotificationFeed() && !remoteClient;
   const advanced = useAdvancedMode();
+  const { inset } = useInsetLayout();
   const roomPanelOpen = useRoomPanelShown({ group, state, simple: !advanced && !remoteClient });
   const sidePanelOpen = (Boolean(bot) && (state.settingsOpen || state.computerOpen || state.inspectorOpen || state.activityOpen)) || roomPanelOpen || (notificationFeed && state.notificationsOpen) || inboxShown;
   const collapseSidebar = sidePanelOpen && !sidebarAndPanelFit;
@@ -369,10 +371,10 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       {/* A framed window shows the app, its sidebar and the chat or page, in a rounded card under the top bar and beside
           the window's rail: its top corners and its bottom-left corner are round, and it runs to the window's right and
           bottom edges. */}
-      <div data-window-card={framed ? "" : undefined}
-        className={framed ? "relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[12px] rounded-bl-[12px] bg-app" : "contents"}>
-      {framed && strips}
-      <div className={framed ? "relative flex min-h-0 flex-1" : "contents"}>
+      <div data-window-card={framed && !inset ? "" : undefined}
+        className={framed && !inset ? "relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[12px] rounded-bl-[12px] bg-app" : "contents"}>
+      {framed && !inset && strips}
+      <div className={framed && !inset ? "relative flex min-h-0 flex-1" : inset ? "relative flex min-h-0 flex-1" : "contents"}>
       {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && <HiddenSidebarEdge onReveal={revealHiddenSidebar} />}
       {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && hiddenSidebar) && <Sidebar
         collapseToIcons={collapseSidebar}
@@ -383,6 +385,10 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
           menuButtonRef.current?.focus();
         }}
       />}
+      {/* Fork: Inset's one card. The sidebar stays the window's ground; the content and every panel beside it are this
+          single rounded card, clipped once here, so no child ever draws a second frame. */}
+      <div data-inset-card={inset ? "" : undefined}
+        className={inset ? "relative flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[var(--inset-radius)] bg-[var(--inset-card)] shadow-[0_0_0_1px_var(--inset-edge)] m-[var(--inset-gap)] ms-[var(--inset-gap)]" : "contents"}>
       {state.activeView === "team-map" ? (
         <TeamMapPage />
       ) : state.activeView === "files" ? (
@@ -450,6 +456,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       {inboxShown && <InboxPanel />}
       {notificationTray && state.notificationsOpen && <NotificationsPanel />}
       {notificationTray && !framed && <NotificationRail />}
+      </div>
       </div>
       </div>
       {state.appSettingsOpen && <SettingsModal />}

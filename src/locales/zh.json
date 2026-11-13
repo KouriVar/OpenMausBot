@@ -8231,5 +8231,9 @@
   "settings.sidebarVibrancy.overlay.subtitle": "盖在毛玻璃上的颜色，文字颜色会跟着切换",
   "settings.sidebarVibrancy.overlay.auto": "跟随主题",
   "settings.sidebarVibrancy.overlay.light": "浅色",
-  "settings.sidebarVibrancy.overlay.dark": "深色"
+  "settings.sidebarVibrancy.overlay.dark": "深色",
+  "settings.insetLayout.title": "布局",
+  "settings.insetLayout.classic": "经典",
+  "settings.insetLayout.inset": "内嵌",
+  "settings.insetLayout.note": "内嵌：把主内容变成柔和底色上的圆角卡片"
 }

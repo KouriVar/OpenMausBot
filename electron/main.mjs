@@ -2812,7 +2812,7 @@ setCuaStateListener((connection) => {
 app.whenReady().then(async () => {
   // Fork: the app menu's About panel shows this build's own label rather than the bare bundle version.
   // The label alone names the release: the bundle version would only repeat it in brackets.
-  app.setAboutPanelOptions({ applicationVersion: "V0.6.10", version: "" });
+  app.setAboutPanelOptions({ applicationVersion: "V0.6.11", version: "" });
   await evictStartupCacheOnce({
     userData: app.getPath("userData"),
     currentVersion: app.getVersion(),

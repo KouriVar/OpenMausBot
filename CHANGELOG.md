@@ -27,6 +27,29 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE033 · The 0.6.11 round: an inset layout, one card
+
+Settings → Appearance → Look gains **Layout**: Classic, or **Inset**, with a quiet line under it saying what Inset is. Inset
+keeps the sidebar as the window's ground — the vibrancy material when that is on, else its own colour — and turns the whole
+content area, the chat and any panel beside it, into one rounded card, 8px from the window's edges and from the sidebar.
+The card is the only frame: it clips its children once, so scrollbars, quotes and the full-bleed fades stop at its corner,
+and every panel inside gives up its own left border, ground and shadow for the card's single hairline divider — the
+settings panel's own `bg-panel`/`border-l`, the computer panel's, the inspector's, the activity panel's and the inbox's.
+The panel's title bar sits in the card, level with the chat head, and the card's width follows the panel's own opening
+animation, so nothing jumps. Its measurements are tokens: `--inset-gap`, `--inset-radius`, `--inset-divider`,
+`--inset-edge` (one hairline drawn as a ring, not a border and a shadow) and `--inset-card` (white on the light skins, the
+chat's own dark on the dark ones). Both modes, every platform; Settings, sheets and dialogs are untouched.
+
+中文：**V0.6.11：内嵌布局，只有一张卡片**
+
+设置 → 外观 → 样式新增**布局**：经典 / **内嵌**，下面一行灰色小字说明内嵌是什么。内嵌把侧栏留作窗口底色（开了毛玻璃就是毛玻璃，
+没开就是侧栏底色），把右侧整个内容区 —— 聊天和它旁边的面板 —— 变成一张圆角卡片，离窗口边和侧栏各 8px。卡片是唯一的框：裁切只在
+卡片根上做一次，滚动条、引用条、通栏渐变都止于圆角；里面的每个面板都放弃自己的左边框、底色和阴影，只用卡片那一条 1px 分隔线 ——
+包括设置面板的 `bg-panel`/`border-l`、电脑面板、检查器、活动面板和收件箱面板。面板自己的标题栏也在卡片里，和聊天头顶边对齐；
+面板开合时卡片宽度跟着它自己的动画平滑变化，不跳。尺寸全是 token：`--inset-gap`、`--inset-radius`、`--inset-divider`、
+`--inset-edge`（一层很淡的描边，用 ring 画，不加阴影）、`--inset-card`（浅色皮肤白、深色皮肤用现在聊天区的深色）。高级/简易、
+所有平台都支持；设置窗口、弹层、对话框不受影响。
+
 ### OE032 · The 0.6.10 round: the Inbox moves into the account menu
 
 The Inbox is no longer a button in the sidebar's foot: the bottom bar keeps the avatar, search and +, spaced the way they

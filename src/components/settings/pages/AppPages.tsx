@@ -7,6 +7,7 @@ import { AboutDialog } from "../../AboutDialog";
 import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
+import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
 import { AnalyticsRow } from "../../AnalyticsRow";
 import { ChatWidthRow, FontRow, SidebarToolsLayoutRow } from "../../AppearanceSelectRows";
 import {
@@ -153,6 +154,7 @@ export function AppearancePage() {
   return <>
     <SettingsGroup label={t("settings.appearance.look")} block="look">
       <SettingsRows>
+        <InsetLayoutRow />
         <ThemeRow simple />
         <ThemePickerRow open={themes} onToggle={() => setThemes((open) => !open)} />
         {themes && <div data-settings-block="themes" className="p-4"><SkinPicker /></div>}
