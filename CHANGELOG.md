@@ -27,6 +27,28 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE031 · The 0.6.9 round: a Mac sidebar made of the wallpaper
+
+On a Mac the left column now asks the system for a sidebar material, the one Finder's and Aside's columns use, so the
+desktop's blurred colours show through it; the chat pane keeps its solid ground. The window asks for it with
+`vibrancy: "sidebar"`, `visualEffectState: "followWindow"` (so a window that loses focus greys the way the system expects)
+and a transparent background, and the page decides whether to let it through: with **Settings → Appearance → Look → Sidebar
+vibrancy** on (the default) the page, the window's frame and the card behind the sidebar stop painting, the sidebar takes a
+translucent panel colour and its rows a tint, and the chat, the settings window and every pop-up stay solid. Off, or on
+Windows and Linux, the sidebar is the solid one it was. The alpha is one token (`--sidebar-glass-strength`, 62%) beside the
+per-skin glass colour, so it is tuned in one place; a chosen sidebar colour lays its tint over the glass and a sidebar
+picture still shows. `prefers-reduced-transparency` and high-contrast modes put the solid sidebar back. Nothing about the
+bundle id, the user-data path or any data folder changed.
+
+中文：**V0.6.9：Mac 侧栏变成「桌面壁纸的毛玻璃」**
+
+Mac 上左栏现在向系统要一层 sidebar 材质（Finder、Aside 侧栏用的那种），桌面壁纸的模糊颜色透出来，右边聊天区保持实色。窗口用
+`vibrancy: "sidebar"`、`visualEffectState: "followWindow"`（失焦时按系统默认变灰）和透明背景去要，是否透出来由页面决定：设置 →
+外观 → 样式 →「侧栏毛玻璃」开着（默认开）时，页面、窗口外框和侧栏底下那张卡片都不再上底色，侧栏本身换成半透明的面板色、行底色
+换成淡色叠色，聊天区、设置窗口和所有弹层继续实色；关掉、或在 Windows/Linux 上，侧栏还是原来的实色。透明度是一个 token
+（`--sidebar-glass-strength`，62%）加上每种皮肤自己的玻璃色，只在一处调；选了侧栏颜色就在毛玻璃上叠一层淡色，侧栏图片照旧显示。
+系统「减少透明度」和高对比模式下会回到实色侧栏。bundle id、userData 路径和任何数据目录都没动。
+
 ### OE030 · The 0.6.8 round: a Chief can wear a department lead's flag
 
 A bot that coordinates its department is still made Chief the same way, with the same powers and the same switch; the new

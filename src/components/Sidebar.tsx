@@ -116,6 +116,7 @@ import { SectionPicker } from "./SidebarSectionPicker";
 import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL, SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_SIMPLE, ROW_RADIUS, ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
 import { useChiefStyle } from "@/fork/chief-style";
+import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
@@ -951,6 +952,7 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
   const showThreads = useShowThreads();
   const remoteClient = window.ogb?.remoteClient?.active === true;
   const { capabilities } = useDesktopCapabilities();
+  const vibrancy = useSidebarVibrancy();
   const phone = useMediaQuery(PHONE_LAYOUT, false);
   const importReturnRef = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -1271,7 +1273,8 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
       }}
       style={{ "--sidebar-width": `${sizing.width}px` } as CSSProperties}
       className={cn(
-        "relative flex h-full shrink-0 flex-col bg-panel max-md:[--scroll-fade-surface:var(--color-app)]",
+        "relative flex h-full shrink-0 flex-col max-md:[--scroll-fade-surface:var(--color-app)]",
+        vibrancy.on ? "bg-[var(--sidebar-glass)]" : "bg-panel",
         density === "icons" && !rail ? SIDEBAR_ICON_COLUMN_EDGE : "border-r-[0.5px] border-edge",
         sizing.resizing && !sizing.snapping ? "transition-none" : "transition-[width] duration-200 motion-reduce:transition-none",
         density === "icons" ? SIDEBAR_ICON_COLUMN_WIDTH_CLASS : advanced ? "w-[320px] md:w-[var(--sidebar-width)]" : "w-[280px] md:w-[var(--sidebar-width)]",

@@ -10630,5 +10630,7 @@
   "settings.page.thisComputer": "Sobre este computador",
   "permissions.chief.style": "Como este chefe é marcado",
   "permissions.chief.styleCrown": "Chefe",
-  "permissions.chief.styleLead": "Líder do departamento"
+  "permissions.chief.styleLead": "Líder do departamento",
+  "settings.sidebarVibrancy.title": "Vibração da barra lateral",
+  "settings.sidebarVibrancy.subtitle": "Só no Mac: a barra lateral mostra as cores desfocadas do papel de parede"
 }

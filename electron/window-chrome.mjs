@@ -5,6 +5,18 @@ export function windowBackground(prefersDark) {
   return prefersDark ? "#121212" : "#fcfcfc";
 }
 
+/** macOS: the system material behind the sidebar. `sidebar` is the one Finder's and Aside's columns use; `under-window`
+ * samples the whole desktop behind the window instead. OMB_VIBRANCY_STYLE picks one for comparing them by hand. */
+export function sidebarVibrancyStyle(env = process.env) {
+  return env.OMB_VIBRANCY_STYLE === "under-window" ? "under-window" : "sidebar";
+}
+
+/** The window's own material options: nothing outside macOS, where the sidebar keeps its solid ground. */
+export function windowVibrancyOptions(platform, env = process.env) {
+  if (platform !== "darwin") return {};
+  return { vibrancy: sidebarVibrancyStyle(env), visualEffectState: "followWindow", backgroundColor: "#00000000" };
+}
+
 /** macOS: where the traffic lights (14px) sit. In the frame's 28px top bar, 12px in, while the page beside the rail draws
  * that frame (src/components/WindowFrameBar.tsx); where an older page made room for them otherwise. The window opens with
  * them in the bar, and main moves them as each page says (chrome-rail.mjs). */

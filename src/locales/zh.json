@@ -8222,5 +8222,7 @@
   "update.error.restartFirst": "请先退出并重新打开 OpenMausBot，再尝试更新。",
   "permissions.chief.style": "这个 Chief 的标记",
   "permissions.chief.styleCrown": "Chief",
-  "permissions.chief.styleLead": "部门组长"
+  "permissions.chief.styleLead": "部门组长",
+  "settings.sidebarVibrancy.title": "侧栏毛玻璃",
+  "settings.sidebarVibrancy.subtitle": "仅 Mac：左侧边栏透出桌面壁纸的模糊颜色"
 }

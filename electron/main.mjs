@@ -32,7 +32,7 @@ import { serverChildLaunch } from "./server-child-launch.mjs";
 import { packageUrlFromCommandLine, packageUrlFromDeepLink } from "./package-link.mjs";
 import { chatLinkFrom, chatLinkFromCommandLine } from "./chat-link.mjs"; import { installDesktopNotifications } from "./desktop-notifications.mjs";
 import { createOrganizationEntry, isOrganizationDeepLink, takeOrganizationDeepLink, organizationRestartIntent, withOrganizationRestartIntent, withoutOrganizationRestartIntent } from "./organization-entry.mjs";
-import { windowBackground, windowChromeOptions } from "./window-chrome.mjs";
+import { windowBackground, windowChromeOptions, windowVibrancyOptions } from "./window-chrome.mjs";
 import { createAllWindowsClosedQuit } from "./window-all-closed.mjs";
 import { createStartupScreen } from "./startup-screen.mjs";
 import { createSystemTray } from "./system-tray.mjs";
@@ -1962,7 +1962,10 @@ function createWindow({ deferNavigation = false } = {}) {
     minHeight: MIN_BOUNDS.height,
     show: !waitsForSkinSync && !startupScreen,
     icon: APP_ICON,
-    backgroundColor: windowBackground(nativeTheme.shouldUseDarkColors),
+    // The sidebar's material: the renderer lets it through only while Settings keeps "Sidebar vibrancy" on, so the
+    // window always asks for it on macOS and the page decides.
+    ...windowVibrancyOptions(process.platform),
+    ...(process.platform === "darwin" ? {} : { backgroundColor: windowBackground(nativeTheme.shouldUseDarkColors) }),
     autoHideMenuBar: process.platform !== "darwin",
     ...windowChromeOptions(process.platform, windowFrameMade = desktopPrefs?.windowFrame() !== false),
     webPreferences: {

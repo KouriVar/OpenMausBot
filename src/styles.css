@@ -3647,3 +3647,52 @@ button:disabled.bg-danger {
 @media (prefers-reduced-motion: reduce) {
   [data-hidden-sidebar-edge] span { transition: none; }
 }
+
+/* ────────────────────────────────────────────────────────────────────────
+   FORK: THE SIDEBAR'S SYSTEM VIBRANCY (macOS)
+   The window asks the system for a sidebar material (electron/main.mjs);
+   these rules let it through. The page, the window's frame and the card that
+   holds the sidebar stop painting, the sidebar itself takes a translucent
+   panel colour, and the chat pane keeps its solid ground. `data-sidebar-vibrancy`
+   is set on <html> before the first paint by src/fork/sidebar-vibrancy.ts, so
+   the switch in Settings takes effect without a reload. The alpha is one
+   token per skin family (`--sidebar-glass-strength`), easy to tune.
+   ──────────────────────────────────────────────────────────────────────── */
+:root[data-sidebar-vibrancy="on"] {
+  /* Light skins' panel is warm white, dark skins' is near black; mixing with transparent gives each its own glass. */
+  --sidebar-glass-strength: 62%;
+  --sidebar-glass: color-mix(in srgb, var(--color-panel) var(--sidebar-glass-strength), transparent);
+  /* Rows over the material: a tint, never a solid block, so the wallpaper's colour still reads through a selection. */
+  --sidebar-raised: color-mix(in srgb, var(--color-raised) 55%, transparent);
+  --sidebar-raised-hover: color-mix(in srgb, var(--color-raised-hover) 65%, transparent);
+  --sidebar-menu-hover: color-mix(in srgb, var(--color-menu-hover) 70%, transparent);
+}
+:root[data-sidebar-vibrancy="on"] body {
+  background-color: transparent;
+}
+/* The window's frame (its top bar and the places rail) and the card under it both stop painting, or they would cover
+   the material; the sidebar paints its own glass and the chat pane its own ground. */
+:root[data-sidebar-vibrancy="on"] [data-window-frame],
+:root[data-sidebar-vibrancy="on"] [data-window-card] {
+  background-color: transparent;
+}
+:root[data-sidebar-vibrancy="on"] [data-sidebar] {
+  --color-raised: var(--sidebar-raised);
+  --color-raised-hover: var(--sidebar-raised-hover);
+  --color-menu-hover: var(--sidebar-menu-hover);
+}
+/* A phone's drawer covers the whole window: it keeps a solid ground there. */
+@media (max-width: 767px) {
+  :root[data-sidebar-vibrancy="on"] [data-sidebar] {
+    background-color: var(--color-app);
+  }
+}
+/* The person asked the system for less transparency, or a high-contrast mode: the solid sidebar comes back. */
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  :root[data-sidebar-vibrancy="on"] [data-sidebar] {
+    background-color: var(--color-panel);
+  }
+  :root[data-sidebar-vibrancy="on"] body {
+    background-color: var(--color-app);
+  }
+}

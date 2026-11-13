@@ -10630,5 +10630,7 @@
   "settings.page.thisComputer": "About this computer",
   "permissions.chief.style": "How this Chief is marked",
   "permissions.chief.styleCrown": "Chief",
-  "permissions.chief.styleLead": "Department lead"
+  "permissions.chief.styleLead": "Department lead",
+  "settings.sidebarVibrancy.title": "Sidebar vibrancy",
+  "settings.sidebarVibrancy.subtitle": "Mac only: the left sidebar shows the wallpaper's blurred colours"
 }

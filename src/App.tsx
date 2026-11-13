@@ -341,7 +341,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
     <AppNotices quiet={paletteOpen || drawerOpen || Boolean(localVmWorkspaceBotId)} viewer={viewer} />
   </>;
   return (
-    <div className={cn("flex h-full flex-col", framed && "bg-frame")}>
+    <div data-window-frame={framed ? "" : undefined} className={cn("flex h-full flex-col", framed && "bg-frame")}>
       <WindowFrameBar notifications={notificationTray} />
       <BotLimitPopup />
       {!framed && strips}

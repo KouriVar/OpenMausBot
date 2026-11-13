@@ -9,6 +9,7 @@ import { loadPageLanguage } from "./lib/language-preference";
 import { applySkinChoice, readSkinChoice } from "./lib/skins";
 import { applyChatWidth, readChatWidth } from "./lib/chat-width";
 import { applyBoldText, readBoldText } from "./fork/ui-batch-1110";
+import { applySidebarVibrancy, readSidebarVibrancy } from "./fork/sidebar-vibrancy";
 import { applyFont, readFont } from "./lib/fonts";
 import { applySoftwareRendering } from "./lib/software-rendering";
 import { settleInterfaceMode } from "./lib/new-look";
@@ -26,6 +27,7 @@ applyFont(readFont());
 applySoftwareRendering();
 applyChatWidth(readChatWidth());
 applyBoldText(readBoldText());
+applySidebarVibrancy(readSidebarVibrancy());
 const pageLanguage = loadPageLanguage();
 
 // The app is its own chunk, so these pages don't parse it. Everywhere else its fetch starts now, alongside the session
