@@ -122,6 +122,51 @@ describe("bot setup and tools in the real renderer", () => {
     expect((await runControlOmb(["wait", "--bot", created[0].id, "--timeout", "20", "--url", info.url]) as { status: string }).status).toBe("settled");
     await openApps();
     expect(await evaluate("Boolean(document.querySelector('[data-simple-mcp]'))")).toBe(false);
+    const settingsPage = () => evaluate("document.querySelector('[data-settings-page][aria-current=\"page\"]')?.getAttribute('data-settings-page') ?? null");
+    const searchValue = () => evaluate("document.querySelector('[data-settings-search]')?.value ?? null");
+    // The panel's Usage row shows what this bot has spent and opens Settings on Spending, a page Simple's menu leaves out.
+    const openPanelUsage = async () => {
+      await openPanel();
+      // Back out of any page to the panel's tabs, then to Details.
+      await expect.poll(() => evaluate(`(() => {
+        const back = document.querySelector('[data-panel-back]');
+        if (back) { back.click(); return false; }
+        if (document.querySelector('[data-panel-tabpanel="details"]')) return true;
+        [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.trim() === 'Details')?.click();
+        return false;
+      })()`), { timeout: 20_000, interval: 400 }).toBe(true);
+      const state = await ui("snapshot", "--interactive");
+      const cost = Object.entries(state.refs as Record<string, { role: string; name: string }>)
+        .filter(([, entry]) => entry.role === "button" && entry.name.startsWith("Usage") && entry.name.includes("$0.01"));
+      expect(cost).toHaveLength(1);
+      await ui("click", "--ref", `@${cost[0][0]}`);
+      await expect.poll(settingsPage, { timeout: 10_000 }).toBe("usage");
+    };
+    // The bot panel's close button has the same name, so press the one in the Settings dialog.
+    const closeSettings = async () => {
+      await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
+      await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
+    };
+    // Fork: Simple-only hides the nav-footer Advanced switch, so an unlocked device is the one that could flip modes.
+    // The window must not: Spending is a page only Advanced shows, and the chat head's Simple panel has to survive it.
+    await evaluate(`(() => { localStorage.setItem("omb-advanced-unlocked", "1"); return true; })()`);
+    await openPanelUsage();
+    await ui("screenshot", "--out", `${info.logPath}.settings.png`);
+    const search = await ui("snapshot", "--interactive");
+    const searchRef = Object.entries(search.refs as Record<string, { role: string; name: string }>)
+      .find(([, entry]) => entry.role === "textbox" && entry.name === "Search settings");
+    expect(searchRef).toBeDefined();
+    await ui("type", "--ref", `@${searchRef![0]}`, "--text", "standing");
+    expect(await searchValue()).toBe("standing");
+    await closeSettings();
+    // The Settings window leaves this fork's mode alone, so the chat head opens the Simple panel right after it closes.
+    await openPanel();
+    expect(await evaluate("Boolean(document.querySelector('[data-panel-gear]'))")).toBe(true);
+    expect(await evaluate("Boolean(document.querySelector('[data-panel-tabpanel=\"details\"]'))")).toBe(true);
+    await openPanelUsage(); // a stale search must not hide an external target
+    expect(await searchValue()).toBe("");
+    await closeSettings();
+
     // Add the server where every app is added, from the panel's Connect another app.
     await openApps();
     await evaluate("document.querySelector('[data-panel-link=\"add-app\"]').click(); true");
@@ -165,54 +210,6 @@ describe("bot setup and tools in the real renderer", () => {
 
     // New bot from above settings puts the new bot's chat in front: no
     // modal is left behind to hold the focus.
-    const settingsPage = () => evaluate("document.querySelector('[data-settings-page][aria-current=\"page\"]')?.getAttribute('data-settings-page') ?? null");
-    const searchValue = () => evaluate("document.querySelector('[data-settings-search]')?.value ?? null");
-    // The panel's Usage row shows what this bot has spent and opens Settings on Spending, in Advanced mode.
-    const openPanelUsage = async () => {
-      await openPanel();
-      // Back out of any page to the panel's tabs, then to Details.
-      await expect.poll(() => evaluate(`(() => {
-        const back = document.querySelector('[data-panel-back]');
-        if (back) { back.click(); return false; }
-        if (document.querySelector('[data-panel-tabpanel="details"]')) return true;
-        [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.trim() === 'Details')?.click();
-        return false;
-      })()`), { timeout: 20_000, interval: 400 }).toBe(true);
-      const state = await ui("snapshot", "--interactive");
-      const cost = Object.entries(state.refs as Record<string, { role: string; name: string }>)
-        .filter(([, entry]) => entry.role === "button" && entry.name.startsWith("Usage") && entry.name.includes("$0.01"));
-      expect(cost).toHaveLength(1);
-      await ui("click", "--ref", `@${cost[0][0]}`);
-      await expect.poll(settingsPage, { timeout: 10_000 }).toBe("usage");
-    };
-    // The bot panel's close button has the same name, so press the one in the Settings dialog.
-    const closeSettings = async () => {
-      // Fork: the panel's Usage row turned Advanced on through the window's own effect, and the hidden switch has no
-      // way to turn it back off mid-run — leaving it on is what keeps the panel's tabs reachable for the next check.
-      await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
-      await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
-    };
-    // Fork: Simple-only hides the nav-footer Advanced switch, so unlock the device first: the window then turns
-    // Advanced on by itself when the panel's Usage row lands on Spending, just as the old switch would have.
-    await evaluate(`(() => { localStorage.setItem("omb-advanced-unlocked", "1"); return true; })()`);
-    await openPanelUsage();
-    await ui("screenshot", "--out", `${info.logPath}.settings.png`);
-    const search = await ui("snapshot", "--interactive");
-    const searchRef = Object.entries(search.refs as Record<string, { role: string; name: string }>)
-      .find(([, entry]) => entry.role === "textbox" && entry.name === "Search settings");
-    expect(searchRef).toBeDefined();
-    await ui("type", "--ref", `@${searchRef![0]}`, "--text", "standing");
-    expect(await searchValue()).toBe("standing");
-    await closeSettings();
-    // Fork: once the app Settings window has closed, the side panel's pill does not always bring it back under it,
-    // so reopen Settings from the outer menu. A stale search must not hide the page it reopens on either.
-    await click("You");
-    await click("Settings");
-    await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(true);
-    expect(await searchValue()).toBe("");
-    await closeSettings();
-
-
     const beforeShortcut = await bots();
     await press("Control+n");
     await expect.poll(async () => (await bots()).length, { timeout: 10_000 }).toBe(beforeShortcut.length + 1);

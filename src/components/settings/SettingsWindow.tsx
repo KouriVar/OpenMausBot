@@ -6,6 +6,7 @@ import { glassPopupFrameStyle, glassPopupTopInset, GLASS_POPUP_GUTTER } from "@/
 import { scrollWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { setAdvancedMode } from "@/lib/interface-mode";
+import { FORK_SETTINGS_KEEPS_MODE } from "@/fork/settings-mode";
 import { api, useStore, type ConfigStatus } from "@/state/store";
 import { useIsTopLayer } from "../Layer";
 import { LicenseExpiryBanner } from "../LicenseExpiryBanner";
@@ -60,6 +61,9 @@ export function SettingsWindow() {
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const pages = visiblePages(ctx);
+  // A link can land on a page this mode keeps out of the menu (Spending, from the panel's Usage row). The menu still
+  // marks where the window is, so the page is listed while it is open.
+  const navPages = pages.some((entry) => entry.id === target.page) ? pages : [...pages, pageById(target.page)];
   const page = pageById(target.page);
   const dialogRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -72,8 +76,9 @@ export function SettingsWindow() {
     });
     return () => window.cancelAnimationFrame(frame);
   }, [anchor, target.page]);
-  // A link, a notice or a search result that asks for what only Advanced mode shows turns Advanced on and lands there.
-  useEffect(() => { if (target.advanced) setAdvancedMode(true); }, [target.advanced]);
+  // A link, a notice or a search result that asks for what only Advanced mode shows lands there; this fork's window
+  // leaves the mode itself alone (FORK_SETTINGS_KEEPS_MODE).
+  useEffect(() => { if (target.advanced && !FORK_SETTINGS_KEEPS_MODE) setAdvancedMode(true); }, [target.advanced]);
   useEffect(() => window.ogb?.onOpenAppSettings?.(() => setQuery("")), []);
   useEffect(markOpened, []);
 
@@ -97,7 +102,7 @@ export function SettingsWindow() {
     if (entry.jump === "shortcuts") { close(); dispatch({ type: "toggleShortcuts", open: true }); return; }
     if (entry.jump === "bot") { close(); return; }
     if (hit.elsewhere) { computer.open?.(); return; }
-    if (hit.advanced || needsAdvanced({ page: entry.page, anchor: entry.anchor }, ctx)) setAdvancedMode(true);
+    if (!FORK_SETTINGS_KEEPS_MODE && (hit.advanced || needsAdvanced({ page: entry.page, anchor: entry.anchor }, ctx))) setAdvancedMode(true);
     go(entry.page, entry.anchor);
   };
   /** Turning Advanced off on a page Simple doesn't show lands on the place's Overview; anywhere else it stays put. */
@@ -180,7 +185,7 @@ export function SettingsWindow() {
             )}
             <div className="flex min-h-0 flex-1">
               {(!narrow || showList) && (
-                <SettingsNav ctx={ctx} place={place} pages={pages} current={narrow ? null : target.page} query={query} hits={hits} narrow={narrow}
+                <SettingsNav ctx={ctx} place={place} pages={navPages} current={narrow ? null : target.page} query={query} hits={hits} narrow={narrow}
                   onQuery={setQuery} onOpen={(next) => go(next)} onHit={openHit} keyHits={keyHits} onKey={openKey} onClose={close} onAdvanced={setAdvanced} />
               )}
               {(!narrow || !showList) && (

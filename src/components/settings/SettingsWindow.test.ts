@@ -106,7 +106,7 @@ describe("the Settings window", () => {
     expect(render("overview")).not.toContain("Your data");
   });
 
-  it("turns Advanced on for a link to a page Simple doesn't show, and lands there", () => {
+  it("opens a link to a page Simple doesn't show, and lands there", () => {
     fixture.advanced = false;
     expect(render("general")).toMatch(/data-settings-page-open="general"/);
     expect(render("backups")).toMatch(/data-settings-page-open="data"/);
