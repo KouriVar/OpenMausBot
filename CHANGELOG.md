@@ -27,6 +27,22 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE026 · The 0.6.3 round: the browser panel stops flashing black between frames
+
+The right-side browser panel's live picture flashed black for two to four frames every quarter of a second or so, the
+last picture left behind in its top-left corner. The frame painter sized the canvas to each frame's own pixels: the
+stream sends one page at several resolutions — a still captured at the page's device pixels beside screencast frames
+capped to the panel, and half-size frames while it scrolls — and every `canvas.width`/`height` write clears the canvas
+and re-allocates its compositor layer, which the window then showed for those few frames. The canvas now takes the
+picture's shape at most the panel's own device pixels, once, and later frames of the same shape are drawn into it,
+scaled; a picture of another shape still re-sizes it, because its letterbox in the panel changes with it.
+
+中文：**右侧浏览器面板不再闪黑**。面板里的实时画面每隔约四分之一秒黑两到四帧，左上角还留着上一帧的画面。原因是
+画面绘制把 canvas 的像素尺寸跟着**每一帧**的像素尺寸走：同一页在流里会有好几种分辨率（still 按页面的设备像素拍，
+screencast 帧按面板上限缩过，滚动时还是半尺寸的帧），而每次写 `canvas.width`/`height` 都会清空画布并重新分配它的
+合成层，窗口就把这几帧画成了黑的。现在 canvas 只按画面的形状取一次尺寸，且不超过面板自己的设备像素，之后同形状的帧
+都缩放画进这张画布；形状变了的画面（比如换成竖屏预设）仍会重新设尺寸，因为它在面板里的留边跟着变。
+
 ### OE025 · The 0.6.2 round: any change a reply applied on its own folds into its bubble
 
 0.6.0 started folding the changes a reply applies on its own into that reply's bubble, but only learned skills. The other

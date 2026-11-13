@@ -492,7 +492,13 @@ export interface PreviewFramePainter {
   readonly stop: () => void;
 }
 
-/** One decode at a time, keeping only the latest waiting frame for slow viewers. */
+/** One decode at a time, keeping only the latest waiting frame for slow viewers.
+ *
+ * The canvas is sized to the panel, not to each frame: its backing store is given the shape of the first picture that
+ * fits the panel, and every later frame of the same shape is drawn into it, scaled. Setting `canvas.width`/`height`
+ * clears the canvas and re-allocates its compositor layer, and the stream sends the same page at different resolutions
+ * (a still captured at the page's device pixels beside screencast frames capped to the panel, and half-size frames while
+ * it scrolls), so a resize per frame made the panel flash black with the previous picture in its top-left corner. */
 export function createPreviewFramePainter(
   canvas: HTMLCanvasElement,
   onPainted?: () => void,
@@ -501,6 +507,13 @@ export function createPreviewFramePainter(
   let stopped = false;
   let decoding = false;
   let waiting: ArrayBuffer | null = null;
+  /** The panel's own pixels: a frame is never kept larger than what it can show, so a still and a screencast frame settle on one size. */
+  const panelPixels = () => {
+    const ratio = typeof devicePixelRatio === "number" && devicePixelRatio > 0 ? devicePixelRatio : 1;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    return width > 0 && height > 0 ? { width: width * ratio, height: height * ratio } : null;
+  };
   const draw = (jpeg: ArrayBuffer) => {
     decoding = true;
     void createImageBitmap(new Blob([jpeg], { type: "image/jpeg" }))
@@ -509,11 +522,19 @@ export function createPreviewFramePainter(
           bitmap.close();
           return;
         }
-        if (canvas.width !== bitmap.width || canvas.height !== bitmap.height) {
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
+        const panel = panelPixels();
+        const fit = panel ? Math.min(1, panel.width / bitmap.width, panel.height / bitmap.height) : 1;
+        const width = Math.max(1, Math.round(bitmap.width * fit));
+        const height = Math.max(1, Math.round(bitmap.height * fit));
+        const shape = width / height;
+        const sized = canvas.width > 0 && canvas.height > 0;
+        // Same shape: keep the layer, grow it only when this frame needs more; a different shape re-sizes it, since the
+        // picture's letterbox in the panel changes with it.
+        if (!sized || Math.abs(shape - canvas.width / canvas.height) > 0.01 * shape || canvas.width < width) {
+          canvas.width = width;
+          canvas.height = height;
         }
-        context.drawImage(bitmap, 0, 0);
+        context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
         bitmap.close();
         onPainted?.();
       })
