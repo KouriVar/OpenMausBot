@@ -78,7 +78,7 @@ import { ThreadRefText } from "./ThreadRefs"; import { WatchScreenButton } from 
 import { optionsCardRow } from "./OptionsCardRow";
 import { MessageBoundary } from "./MessageBoundary";
 import { RichMessageRow, UserLineNote, richRowKind } from "./RichMessageRow"; import { SetupOffer } from "./SetupOffer"; import { SavedStepsChip } from "./SavedStepsChip";
-import { LearnedSkillsChip } from "./LearnedSkillsChip";
+import { AutoAppliedChangesChip } from "./AutoAppliedChangesChip";
 import { Composer } from "./Composer";
 import { ChatErrorBanner, ChatNotice } from "./ChatErrorBanner";
 import { ThreadContextWarning } from "./ContextWarning";
@@ -111,6 +111,7 @@ import { cn } from "@/lib/cn";
 import { activeLocale, intlLocale, t } from "@/lib/i18n";
 import { COMPACT_BUBBLE } from "@/lib/compact-chip";
 import { groupTranscript, isStatusActivity, turnDurations, workedLabel } from "@/lib/activity-runs";
+import { autoAppliedKind, foldAutoAppliedChanges } from "@/lib/auto-applied";
 import { StatusActivityRow } from "@/components/StatusActivityRow";
 import { CancelledTurnRow } from "./CancelledTurnRow";
 import { ActivityRun } from "./ActivityRun";
@@ -319,7 +320,7 @@ const Bubble = memo(function Bubble({
   onRegenerate,
   replyTarget,
   onReply,
-  learnedSkills,
+  autoAppliedChanges,
 }: {
   message: Message;
   emerging?: boolean;
@@ -338,8 +339,8 @@ const Bubble = memo(function Bubble({
   onRegenerate?: () => void;
   replyTarget?: Message;
   onReply: (message: Message) => void;
-  /** Fork: the applied skill changes this reply made, drawn inside its bubble. */
-  learnedSkills?: ReactNode;
+  /** Fork: the changes this reply applied on its own, folded into its bubble. */
+  autoAppliedChanges?: ReactNode;
 }) {
   const { botId, threadId, botName, voiceId, tts, localVoice, bots, mentionPeers, mentionPerson, focus, dispatch, onBranch, bubbleStyle, conversational, simple, canReact, openedAt, speakerViewer } = useChatRows(), busy = onRegenerate || versions ? use(ChatBusyContext) : false;
   const remoteClient = window.ogb?.remoteClient?.active === true;
@@ -573,7 +574,7 @@ const Bubble = memo(function Bubble({
                 <div data-citation-source={message.id} data-citation-owner-type="bot" data-citation-owner={botId} data-citation-thread={threadId}><ChatMarkdown text={text} mentionPeers={mentionPeers} mentionPerson={mentionPerson} message={{ threadId, messageId: message.id }} delivered={group?.delivered} originals={group?.originals} /></div>
               ) : null}
               {group && <AttachmentGallery images={group.images} files={group.files} originals={group.originals} message={{ threadId, messageId: message.id }} eager={eagerAttachments} beneath />}
-              {learnedSkills}
+              {autoAppliedChanges}
             </MessageBoundary>
           )}
         </div>
@@ -654,11 +655,6 @@ const ActivityChip = memo(function ActivityChip({ message, place = "auto" }: { m
 });
 
 const RoomHandoffChip = ({ message, comm, bots, dispatch }: { message: Message; comm: NonNullable<Message["comm"]>; bots: readonly Bot[]; dispatch: Dispatch<Action> }) => { const store = useStoreRef(); return <HandoffChip message={message} bots={bots} title={t("chat.openConversationWith", { name: comm.withName })} onClick={() => openRoomThread(dispatch, comm, store.state().groups)} />; };
-/** Fork: an applied skill change belongs to the reply that made it; the transcript folds it into that bubble. */
-const appliedSkillCard = (message: Message) =>
-  message.kind === "options" && message.card?.autoApplied === true && message.card.answered === "allow" && !message.card.held
-  && Boolean(message.card.skillRequest);
-
 const MessagesList = memo(function MessagesList({
   messages: saved,
   transcript,
@@ -712,27 +708,9 @@ const MessagesList = memo(function MessagesList({
   const unreadIds = useMemo(() => unreadMessageIds(messages, unreadDividerId), [messages, unreadDividerId]);
   let dividerPlaced = false;
   const layout = useMemo(() => simpleRowLayout(items, { botId, showToolCalls, unreadIds, simple }), [simple, items, unreadIds, showToolCalls, botId]);
-  // Fork: fold each run of applied skill changes into the bot reply right above them, so the transcript keeps one bubble.
-  const learnedSkills = useMemo(() => {
-    const hosts = new Map<string, Message[]>();
-    const consumed = new Set<string>();
-    let host: Message | null = null;
-    for (const item of items) {
-      // A run of tool chips or a digest between the reply and its skill card does not move the card to another bubble.
-      if (item.kind !== "message") continue;
-      const m = item.message;
-      if (appliedSkillCard(m)) {
-        if (host) {
-          consumed.add(m.id);
-          hosts.set(host.id, [...(hosts.get(host.id) ?? []), m]);
-        }
-        continue;
-      }
-      if (m.role === "user") host = null;
-      else if (m.role === "bot" && m.kind === "text") host = m;
-    }
-    return { hosts, consumed };
-  }, [items]);
+  // Fork: fold each run of changes a reply applied on its own into that reply's bubble, so the transcript keeps one
+  // bubble whichever kind of change landed.
+  const autoAppliedChanges = useMemo(() => foldAutoAppliedChanges(items), [items]);
 
   const joins = layout?.joins;
   const durations = useMemo(() => simple ? turnDurations(messages) : null, [messages, simple]);
@@ -767,7 +745,7 @@ const MessagesList = memo(function MessagesList({
           );
         }
         const m = item.message;
-        if (learnedSkills.consumed.has(m.id)) return divider && <div key={m.id} className="contents">{divider}</div>;
+        if (autoAppliedChanges.consumed.has(m.id)) return divider && <div key={m.id} className="contents">{divider}</div>;
         const row = (() => {
           if (isCancelledTranscriptRow(m)) {
             return (
@@ -844,10 +822,12 @@ const MessagesList = memo(function MessagesList({
                   onRegenerate={m.id === lastBotTextId && !m.automation ? onRegenerate : undefined}
                   replyTarget={lookups.replyTarget(m)}
                   onReply={onReply}
-                  learnedSkills={learnedSkills.hosts.has(m.id) ? (
-                    <LearnedSkillsChip rows={learnedSkills.hosts.get(m.id)!.map((card) => (
-                      <div key={card.id}>{optionsCardRow({ message: card, transcript, botId, botName, botColor, threadId, asker: bots.find((one) => one.id === (card.inbox?.from.botId ?? botId)) })}</div>
-                    ))} />
+                  autoAppliedChanges={autoAppliedChanges.hosts.has(m.id) ? (
+                    <AutoAppliedChangesChip
+                      kinds={autoAppliedChanges.hosts.get(m.id)!.map((card) => autoAppliedKind(card.card!))}
+                      rows={autoAppliedChanges.hosts.get(m.id)!.map((card) => (
+                        <div key={card.id}>{optionsCardRow({ message: card, transcript, botId, botName, botColor, threadId, asker: bots.find((one) => one.id === (card.inbox?.from.botId ?? botId)) })}</div>
+                      ))} />
                   ) : undefined}
                 />
               );

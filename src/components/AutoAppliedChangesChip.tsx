@@ -3,15 +3,21 @@ import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import { autoAppliedTitle, type AutoAppliedKind } from "@/lib/auto-applied";
 
-/** Fork: the applied skill changes a reply made belong inside that reply's bubble, not as rows of their own in the
- * transcript. The chip folds them: closed it names what happened, open it shows the same lines (with Undo and Details)
- * the rows used to show. */
-export function LearnedSkillsChip({ rows, joinAbove }: { rows: ReactNode[]; joinAbove?: boolean }) {
+/** Fork: the changes a reply applied on its own belong inside that reply's bubble, not as rows of their own in the
+ * transcript. The chip folds them: closed it names what landed, open it shows the same rows (with Undo and Details)
+ * they used to show. */
+export function AutoAppliedChangesChip({ rows, kinds, joinAbove }: {
+  rows: ReactNode[];
+  kinds: readonly AutoAppliedKind[];
+  joinAbove?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   if (rows.length === 0) return null;
+  const title = autoAppliedTitle(kinds);
   return (
-    <div data-learned-skills="" className="mt-2">
+    <div data-auto-applied-changes="" className="mt-2">
       <button
         type="button"
         aria-expanded={open}
@@ -21,7 +27,7 @@ export function LearnedSkillsChip({ rows, joinAbove }: { rows: ReactNode[]; join
           joinAbove && "mt-0",
         )}
       >
-        <span className="truncate">{t("chat.learnedSkills.title")}</span>
+        <span className="truncate">{t(title.key, title.params)}</span>
         <ChevronDown size={14} aria-hidden="true" className={cn("shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
