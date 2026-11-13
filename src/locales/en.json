@@ -10632,5 +10632,12 @@
   "permissions.chief.styleCrown": "Chief",
   "permissions.chief.styleLead": "Department lead",
   "settings.sidebarVibrancy.title": "Sidebar vibrancy",
-  "settings.sidebarVibrancy.subtitle": "Mac only: the left sidebar shows the wallpaper's blurred colours"
+  "settings.sidebarVibrancy.subtitle": "Mac only: the left sidebar shows the wallpaper's blurred colours",
+  "settings.sidebarVibrancy.glass.title": "Transparency",
+  "settings.sidebarVibrancy.glass.subtitle": "How much of the wallpaper shows: higher is clearer",
+  "settings.sidebarVibrancy.overlay.title": "Overlay colour",
+  "settings.sidebarVibrancy.overlay.subtitle": "The colour laid over the material; the words follow it",
+  "settings.sidebarVibrancy.overlay.auto": "Follow theme",
+  "settings.sidebarVibrancy.overlay.light": "Light",
+  "settings.sidebarVibrancy.overlay.dark": "Dark"
 }

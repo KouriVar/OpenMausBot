@@ -8224,5 +8224,12 @@
   "permissions.chief.styleCrown": "Chief",
   "permissions.chief.styleLead": "部门组长",
   "settings.sidebarVibrancy.title": "侧栏毛玻璃",
-  "settings.sidebarVibrancy.subtitle": "仅 Mac：左侧边栏透出桌面壁纸的模糊颜色"
+  "settings.sidebarVibrancy.subtitle": "仅 Mac：左侧边栏透出桌面壁纸的模糊颜色",
+  "settings.sidebarVibrancy.glass.title": "透明度",
+  "settings.sidebarVibrancy.glass.subtitle": "壁纸透出多少：数字越大越透",
+  "settings.sidebarVibrancy.overlay.title": "叠加颜色",
+  "settings.sidebarVibrancy.overlay.subtitle": "盖在毛玻璃上的颜色，文字颜色会跟着切换",
+  "settings.sidebarVibrancy.overlay.auto": "跟随主题",
+  "settings.sidebarVibrancy.overlay.light": "浅色",
+  "settings.sidebarVibrancy.overlay.dark": "深色"
 }

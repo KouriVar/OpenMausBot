@@ -55,7 +55,10 @@ picture still shows. `prefers-reduced-transparency` and high-contrast modes put 
 bundle id, the user-data path or any data folder changed. Later the same round it was turned down so more of the wallpaper
 shows: 22% of the panel on the dark skins, 28% on the light ones (two tokens, `--sidebar-glass-strength` and
 `--sidebar-glass-strength-light`), a selected row a 32% tint rather than a block, and the sidebar's quiet inks stepped
-toward the skin's ink with a halo behind them so the words still read over a bright picture.
+toward the skin's ink with a halo behind them so the words still read over a bright picture. Two rows now sit under the
+switch: **Transparency** (20 / 40 / 60 / 80 / 100%, more is clearer, 60% by default) and **Overlay colour** (follow the
+theme, light, or dark — a light overlay puts white over the material even in a dark theme, and the sidebar's words turn dark
+with it). Both take effect at once and are kept on this computer.
 
 中文：**V0.6.9：Mac 侧栏变成「桌面壁纸的毛玻璃」**
 
@@ -66,7 +69,9 @@ Mac 上左栏现在向系统要一层 sidebar 材质（Finder、Aside 侧栏用�
 （`--sidebar-glass-strength`，62%）加上每种皮肤自己的玻璃色，只在一处调；选了侧栏颜色就在毛玻璃上叠一层淡色，侧栏图片照旧显示。
 系统「减少透明度」和高对比模式下会回到实色侧栏。bundle id、userData 路径和任何数据目录都没动。这一轮后半段又把透明度调低了，让壁纸
 透出更多：深色皮肤 22%、浅色皮肤 28%（两个 token：`--sidebar-glass-strength` 和 `--sidebar-glass-strength-light`），选中行
-改成 32% 的淡色叠层而不是色块，侧栏里那些浅色文字往皮肤的主文字色靠、并在字后面加一层同色系的光晕，亮壁纸上也还看得清。
+改成 32% 的淡色叠层而不是色块，侧栏里那些浅色文字往皮肤的主文字色靠、并在字后面加一层同色系的光晕，亮壁纸上也还看得清。开关下面
+又多了两行：**透明度**（20/40/60/80/100%，数字越大越透，默认 60%）和**叠加颜色**（跟随主题 / 浅色 / 深色 —— 选浅色时深色主题下也
+给侧栏盖一层白色半透明，文字跟着变深）。两行都是选了立即生效，记在本机。
 
 ### OE030 · The 0.6.8 round: a Chief can wear a department lead's flag
 
@@ -76,7 +81,9 @@ always had) or **Department lead** (a flag), never both: the choice is one value
 The flag is drawn at the crown's size, weight and colour, from the app's one icon set (Remix Icon's flag-line, Apache-2.0,
 credited in NOTICE), and every place that shows the crown reads it from one file — sidebar rows and the Simple hero, the
 chat header's badge, the team map, the org chart, the bot action menu and the phone hero — so a later swap to another SVG
-is a one-file change. Chief itself lives on the bot and the server, so this mark is kept where the fork's other display
+is a one-file change, and switching it reaches every badge at once: the sidebar row's crown beside the name and the chat
+head's badge read the same choice, which announces itself, so no restart is needed. Chief itself lives on the bot and the
+server, so this mark is kept where the fork's other display
 preferences live: this computer's storage, per bot, with no server change and no data folder touched.
 
 中文：**V0.6.8：Chief 可以挂「部门组长」的小旗子**
@@ -85,7 +92,8 @@ preferences live: this computer's storage, per bot, with no server change and no
 二选一：**Chief**（原来的皇冠）或**部门组长**（小旗子），两者互斥 —— 每个机器人只有一个值，选了哪个另一个就自动取消。小旗子的
 尺寸、粗细、颜色都跟皇冠一致，出自 App 自己的图标集（Remix Icon 的 flag-line，Apache-2.0，NOTICE 里已有署名），并且所有显示
 皇冠的地方（侧栏行与简易模式大头像、聊天头角标、团队地图、组织图、机器人操作菜单、手机端头像）都从同一个文件取图标，以后换成
-自己的 SVG 只需改那一个文件。Chief 本身存在机器人记录里、由服务端保存，所以这个「标记」按 fork 其它显示类偏好的做法存在本机、
+自己的 SVG 只需改那一个文件；切换后所有位置立即同步 —— 侧栏名字旁的那个皇冠和聊天头角标也读同一个选择，切换时会自己广播，
+不用重启。Chief 本身存在机器人记录里、由服务端保存，所以这个「标记」按 fork 其它显示类偏好的做法存在本机、
 按机器人分别记，不动服务端，也不动任何数据目录。
 
 ### OE029 · The 0.6.7 round: a quieter department heading, one preview row, a reply quote that sits right

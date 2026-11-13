@@ -10632,5 +10632,12 @@
   "permissions.chief.styleCrown": "Chefe",
   "permissions.chief.styleLead": "Líder do departamento",
   "settings.sidebarVibrancy.title": "Vibração da barra lateral",
-  "settings.sidebarVibrancy.subtitle": "Só no Mac: a barra lateral mostra as cores desfocadas do papel de parede"
+  "settings.sidebarVibrancy.subtitle": "Só no Mac: a barra lateral mostra as cores desfocadas do papel de parede",
+  "settings.sidebarVibrancy.glass.title": "Transparência",
+  "settings.sidebarVibrancy.glass.subtitle": "Quanto do papel de parede aparece: maior é mais transparente",
+  "settings.sidebarVibrancy.overlay.title": "Cor da sobreposição",
+  "settings.sidebarVibrancy.overlay.subtitle": "A cor sobre o material; as palavras acompanham",
+  "settings.sidebarVibrancy.overlay.auto": "Seguir o tema",
+  "settings.sidebarVibrancy.overlay.light": "Clara",
+  "settings.sidebarVibrancy.overlay.dark": "Escura"
 }

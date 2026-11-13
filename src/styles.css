@@ -3657,16 +3657,16 @@ button:disabled.bg-danger {
    before the first paint by src/fork/sidebar-vibrancy.ts, so the switch in
    Settings takes effect without a reload.
 
-   How much of the wallpaper shows is two tokens, one per skin family, so each
-   can be tuned on its own: `--sidebar-glass-strength` for the dark skins (the
-   default, since midnight is), `--sidebar-glass-strength-light` for the light
-   ones. Lower = more wallpaper.
+   Two choices drive it, both set on <html> from the Settings rows:
+   `data-sidebar-glass` is how much of the wallpaper shows (20…100; the colour
+   laid over the material is 100 minus it, so 100 is the system material alone)
+   and `data-sidebar-overlay` is that colour — the theme's own panel, white, or
+   black — with the sidebar's words following it so they stay legible.
    ──────────────────────────────────────────────────────────────────────── */
 :root[data-sidebar-vibrancy="on"] {
-  /* Light skins' panel is warm white, dark skins' is near black; mixing with transparent gives each its own glass. */
-  --sidebar-glass-strength: 22%;
-  --sidebar-glass-strength-light: 28%;
-  --sidebar-glass: color-mix(in srgb, var(--color-panel) var(--sidebar-glass-strength), transparent);
+  --sidebar-glass-color: var(--color-panel);
+  --sidebar-glass-strength: 40%; /* 60% transparency */
+  --sidebar-glass: color-mix(in srgb, var(--sidebar-glass-color) var(--sidebar-glass-strength), transparent);
   /* Rows over the material: a tint, never a solid block, so the wallpaper's colour still reads through a selection. */
   --sidebar-raised: color-mix(in srgb, var(--color-raised) 32%, transparent);
   --sidebar-raised-hover: color-mix(in srgb, var(--color-raised-hover) 40%, transparent);
@@ -3675,9 +3675,34 @@ button:disabled.bg-danger {
      scheme sits behind the glyphs. Nothing opaque is painted. */
   --sidebar-halo: rgb(0 0 0 / 0.4);
 }
-/* The light skins: a little more panel so dark words hold on a bright wallpaper, and a light halo behind them. */
-:root[data-sidebar-vibrancy="on"]:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="daylight"], [data-skin="meadow"], [data-skin="pop"]) {
-  --sidebar-glass-strength: var(--sidebar-glass-strength-light);
+/* The transparency the person chose: the overlay keeps 100 minus it of the colour. */
+:root[data-sidebar-vibrancy="on"][data-sidebar-glass="20"] { --sidebar-glass-strength: 80%; }
+:root[data-sidebar-vibrancy="on"][data-sidebar-glass="40"] { --sidebar-glass-strength: 60%; }
+:root[data-sidebar-vibrancy="on"][data-sidebar-glass="60"] { --sidebar-glass-strength: 40%; }
+:root[data-sidebar-vibrancy="on"][data-sidebar-glass="80"] { --sidebar-glass-strength: 20%; }
+:root[data-sidebar-vibrancy="on"][data-sidebar-glass="100"] { --sidebar-glass-strength: 0%; }
+/* A white overlay whatever the theme is (Aside's bright sidebar), and its words go dark to hold on it. */
+:root[data-sidebar-vibrancy="on"][data-sidebar-overlay="light"] {
+  --sidebar-glass-color: #ffffff;
+  --sidebar-halo: rgb(255 255 255 / 0.55);
+}
+:root[data-sidebar-vibrancy="on"][data-sidebar-overlay="light"] [data-sidebar] {
+  --color-ink: #1b1b1b;
+  --color-ink-secondary: rgb(27 27 27 / 0.88);
+  --color-ink-tertiary: rgb(27 27 27 / 0.74);
+}
+/* A near-black overlay whatever the theme is, and its words go light. */
+:root[data-sidebar-vibrancy="on"][data-sidebar-overlay="dark"] {
+  --sidebar-glass-color: #0e0e0e;
+  --sidebar-halo: rgb(0 0 0 / 0.4);
+}
+:root[data-sidebar-vibrancy="on"][data-sidebar-overlay="dark"] [data-sidebar] {
+  --color-ink: #f5f5f5;
+  --color-ink-secondary: rgb(245 245 245 / 0.88);
+  --color-ink-tertiary: rgb(245 245 245 / 0.74);
+}
+/* Following the theme: the panel's own colour, and the light skins' words on a light halo. */
+:root[data-sidebar-vibrancy="on"][data-sidebar-overlay="auto"]:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="daylight"], [data-skin="meadow"], [data-skin="pop"]) {
   --sidebar-halo: rgb(255 255 255 / 0.55);
 }
 :root[data-sidebar-vibrancy="on"] [data-sidebar] {
