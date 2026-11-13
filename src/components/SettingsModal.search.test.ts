@@ -82,12 +82,13 @@ describe("Settings search in Simple mode", () => {
     expect(document.querySelector("[data-settings-hit]")!.textContent).toContain("Phone & devices");
   });
 
-  it("tags an Advanced row from Simple; choosing it turns Advanced mode on and lands on the row", () => {
+  it("tags an Advanced row from Simple; choosing it lands on the page without changing the mode", () => {
     type("parallel threads");
     const hit = document.querySelector<HTMLButtonElement>('[data-settings-hit="parallel"]')!;
     expect(hit.textContent).toContain("Advanced");
     flushSync(() => hit.click());
-    expect(vi.mocked(setAdvancedMode)).toHaveBeenCalledWith(true);
+    // Fork: the window never changes the mode, so the chat head's bot panel survives the visit.
+    expect(vi.mocked(setAdvancedMode)).not.toHaveBeenCalled();
     expect(fixture.dispatch).toHaveBeenCalledWith({ type: "toggleAppSettings", open: true, section: "bots" });
   });
 

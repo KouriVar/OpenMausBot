@@ -487,6 +487,8 @@ export function profileMenuItems({
   tools = [],
   advancedToggle,
   simple,
+  menu,
+  onApps,
   onUsage,
   onSettings,
   onShortcuts,
@@ -510,6 +512,10 @@ export function profileMenuItems({
   /** the row that takes this window to the other mode */
   advancedToggle?: SidebarMenuItem | null;
   simple?: { tools?: SidebarMenuItem[]; places: SidebarMenuItem[] };
+  /** which set to draw; unset follows `simple`, so a menu with no account context draws Advanced's full one */
+  menu?: "simple" | "advanced";
+  /** opens Apps (the plugins, MCP and connector panel); Advanced's menu only */
+  onApps?: () => void;
   onUsage: () => void;
   onSettings: () => void;
   onShortcuts: () => void;
@@ -543,8 +549,25 @@ export function profileMenuItems({
   const settings: SidebarMenuItem = { key: "settings", label: t("sidebar.menu.settings"), icon: <SettingsIcon size={18} />, onSelect: onSettings };
   const accountItem: SidebarMenuItem | null = account ? { key: "account", label: account, icon: <CircleUserRound size={18} />, onSelect: onAccount } : null;
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
+  if (menu === "advanced") {
+    // Fork: Advanced's menu is Simple's rows plus everything else this build can still reach — its tools and Apps,
+    // the phone rows, help and updates — one group per kind of thing. Simple's own menu below stays as it is.
+    const apps: SidebarMenuItem | null = onApps ? { key: "apps", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: onApps } : null;
+    const usageRow: SidebarMenuItem | null = usageItem ? { ...usageItem, chevron: true } : null;
+    const groups: SidebarMenuItem[][] = [
+      present(advancedToggle ?? null),
+      present(...tools, apps),
+      present(usageRow, settings),
+      phone,
+      [support],
+      present(update),
+      [...present(accountItem), ...accounts],
+    ].filter((group) => group.length > 0);
+    const rows = groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
+    return move.length ? [...move, ...rows.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))] : rows;
+  }
   if (!simple) {
-    // Fork: Advanced keeps its tools in this menu rather than a footer section, the same rows Simple already lists.
+    // Icon and rail densities ask for this menu with no account context; its rows are the ones they always had.
     const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
@@ -698,6 +721,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       panels,
       archived: account?.archived,
     }),
+    // Fork: Advanced draws its own menu, one group per kind of thing; Simple's stays as it is. The rail's own rows
+    // already carry Apps, so it is not offered twice there.
+    menu: advancedNow ? "advanced" : undefined,
+    onApps: rail ? undefined : () => dispatch({ type: "togglePlugins", open: true }),
     ...(account ? { simple: {
       places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
     } } : {}),
@@ -740,6 +767,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       panels,
       archived: account?.archived,
     }),
+    // Fork: Advanced draws its own menu, one group per kind of thing; Simple's stays as it is. The rail's own rows
+    // already carry Apps, so it is not offered twice there.
+    menu: advancedNow ? "advanced" : undefined,
+    onApps: rail ? undefined : () => dispatch({ type: "togglePlugins", open: true }),
     ...(account ? { simple: {
       places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
     } } : {}),

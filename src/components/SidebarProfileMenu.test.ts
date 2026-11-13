@@ -387,6 +387,27 @@ describe("profileMenuItems", () => {
     expect(items.some((item) => item.separatorBefore)).toBe(false);
   });
 
+  it("draws Advanced's full menu where the Simple shell hands in its account, and Apps opens the panel", () => {
+    const tools = toolMenuItems({ activeView: "chat", automationsNeedYou: false, onAutomations: noop, onTeamMap: noop });
+    const apps = vi.fn();
+    const shared = {
+      phone: [{ key: "phone-app", label: "Get the phone app", onSelect: noop }],
+      usage: true,
+      update: null,
+      account: "OpenMausBot Cloud",
+      tools,
+      simple: { tools, places: [] },
+      onApps: apps,
+      onUsage: noop, onSettings: noop, onShortcuts: noop, onAbout: noop, onHelp: noop, onFeedback: noop, onAccount: noop,
+    };
+    // Fork: Simple's own menu stays what it is — no Apps, no phone, no help.
+    expect(profileMenuItems(shared).map((item) => item.key)).toEqual(["automations", "team-map", "usage", "settings"]);
+    const full = profileMenuItems({ ...shared, menu: "advanced" });
+    expect(full.map((item) => item.key)).toEqual(["automations", "team-map", "apps", "usage", "settings", "phone-app", "support", "account"]);
+    full.find((item) => item.key === "apps")!.onSelect();
+    expect(apps).toHaveBeenCalledOnce();
+  });
+
   it("keeps the update entry beside settings", () => {
     const update = { key: "update", label: "Check for updates", onSelect: noop };
     expect(build({ update }).map((item) => item.key)).toEqual(["usage", "phone-app", "support", "settings", "update", "account"]);
@@ -472,7 +493,7 @@ describe("Simple mode's account menu", () => {
     expect(usageRow(build()).value).toBeUndefined();
   });
 
-  it("keeps Advanced's account menu as it was", () => {
+  it("keeps the menu icon and rail densities ask for, without an account's page rows", () => {
     const items = build({ simple: undefined, usageSummary: { value: "12% used" } });
     expect(items.map((item) => item.key)).toEqual(["usage", "phone-app", "support", "settings", "update", "account"]);
     expect(items[0]!.chevron).toBeUndefined();
