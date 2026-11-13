@@ -27,6 +27,47 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE035 · 0.7.0 — first release on upstream v0.1.155
+
+`0.7.0` is the first release cut on upstream `v0.1.155`, and it is the whole of the `0.6.8`–`0.6.12` rounds gathered into
+one build rather than a round of its own: the department lead's flag (0.6.8), the Mac sidebar made of the wallpaper
+(0.6.9), the Inbox moved into the account menu (0.6.10), the inset layout with one card (0.6.11), and the outright merge
+of upstream `v0.1.155` (0.6.12). Nothing those rounds settled is reopened here — no interface, styling, bundle id,
+user-data path or data folder moves — so the version is the only change this release makes to the tree.
+
+- **A Chief can wear a department lead's flag** (`0.6.8`, OE030): beside the Chief switch a Chief picks **Chief** (its
+  crown) or **Department lead** (a flag), one value per bot, drawn from the app's one icon file so every crown in the
+  sidebar row, chat head, team map, org chart, bot action menu and phone hero switches with it, kept on this computer.
+- **A Mac sidebar made of the wallpaper** (`0.6.9`, OE031): the left column asks the system for the `sidebar` vibrancy
+  material Finder and Aside use, with **Sidebar vibrancy**, **Transparency** and **Overlay colour** under Settings →
+  Appearance → Look; off, or off a Mac, it is the solid sidebar it was.
+- **The Inbox moves into the account menu** (`0.6.10`, OE032): the sidebar's foot keeps only the avatar, search and +, the
+  Inbox becomes a row under Apps with the icon and the panel it had, and a green dot marks it while anything waits.
+- **An inset layout, one card** (`0.6.11`, OE033): **Settings → Appearance → Look → Layout** gains **Inset**, which turns
+  the whole content area into one rounded card 8px inside the window, its single hairline the only edge while every panel
+  inside gives up its own left border, ground and shadow.
+- **All of upstream `v0.1.155`, merged** (`0.6.12`, OE034): 978 upstream commits over `v0.1.152`–`v0.1.155` merged rather
+  than cherry-picked, 124 conflicts all resolved to this fork's interface with every upstream feature carried inside it.
+
+中文：**V0.7.0：在上游 v0.1.155 之上的第一个正式版**
+
+`0.7.0` 是第一个建立在上游 `v0.1.155` 之上的版本，也是把 `0.6.8`–`0.6.12` 这几轮做出来的东西收成的**一个**包，而不是又一轮新
+改动：部门组长的小旗子（0.6.8）、用桌面壁纸做的 Mac 侧栏（0.6.9）、收件箱挪进头像菜单（0.6.10）、内嵌布局一张卡片
+（0.6.11），以及上游 `v0.1.155` 的全量合入（0.6.12）。这几轮定下的东西一处都没有重开 —— 界面、样式、bundle id、userData
+路径和任何数据目录都没动 —— 这一版对代码树唯一的改动只是版本号。
+
+- **Chief 可以挂「部门组长」的小旗子**（`0.6.8`，OE030）：Chief 开关旁边二选一 —— **Chief**（皇冠）或**部门组长**（小旗子），
+  每个机器人只有一个值，图标取自 App 那一个文件，侧栏行、聊天头角标、团队地图、组织图、机器人操作菜单和手机端头像一起切换，
+  记在本机。
+- **用壁纸做的 Mac 侧栏**（`0.6.9`，OE031）：左栏向系统要 `sidebar` 那层毛玻璃（Finder、Aside 用的那种），设置 → 外观 →
+  样式下多了**侧栏毛玻璃**、**透明度**和**叠加颜色**；关掉、或不在 Mac 上，侧栏还是原来的实色。
+- **收件箱挪进头像菜单**（`0.6.10`，OE032）：侧栏底栏只留头像、搜索和加号，收件箱变成「应用」下面的一行，图标和面板照旧，
+  有东西等人处理时这一行最右边出现一个绿点。
+- **内嵌布局，只有一张卡片**（`0.6.11`，OE033）：**设置 → 外观 → 样式 → 布局**新增**内嵌**，整个内容区收成一张离窗口边 8px 的
+  圆角卡片，卡片那一条淡描边是唯一的边，里面的每个面板都放弃自己的左边框、底色和阴影。
+- **上游 `v0.1.155` 全量合入**（`0.6.12`，OE034）：`v0.1.152`–`v0.1.155` 共 978 个上游提交用 merge 而不是 cherry-pick，
+  124 个冲突全部按本 fork 的界面解决，上游每个新功能都搬进了这张界面。
+
 ### OE034 · The 0.6.12 round: the whole of upstream v0.1.155, merged
 
 `0.6.12` merges upstream `v0.1.155` outright: 978 upstream commits over `v0.1.152`–`v0.1.155` on top of `v0.1.151`,
