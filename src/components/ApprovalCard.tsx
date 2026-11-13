@@ -315,7 +315,7 @@ function AppliedChangeLine({
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
-            className={cn(TEXT_ACTION, "text-ink-tertiary hover:text-ink-secondary")}
+            className={cn(TEXT_ACTION, "pe-0 text-ink-tertiary hover:text-ink-secondary")}
           >
             {open ? t("approval.applied.hideDetails") : t("approval.applied.details")}
           </button>
