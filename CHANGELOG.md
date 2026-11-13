@@ -37,7 +37,8 @@ the renderer e2e runs the panel's MCP phase after the Settings phase again inste
 checking the Simple panel the moment the window closes. The avatar menu draws two sets: Simple's stays exactly as it is,
 while Advanced adds everything this build can still reach — its tools (Automations, Team map, archived bots and pinned
 panels), Apps, Usage and Settings, the phone rows, Help and support (Help Center, feedback, keyboard shortcuts, about),
-Check for updates and the signed-in accounts — one group per kind on the existing rows and dividers. Nothing cloud-only
+Check for updates and the signed-in accounts — one group per kind on the existing rows and dividers. Settings search also stops listing the pages and rows only
+Advanced shows, because the window can no longer take the person to them. Nothing cloud-only
 comes back: My Cloud, the place row, the Cloud account row, Plan & billing, Organization and Files need a Cloud bridge
 this build does not ship, and What's new, Sign out and Published apps belong to upstream commits this fork never merged.
 
@@ -47,7 +48,7 @@ this build does not ship, and What's new, Sign out and Published apps belong to 
 窗口菜单仍会标出当前所在的页面；渲染器 e2e 也恢复成先设置流程、后面板流程（不再为了绕开 bug 调换顺序），并在关闭窗口的那一刻
 检查简易面板还在。头像菜单分成两套：简易模式保持原样；高级模式在此基础上补全本构建还能到达的入口 —— 工具（自动化、团队地图、
 归档与固定面板）、应用、用量与设置、手机行、帮助与支持（帮助中心、反馈、快捷键、关于）、检查更新和已登录账号，按类分组、
-沿用现有行样式与分隔线。依赖云端的一概不放回：我的云端、位置行、云端账号行、套餐与账单、组织与文件都需要本构建没有的云端桥接；
+沿用现有行样式与分隔线。设置搜索也不再列出只有高级模式才有的页与行 —— 窗口已经不会为此切模式。依赖云端的一概不放回：我的云端、位置行、云端账号行、套餐与账单、组织与文件都需要本构建没有的云端桥接；
 「新变化」、退出登录、已发布应用属于本 fork 从未合入的上游提交。
 
 ### OE023 · The 0.6.0 round: the 0.5.1–0.5.7 work, one release
