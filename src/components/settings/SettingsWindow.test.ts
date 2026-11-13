@@ -52,14 +52,25 @@ const render = (section: AppSettingsSection = fixture.section) => { fixture.sect
 const navPages = (html: string) => [...html.matchAll(/data-settings-page="([a-z]+)"/g)].map((match) => match[1]);
 
 describe("the Settings window", () => {
-  it("opens with the place, Your account and This app, each headed by an identity row", () => {
+  it("heads the list with the place as one bare-icon row, and pins Your account and This app to its foot", () => {
     fixture.advanced = true;
     const html = render();
-    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "data", "account", "app", "general", "appearance"]);
+    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "data", "general", "appearance", "account", "app"]);
     expect(html).toContain("This computer");
     expect(html).toContain("Your account");
     expect(html).toContain("This app");
     expect(html).toContain('aria-current="page"');
+    // The foot holds the two identity rows, after the scrolling list, so the list can scroll under them.
+    const foot = html.indexOf("data-settings-footer");
+    expect(foot).toBeGreaterThan(html.indexOf('data-settings-page="overview"'));
+    expect(html.indexOf('data-settings-page="appearance"')).toBeLessThan(foot);
+    expect(html.indexOf('data-settings-page="account"')).toBeGreaterThan(foot);
+    expect(html.indexOf('data-settings-page="app"')).toBeGreaterThan(html.indexOf('data-settings-page="account"'));
+    // The place row is one plain line, like the page rows: no badge tile and no second line under it.
+    const identity = html.indexOf("data-settings-identity");
+    const placeRow = html.slice(identity, html.indexOf("</button>", identity));
+    expect(placeRow).not.toContain("data-place-badge");
+    expect(placeRow.match(/<span/g)?.length).toBe(2);
   });
 
   it("titles Overview with the place's name and its status line, never For …", () => {
@@ -79,7 +90,7 @@ describe("the Settings window", () => {
 
   // Owner decision (Nov 11): Simple's nav is shorter, the same for every person and every rail. Fork: this build is
   // local-only, so Plan & billing is not offered and the list has seven entries.
-  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "account", "app", "appearance"];
+  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "appearance", "account", "app"];
   const SIMPLE_PEOPLE: Array<[string, () => void]> = [
     ["a person with only this computer", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} } }))],
     ["This computer's rail, with My Cloud", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} }, workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) } }))],

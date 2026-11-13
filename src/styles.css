@@ -1710,23 +1710,21 @@ body {
   --settings-edge: color-mix(in srgb, var(--color-ink) 10%, transparent);
   --switch-on: var(--color-accent);
   --switch-knob-on: #fff;
-  --switch-outline: color-mix(in srgb, var(--color-ink) 50%, transparent);
 }
 :root[data-skin="midnight"] [data-settings-look] {
   --settings-edge: color-mix(in srgb, var(--color-ink) 9%, transparent);
-  --switch-outline: color-mix(in srgb, var(--color-ink) 40%, transparent);
 }
 :root:is([data-skin="midnight"], [data-skin="daylight"]) [data-settings-look] {
   --settings-sheet: var(--color-app);
   --switch-on: var(--color-ink);
   --switch-knob-on: var(--color-app);
 }
-/* One switch in Settings: 32 by 20. Off is a light fill with an outline that keeps 3:1 against the card. */
+/* One switch in Settings: 32 by 20. Off is a light fill and a white knob, with no outline of its own. */
 [data-settings-look] [data-switch] {
   width: 32px;
   height: 20px;
   background: color-mix(in srgb, var(--color-ink) 22%, transparent);
-  box-shadow: inset 0 0 0 1px var(--switch-outline);
+  box-shadow: none;
   filter: none;
 }
 [data-settings-look] [data-switch][aria-checked="true"] {

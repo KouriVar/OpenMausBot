@@ -1,5 +1,5 @@
 import { useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Laptop, Search, X } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Cloud, Laptop, Search, Server, X } from "lucide-react";
 import { cloudColor } from "@/lib/cloud-look";
 import { placeInitials } from "@/lib/places";
 import { cn } from "@/lib/cn";
@@ -97,6 +97,18 @@ function IdentityRow({ page, current, badge, name, line, onOpen, narrow }: {
         <span className="truncate text-[12px] leading-4 text-ink-secondary">{line}</span>
       </span>
       {narrow && <ChevronRight size={14} aria-hidden="true" className="shrink-0 text-ink-tertiary rtl:-scale-x-100" />}
+    </button>
+  );
+}
+
+/** The place, as one more nav row: a bare icon in the same 24px slot the page rows use, its name on one line. */
+function PlaceRow({ page, name, kind, current, onOpen }: { page: SettingsPageId; name: string; kind: SettingsPlace["kind"]; current: boolean; onOpen: () => void }) {
+  const Icon = kind === "computer" ? Laptop : kind === "server" ? Server : Cloud;
+  return (
+    <button type="button" data-settings-page={page} data-settings-section={page} data-settings-identity="" aria-current={current ? "page" : undefined} onClick={onOpen}
+      className={cn(NAV_ITEM, current ? "bg-menu-active font-medium" : "hover:bg-menu-hover")}>
+      <span className="flex w-6 shrink-0 justify-center"><Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} /></span>
+      <span className="min-w-0 flex-1 truncate" title={name}>{name}</span>
     </button>
   );
 }
@@ -203,10 +215,13 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
         {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : OWNERS.map((owner, index) => {
           const group = pages.filter((page) => page.owner === owner && page.id !== lines[owner].page);
           const identity = lines[owner];
+          // This computer heads the list as one more row; the account and the app live at the bottom instead.
+          const heads = owner === "place";
+          if (!heads && group.length === 0) return null;
           return (
-            <div key={owner} role="group" aria-label={identity.name} data-settings-group={owner} className={cn("flex flex-col gap-0.5", index > 0 && "mt-4")}>
-              <IdentityRow page={identity.page} current={current === identity.page} badge={identity.badge} name={identity.name} line={identity.line} narrow={narrow} onOpen={() => onOpen(identity.page)} />
-              <div className="mt-0.5 flex flex-col gap-0.5">
+            <div key={owner} role="group" aria-label={identity.name} data-settings-group={owner} className={cn("flex flex-col gap-0.5", (heads ? index > 0 : true) && "mt-4")}>
+              {heads && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
+              <div className={cn("flex flex-col gap-0.5", heads && "mt-0.5")}>
                 {group.map((page) => narrow ? (
                   <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
                     className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">
@@ -222,6 +237,15 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
             </div>
           );
         })}
+      </div>
+      {/* The account and the app stay put at the bottom while the list above scrolls. */}
+      <div data-settings-footer="" className={cn("shrink-0 shadow-[inset_0_0.5px_0_var(--settings-edge)]", narrow ? "px-2 pb-2 pt-1" : "px-3 pb-3 pt-1.5")}>
+        <div className="flex flex-col gap-0.5">
+          {(["account", "app"] as const).map((owner) => {
+            const identity = lines[owner];
+            return <IdentityRow key={owner} page={identity.page} current={current === identity.page} badge={identity.badge} name={identity.name} line={identity.line} narrow={narrow} onOpen={() => onOpen(identity.page)} />;
+          })}
+        </div>
       </div>
       {!SIMPLE_ONLY && <AdvancedModeFooter narrow={narrow} onChange={onAdvanced} />}
     </nav>
