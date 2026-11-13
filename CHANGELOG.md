@@ -27,6 +27,62 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE034 · The 0.6.12 round: the whole of upstream v0.1.155, merged
+
+`0.6.12` merges upstream `v0.1.155` outright: 978 upstream commits over `v0.1.152`–`v0.1.155` on top of `v0.1.151`,
+merged rather than cherry-picked, so nothing is left behind. 124 files conflicted; our interface and styling won every
+one of them, and each upstream feature was carried into it instead of being dropped.
+
+- **New upstream features now in this fork's screens**: a bot's page can be **pinned into the sidebar** as its own page
+  (Pin to sidebar on the page toolbar, Advanced mode, the same six-panel budget as a pinned URL); **Traditional Chinese
+  is completed** in `zh-tw`; one bot's **body can be given to every other bot** from the avatar editor; Simple's bot
+  settings gain one row saying **sending on your behalf and app access are set in Advanced mode**, which opens them;
+  a login page's **one-time code is read out of a connected mailbox and typed for you**; an **image preview can be
+  copied** to the clipboard as PNG; the engines' **model list and prices moved into one JSON manifest** refreshed from
+  `main`; **Claude on Amazon Bedrock** and **OMP over ACP** join the engines; **Codex gains a Fast row** for each model
+  that offers the tier; **Fish Audio** becomes a Live-call provider beside OpenAI and Azure; a **webhook trigger can
+  carry a payload field filter** (up to ten dotted paths, a mismatch is ignored with HTTP 202); a **stuck cloud computer
+  can be reset** from the computer panel or by the bot itself; and **Your account** becomes its own Settings page
+  (sign-in, sign-out, organization, emails) with **Import & export** as the one place for import, export, backup and move.
+- Also merged from the same range: burst mode, Ollama as a first-class local engine, ModelGo, a Published apps page, the
+  Pages Point rework, Team Clouds, durable Inbox asks, `post_to_thread`, room drag, announcement cards, extension pages
+  in the browser, 1Password improvements, the VPS wake script, tailnet sharing, self-hosted updates, archive
+  attachments, `.xmind` to Markdown, and the streaming and painting fixes.
+- **This fork's decisions the merge keeps**: `SIMPLE_ONLY` stays `true` — upstream had flipped it back to `false`, which
+  would have put the Advanced switch in every Settings footer and unwound the ten-tap unlock, so the merged build keeps
+  the fork's Simple/Advanced design and the new "More in Advanced mode" row leads to This app while the mode is still
+  locked. Upstream's removal of the peers list, peer approval, the escalation cards and the Team org-chart mode is taken
+  as it stands: nothing in the merged interface references them.
+- **Bug fixes carried in**: Windows-1252 files no longer open garbled, chat videos stream by byte range, an IME
+  Enter/Escape no longer renames a sidebar thread, Chinese and Japanese words are found inside a sentence, switching the
+  local place while a bot works asks instead of silently killing the turn, a newer Claude copy on `PATH` no longer gets
+  the older copy's flags, empty files survive a move to My Cloud, and a 1Password item that fails to read is no longer
+  reported as deleted.
+
+中文：**V0.6.12：把上游 v0.1.155 全量合进来**
+
+`0.6.12` 完整合入上游 `v0.1.155`：在 `v0.1.151` 之上，`v0.1.152`–`v0.1.155` 共 978 个上游提交，用 merge 而不是
+cherry-pick，一个都不漏。124 个文件冲突；界面和样式全部按我方，上游每个新功能都搬进了我方界面，没有因为「以我方为准」被删掉。
+
+- **现在已经在本 fork 界面里的上游新功能**：bot 的页面可以**固定到侧栏**成独立页面（页面工具栏「固定到侧栏」，高级模式，
+  和固定网页共用六个位置的上限）；**繁体中文补齐**；一处头像的**身体可以套给其他所有 bot**；简易模式的 bot 设置多一行，说明
+  **代为发送和应用权限在高级模式里**，点它直接打开；登录页的**一次性验证码会从已连接的邮箱里读出来并自动填**；**图片预览可以
+  复制**成 PNG 到剪贴板；各引擎的**模型清单和价格移进一份 JSON manifest**，会从 `main` 刷新；新增 **Claude on Amazon
+  Bedrock** 和 **OMP over ACP** 两个引擎；**Codex 每个支持 Fast 的模型多一行 Fast**；**Fish Audio** 成为 OpenAI、Azure
+  之外的 Live 通话 provider；**webhook 触发可以带载荷字段过滤**（最多十个点路径，不匹配按 HTTP 202 忽略）；**卡住的云电脑可以
+  重置**，面板上或由 bot 自己发起；**「你的账户」成为独立的设置页**（登录、退出、组织、邮件），**「导入与导出」**收成导入、
+  导出、备份和迁移的唯一入口。
+- 同一批还合入了：burst 模式、作为一等本地引擎的 Ollama、ModelGo、「已发布应用」页、Pages Point 重做、Team Cloud、
+  可长期挂起的收件箱请求、`post_to_thread`、房间拖拽排序、公告卡片、浏览器里的扩展页、1Password 改进、VPS 唤醒脚本、
+  tailnet 共享、自托管更新、压缩包附件、`.xmind` 转 Markdown，以及流式与绘制的修复。
+- **这次合并保住的 fork 决定**：`SIMPLE_ONLY` 仍然是 `true` —— 上游把它改回了 `false`，那会把高级模式开关重新放回每个设置页
+  底部、并拆掉连点十次解锁，所以合出来的版本保留本 fork 的简易/高级设计；上游新加的那行「更多在高级模式里」在高级模式还没解锁
+  时指向「这个应用」页。上游删掉的 peers 列表、peer 审批、escalation 卡片和团队组织图模式照上游删掉：合并后的界面没有任何
+  地方引用它们。
+- **一并合入的 bug 修复**：Windows-1252 编码的文件不再打开是乱码、聊天里的视频按字节范围流式播放、输入法选词时的回车/ESC
+  不再触发侧栏会话改名、中日文可以按句中某个词召回、bot 正在工作时切换本机位置会先询问而不是静默掐断这一轮、`PATH` 上更新的
+  Claude 副本不会再套用旧副本的参数、空文件在迁移到 My Cloud 时不再丢失、读不出的 1Password 条目不再被当成已删除。
+
 ### OE033 · The 0.6.11 round: an inset layout, one card
 
 Settings → Appearance → Look gains **Layout**: Classic, or **Inset**, with a quiet line under it saying what Inset is. Inset
