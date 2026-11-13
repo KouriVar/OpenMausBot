@@ -84,6 +84,7 @@ import {
   RiErrorWarningLine,
   RiExpandUpDownLine,
   RiExternalLinkLine,
+  RiFlagLine,
   RiEyeLine,
   RiEyeOffLine,
   RiFileCopyLine,
@@ -326,6 +327,7 @@ export const Cpu = icon(RiCpuLine, "Cpu");
 export const CreditCard = icon(RiBankCardLine, "CreditCard");
 export const Crosshair = icon(RiCrosshairLine, "Crosshair");
 export const Crown = icon(RiVipCrownLine, "Crown");
+export const Flag = icon(RiFlagLine, "Flag");
 export const Database = icon(RiDatabase2Line, "Database");
 export const Dot = icon(RiCircleFill, "Dot");
 export const Download = icon(RiDownloadLine, "Download");

@@ -1,9 +1,10 @@
 // LocalComputerAutoWarning remembers its bot, so a bot switch while it is up never applies the choice to the new bot.
 import { useTeamPeople } from "@/state/team-people";
 import { useState } from "react";
-import { Crown } from "lucide-react";
 
 import { cn } from "@/lib/cn";
+import { useChiefStyle, setChiefStyle } from "@/fork/chief-style";
+import { CHIEF_STYLES, chiefMark } from "@/fork/chief-mark";
 import { t } from "@/lib/i18n";
 import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
 import { useStore, type Bot } from "@/state/store";
@@ -38,6 +39,9 @@ export function PermissionsSection({
   const [localAutoWarning, setLocalAutoWarning] = useState<string | null>(null);
   const [commandAllowlistTarget, setCommandAllowlistTarget] = useState<{ botId: string; botName: string } | null>(null);
   const shows = (part: PermissionsPart) => !parts || parts.includes(part);
+  // Fork: a Chief shows a crown or a department lead's flag; both are the same role, chosen here and kept on this computer.
+  const chiefStyle = useChiefStyle(bot.id);
+  const ChiefBadge = chiefMark(chiefStyle);
   const applyFullEverywhere = () =>
     dispatch({ type: "updateBot", botId: bot.id, patch: { approvalMode: "full", applyToAllThreads: true } });
   const setApprovalMode = (mode: ApprovalMode) => {
@@ -68,7 +72,7 @@ export function PermissionsSection({
               bot.chiefOfStaff ? "bg-accent text-white" : "bg-control text-ink-secondary",
             )}
           >
-            <Crown size={17} />
+            <ChiefBadge size={17} aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
             <div className="text-[15px] font-medium text-ink">{t("permissions.chief.title")}</div>
@@ -94,6 +98,30 @@ export function PermissionsSection({
                   ? t("permissions.chief.replace", { section: displaySectionName, current: currentChief.name })
                   : t("permissions.chief.make", { section: displaySectionName })}
         </div>
+        {bot.chiefOfStaff && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("permissions.chief.style")}>
+            {CHIEF_STYLES.map((style) => {
+              const Mark = chiefMark(style);
+              const chosen = chiefStyle === style;
+              return (
+                <button
+                  key={style}
+                  type="button"
+                  role="radio"
+                  aria-checked={chosen}
+                  onClick={() => setChiefStyle(bot.id, style)}
+                  className={cn(
+                    "inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[13px] transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus",
+                    chosen ? "bg-accent/15 font-medium text-ink" : "text-ink-secondary hover:bg-raised hover:text-ink",
+                  )}
+                >
+                  <Mark size={14} aria-hidden="true" className="shrink-0" />
+                  {t(style === "crown" ? "permissions.chief.styleCrown" : "permissions.chief.styleLead")}
+                </button>
+              );
+            })}
+          </div>
+        )}
         <ProposalStatus bot={bot} kind="chief" />
         {bot.chiefOfStaff && <ManagedTeamsSettings
           key={bot.id + JSON.stringify(bot.managedSections ?? [])}

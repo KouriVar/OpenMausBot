@@ -1,7 +1,10 @@
 // The Team map's "Who looks after what" on a Team Cloud: people across the top, each with the bots they look after by
 // department. Dragging a bot onto a person, or its button, changes who looks after it (`reportsTo`).
 import { useMemo, useState, useSyncExternalStore, type DragEvent } from "react";
-import { Crown, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
+
+import { useChiefStyle } from "@/fork/chief-style";
+import { chiefMark } from "@/fork/chief-mark";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { buildOrgChart, type OrgColumn } from "@/lib/team-org-chart";
@@ -41,12 +44,13 @@ export function MapModeToggle() {
 
 function BotRow({ bot, team, onDragStart }: { bot: Bot; team: TeamPeople; onDragStart: (event: DragEvent, bot: Bot) => void }) {
   const movable = mayChangeOwner(bot, team);
+  const ChiefMark = chiefMark(useChiefStyle(bot.id));
   return (
     <div data-org-bot={bot.id} draggable={movable || undefined} onDragStart={movable ? (event) => onDragStart(event, bot) : undefined}
       className={cn("group flex items-center gap-2 rounded-lg border border-hairline/40 bg-card px-2 py-1.5", movable && "cursor-grab active:cursor-grabbing")}>
       <BotAvatar bot={bot} size={24} motion="none" motionKey={0} animated={false} />
       <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{bot.name}</span>
-      {bot.chiefOfStaff && <Crown size={12} className="shrink-0 text-accent" aria-label={t("orgChart.chief")} />}
+      {bot.chiefOfStaff && <ChiefMark size={12} className="shrink-0 text-accent" aria-label={t("orgChart.chief")} />}
       {movable && <button type="button" aria-label={t("lookedAfter.change", { bot: bot.name })} title={t("lookedAfter.change", { bot: bot.name })}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();

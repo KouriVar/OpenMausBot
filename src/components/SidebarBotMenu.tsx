@@ -1,6 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Archive, BellDot, Check, CheckCheck, ChevronRight, ClipboardCopy, Copy, Crown, FolderMinus, FolderOpen, FolderPlus, Loader2, MessagesSquare, MoreHorizontal, Pencil, Pin, PinOff, SquarePen, Star, Trash2, Users } from "lucide-react";
+import { Archive, BellDot, Check, CheckCheck, ChevronRight, ClipboardCopy, Copy, FolderMinus, FolderOpen, FolderPlus, Loader2, MessagesSquare, MoreHorizontal, Pencil, Pin, PinOff, SquarePen, Star, Trash2, Users } from "lucide-react";
+
+import { useChiefStyle } from "@/fork/chief-style";
+import { chiefMark } from "@/fork/chief-mark";
 import { api, useStore, openBot, type Bot } from "@/state/store";
 import { cn } from "@/lib/cn";
 import { useHeldMenuMotion } from "./MenuMotion";
@@ -50,6 +53,8 @@ export function BotContextMenu({
 }) {
   const motion = useHeldMenuMotion(menu);
   const simpleMenu = !useAdvancedMode();
+  // Fork: the bot's Chief mark (crown, or a department lead's flag), read before any early return.
+  const ChiefMark = chiefMark(useChiefStyle(menu?.botId));
   const moreRef = useRef<HTMLButtonElement>(null);
   const moveRef = useRef<HTMLButtonElement>(null);
   const flyoutRef = useRef<HTMLDivElement>(null);
@@ -161,7 +166,7 @@ export function BotContextMenu({
       ? t("sidebar.bot.archiveBlockedLast")
       : undefined;
   const chiefItem = () => item(
-    <Crown size={16} className={bot.chiefOfStaff ? "text-accent" : "text-ink-secondary"} />,
+    <ChiefMark size={16} className={bot.chiefOfStaff ? "text-accent" : "text-ink-secondary"} />,
     bot.chiefOfStaff ? t("sidebar.bot.removeChief") : t("sidebar.bot.makeChief"),
     () => dispatch({ type: "updateBot", botId: bot.id, patch: { chiefOfStaff: !bot.chiefOfStaff } }),
     member ? { disabled: true, hint: t("sidebar.bot.chiefAdminOnly") }

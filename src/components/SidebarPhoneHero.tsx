@@ -1,4 +1,7 @@
-import { Crown, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
+
+import { useChiefStyle } from "@/fork/chief-style";
+import { chiefMark } from "@/fork/chief-mark";
 import { t } from "@/lib/i18n";
 import { stateForBot } from "@/lib/mascot";
 import type { Bot } from "@/state/store";
@@ -8,6 +11,7 @@ import { openBotContextMenu, useVisibleMessages, type MenuState } from "./Sideba
 /** The phone's home leads with the chief of staff, large and centred, instead of a row. */
 export function PhoneHero({ bot, selected, onOpen, onMenu }: { bot: Bot; selected: boolean; onOpen: () => void; onMenu: (menu: MenuState) => void }) {
   const visible = useVisibleMessages(bot);
+  const ChiefMark = chiefMark(useChiefStyle(bot.id));
   return (
     <div className="relative mb-2 flex flex-col items-center pb-2 pt-1">
       <button
@@ -22,7 +26,7 @@ export function PhoneHero({ bot, selected, onOpen, onMenu }: { bot: Bot; selecte
         <span className="relative flex">
           <BotAvatar bot={bot} state={stateForBot({ ...bot, messages: visible })} size={88} motion="none" motionKey={0} animated={Boolean(bot.busy)} />
           <span className="absolute -bottom-0.5 -right-0.5 flex rounded-full border-2 border-app bg-raised p-1">
-            <Crown size={13} strokeWidth={2.25} className="text-accent" aria-hidden="true" />
+            <ChiefMark size={13} className="text-accent" aria-hidden="true" />
           </span>
         </span>
         <span className="text-[17px] font-semibold leading-6 text-ink">{bot.name}</span>

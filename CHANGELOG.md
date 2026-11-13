@@ -27,6 +27,26 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE030 · The 0.6.8 round: a Chief can wear a department lead's flag
+
+A bot that coordinates its department is still made Chief the same way, with the same powers and the same switch; the new
+choice is only the mark it wears. Beside the Chief switch in its permissions, a Chief now picks **Chief** (the crown it
+always had) or **Department lead** (a flag), never both: the choice is one value per bot, so picking one drops the other.
+The flag is drawn at the crown's size, weight and colour, from the app's one icon set (Remix Icon's flag-line, Apache-2.0,
+credited in NOTICE), and every place that shows the crown reads it from one file — sidebar rows and the Simple hero, the
+chat header's badge, the team map, the org chart, the bot action menu and the phone hero — so a later swap to another SVG
+is a one-file change. Chief itself lives on the bot and the server, so this mark is kept where the fork's other display
+preferences live: this computer's storage, per bot, with no server change and no data folder touched.
+
+中文：**V0.6.8：Chief 可以挂「部门组长」的小旗子**
+
+机器人当 Chief 的方式没变：还是同一个开关、同一套权限和逻辑，新加的只是它戴哪个标记。在它权限页的 Chief 开关旁边，多了一组
+二选一：**Chief**（原来的皇冠）或**部门组长**（小旗子），两者互斥 —— 每个机器人只有一个值，选了哪个另一个就自动取消。小旗子的
+尺寸、粗细、颜色都跟皇冠一致，出自 App 自己的图标集（Remix Icon 的 flag-line，Apache-2.0，NOTICE 里已有署名），并且所有显示
+皇冠的地方（侧栏行与简易模式大头像、聊天头角标、团队地图、组织图、机器人操作菜单、手机端头像）都从同一个文件取图标，以后换成
+自己的 SVG 只需改那一个文件。Chief 本身存在机器人记录里、由服务端保存，所以这个「标记」按 fork 其它显示类偏好的做法存在本机、
+按机器人分别记，不动服务端，也不动任何数据目录。
+
 ### OE029 · The 0.6.7 round: a quieter department heading, one preview row, a reply quote that sits right
 
 - A department's heading is only its name, its chevron and the drag handle: the delete button that sat on it is gone,

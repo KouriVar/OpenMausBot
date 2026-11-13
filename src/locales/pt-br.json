@@ -10627,5 +10627,8 @@
   "settings.backTo": "Voltar às Configurações",
   "devices.route.httpsAccount": "Usa sua conta do {app}.",
   "backup.importAction": "Importar…",
-  "settings.page.thisComputer": "Sobre este computador"
+  "settings.page.thisComputer": "Sobre este computador",
+  "permissions.chief.style": "Como este chefe é marcado",
+  "permissions.chief.styleCrown": "Chefe",
+  "permissions.chief.styleLead": "Líder do departamento"
 }

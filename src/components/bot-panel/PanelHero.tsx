@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Crown, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
+
+import { useChiefStyle } from "@/fork/chief-style";
+import { chiefMark } from "@/fork/chief-mark";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -63,6 +66,7 @@ export function PanelHero({ bot, activeState, patch, editorOpen, onToggleEditor 
   editorOpen: boolean;
   onToggleEditor: () => void;
 }) {
+  const ChiefMark = chiefMark(useChiefStyle(bot.id));
   const name = useInlineEdit((value) => {
     const next = value.trim();
     if (next && next !== bot.name) patch({ name: next });
@@ -92,7 +96,7 @@ export function PanelHero({ bot, activeState, patch, editorOpen, onToggleEditor 
         </span>
         {bot.chiefOfStaff && (
           <span data-panel-chief title={t("chat.chiefOfStaff")} className="absolute -bottom-0.5 -right-0.5 flex size-[22px] items-center justify-center rounded-full bg-accent text-accent-ink ring-[3px] ring-app">
-            <Crown size={12} aria-hidden="true" />
+            <ChiefMark size={12} aria-hidden="true" />
             <span className="sr-only">{t("chat.chiefOfStaff")}</span>
           </span>
         )}

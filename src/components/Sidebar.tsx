@@ -115,6 +115,8 @@ import { NewRoomPanel } from "./SidebarNewRoomPanel";
 import { SectionPicker } from "./SidebarSectionPicker";
 import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL, SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
 import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_SIMPLE, ROW_RADIUS, ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
+import { useChiefStyle } from "@/fork/chief-style";
+import { chiefMark } from "@/fork/chief-mark";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -712,6 +714,7 @@ export function useVisibleMessages(bot: Bot): Message[] {
 
 export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const advanced = useAdvancedMode();
+  const ChiefMark = chiefMark(useChiefStyle(props.bot.id));
   const { bot, selected, deleting, mascotMotion, reveal, pendingQueued, instances, liveCall, density, query, dispatch, onMenu, renameRequest, botDrag: drag, botDrop: drop, botDragging: dragging } = props;
   const showThreads = useShowThreads();
   const liveMedia = useLiveMedia();
@@ -773,16 +776,16 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         )}
         {bot.chiefOfStaff && !FORK_HIDE_BOT_BADGES && !FORK_UI_1110 && (iconOnly || simpleRow) && (
           <span className="absolute -left-1 -top-1 flex rounded-full bg-raised p-[3px]">
-            <Crown size={11} strokeWidth={2.25} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
+            <ChiefMark size={11} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
               <title>{t("sidebar.bot.chiefOfStaff")}</title>
-            </Crown>
+            </ChiefMark>
           </span>
         )}
         {FORK_UI_1110 && bot.chiefOfStaff && simpleRow && (
           <span data-fork-hero-crown="" className="absolute -right-1.5 -top-1.5 flex rounded-full border-[3px] bg-raised p-[3px]" style={{ borderColor: "var(--row)" }}>
-            <Crown size={12} strokeWidth={2.25} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
+            <ChiefMark size={12} className="shrink-0 text-accent" role="img" aria-label={t("sidebar.bot.chiefOfStaff")} data-testid="chief-crown">
               <title>{t("sidebar.bot.chiefOfStaff")}</title>
-            </Crown>
+            </ChiefMark>
           </span>
         )}
         {onLiveCall && iconOnly && (

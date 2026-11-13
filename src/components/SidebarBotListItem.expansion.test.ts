@@ -37,6 +37,8 @@ vi.mock("@/lib/live-call-media", async (original) => {
   const actual = await original<typeof import("@/lib/live-call-media")>();
   return { ...actual, useLiveMedia: actual.liveMedia };
 });
+vi.mock("@/fork/chief-style", () => ({ useChiefStyle: () => "crown", setChiefStyle: () => {} }));
+
 import { BotListItem, botRowProps, type BotRowProps } from "./Sidebar";
 import { forgetSearchDisclosuresForTests } from "@/lib/search-disclosure";
 
