@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal } from "lucide-react";
 import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from "react";
 
 import { cn } from "@/lib/cn";
@@ -20,7 +20,6 @@ export function SidebarSectionHeader({
   onDragStart,
   onDragEnd,
   onMove,
-  onDelete,
   onContextMenu,
   line = false,
   onMenu,
@@ -40,7 +39,6 @@ export function SidebarSectionHeader({
   onDragStart?: (event: DragEvent<HTMLElement>) => void;
   onDragEnd?: () => void;
   onMove?: (direction: -1 | 1) => void;
-  onDelete?: () => void;
   onContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
   line?: boolean;
   onMenu?: (button: HTMLButtonElement) => void;
@@ -160,17 +158,6 @@ export function SidebarSectionHeader({
           </span>
           {attentionLabel && <span className="sr-only">{attentionLabel}</span>}
         </div>
-      )}
-      {onDelete && !naming && (
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={t("sidebar.section.deleteAria", { name })}
-          title={t("sidebar.section.deleteAria", { name })}
-          className="flex size-6 shrink-0 items-center justify-center rounded text-ink-secondary hover:bg-danger/10 hover:text-danger"
-        >
-          <Trash2 size={13} aria-hidden="true" />
-        </button>
       )}
       {reorderable && (
         <span

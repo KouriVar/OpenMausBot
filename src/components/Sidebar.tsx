@@ -844,7 +844,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               {t("sidebar.bot.deletingRow")}
             </span>
           ) : (
-            <span className={cn("flex min-w-0 items-center gap-1.5 truncate", FORK_UI_1110 ? "text-[13px] font-medium leading-[18px]" : "text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-secondary")}>
+            <span className={cn("flex min-w-0 items-center gap-1.5 truncate", FORK_UI_1110 ? ROW_PREVIEW : "text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-secondary")}>
               {working ? (
                 <SidebarWorkingStep bot={bot} last={last} />
               ) : (
@@ -1459,7 +1459,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
                     attention={attention}
                     onToggle={layoutInteractive ? () => toggleSection(id) : undefined}
                     {...layout.header(id)} naming={drops.naming(sectionName)} dropInto={drops.into(sectionName)}
-                    onDelete={!simple && !remoteClient && sectionName ? () => setDeletingTeam(sectionName) : undefined}
                   />
                 )}
                 {collapsed && queued.length > 0 && <button type="button" onClick={() => toggleSection(id)}
@@ -1487,12 +1486,6 @@ export function Sidebar({ open, onClose, collapseToIcons = false, reveal = false
                         listItem={BotListItem}
                       />
                     ) : sectionBotItems.map((bot) => <BotListItem key={bot.id} {...botRow(bot)} />)}
-                    {!remoteClient && sectionName && layoutInteractive && !drops.naming(sectionName) && (!simple || sectionChiefItems.length + sectionGroupItems.length + sectionBotItems.length === 0) && (
-                      <button onClick={() => setMoveToTeam(sectionName)} aria-label={t(state.bots.some(bot => !bot.hidden && bot.section?.trim() === sectionName) ? "team.manageBotsIn" : "team.addBotsTo", { name: sectionName })}
-                        className="mx-3 my-1 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-[12px] text-ink-secondary hover:bg-raised hover:text-ink">
-                        <Plus size={13} /> {t(state.bots.some(bot => !bot.hidden && bot.section?.trim() === sectionName) ? "team.manageBots" : "team.addBots")}
-                      </button>
-                    )}
                   </>
                 )}
                 {layout.dropLine(id, "after")}

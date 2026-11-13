@@ -26,13 +26,29 @@ describe("SidebarSectionHeader", () => {
     expect(html).not.toContain("uppercase");
   });
 
-  it.each([false, true])("keeps delete separate from collapse and the context menu, collapsed=%s", (collapsed) => {
+  it("draws nothing but the name, the chevron and the grip, whatever the pointer does", () => {
+    const html = renderToStaticMarkup(
+      createElement(SidebarSectionHeader, {
+        name: "Work",
+        collapsed: false,
+        onToggle: () => {},
+        reorderable: true,
+        dragging: false,
+      }),
+    );
+    expect(html).toContain("lucide-grip-vertical");
+    expect(html).not.toContain("lucide-plus");
+    expect(html).not.toContain("lucide-trash");
+    // The header's only buttons are its name toggle and (in Simple) the menu; here, the toggle.
+    expect([...html.matchAll(/<button/g)]).toHaveLength(1);
+  });
+
+  it.each([false, true])("keeps the context menu apart from collapse, with no button of its own, collapsed=%s", (collapsed) => {
     const onContextMenu = () => {};
     const element = SidebarSectionHeader({
       name: "Work",
       collapsed,
       onToggle: () => {},
-      onDelete: () => {},
       onContextMenu,
       reorderable: true,
       dragging: false,
@@ -41,10 +57,10 @@ describe("SidebarSectionHeader", () => {
 
     expect(element.props.onContextMenu).toBe(onContextMenu);
     expect(html).toContain('tabindex="-1"');
-    expect(html).toContain('aria-label="Delete Work department"');
     expect(html).toContain(`aria-expanded="${!collapsed}"`);
-    expect(html.match(/<button\b/g)).toHaveLength(2);
-    expect(html.indexOf("</button>")).toBeLessThan(html.indexOf('aria-label="Delete Work department"'));
+    // The heading's only button is its name toggle; Delete lives in the menu now.
+    expect(html.match(/<button\b/g)).toHaveLength(1);
+    expect(html).not.toContain('aria-label="Delete Work department"');
   });
 
   it("renders collapsed attention signals in the heading", () => {
@@ -97,9 +113,9 @@ describe("SidebarSectionHeader as a Simple-mode line", () => {
     name: "Work", collapsed: false, onToggle: () => {}, reorderable: true, dragging: false, line: true, ...props,
   }) as ReactElement<Props>;
 
-  it("draws a quiet 12px name with no hairline, and a ⋯ team menu button that shows on hover, with no trash or grip", () => {
+  it("draws a quiet 12px name with no hairline, and a ⋯ team menu button that shows on hover, with no delete or grip", () => {
     const onMenu = vi.fn();
-    const element = line({ onMenu, onDelete: () => {} });
+    const element = line({ onMenu });
     const html = renderToStaticMarkup(element);
     expect(html).toContain('data-sidebar-section-line=""');
     expect(html).toMatch(/text-\[12px\][^"]*text-ink-secondary/);

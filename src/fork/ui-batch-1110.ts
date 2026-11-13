@@ -9,8 +9,9 @@ export const ROW_RADIUS = "rounded-xl";
 /** Simple mode's 54px rows use the smaller step; both row kinds take it from here. */
 export const ROW_RADIUS_SIMPLE = "rounded-[8px]";
 
-/** Message previews keep their size and take one weight step up, so the row's title stays the heavier line. */
-export const ROW_PREVIEW = "text-[11px] font-medium";
+/** The one message preview in a sidebar row, for bot rows and group rows alike: 13/18, one weight step up, so the
+ * row's title stays the heavier line. */
+export const ROW_PREVIEW = "text-[13px] font-medium leading-[18px]";
 export const ROW_PREVIEW_SIMPLE = "text-[13px] font-medium leading-[18px]";
 
 /** The chief's card in Simple's expanded sidebar: one size step bigger and squared to the row radius. */

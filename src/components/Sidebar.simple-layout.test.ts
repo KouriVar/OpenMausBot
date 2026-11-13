@@ -120,9 +120,8 @@ describe("Simple-mode sidebar layout", () => {
     // Fork UI batch: the group-chats heading draws no count.
     expect(lines.map((header) => [header.props.name, header.props.line, header.props.count])).toEqual([["Group chats", true, undefined], ["Work", true, 1]]);
     expect(lines[0]!.props.onMenu).toBeUndefined();
-    expect(lines[1]!.props.onDelete).toBeUndefined();
     expect(lines[1]!.props.onMenu).toBeTypeOf("function");
-    expect(labelled(tree, "Add or remove bots in Work")).toBe(false);
+    expect(labelled(tree, "Add or remove bots")).toBe(false);
     expect(tree.some((node) => node.type === SidebarTileGrid)).toBe(false);
   });
 
@@ -185,15 +184,17 @@ describe("Simple-mode sidebar layout", () => {
     expect(footerButton(advanced.tree, "New or share")).toBeDefined();
   });
 
-  it("still offers Add bots under an empty team", () => {
+  it("leaves a department's management to its menu: no add-or-remove row, empty or not", () => {
     fixture.state = { ...fixture.state, sections: ["Work", "Empty"] };
     const { tree } = render();
-    expect(headers(tree).map((header) => header.props.name)).toEqual(["Group chats", "Work", "Empty"]);
-    expect(labelled(tree, "Add bots to Empty")).toBe(true);
-    expect(labelled(tree, "Add or remove bots in Work")).toBe(false);
+    const all = headers(tree);
+    expect(all.map((header) => header.props.name)).toEqual(["Group chats", "Work", "Empty"]);
+    for (const name of ["Work", "Empty"]) expect(all.find((header) => header.props.name === name)!.props.onMenu).toBeTypeOf("function");
+    expect(labelled(tree, "Add bots to Empty")).toBe(false);
+    expect(labelled(tree, "Add or remove bots")).toBe(false);
   });
 
-  it("keeps Advanced's headings, trash button and order", () => {
+  it("keeps Advanced's headings and order, with no action buttons in a heading", () => {
     fixture.advanced = true;
     const { tree } = render();
     expect(sectionOrder(tree)).toEqual([CHANNELS_SECTION_ID, BOTS_SECTION_ID, userSectionId("Work")]);
@@ -203,8 +204,9 @@ describe("Simple-mode sidebar layout", () => {
       expect(header.props.line).toBe(false);
       expect(header.props.onMenu).toBeUndefined();
     }
-    expect(all[2]!.props.onDelete).toBeTypeOf("function");
-    expect(labelled(tree, "Add or remove bots in Work")).toBe(true);
+    // A heading keeps only its name, its chevron and the drag handle: its management is in the context menu.
+    expect(labelled(tree, "Delete Work department")).toBe(false);
+    expect(labelled(tree, "Add or remove bots")).toBe(false);
   });
 
   it("opens the team menu from the line's ⋯ button, under it, with every team action", () => {

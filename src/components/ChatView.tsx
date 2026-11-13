@@ -480,6 +480,9 @@ const Bubble = memo(function Bubble({
             // Fork: a bubble that carries a picture keeps the same inset on top as the bubble's sides give it,
             // instead of the 7px its text rows use.
             hasImages && !attachmentsOnly && !split && !tabled && "pt-3",
+            // Fork: a reply quote is the bubble's first row too, and takes the same inset on top as the sides give it,
+            // instead of the 7px the text rows use.
+            replyTarget && !split && !tabled && !attachmentsOnly && "pt-3",
             mixedImages && !split && !tabled && "pb-3",
             join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}

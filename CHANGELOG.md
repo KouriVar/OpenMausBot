@@ -27,6 +27,30 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE029 · The 0.6.7 round: a quieter department heading, one preview row, a reply quote that sits right
+
+- A department's heading is only its name, its chevron and the drag handle: the delete button that sat on it is gone,
+  and so is the "add or remove bots" row under the list. Managing a department — its bots, its name, sharing it, taking
+  it away, setting it for every bot — all lives in the right-click menu it already had, whose "Set for all bots in this
+  department…" row now reads "Department settings" (zh: 部门设置, pt-br: Configurações do departamento; every other
+  language falls back to English). The three keys only those deleted buttons used are gone from the packs.
+- A group chat's row shows its preview in the same words as a bot row's: one shared 13/18, medium, ink-secondary line for
+  both, so "speaker: text" keeps its shape and stops reading smaller and lighter than the rows around it.
+- A bubble that holds a reply quote takes the same inset on top as its sides give it, so the quote no longer hugs the top
+  edge; the gap between the quote and the words below it stays the one the bubble's other stacked rows use. Simple and
+  Advanced, light, dark and bot-coloured bubbles all follow, because the inset comes from the bubble's padding.
+
+中文：**V0.6.7：部门标题更安静、预览统一一行、引用条不再贴顶**
+
+- 部门标题行只剩部门名、展开箭头和拖动手柄：标题行上那个删除按钮去掉了，列表下面那行「添加或移除机器人」也去掉了。部门的
+  管理 —— 增减机器人、改名、分享、删除、给这个部门的所有机器人做设置 —— 全都走它本来就有的右键菜单；菜单里那行
+  「为此部门的所有机器人设置…」现在叫「部门设置」（en: Department settings，pt-br: Configurações do departamento，
+  其它语言回落到英文）。只有被删掉的按钮用过的三个 i18n key 从语言包里清掉了。
+- 群聊行的预览正文和 bot 行用同一套：13/18、medium、ink-secondary，两种行共用一份，所以「发言人: 内容」的格式不变，也
+  不再比旁边的行更小更细。
+- 带引用条的气泡，上边距跟左右一样了（都来自气泡自身的 padding），引用不再贴顶；引用条和下面正文之间的间距沿用气泡里其它
+  元素的那一档。简易/高级、浅色/深色/bot 颜色气泡都一样，因为改的是气泡的 padding。
+
 ### OE028 · The 0.6.5 round: a tidier Settings column, and a menu bar in the app's language
 
 - The switches in Settings read as a light track and a white knob when off, with no dark outline around them; on is
