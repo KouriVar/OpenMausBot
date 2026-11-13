@@ -6,13 +6,13 @@ import { skillsLibraryEnabled } from "@/lib/feature-flags";
 import { useStore } from "@/state/store";
 import { AdminOnly } from "../../AdminOnly";
 import { AutomaticRecoverySettings } from "../../AutomaticRecoverySettings";
+import { AwayEmailsSetting } from "../../AwayEmailsSetting";
 import { PausedBotsButton } from "../../AwakeBotsPicker";
 import { BuiltInBrowserRow, NewBrowserSettings, ServerSitesRow } from "../../BrowserSettingsRows";
 import { CacheKeepWarmSettings } from "../../CacheKeepWarmSettings";
 import { TeamPeopleCard } from "../../CloudAccountSettings";
 import { CloudKeepHere } from "../../CloudKeepHere";
 import { CustomDomainSettings } from "../../CustomDomainSettings";
-import { WorkspaceBackupSettings } from "../../WorkspaceBackupSettings";
 import { preloadConnectedApps } from "@/lib/connected-apps";
 import { DecisionModelSettings } from "../../DecisionModelSettings";
 import { DefaultBotSidebarRow } from "../../DefaultBotControls";
@@ -33,8 +33,8 @@ import { ThreadConcurrencySettings } from "../../ThreadConcurrencySettings";
 import { usePhonePlaceState } from "../phone-status";
 import { KeysPage } from "../../keys/KeysPage";
 import { BrowserProfilesRow, ExperimentalFeaturesRow, NewBotEffortRow } from "../../AppSettingsRows";
+import { ServerUpdateRow } from "../../ServerUpdateRow";
 import { versionLine } from "../settings-context";
-import { useServerUpdateItem } from "../../SidebarProfileMenu";
 import { useSettingsShell } from "../settings-shell";
 import { AdvancedSection } from "../AdvancedSection";
 
@@ -62,22 +62,6 @@ function useGroupedNote(): [boolean, () => void] {
   return [shown, () => { setShown(false); try { localStorage.setItem(GROUPED_NOTE, "dismissed"); } catch { /* storage may be blocked */ } }];
 }
 
-/** This fork's server version row: the menu's own server-update item, in the page's row design. The upstream
- * ServerUpdateRow needs the server self-update feature this fork does not carry. */
-function ServerVersionRow() {
-  const entry = useServerUpdateItem(true);
-  if (!entry) return null;
-  const status = entry.phase === "idle" ? undefined : [entry.label, entry.item.subtitle].filter(Boolean).join(" ");
-  const action = entry.phase === "available" ? t("settings.simple.updates.seeRelease")
-    : entry.phase === "reload" ? t("settings.simple.updates.reload")
-      : entry.phase === "checking" ? t("common.checking") : t("settings.updates.check");
-  return (
-    <SettingRow title={versionLine()} subtitle={status}>
-      <button type="button" className="ui-button" disabled={entry.item.disabled} onClick={entry.item.onSelect}>{action}</button>
-    </SettingRow>
-  );
-}
-
 export function OverviewPage() {
   const { ctx, place, go } = useSettingsShell();
   const { state, dispatch } = useStore();
@@ -97,7 +81,7 @@ export function OverviewPage() {
         </div>
       </SettingsRows>
     )}
-    {place.kind === "server" && !ctx.client && !window.ogb?.updater && <SettingsGroup label={t("settings.updates.title")} block="version"><SettingsRows><ServerVersionRow /></SettingsRows></SettingsGroup>}
+    {place.kind === "server" && !ctx.client && !window.ogb?.updater && <SettingsGroup label={t("settings.updates.title")} block="version"><SettingsRows><ServerUpdateRow title={versionLine()} /></SettingsRows></SettingsGroup>}
     <SettingsGroup label={t("settings.overview.glance")} block="glance">
       <SettingsRows>
         {!ctx.client && <SettingsLinkRow title={t("settings.section.phoneDevices")} value={phoneValue} onClick={() => go("phone")} data={{ "data-glance": "phone" }} />}
@@ -112,12 +96,6 @@ export function OverviewPage() {
     <SettingsGroup label={t("settings.overview.sidebar")} block="sidebar">
       <SettingsRows><PlaceLookRows /><DefaultBotSidebarRow simple /></SettingsRows>
     </SettingsGroup>
-    {/* Simple keeps what a person needs from Data here: back up and bring a backup back. */}
-    {!ctx.advanced && !ctx.client && (
-      <SettingsGroup label={t("settings.overview.yourData")} block="your-data">
-        <AdminOnly><WorkspaceBackupSettings compact /></AdminOnly>
-      </SettingsGroup>
-    )}
     {ctx.desktop && ctx.cloud && team && team.cloudPage && <div data-settings-block="people-and-plan"><TeamPeopleCard team={team} /></div>}
     {/* Address: a self-hosted server's own web address, Advanced only. A Cloud's address is MausBot's to manage, so it
         has none here (no administrator or proxy steps for a person who has no server to set up). */}
@@ -178,6 +156,7 @@ export function BotsPage() {
       footnote={ctx.here || !ctx.desktop ? t("settings.bots.aboutYouHome", { app: productName() }) : undefined}>
       <div className="flex flex-col gap-2">
         <Card><ProfileFields /></Card>
+        <SettingsRows><AwayEmailsSetting row /></SettingsRows>
       </div>
     </SettingsGroup>
     <SettingsGroup label={t("settings.bots.newBots")} block="new-bots">

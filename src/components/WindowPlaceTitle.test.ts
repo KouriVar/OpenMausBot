@@ -15,9 +15,8 @@ it("the top bar names the place as the rail does: This computer, in a profile to
   expect(windowPlaceName({ local: false, name: "My Cloud", home: true }, undefined)).toBe("My Cloud");
 });
 
-it("home is My Cloud in the top bar in this fork (its own name is not carried there), a team's Cloud keeps the team's name", () => {
-  // Fork: the window's top bar keeps its own naming; the rail is where a home's chosen name shows.
-  expect(windowPlaceName({ local: false, name: "Freedom Fox", home: true }, undefined)).toBe("My Cloud");
+it("home renamed by its owner (Settings → Name and colour) is called by that name in the top bar, as on the rail", () => {
+  expect(windowPlaceName({ local: false, name: "Freedom Fox", home: true }, undefined)).toBe("Freedom Fox");
   expect(windowPlaceName({ local: false, name: "Freedom Fox", home: true }, "Acme"), "a team's Cloud keeps the team's name").toBe("Acme");
   expect(windowPlaceName({ local: false, name: "", home: true }, undefined)).toBe("My Cloud");
 });

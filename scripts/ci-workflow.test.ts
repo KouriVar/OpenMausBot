@@ -51,6 +51,11 @@ describe("CI concurrency", () => {
     );
   });
 
+  it("validates the model manifest on every run it starts", () => {
+    const step = workflow.jobs.static.steps.find((candidate: { name?: string }) => candidate.name === "Validate the model manifest");
+    expect(step.run).toContain("scripts/check-model-manifest.mjs");
+  });
+
   it("runs the nightly lane on the fork only", () => {
     expect(workflow.on.schedule).toEqual([{ cron: "0 18 * * *" }]);
     expect(workflow.jobs.static.if).toBe("${{ github.event_name != 'schedule' || github.repository == 'KouriVar/OpenMausBot' }}");

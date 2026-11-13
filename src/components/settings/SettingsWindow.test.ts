@@ -52,13 +52,13 @@ const render = (section: AppSettingsSection = fixture.section) => { fixture.sect
 const navPages = (html: string) => [...html.matchAll(/data-settings-page="([a-z]+)"/g)].map((match) => match[1]);
 
 describe("the Settings window", () => {
-  it("heads the list with this computer's About row, and pins This app to its foot", () => {
+  it("heads the list with this computer's About row, lists Your account among the pages, and pins This app to its foot", () => {
     fixture.advanced = true;
     const html = render();
-    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "data", "general", "appearance", "app"]);
+    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "transfer", "data", "account", "general", "appearance", "app"]);
     expect(html).toContain("About this computer");
+    expect(html).toContain("Your account");
     expect(html).toContain("This app");
-    expect(html).not.toContain("Your account");
     expect(html).toContain('aria-current="page"');
     // The foot holds This app's row, after the scrolling list, so the list can scroll under it.
     const foot = html.indexOf("data-settings-footer");
@@ -79,15 +79,18 @@ describe("the Settings window", () => {
     expect(html).not.toMatch(/data-settings-scope[^>]*>[^<]*For /);
   });
 
-  it("says which place a place page changes, and that app pages stay the same, without “place” for a person with one place", () => {
+  it("says which place a place page changes, and that account and app pages stay the same, without “place” for a person with one place", () => {
     expect(render("phone")).toContain("This computer");
+    const account = render("account");
+    expect(account).toContain("Your MausBot account");
+    expect(account).not.toContain("Same on every place");
     expect(render("appearance")).toContain("MausBot on this device");
     expect(render("appearance")).toContain("This app");
   });
 
   // Owner decision (Nov 11): Simple's nav is shorter, the same for every person and every rail. Fork: this build is
-  // local-only, so Plan & billing is not offered and the list has seven entries.
-  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "appearance", "app"];
+  // local-only, so Plan & billing is not offered and the list has eight entries.
+  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "transfer", "account", "appearance", "app"];
   const SIMPLE_PEOPLE: Array<[string, () => void]> = [
     ["a person with only this computer", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} } }))],
     ["This computer's rail, with My Cloud", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} }, workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) } }))],
@@ -103,21 +106,70 @@ describe("the Settings window", () => {
     for (const page of ["bots", "desktops", "usage", "data", "general"]) expect(advanced).toContain(page);
   });
 
-  it("keeps the rows a Simple person needs: language and notifications on This app, backups on Overview", () => {
+  it("keeps the rows a Simple person needs: language and notifications on This app", () => {
     fixture.advanced = false;
     const app = render("app");
     expect(app).toContain('data-settings-block="typing"');
     expect(app).toContain("Updates, language, notifications and help.");
-    expect(render("overview")).toContain("Your data");
     fixture.advanced = true;
     expect(render("app")).not.toContain('data-settings-block="typing"');
-    expect(render("overview")).not.toContain("Your data");
   });
 
   it("opens a link to a page Simple doesn't show, and lands there", () => {
     fixture.advanced = false;
     expect(render("general")).toMatch(/data-settings-page-open="general"/);
-    expect(render("backups")).toMatch(/data-settings-page-open="data"/);
+    expect(render("backups")).toMatch(/data-settings-page-open="transfer"/);
+  });
+
+  const order = (html: string, marks: string[]) => marks.map((mark) => html.indexOf(mark));
+  const ascending = (places: number[]) => places.every((at, index) => at >= 0 && (index === 0 || at > places[index - 1]!));
+  describe.each([["Simple", false], ["Advanced", true]] as const)("Import & export in %s", (_mode, advanced) => {
+    beforeEach(() => { fixture.advanced = advanced; });
+
+    it("is in the menu and holds Bring things in, then Take things out, in the owner's order", () => {
+      const html = render("transfer");
+      expect(html).toMatch(/data-settings-page="transfer"[^>]*>[\s\S]*?Import &amp; export/);
+      expect(html).toMatch(/<h2[^>]*>Import &amp; export<\/h2>/);
+      expect(ascending(order(html, ['data-settings-block="bring-in"', 'data-import-section="grok"', "Move from Grok Bot", 'data-import-section="apps"',
+        "From your AI apps", "Import backup", 'data-settings-block="take-out"', "Export full backup"]))).toBe(true);
+      expect(html).not.toContain("Bring in a bot from another app");
+    });
+
+    it("draws the Grok Bot mark in the row's leading slot, and opens nothing until Start is pressed", () => {
+      const html = render("transfer");
+      const row = html.slice(html.indexOf('data-import-section="grok"'), html.indexOf('data-import-section="apps"'));
+      expect(row).toMatch(/data-settings-slot=""[^>]*>\s*<span aria-hidden="true"[^>]*>\s*<svg[^>]*viewBox="0 0 70 70"/);
+      expect(row).toContain("fill-[var(--color-ink)]");
+      expect(row).toMatch(/data-grok-move-open[^>]*aria-expanded="false"|aria-expanded="false"[^>]*data-grok-move-open/);
+      expect(row).not.toContain("data-grok-move=");
+    });
+
+    it("opens from the helper's link and an old backups link", () => {
+      expect(render("import")).toMatch(/data-settings-page-open="transfer"/);
+      expect(render("backups")).toMatch(/data-settings-page-open="transfer"/);
+    });
+
+    it("shows on My Cloud in a browser, to a team's admin, and not at all to a team's member", () => {
+      vi.stubGlobal("window", {});
+      fixture.config = { cloudHome: true };
+      expect(render("transfer")).toContain("Move from Grok Bot");
+      fixture.config = { cloudHome: true, team: { name: "Acme" } };
+      expect(navPages(render("overview"))).toContain("transfer");
+      expect(render("transfer")).toContain("Move from Grok Bot");
+      fixture.admin = false;
+      expect(navPages(render("overview"))).not.toContain("transfer");
+      const member = render("import");
+      expect(member).toMatch(/data-settings-page-open="overview"/);
+      expect(member).not.toContain("Move from Grok Bot");
+      expect(member).not.toContain("data-backup-export");
+    });
+
+    it("leaves no import, export or backup row on Overview or Data", () => {
+      for (const page of ["overview", "data"] as const) {
+        const html = render(page);
+        for (const gone of ["data-backup-export", "data-backup-import", "data-import-section", "Your data"]) expect(html, `${page}: ${gone}`).not.toContain(gone);
+      }
+    });
   });
 
   it("adds rows in Advanced on the pages both modes show", () => {
@@ -158,7 +210,7 @@ describe("the Settings window", () => {
     expect(app).toContain('data-settings-inert=""');
   });
 
-  it("decides This app's rows from one home: a Cloud page that is the app's home has them live", () => {
+  it("decides This app's rows and the account's place from one home: a Cloud page that is the app's home has them live", () => {
     fixture.advanced = true;
     fixture.config = { cloudHome: true };
     const cloudPage = (home: boolean) => vi.stubGlobal("window", { ogb: { platform: "darwin", workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) },
@@ -169,6 +221,7 @@ describe("the Settings window", () => {
     expect(render("app")).toMatch(/Check for updates from This computer[\s\S]*data-settings-reason/);
     cloudPage(true);
     expect(render("general")).not.toContain('data-settings-inert=""');
+    expect(render("account")).not.toContain("On This computer");
   });
 
   it("in a browser: This browser, saved in this browser, with no startup or window rows", () => {

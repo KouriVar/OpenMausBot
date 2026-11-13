@@ -31,17 +31,19 @@ export function PhoneStatus({ device, connected }: { device: PhoneDevice; connec
   return <>{route && <>{route}{" · "}</>}<span aria-hidden="true" className="mr-1.5 inline-block size-1.5 rounded-full bg-success align-middle" />{t("remote.devices.connectedNow")}</>;
 }
 
-export function PhoneRow({ device, connected, state, c, onRemoved, defaultOpen = false }: {
+export function PhoneRow({ device, connected, state, c, onRemoved, onPairAgain, defaultOpen = false }: {
   device: PhoneDevice;
   connected: boolean;
   state: CompanionState;
   c: PhoneSetupController;
   onRemoved: (name: string) => void;
+  onPairAgain?: () => void;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const e2eEnabled = state.e2e?.enabled === true;
   const live = connected || Boolean(device.route);
+  const retired = c.account?.tunnelRetired && !device.e2eAt;
   return (
     <li data-phone-row={device.id}>
       <div className="flex min-h-16 items-center gap-3 px-4 py-3">
@@ -55,12 +57,22 @@ export function PhoneRow({ device, connected, state, c, onRemoved, defaultOpen =
             {e2eEnabled && device.routes === "local" && <>{" · "}{t("remote.devices.localOnly")}</>}
           </div>
           {c.account?.paused && <div className="truncate text-[12px] leading-4 text-ink-secondary">{t("remote.devices.paused")}</div>}
+          {retired && (
+            <div className="flex items-start gap-1.5 text-[12px] leading-4 text-warning" data-phone-retired="" title={t("remote.devices.retired")}>
+              <span aria-hidden="true" className="mt-[5px] size-1.5 shrink-0 rounded-full bg-warning" />
+              <span>{t("remote.devices.retiredShort")}</span>
+            </div>
+          )}
         </div>
-        <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={t("remote.devices.more", { name: device.name })}
-          className="ui-button ui-button-md shrink-0 cursor-pointer rounded-full">{t(open ? "common.close" : "remote.devices.options")}</button>
+        {retired && onPairAgain ? (
+          <button type="button" className="ui-button shrink-0" data-pair-again="" onClick={onPairAgain}>{t("remote.devices.pairAgain")}</button>
+        ) : (
+          <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} aria-label={t("remote.devices.more", { name: device.name })}
+            className="ui-button ui-button-md shrink-0 cursor-pointer rounded-full">{t(open ? "common.close" : "remote.devices.options")}</button>
+        )}
         <button type="button"
           disabled={c.busy}
-          onClick={() => void c.act((companion) => companion.revoke(device.id)).then(() => onRemoved(device.name))}
+          onClick={() => void c.act((companion) => companion.revoke(device.id)).then((next) => { if (next) onRemoved(device.name); })}
           aria-label={t("remote.devices.remove", { name: device.name })}
           data-danger="" data-phone-remove=""
           className="settings-quiet shrink-0 cursor-pointer disabled:opacity-40"
@@ -120,7 +132,7 @@ export function PhoneRow({ device, connected, state, c, onRemoved, defaultOpen =
 }
 
 /** One grouped card: a dot, the name and one line per phone. Remove acts at once. */
-export function PairedPhones({ c, state }: { c: PhoneSetupController; state: CompanionState }) {
+export function PairedPhones({ c, state, onPairAgain }: { c: PhoneSetupController; state: CompanionState; onPairAgain?: () => void }) {
   const [removed, setRemoved] = useState<string | null>(null);
   const connected = new Set(state.connectedDeviceIds ?? []);
   if (state.devices.length === 0 && !removed) return null;
@@ -129,7 +141,7 @@ export function PairedPhones({ c, state }: { c: PhoneSetupController; state: Com
       {state.devices.length > 0 && (
         <ul data-settings-rows="" data-settings-icons="" className={cn(SIMPLE_CARD, "flex flex-col overflow-hidden")}>
           {sortPhones(state.devices, connected).map((device) => (
-            <PhoneRow key={device.id} device={device} connected={connected.has(device.id)} state={state} c={c} onRemoved={setRemoved} />
+            <PhoneRow key={device.id} device={device} connected={connected.has(device.id)} state={state} c={c} onRemoved={setRemoved} onPairAgain={onPairAgain} />
           ))}
         </ul>
       )}

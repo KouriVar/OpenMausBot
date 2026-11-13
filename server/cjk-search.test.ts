@@ -2,7 +2,7 @@ import { rmSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { cjkSearchText, cjkTokenParts, ensureSearchIndex, ftsPhrase, withoutSearchMarks } from "./cjk-search.ts";
+import { cjkSearchText, cjkTokenParts, ensureSearchIndex, ftsPhrase, SEARCH_MARK, withoutSearchMarks } from "./cjk-search.ts";
 import { DATA_DIR } from "./config.ts";
 import { closeMessageDb } from "./message-db.ts";
 import { memoryPassages, recallQuery } from "./recall.ts";
@@ -16,7 +16,7 @@ describe("CJK search text", () => {
     expect(cjkSearchText(null)).toBeNull();
     const indexed = cjkSearchText("iPhone15电池, 图书馆")!;
     expect(withoutSearchMarks(indexed)).toBe("iPhone15电池, 图书馆");
-    expect(indexed.split("​")).toEqual(["iPhone15", "电", "池, 图", "书", "馆"]);
+    expect(indexed.split(SEARCH_MARK)).toEqual(["iPhone15", "电", "池, 图", "书", "馆"]);
   });
 
   it("queries a CJK term as a phrase of its characters", () => {
@@ -28,6 +28,25 @@ describe("CJK search text", () => {
   it("makes bigrams of CJK runs and keeps the rest", () => {
     expect(cjkTokenParts("iphone15的电池")).toEqual({ other: ["iphone15"], bigrams: ["电池"] });
     expect(cjkTokenParts("图书馆")).toEqual({ other: [], bigrams: ["图书", "书馆"] });
+  });
+
+  it("keeps a lone Han character as its own term, never a lone kana", () => {
+    expect(cjkTokenParts("猫")).toEqual({ other: [], bigrams: ["猫"] });
+    expect(cjkTokenParts("猫的粮")).toEqual({ other: [], bigrams: ["猫", "粮"] });
+    expect(cjkTokenParts("を")).toEqual({ other: [], bigrams: [] });
+  });
+
+  it("keeps the long vowel and half-width voicing marks inside a kana word", () => {
+    expect(cjkTokenParts("コーヒー")).toEqual({ other: [], bigrams: ["コー", "ーヒ", "ヒー"] });
+    expect(cjkTokenParts("ﾒｰﾙ")).toEqual({ other: [], bigrams: ["ﾒｰ", "ｰﾙ"] });
+    expect(cjkTokenParts("ﾊﾞｽ")).toEqual({ other: [], bigrams: ["ﾊﾞ", "ﾞｽ"] });
+    expect(cjkTokenParts("ﾊﾟﾝ")).toEqual({ other: [], bigrams: ["ﾊﾟ", "ﾟﾝ"] });
+  });
+
+  it("leaves out a stretched vowel, so a drawn-out interjection recalls nothing", () => {
+    expect(cjkTokenParts("すごーーい")).toEqual({ other: [], bigrams: ["すご"] });
+    expect(cjkTokenParts("ｽｺﾞｰｰｲ")).toEqual({ other: [], bigrams: ["ｽｺ", "ｺﾞ"] });
+    expect(recallQuery("うーーーん")).toBeNull();
   });
 });
 
@@ -97,7 +116,7 @@ const NOTES: Array<[note: string, question: string]> = [
   ["年假还剩六天，打算春节前后一起休。", "我还有几天年假"],
 ];
 
-describe("Chinese recall", () => {
+describe("Chinese and Japanese recall", () => {
   const BOT = "bot-cjk-recall";
   beforeEach(() => {
     closeMessageDb();
@@ -112,6 +131,17 @@ describe("Chinese recall", () => {
     expect(found.length).toBe(NOTES.length);
     const passage = memoryPassages(BOT, "借的书哪天去图书馆还？")[0];
     expect(passage?.snippet).toContain("社区图书馆还书");
-    expect(passage?.snippet).not.toContain("​");
+    expect(passage?.snippet).not.toContain(SEARCH_MARK);
+  });
+
+  it("recalls a note by one Han character asked on its own", () => {
+    writeMemoryTopic(BOT, "cat.md", "家里的猫每天早上吃一次。\n");
+    expect(memoryPassages(BOT, "猫").map((passage) => passage.label)).toContain("memory/cat.md");
+  });
+
+  it("recalls a Japanese note by a katakana word with a long vowel", () => {
+    writeMemoryTopic(BOT, "coffee.md", "好きな飲み物はコーヒー、ブラックで。\n");
+    expect(recallQuery("コーヒーは？")).not.toBeNull();
+    expect(memoryPassages(BOT, "コーヒーは？").map((passage) => passage.label)).toContain("memory/coffee.md");
   });
 });

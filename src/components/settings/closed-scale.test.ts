@@ -39,6 +39,7 @@ const FILES = [
   "src/components/MacLocalControl.tsx",
   "src/components/McpCallTimeoutSettings.tsx",
   "src/components/NewBotDialog.tsx",
+  "src/components/OllamaServer.tsx",
   "src/components/OpenAiCompatServers.tsx",
   "src/components/OrganizationSettings.tsx",
   "src/components/PairedPhones.tsx",
@@ -99,8 +100,7 @@ const DEBT: Record<string, number> = {
   "src/components/BrowserProfilesManager.tsx": 10,
   "src/components/CloudAccountSettings.tsx": 2,
   "src/components/CloudUsageMeter.tsx": 9,
-  // Fork: kept this fork's own implementation (upstream's rebuilt one needs unmerged commits).
-  "src/components/EnginesSettings.tsx": 17,
+  "src/components/EnginesSettings.tsx": 16,
   "src/components/HomeLine.tsx": 1,
   "src/components/ImportSettings.tsx": 8,
   "src/components/LocalComputerSection.tsx": 11,
@@ -119,8 +119,7 @@ const DEBT: Record<string, number> = {
   "src/components/SkinPicker.tsx": 6,
   "src/components/SwatchRadios.tsx": 2,
   "src/components/UsageSection.tsx": 11,
-  // Fork: kept this fork's own Vault card for the same reason.
-  "src/components/VaultSettings.tsx": 19,
+  "src/components/VaultSettings.tsx": 6,
   "src/components/VpsComputersCard.tsx": 5,
   "src/components/WorkspaceBackupSettings.tsx": 1,
   "src/components/keys/KeyRow.tsx": 3,

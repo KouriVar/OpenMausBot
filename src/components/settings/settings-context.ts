@@ -100,4 +100,4 @@ export function useOtherPlaces(page?: string): OtherPlace[] {
   return listed;
 }
 
-export const versionLine = (): string => t("settings.overview.version", { version: displayAppVersion(appVersion()) });
+export const versionLine = (version = appVersion()): string => t("settings.overview.version", { version: displayAppVersion(version) });

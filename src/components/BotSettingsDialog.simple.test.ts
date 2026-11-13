@@ -17,6 +17,7 @@ const fixture = vi.hoisted(() => {
   vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => {} });
   return {
     advanced: false,
+    advancedUnlocked: true,
     setAdvanced: (() => {}) as (enabled: boolean) => void,
     ownerOrAdmin: false as boolean | null,
     values: [] as unknown[],
@@ -62,6 +63,8 @@ vi.mock("@/lib/interface-mode", () => ({
   useAdvancedMode: () => fixture.advanced,
   setAdvancedMode: (enabled: boolean) => fixture.setAdvanced(enabled),
 }));
+vi.mock("@/fork/advanced-unlock", async (importOriginal) => ({ ...(await importOriginal<typeof import("@/fork/advanced-unlock")>()),
+  readAdvancedUnlocked: () => fixture.advancedUnlocked }));
 vi.mock("@/lib/mcp-servers", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/mcp-servers")>()),
   useMcpServers: () => ({ ...fixture.mcp, refresh: () => Promise.resolve(fixture.mcp.servers ?? []) }),
@@ -151,6 +154,7 @@ const { MascotFaceColorPicker } = await import("./MascotFaceColorPicker");
 const { Switch } = await import("./SettingsPrimitives");
 const { OrgSkillsCard } = await import("./bot-settings/OrgSkillsCard");
 const { PackageProvenance } = await import("./bot-settings/PackageProvenance");
+const { AdvancedSettingsRow } = await import("./bot-panel/AdvancedSettingsRow");
 
 afterAll(() => vi.unstubAllGlobals());
 
@@ -264,6 +268,7 @@ const pressed = (html: string, attr: string) => [...html.matchAll(new RegExp(`${
 
 beforeEach(() => {
   fixture.advanced = false;
+  fixture.advancedUnlocked = true;
   fixture.setAdvanced = vi.fn();
   fixture.ownerOrAdmin = false;
   fixture.slackUrl = null;
@@ -684,7 +689,7 @@ describe("the Details tab", () => {
 
   it("lists Find, Activity and the Inspector for this conversation as rows that run them, leaving Copy and Download to Share", () => {
     const rendered = botTab(makeBot());
-    expect([...rendered.html.matchAll(/data-panel-item="(\w+)"/g)].map((match) => match[1])).toEqual(["find", "activity", "inspector"]);
+    expect([...rendered.html.matchAll(/data-panel-item="([\w-]+)"/g)].map((match) => match[1])).toEqual(["find", "start-fresh", "activity", "inspector"]);
     expect(rendered.html).toContain(">Find<");
     const run = (key: string) => (rendered.nodes.find((node) => (node.props.item as { key?: string } | undefined)?.key === key)!.props.item as { onSelect: () => void }).onSelect();
     run("activity");
@@ -795,6 +800,25 @@ describe("the Bot settings page", () => {
     expect(html).toMatch(/data-panel-row="slack" href="https:\/\/admin\.example\.test\/bots\/scout\/slack" target="_blank" rel="noopener noreferrer"/);
     expect(html).toContain(">Slack<");
     expect(html.indexOf('data-panel-row="slack"')).toBeGreaterThan(html.indexOf('data-panel-row="job"'));
+  });
+
+  it("says Sending on your behalf and app access live in Advanced mode, and opens them there", () => {
+    fixture.advanced = true; fixture.advancedUnlocked = true;
+    const html = settingsPage(makeBot()).html;
+    expect(html).toContain('data-panel-row="advanced"');
+    expect(html).toContain("Sending on your behalf and app access are set there.");
+    expect(html.indexOf('data-panel-row="advanced"')).toBeGreaterThan(html.indexOf('data-panel-row="job"'));
+    click(find(capture(() => AdvancedSettingsRow()), "data-panel-row", "advanced"));
+    expect(fixture.setAdvanced).toHaveBeenCalledExactlyOnceWith(true);
+    expect(fixture.dispatch).toHaveBeenCalledExactlyOnceWith({ type: "toggleSettings", open: true, section: "permissions" });
+  });
+
+  it("keeps that row while Advanced is still behind This app, and opens that page instead of switching a mode it cannot switch", () => {
+    fixture.advanced = false; fixture.advancedUnlocked = false;
+    expect(settingsPage(makeBot()).html).toContain('data-panel-row="advanced"');
+    click(find(capture(() => AdvancedSettingsRow()), "data-panel-row", "advanced"));
+    expect(fixture.setAdvanced).not.toHaveBeenCalled();
+    expect(fixture.dispatch).toHaveBeenCalledExactlyOnceWith({ type: "toggleAppSettings", open: true, section: "app" });
   });
 
   it("keeps the instructions row quiet, and edits them in place with Done", () => {
@@ -1274,7 +1298,12 @@ describe("the drill-in pages", () => {
     await Promise.resolve();
     expect(fixture.skills.refresh).toHaveBeenCalled();
     click(find(rendered, "data-panel-action", "remove-skill:triage"));
-    expect(fixture.skills.putAssignments).toHaveBeenCalledWith("triage", true);
+    expect(fixture.api).toHaveBeenCalledWith("/api/bots/scout/skills/triage", { method: "DELETE" });
+    expect(fixture.skills.putAssignments).not.toHaveBeenCalled();
+    fixture.skills.skills = [skill("pdf", true, "imported"), skill("engine-notes", true, "native")];
+    expect(has(body("skills"), "data-panel-action", "remove-skill:pdf")).toBe(false);
+    expect(has(body("skills"), "data-panel-action", "remove-skill:engine-notes")).toBe(false);
+    fixture.skills.skills = [shared, off];
 
     (find(rendered, "data-panel-form", "skill-import").props.onChange as (value: string) => void)("owner/repo");
     (find(body("skills"), "data-panel-form", "skill-import").props.onSubmit as () => void)();

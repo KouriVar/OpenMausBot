@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import { productName } from "@/lib/brand";
-import { appVersion } from "@/lib/app-links";
-import type { SettingsPlace } from "./settings-context";
+import { desktopAppVersion } from "@/lib/app-links";
+import { versionLine, type SettingsPlace } from "./settings-context";
 import type { SettingsContext, SettingsPage } from "./settings-index";
-import { AppIcon, PlaceBadge, pageLabel } from "./SettingsNav";
+import { AppIcon, PlaceBadge, YouAvatar, pageLabel } from "./SettingsNav";
 
 const INTRO: Partial<Record<SettingsPage["id"], Parameters<typeof t>[0]>> = {
   bots: "settings.bots.intro",
@@ -21,10 +21,13 @@ function forPlace(place: string): ReactNode {
   return <>{before && <span className="text-ink-secondary">{before}</span>}<span className="text-ink">{place}</span>{after && <span className="text-ink-secondary">{after}</span>}</>;
 }
 
+function everyPlace(ctx: SettingsContext): ReactNode {
+  return ctx.places && ctx.desktop ? <span className="text-ink-secondary"> · {t("settings.scope.everyPlace")}</span> : null;
+}
+
 export function overviewStatus(place: SettingsPlace): string {
-  const version = t("settings.overview.version", { version: appVersion() });
-  if (place.kind === "computer") return `${version} · ${t("settings.overview.updatesWithApp")}`;
-  return `${place.kind === "server" ? t("settings.place.running") : t("settings.place.alwaysOn")} · ${version}`;
+  if (place.kind === "computer") return `${versionLine(desktopAppVersion())} · ${t("settings.overview.updatesWithApp")}`;
+  return `${place.kind === "server" ? t("settings.place.running") : t("settings.place.alwaysOn")} · ${versionLine()}`;
 }
 
 export function ScopeLine({ page, ctx, place }: { page: SettingsPage; ctx: SettingsContext; place: SettingsPlace }) {
@@ -36,11 +39,13 @@ export function ScopeLine({ page, ctx, place }: { page: SettingsPage; ctx: Setti
       </p>
     );
   }
-  const badge = page.owner === "place" ? <PlaceBadge place={place} size={14} /> : <AppIcon size={14} />;
+  const badge = page.owner === "place" ? <PlaceBadge place={place} size={14} /> : page.owner === "account" ? <YouAvatar size={14} /> : <AppIcon size={14} />;
   // This app's settings are kept per place's page until they follow the device (S1), so its line makes no "same on every
-  // place" promise yet.
+  // place" promise yet; Your account's does, because the account is one.
   const text = page.owner === "place" ? forPlace(place.name)
-    : ctx.desktop ? <span className="text-ink">{t("settings.scope.app", { app: productName() })}</span> : <span className="text-ink-secondary">{t("settings.scope.browser")}</span>;
+    : page.owner === "account"
+      ? ctx.desktop ? <><span className="text-ink">{t("settings.scope.account", { app: productName() })}</span>{everyPlace(ctx)}</> : <span className="text-ink-secondary">{t("settings.scope.browserAccount", { place: place.name })}</span>
+      : ctx.desktop ? <span className="text-ink">{t("settings.scope.app", { app: productName() })}</span> : <span className="text-ink-secondary">{t("settings.scope.browser")}</span>;
   return (
     <p data-settings-scope="" className="flex min-w-0 items-center gap-1.5 text-[13px] leading-[18px]">
       <span className="flex size-3.5 shrink-0 items-center justify-center overflow-hidden rounded-[4px]">{badge}</span>

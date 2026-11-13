@@ -675,16 +675,16 @@ describe("Technical controls", () => {
     expect(advanced.nodes.some((node) => node.type === SimpleVpsChoices)).toBe(false);
   });
 
-  it("offers a bot that picks its own place auto-start beside a stopped VPS, and the VPS's settings where Simple has no fix", () => {
+  it("offers a bot that picks its own place auto-start beside a stopped VPS, and Advanced's switch where Simple has no fix", () => {
     fixture.seed = { phase: "vps-unconfigured", resolved: { botId: "scout", threadId: "thread-scout", computer: undefined, cloudBackend: "vps" } };
     const simple = render(makeBot({ cloudBackend: "vps" }));
     expect(simple.html).toContain("Start VPS automatically");
     expect(simple.button("Start the desktop on your VPS")).toBeUndefined();
     (simple.nodes.find((node) => node.type === SimpleVpsChoices)!.props.onAutoStart as () => void)();
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "updateBot", botId: "scout", patch: { autoStartVps: true } });
-    expect(simple.button("Show advanced controls")).toBeUndefined();
+    // Fork: SIMPLE_ONLY leaves one way out of Simple — the VPS settings page, never a switch to Advanced.
     (simple.button("Open VPS settings")!.props.onClick as () => void)();
-    expect(fixture.setAdvancedMode).not.toHaveBeenCalled();
     expect(fixture.dispatch).toHaveBeenLastCalledWith({ type: "toggleAppSettings", open: true, section: "connections" });
+    expect(fixture.setAdvancedMode).not.toHaveBeenCalled();
   });
 });

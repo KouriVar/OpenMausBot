@@ -39,11 +39,10 @@ export function PhoneAppDialog({ open, onClose, connect = [] }: { open: boolean;
         className="max-h-full w-full max-w-[460px] overflow-y-auto rounded-2xl border border-hairline/50 bg-panel p-6 shadow-2xl"
       >
         <h2 id="phone-app-dialog-title" className="text-[17px] font-semibold text-ink">
-          {t("phoneApp.title")}
+          {t("sidebar.menu.connectPhone")}
         </h2>
         {connect.length ? (
           <div className="mt-4 flex flex-col gap-2">
-            <p className="text-[13px] leading-relaxed text-ink-secondary">{t("phoneApp.next")}</p>
             {connect.map((destination, index) => (
               <button
                 key={destination.key}

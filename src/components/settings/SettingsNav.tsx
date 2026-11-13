@@ -18,7 +18,7 @@ import type { SettingsPlace } from "./settings-context";
 import { OWNERS, pageById, type SearchHit, type SettingsContext, type SettingsOwner, type SettingsPage, type SettingsPageId } from "./settings-index";
 import { useUpdaterState } from "@/lib/updater";
 import { keySection, type KeyEntry } from "../keys/key-catalog";
-import { HELP_CENTER_URL, appVersion } from "@/lib/app-links";
+import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
 
 export const NAV_ITEM = "relative flex h-8 w-full shrink-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[13px] leading-5 text-ink transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
 
@@ -68,12 +68,13 @@ export function usePlaceSubLine(place: SettingsPlace): string {
 export function useAppSubLine(desktop: boolean): string {
   const update = useUpdaterState();
   if (!desktop) return t("settings.scope.browser");
-  if (update?.status === "downloaded") return t("settings.app.updateReadyLine", { version: appVersion() });
-  return t("settings.app.upToDateLine", { version: appVersion() });
+  if (update?.status === "downloaded") return t("settings.app.updateReadyLine", { version: desktopAppVersion() });
+  return t("settings.app.upToDateLine", { version: desktopAppVersion() });
 }
 
 export function ownerLabel(owner: SettingsOwner, place: SettingsPlace, desktop: boolean): string {
   if (owner === "place") return placeName(place);
+  if (owner === "account") return t("settings.page.account");
   return desktop ? t("settings.page.app") : t("settings.page.browser");
 }
 
@@ -122,7 +123,7 @@ function PageItem({ page, label, current, dot, onOpen }: { page: SettingsPage; l
   return (
     <button type="button" data-settings-page={page.id} data-settings-section={page.id} aria-current={current ? "page" : undefined} onClick={onOpen}
       className={cn(NAV_ITEM, current ? "bg-menu-active font-medium" : "hover:bg-menu-hover")}>
-      <span className="flex w-6 shrink-0 justify-center">{Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} />}</span>
+      <span className="flex w-6 shrink-0 justify-center">{page.id === "account" ? <YouAvatar size={18} /> : Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} />}</span>
       <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden" title={label}>
         <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap [grid-area:1/1]">{label}</span>
         <span aria-hidden="true" className="invisible h-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium [grid-area:1/1]">{label}</span>
@@ -196,7 +197,7 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
   const appLine = useAppSubLine(ctx.desktop);
   const phone = usePhonePlaceState(!ctx.client);
   const listRef = useRef<HTMLDivElement>(null);
-  const lines: Record<SettingsOwner, { badge: ReactNode; name: string; line: string; page: SettingsPageId }> = {
+  const lines: Record<Exclude<SettingsOwner, "account">, { badge: ReactNode; name: string; line: string; page: SettingsPageId }> = {
     place: { badge: <PlaceBadge place={place} size={24} />, name: placeName(place), line: placeLine, page: "overview" },
     app: { badge: <AppIcon size={24} />, name: ctx.desktop ? t("settings.page.app") : t("settings.page.browser"), line: appLine, page: "app" },
   };
@@ -211,19 +212,20 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
       </div>
       <div ref={listRef} onKeyDown={moveFocus} className={cn("settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto", narrow ? "px-2 pb-4 pt-1" : "px-3 pb-3 pt-3")}>
         {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : OWNERS.map((owner, index) => {
-          const group = pages.filter((page) => page.owner === owner && page.id !== lines[owner].page);
-          const identity = lines[owner];
-          // This computer heads the list as one more row; the app's pages simply follow it.
+          // This computer heads the list as one more row; the app's pages simply follow it, and Your account is one
+          // more page row between them.
+          const identity = owner === "account" ? null : lines[owner];
+          const group = pages.filter((page) => page.owner === owner && page.id !== identity?.page);
           const heads = owner === "place";
-          if (!heads && group.length === 0) return null;
+          if (!identity && group.length === 0) return null;
           return (
-            <div key={owner} role="group" aria-label={identity.name} data-settings-group={owner} className={cn("flex flex-col gap-0.5", heads && index > 0 && "mt-4")}>
-              {heads && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
+            <div key={owner} role="group" aria-label={identity?.name ?? t("settings.page.account")} data-settings-group={owner} className={cn("flex flex-col gap-0.5", (heads || !identity) && index > 0 && "mt-4")}>
+              {heads && identity && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
               <div className={cn("flex flex-col gap-0.5", heads && "mt-0.5")}>
                 {group.map((page) => narrow ? (
                   <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
                     className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">
-                    <span className="flex w-6 shrink-0 justify-center">{page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
+                    <span className="flex w-6 shrink-0 justify-center">{page.id === "account" ? <YouAvatar size={18} /> : page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
                     <span className="min-w-0 flex-1 truncate">{t(page.labelKey)}</span>
                     {dot(page.id) && <span aria-hidden="true" className={cn("size-1.5 rounded-full", dot(page.id) === "success" ? "bg-success" : "bg-warning")} />}
                     <ChevronRight size={14} aria-hidden="true" className="text-ink-tertiary rtl:-scale-x-100" />
@@ -337,13 +339,13 @@ function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place
 }
 
 const PAGE_OWNER: Record<SettingsPageId, SettingsOwner> = {
-  overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", data: "place",
-  people: "place", installations: "place", plan: "app", app: "app", general: "app", appearance: "app",
+  overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", transfer: "place", data: "place",
+  people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app",
 };
 
 const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
   phone: "settings.section.phoneDevices", ai: "settings.group.ai", bots: "settings.page.bots", desktops: "settings.page.desktops",
-  vault: "settings.section.vault", usage: "settings.page.spending", data: "settings.page.data", people: "settings.section.people",
+  vault: "settings.section.vault", usage: "settings.page.spending", transfer: "settings.page.importExport", data: "settings.page.data", people: "settings.section.people",
   installations: "settings.section.workspaces", plan: "settings.page.plan", general: "settings.section.general", appearance: "settings.section.appearance",
 };
 
@@ -351,7 +353,7 @@ const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
 export function searchWhere(hit: SearchHit, place: SettingsPlace, ctx: SettingsContext): { owner: string; page?: string } | null {
   const entry = hit.entry;
   if (entry.jump) return { owner: searchLocation(hit, place, ctx) };
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "app")) return null;
+  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return null;
   const owner = PAGE_OWNER[entry.page];
   const ownerName = hit.elsewhere ? t("rail.thisComputer") : owner === "place" ? place.name : ownerLabel(owner, place, ctx.desktop);
   const pageKey = PAGE_KEY[entry.page];
@@ -373,7 +375,7 @@ export function searchLocation(hit: SearchHit, place: SettingsPlace, ctx: Settin
   if (pageKey && !entry.id.startsWith("page:")) parts.push(t(pageKey));
   const label = hitLabel(hit, place, ctx.desktop);
   if (entry.sectionKey && t(entry.sectionKey) !== label) parts.push(t(entry.sectionKey));
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "app")) return "";
+  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return "";
   return parts.join(" › ");
 }
 

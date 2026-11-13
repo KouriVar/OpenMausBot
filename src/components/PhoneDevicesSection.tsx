@@ -18,8 +18,10 @@ import {
 } from "./PhoneSetupFlow";
 import { companionPairingMode } from "../lib/phone-setup";
 import { revealPhonePairing, takePairOnOpen } from "../lib/phone-pairing";
+import { showTunnelRetiredNotice } from "../lib/phone-link";
 import { PhonesList } from "./PhonesList";
 import { PairedPhones } from "./PairedPhones";
+import { TailnetComputers } from "./TailnetComputers";
 import { LearnMore, SettingRow, SettingsFoldRow, SettingsGroup, SettingsLinkRow, SettingsRows, Switch } from "./SettingsPrimitives";
 import { Layer } from "./Layer";
 import { DialogTitle } from "./settings/SettingsDialog";
@@ -33,6 +35,7 @@ export {
   companionPairingMode,
   loadCompanionBridgeState,
   shouldHydrateCompanionEmail,
+  showTunnelRetiredNotice,
 };
 
 export interface CompanionPanelStatus {
@@ -271,7 +274,7 @@ export function PairDeviceDialog({ c, state, onClose, secureAddress = false, pla
     if (c.phase !== "sign-in") setStep("consent");
   }, [step, signedIn, c.phase]);
   const begin = async () => {
-    await c.act((bridge) => setRoute(bridge, picked, true));
+    if (!await c.act((bridge) => setRoute(bridge, picked, true))) return;
     setStep("pairing");
     c.useLocal();
   };
@@ -323,6 +326,7 @@ export function PairDeviceDialog({ c, state, onClose, secureAddress = false, pla
               )}
             </div>
             <p className="text-[12px] leading-4 text-ink-secondary">{t("phone.pair.footShort")}</p>
+            {c.error && <p role="alert" className="text-[12px] leading-4 text-danger">{c.error}</p>}
             <div className="flex justify-end gap-2">
               <button type="button" className="ui-button" onClick={close}>{t("common.cancel")}</button>
               <button type="button" disabled={c.busy} onClick={() => void begin()} className="ui-button ui-button-primary" data-pair-turn-on="">{t("phone.pair.turnOnShow")}</button>
@@ -430,6 +434,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
   const reachOpen = showRoutes || pairedCount > 0 || anyRoute;
   const moreWays = !simple || tailscaleOn || httpsOn;
   const moreOpen = moreOpenAsked ?? (tailscaleOn || httpsOn);
+  const pairAgain = c.busy || remoteBlocked ? undefined : () => setPairing("device");
   const pairButton = (
     <button type="button" aria-disabled={c.busy || Boolean(remoteBlocked) || undefined} disabled={c.busy} title={managedBy ?? undefined}
       onClick={() => { if (!remoteBlocked) setPairing("device"); }}
@@ -452,9 +457,12 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
         </SettingsGroup>
       ) : (
         <SettingsGroup label={t("devices.paired")} block="paired" actions={pairButton}>
+          {showTunnelRetiredNotice(c.account, state) && (
+            <p role="status" data-devices-notice="tunnel-retired" className="px-4 text-[12px] leading-4 text-warning">{t("remote.devices.retiredShort")}</p>
+          )}
           {remoteBlocked && <p role="status" className="px-4 text-[12px] leading-4 text-ink-secondary">{remoteBlocked}</p>}
           {state.pairing && <SettingsRows><OpenCodeRow c={c} state={state} /></SettingsRows>}
-          <PairedPhones c={c} state={state} />
+          <PairedPhones c={c} state={state} onPairAgain={pairAgain} />
         </SettingsGroup>
       )}
 
@@ -504,6 +512,7 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
               </SettingsFoldRow>
             )}
           </SettingsRows>
+          {moreOpen && tailscaleOn && state.routes?.tailscale?.name && <TailnetComputers c={c} state={state} blocked={managedBy} simple={simple} />}
         </SettingsGroup>
       )}
       <PhonesList />

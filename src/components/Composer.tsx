@@ -1,4 +1,5 @@
 import { directMessageSent, roomMessageSent } from "@/lib/product-events";
+import { TeamAudienceLabel } from "./TeamSideSwitch";
 import { useComposerDictation } from "@/lib/use-composer-dictation";
 import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction } from "react";
 import { Mic, Paperclip, Square, X } from "lucide-react";
@@ -32,7 +33,7 @@ import {
   type ComposerSendSnapshot,
   type FailedComposerSend,
 } from "@/lib/drafts";
-import { DEVS_CHOICE, MentionMenu, teammateChoices, type MentionChoice } from "./MentionMenu"; import { useTeammates } from "@/state/team-people"; import { hiddenFromSidebar, useViewerEmail } from "@/lib/default-bot";
+import { DEVS_CHOICE, MentionMenu, teammateChoices, type MentionChoice } from "./MentionMenu"; import { useTeammates } from "@/state/team-people"; import { hiddenFromSidebar, useViewerEmail } from "@/lib/default-bot"; import { useMayAct } from "./SharedQueueLine";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 import { MentionTextarea } from "./MentionTextarea";
 import { ComposerAttachments, pathForFile } from "./ComposerAttachments";
@@ -70,7 +71,8 @@ import { BOT_BUTTON } from "@/lib/bot-button";
 import { useColorScheme } from "@/lib/color-scheme";
 import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
-import { COMPOSER_BOTTOM_FADE, FORK_UI_1110B } from "@/fork/ui-batch-1110b";
+import { COMPOSER_BOTTOM_FADE } from "@/fork/ui-batch-1110b";
+import { useComposerWidth } from "@/fork/composer-width";
 import { COMPOSER_FADE_BOTTOM, COMPOSER_FADE_BOTTOM_SIMPLE, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
 import { CallButton } from "./CallView";
@@ -94,6 +96,7 @@ import { serializeThreadRefs, threadTokenFromPaste, threadTokenSpacing } from "@
 import {
   composerSlashTrigger,
   goalTextFromComposer,
+  builtInCommandText,
   replaceComposerSlashTrigger,
   skillSlashCommands,
   slashCommandMatches,
@@ -171,7 +174,7 @@ export function Composer({
     : `bot:${bot?.id ?? ""}:${bot?.threadId ?? ""}`;
   const [text, setText, attachments, setAttachments] = useComposerDraft(
     draftId,
-    !group && bot ? `bot:${bot.id}` : undefined,
+    !group && bot && !state.config?.team ? `bot:${bot.id}` : undefined,
   );
   const attachmentPending = useDraftAttachmentPending(draftId);
   const failedSends = useFailedComposerSends(draftId); const picks = mentionPicksFor(draftId);
@@ -230,21 +233,7 @@ export function Composer({
   const { recording, ready: micReady, speechError, toggle: toggleMic, stop: stopDictation } = useComposerDictation({ draftId, text, onText: editText });
   const [caret, setCaret] = useState(0);
   const shellRef = useRef<HTMLDivElement>(null);
-  // Fork: bubbles cap at the composer's own width, so they line up with the input instead of running a few
-  // pixels past it. One shared custom property; the transcript reads it, no measurement per bubble.
-  useEffect(() => {
-    if (!FORK_UI_1110B) return;
-    const element = shellRef.current;
-    if (!element) return;
-    const apply = () => document.documentElement.style.setProperty("--composer-width", `${Math.round(element.getBoundingClientRect().width)}px`);
-    apply();
-    const observer = new ResizeObserver(apply);
-    observer.observe(element);
-    return () => {
-      observer.disconnect();
-      document.documentElement.style.removeProperty("--composer-width");
-    };
-  }, []);
+  useComposerWidth(shellRef);
   const tall = useTallPill(shellRef, simpleDock);
   const multiline = simpleDock && (tall || text.includes("\n"));
   const [highlight, setHighlight] = useState(0);
@@ -340,7 +329,7 @@ export function Composer({
       id: "setup",
       label: "/setup",
       description: t("composer.command.setupDesc"),
-    });
+    }, { kind: "command", id: "burst", label: "/burst", description: t("composer.command.burstDesc") });
     available.push(...skillSlashCommands(slashSkills));
     return available.filter((command) => slashCommandMatches(command, slash.query));
   }, [slash, dismissedSlashAt, group, bot, canLearn, state.instances, locale, slashSkills]);
@@ -406,7 +395,7 @@ export function Composer({
     if (!slash || !command) return;
     const spaceAfter = /^\s/.test(text.slice(slash.end)) ? "" : " ";
     const replacement = command.kind === "skill" ? `${command.label}${spaceAfter}`
-      : command.id === "learn" ? "/learn " : command.id === "setup" ? "/setup " : "";
+      : builtInCommandText(command.id);
     const next = replaceComposerSlashTrigger(text, slash, replacement);
     editText(next.text);
     setCaret(next.caret);
@@ -425,7 +414,9 @@ export function Composer({
     requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.setSelectionRange(learn.length, learn.length); });
   };
 
-  const queuedMessages = state.queued ?? []; const pendingCount = queuedMessages.length;
+  const sharedChat = Boolean(state.config?.team && !group && profile?.tasks?.some((task) => task.threadId === threadId && !task.private));
+  const queuedMessages = sharedChat ? [] : state.queued ?? [];
+  const pendingCount = queuedMessages.length;
   const canSteerQueued = composerCanSteerQueuedMessages(
     busy,
     locked,
@@ -523,7 +514,8 @@ export function Composer({
   const media = useLiveMedia();
   const callTarget = group?.id ?? bot?.id;
   const calling = callTarget !== undefined && (onCall === callTarget || (isLiveCallRunning(media.phase) && media.botId === callTarget));
-  const stoppable = busy || Boolean(!group && bot?.waitingForTeammates);
+  const mayAct = useMayAct(), mayStop = !sharedChat || mayAct(profile?.tasks?.find((task) => task.threadId === threadId)?.askedBy);
+  const stoppable = (busy || Boolean(!group && bot?.waitingForTeammates)) && mayStop;
   // Simple mode's round button is the call, Send while there is text, and Stop while the bot works.
   const stopInSlot = simpleDock && stoppable && !locked && !hasContent && !calling;
   const callShown = !simpleDock || (!hasContent && !stopInSlot);
@@ -782,6 +774,7 @@ export function Composer({
           }}
           onEdit={locked ? undefined : editQueued}
         />
+        <TeamAudienceLabel bot={bot} group={group} />
         <div className="relative">
           {/* Fork: the transcript runs on to the window's bottom edge and the fade layer behind the composer
               melts it into the canvas, instead of one opaque block cutting it off at the input's top. The
@@ -956,7 +949,7 @@ export function Composer({
             )}
           />
           <div data-composer-actions className={cn("flex items-center", simpleDock ? "gap-2" : "gap-1", !singleRow && !simpleDock && "@max-[30rem]/composer:ml-auto", stacked && "ml-auto")}>
-          {(simpleDock ? stoppable : busy) && !locked && (
+          {(simpleDock ? stoppable : busy && mayStop) && !locked && (
           <button
             onClick={interruptTurn}
             aria-label={t("chat.stopTurn")}

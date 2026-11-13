@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   Loader2,
   RefreshCw,
+  Rocket,
   Settings as SettingsIcon,
   Smartphone,
   UserRound,
@@ -350,7 +351,7 @@ export function phoneMenuItems({
   ];
 }
 
-export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPanel, panels = [], archived }: {
+export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPublishedApps, onPanel, panels = [], archived }: {
   activeView: string;
   /** the open pinned panel, so its row reads as current */
   activePanel?: string | null;
@@ -359,6 +360,8 @@ export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onA
   onTeamMap: () => void;
   /** set once My Cloud's files are ready to open */
   onFiles?: () => void;
+  /** opens the apps published to the web */
+  onPublishedApps?: () => void;
   /** opens a pinned web panel; the sidebar's own rows for them moved into this menu */
   onPanel?: (id: string) => void;
   panels?: Array<{ id: string; name: string }>;
@@ -368,6 +371,7 @@ export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onA
     { key: "automations", label: t("sidebar.nav.automations"), icon: <Zap size={16} />, active: activeView === "routines", attention: automationsNeedYou, onSelect: onAutomations },
     { key: "team-map", label: t("sidebar.nav.teamMap"), icon: <UsersRound size={16} />, active: activeView === "team-map", onSelect: onTeamMap },
     ...(onFiles ? [{ key: "files", label: t("sidebar.nav.files"), icon: <FolderOpen size={16} />, active: activeView === "files", onSelect: onFiles }] : []),
+    ...(onPublishedApps ? [{ key: "published-apps", label: t("sidebar.nav.publishedApps"), icon: <Rocket size={16} />, active: activeView === "published-apps", onSelect: onPublishedApps }] : []),
     ...(onPanel ? panels.map((panel) => ({ key: `web-panel-${panel.id}`, label: panel.name, icon: <Compass size={16} />, active: activeView === "web-panel" && activePanel === panel.id, onSelect: () => onPanel(panel.id) })) : []),
     ...(archived?.count ? [{ key: "archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, value: String(archived.count), onSelect: archived.open }] : []),
   ];
@@ -742,6 +746,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
       onTeamMap: () => dispatch({ type: "showTeamMap" }),
       onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPublishedApps: () => dispatch({ type: "showPublishedApps" }),
       onPanel: (id) => dispatch({ type: "showWebPanel", id }),
       panels,
       archived: account?.archived,
@@ -789,6 +794,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
       onTeamMap: () => dispatch({ type: "showTeamMap" }),
       onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
+      onPublishedApps: () => dispatch({ type: "showPublishedApps" }),
       onPanel: (id) => dispatch({ type: "showWebPanel", id }),
       panels,
       archived: account?.archived,

@@ -2,7 +2,7 @@
 import { cn } from "@/lib/cn";
 
 interface IconProps {
-  size?: number;
+  size?: number | string;
   className?: string;
 }
 

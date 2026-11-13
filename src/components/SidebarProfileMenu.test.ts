@@ -360,8 +360,9 @@ describe("Get the phone app", () => {
     expect(html).not.toContain("Download the APK");
     expect(html).toContain("Connect your phone");
     expect(html).toContain("to this computer");
-    expect(render()).not.toContain("Connect your phone");
-    expect(render([])).not.toContain("Connect your phone");
+    // The sheet names itself Connect your phone whether or not it has a place to pair with; only the choices come and go.
+    expect(render()).not.toContain("data-phone-app-connect");
+    expect(render([])).not.toContain("data-phone-app-connect");
   });
 
   it("offers every destination the menu does, in the same order", () => {
@@ -521,6 +522,15 @@ describe("Simple mode's account menu", () => {
     items[3]!.onSelect();
     expect(open).toHaveBeenCalledOnce();
     expect(toolMenuItems({ activeView: "chat", automationsNeedYou: false, onAutomations: noop, onTeamMap: noop, archived: { count: 0, open } }).map((item) => item.key)).toEqual(["automations", "team-map"]);
+  });
+
+  it("has Published apps among the tools, after Files and before Archived bots, lit while its page is open", () => {
+    const openApps = vi.fn();
+    const items = toolMenuItems({ activeView: "published-apps", automationsNeedYou: false, onAutomations: noop, onTeamMap: noop, onFiles: noop, onPublishedApps: openApps, archived: { count: 1, open: noop } });
+    expect(items.map((item) => [item.key, item.label, item.active])).toEqual([["automations", "Automations", false], ["team-map", "Team map", false], ["files", "Files", false],
+      ["published-apps", "Published apps", true], ["archived", "Archived bots", undefined]]);
+    items[3]!.onSelect();
+    expect(openApps).toHaveBeenCalledOnce();
   });
 
   it("names the account button after the person and whatever its dot is raised for", () => {

@@ -15,7 +15,7 @@ import { shortcutLabel } from "../ShortcutHint";
 import { SettingsLook } from "../SettingsPrimitives";
 import { SettingsPageBody } from "./pages/SettingsPageBody";
 import { useSwitchToComputer } from "./inert";
-import { KEY_CATALOG, keyMatches, type KeyEntry } from "../keys/key-catalog";
+import { KEY_CATALOG, keyHidden, keyMatches, type KeyEntry } from "../keys/key-catalog";
 import { openKeySettings } from "../keys/key-focus";
 import { useSettingsContext, useSettingsPlace } from "./settings-context";
 import { needsAdvanced, pageById, resolveSettingsTarget, searchSettings, visiblePages, type SearchHit, type SettingsPageId } from "./settings-index";
@@ -89,7 +89,7 @@ export function SettingsWindow() {
   // never reaches the list.
   const hits = SIMPLE_ONLY ? found.filter((hit) => !hit.advanced) : found;
 
-  const keyHits = useMemo(() => (ctx.client || !query.trim() ? [] : KEY_CATALOG.filter((entry) => keyMatches(entry, query.trim().toLowerCase())).slice(0, 8)), [ctx.client, query]);
+  const keyHits = useMemo(() => (ctx.client || !query.trim() ? [] : KEY_CATALOG.filter((entry) => !keyHidden(entry.id, state.config) && keyMatches(entry, query.trim().toLowerCase(), state.config)).slice(0, 8)), [ctx.client, query, state.config]);
   const openKey = (entry: KeyEntry) => { setQuery(""); setNarrowPage(true); dispatch(entry.uses ? openKeySettings(entry.uses, entry.id) : openKeySettings(entry.id)); };
   const computer = useSwitchToComputer();
   const close = () => dispatch({ type: "toggleAppSettings", open: false });

@@ -10,7 +10,6 @@ import { LAST_CONVERSATION_KEY } from "@/lib/last-conversation";
 
 // Threads shown is Advanced mode's: its cases run with the switch put back until that code goes.
 vi.mock("@/lib/simple-only", () => ({ SIMPLE_ONLY: false }));
-
 class FixtureEventSource {
   static opened: FixtureEventSource[] = [];
   onopen: (() => void) | null = null;

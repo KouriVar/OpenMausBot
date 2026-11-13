@@ -9,7 +9,8 @@ import { BoatOfferPanel } from "../BoatOffer";
 import { LiveProviderSettings } from "../LiveProviderSettings";
 import { VoiceEveryReplySetting } from "../VoiceEveryReplySetting";
 import { BuiltInReplyWait, LmStudioServer, OtherOpenAiCompatServers } from "../OpenAiCompatServers";
-import { KEY_CATALOG, KEY_SECTIONS, keyMatches, savedState, type KeyEntry, type KeyId, type KeySectionId } from "./key-catalog";
+import { OllamaServer } from "../OllamaServer";
+import { KEY_CATALOG, KEY_SECTIONS, keyHidden, keyMatches, savedState, type KeyEntry, type KeyId, type KeySectionId } from "./key-catalog";
 import { finishKeyFocus, useKeyFocus, type KeyFocusRequest } from "./key-focus";
 import { AnthropicEveryClaudeBot, OpenAiCompatUrl, OpenCodeProviderKeys, VpsConnection } from "./KeyPanels";
 import { KEY_CONTENT, KEY_ROW, KeyRow, MaskedKey, RowHeading, type KeyStatus } from "./KeyRow";
@@ -19,6 +20,7 @@ const HIGHLIGHT_MS = 1600;
 
 const PANELS: Partial<Record<KeyId, (visible: boolean) => ReactNode>> = {
   opencodeProviders: () => <OpenCodeProviderKeys />,
+  ollama: (visible) => <OllamaServer visible={visible} />,
   lmStudio: () => <LmStudioServer heading={false} />,
   vps: () => <VpsConnection />,
 };
@@ -150,9 +152,7 @@ export function KeysPage({ bare = false, exclude = [] }: { bare?: boolean; exclu
     return () => window.cancelAnimationFrame(frame);
   }, [focus]);
 
-  // With Azure chosen, Live calls do not use the OpenAI key that row points at.
-  const azureLive = state.config?.live?.provider === "azure";
-  const rows = KEY_CATALOG.filter((entry) => keyMatches(entry, q) && !(azureLive && entry.id === "liveCalls"));
+  const rows = KEY_CATALOG.filter((entry) => keyMatches(entry, q, state.config) && !keyHidden(entry.id, state.config));
   const asked = focus ? KEY_CATALOG.find((entry) => entry.id === focus.row)?.section : undefined;
   const sections = KEY_SECTIONS.filter((section) => !exclude.includes(section.id) || section.id === asked).flatMap((section) => {
     const own = rows.filter((entry) => entry.section === section.id);

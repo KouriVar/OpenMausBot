@@ -2,6 +2,7 @@
 // a number) reads as its own line, and anything else as "didn't start" with the reason. Kept out of the main server, which
 // only supplies what these lines need.
 
+import { cloudFailureOf } from "./boat-limit.ts";
 import { listManagedBoats, type ManagedBoatOwner } from "./boat.ts";
 import { placeUnavailable } from "./surface.ts";
 import { cloudRefusal, type PlaceRow } from "../shared/place-view.ts";
@@ -46,13 +47,7 @@ export function createPlaceFailures(deps: PlaceFailureDeps) {
         state: "place-failed", params: { bot: bot.name, cause: `${cause.charAt(0).toUpperCase()}${cause.slice(1)}.` }, source,
       }, deps.cloudHome);
     }
-    const { boatCode, boatStatus, status } = failure as { boatCode?: unknown; boatStatus?: unknown; status?: unknown };
-    const providerStatus = typeof boatStatus === "number" ? boatStatus : typeof status === "number" ? status : undefined;
-    const read = cloudRefusal({
-      message: failure.message,
-      ...(typeof boatCode === "string" ? { code: boatCode } : {}),
-      ...(providerStatus !== undefined ? { status: providerStatus } : {}),
-    }, deps.boatIncluded());
+    const read = cloudRefusal(cloudFailureOf(failure), deps.boatIncluded());
     const row: PlaceRow = { state: read.state, params: { bot: bot.name, ...read.params }, source };
     if (row.state === "cc-at-once") row.params.holders = await cloudComputerHolders(deps, bot.id);
     return placeUnavailable(place, row, deps.cloudHome);

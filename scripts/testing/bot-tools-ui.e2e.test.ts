@@ -144,6 +144,8 @@ describe("bot setup and tools in the real renderer", () => {
     };
     // The bot panel's close button has the same name, so press the one in the Settings dialog.
     const closeSettings = async () => {
+      // Spending is an Advanced page, so opening it turned Advanced mode on; Simple's chat head comes back with it off.
+      await evaluate("document.querySelector('[data-settings-advanced-switch][aria-checked=\"true\"]')?.click(); true");
       await evaluate("document.querySelector('[data-settings-search]').closest('[role=dialog]').querySelector('button[aria-label=\"Close settings\"]').click(); true");
       await expect.poll(() => evaluate("Boolean(document.querySelector('[data-settings-search]'))"), { timeout: 10_000 }).toBe(false);
     };

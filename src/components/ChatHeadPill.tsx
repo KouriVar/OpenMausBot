@@ -17,7 +17,7 @@ import { sharedChatAudience } from "./TeamPrivateChatsLine";
 /** The factory title a new conversation starts with. */
 const UNTITLED = "New thread";
 
-export type ChatHeadPrivacy = { kind: "private" } | { kind: "ownHelper" } | { kind: "shared"; team: string; onlyPeopleAdded?: boolean } | null;
+export type ChatHeadPrivacy = { kind: "private" } | { kind: "ownHelper" } | { kind: "shared"; team: string; onlyPeopleAdded?: boolean; sharedWith?: string } | null;
 
 const PRIVACY_ICONS = { private: Lock, ownHelper: UserRound, shared: Users } as const;
 
@@ -25,7 +25,7 @@ function privacyLabelOf(privacy: ChatHeadPrivacy): string | null {
   switch (privacy?.kind) {
     case "private": return t("team.privateHeader");
     case "ownHelper": return t("team.ownHelperHeader");
-    case "shared": return sharedChatAudience(privacy.team, privacy.onlyPeopleAdded);
+    case "shared": return sharedChatAudience(privacy.team, privacy.onlyPeopleAdded, privacy.sharedWith);
     default: return null;
   }
 }

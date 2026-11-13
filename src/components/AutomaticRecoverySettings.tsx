@@ -21,7 +21,7 @@ export function AutomaticRecoverySettings() {
   const engineOf = (next: Recovery) => engines.find((instance) => instance.instanceId === next.backup?.instanceId);
   const modelsOf = (next: Recovery) => {
     const found = engineOf(next);
-    return found?.models.options.filter((model) => !model.orgBlocked && (found.snapshot.authenticated !== false || model.custom)) ?? [];
+    return found?.models.options.filter((model) => !model.orgBlocked && !model.needsCliUpdate && (found.snapshot.authenticated !== false || model.custom)) ?? [];
   };
   const engine = engineOf(value);
   const models = modelsOf(value);

@@ -243,6 +243,12 @@ describe("configuration boundaries", () => {
     expect(parseConfigPatch(stored)).toEqual({ language: "en", features: { browser: true } });
   });
 
+  it("loads a config that still switches on chief escalations, and drops the switch", () => {
+    const stored = { language: "en", features: { browser: true, chiefEscalations: true } };
+    expect(parseStoredConfig(stored)).toEqual({ language: "en", features: { browser: true } });
+    expect(parseConfigPatch(stored)).toEqual({ language: "en", features: { browser: true } });
+  });
+
   it("rejects malformed stored instances and API patches", () => {
     expect(() => parseStoredConfig({ instances: { claude: { driver: 42 } } })).toThrow("instances.claude.driver");
     expect(() => parseStoredConfig({ browserProfiles: [{ id: "../evil", name: "Unsafe" }] })).toThrow(
@@ -905,6 +911,21 @@ describe("default fleet", () => {
     expect(map.groqOwn.environment).toEqual({ GROQ_API_KEY: "groq-own" });
     expect(cfg.instances).not.toHaveProperty("groq");
     expect(instanceConfigs({ instances: { standalone: { driver: "fake" } } })).not.toHaveProperty("groq");
+  });
+
+  it("adds ModelGo to product fleets and sends its workspace key only to ModelGo's own host", () => {
+    const cfg: AppConfig = { modelgo: { key: "modelgo-workspace" }, instances: {
+      codex: { driver: "codex" },
+      modelgoCustomHost: { driver: "modelgo", config: { url: "https://another.example.test/v1" } },
+      modelgoSameHost: { driver: "modelgo", config: { url: "https://api.modelgo.ai/v1/" } },
+      modelgoOwn: { driver: "modelgo", environment: { MODELGO_API_KEY: "modelgo-own" } },
+    } };
+    const map = instanceConfigs(cfg);
+    expect(map.modelgo.environment).toEqual({ MODELGO_API_KEY: "modelgo-workspace" });
+    expect(map.codex.environment).toEqual({});
+    expect(map.modelgoCustomHost.environment).toEqual({});
+    expect(map.modelgoSameHost.environment).toEqual({ MODELGO_API_KEY: "modelgo-workspace" });
+    expect(map.modelgoOwn.environment).toEqual({ MODELGO_API_KEY: "modelgo-own" });
   });
 
   it("preserves an existing compatible account named Groq when adding the built-in provider", () => {

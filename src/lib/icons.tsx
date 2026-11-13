@@ -150,6 +150,7 @@ import {
   RiMailLine,
   RiMapLine,
   RiMapPinLine,
+  RiMegaphoneLine,
   RiMenuLine,
   RiMicLine,
   RiMicOffLine,
@@ -187,6 +188,7 @@ import {
   RiSearchLine,
   RiSendPlaneLine,
   RiServerLine,
+  RiSettings2Line,
   RiSettings3Line,
   RiShareForwardLine,
   RiShareLine,
@@ -201,6 +203,7 @@ import {
   RiSquareLine,
   RiStackLine,
   RiStarLine,
+  RiStickyNoteLine,
   RiSubtractLine,
   RiTableLine,
   RiTabletLine,
@@ -401,6 +404,7 @@ export const MapIcon = icon(RiMapLine, "MapIcon");
 export const MapPin = icon(RiMapPinLine, "MapPin");
 export const Maximize = icon(RiFullscreenLine, "Maximize");
 export const Maximize2 = icon(RiFullscreenLine, "Maximize2");
+export const Megaphone = icon(RiMegaphoneLine, "Megaphone");
 export const Menu = icon(RiMenuLine, "Menu");
 export const Merge = icon(RiGitMergeLine, "Merge");
 export const MessageCircle = icon(RiChat3Line, "MessageCircle");
@@ -460,6 +464,7 @@ export const Send = icon(RiSendPlaneLine, "Send");
 export const Server = icon(RiServerLine, "Server");
 export const ServerCog = icon(RiServerLine, "ServerCog");
 export const Settings = icon(RiSettings3Line, "Settings");
+export const Settings2 = icon(RiSettings2Line, "Settings2");
 export const Share = icon(RiShareLine, "Share");
 export const Share2 = icon(RiShareForwardLine, "Share2");
 export const Shield = icon(RiShieldLine, "Shield");
@@ -480,6 +485,7 @@ export const SquarePen = icon(RiEditLine, "SquarePen");
 export const SquareSlash = icon(RiForbidLine, "SquareSlash");
 export const SquareTerminal = icon(RiTerminalBoxLine, "SquareTerminal");
 export const Star = icon(RiStarLine, "Star");
+export const StickyNote = icon(RiStickyNoteLine, "StickyNote");
 export const Table2 = icon(RiTableLine, "Table2");
 export const TabletSmartphone = icon(RiTabletLine, "TabletSmartphone");
 export const Tag = icon(RiPriceTag3Line, "Tag");

@@ -9,6 +9,8 @@ import { api, currentTaskBot, openBotThread, useStore, visibleMessages, type Bot
 import { lastLine } from "../sidebar-preview";
 import { isArchived, orderedThreadList, SidebarThreadRow, stampClock, threadRecency, threadRowActions, useRelativeNow } from "../SidebarThreadRow";
 import { filterTasks } from "../TaskPicker";
+import { useConversationSide } from "../TeamSideSwitch";
+import { tasksOfSide } from "@/state/team-side";
 import { CardLabel, panelActionCls } from "./rows";
 import { FORK_BOT_PANEL_LABELS } from "@/fork/bot-panel";
 
@@ -67,7 +69,9 @@ export function BotConversations({ bot }: { bot: Bot }) {
     return { onRename, onRegenerateTitle, onDelete, onMove, onPin, onArchive };
   }, [bot.id, dispatch, generatedTitles]);
 
-  const threads = (bot.tasks ?? [{ threadId: bot.threadId, title: t("task.newShort"), createdAt: 0 }])
+  const side = useConversationSide(bot);
+  const tasks = bot.tasks ?? [{ threadId: bot.threadId, title: t("task.newShort"), createdAt: 0 }];
+  const threads = (side ? tasksOfSide({ ...bot, tasks }, side) : tasks)
     .filter((task) => !task.routineRunId)
     .map((task) => {
       const thread = currentTaskBot(bot, task.threadId);
@@ -137,7 +141,7 @@ export function BotConversations({ bot }: { bot: Bot }) {
       {FORK_BOT_PANEL_LABELS ? <CardLabel action={listed && searchButton}>{t("botPanel.conversations.title")}</CardLabel>
         : listed && <div className="flex justify-end">{searchButton}</div>}
       <div className={cn("flex items-center gap-2", listed && "mb-2")}>
-        {bot.yourAccess !== "view" && (
+        {bot.yourAccess !== "view" && side !== "team" && (
           <button
             type="button"
             data-conversations-new
