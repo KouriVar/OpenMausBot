@@ -280,44 +280,46 @@ function AppliedChangeLine({
       .finally(() => setUndoing(false));
   };
   return (
-    <div className="w-full max-w-[840px] text-[13px] text-ink-tertiary" data-applied-change={name}>
+    <div className="w-full text-[13px] text-ink-tertiary" data-applied-change={name}>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 leading-5">
         {undone ? <Undo2 size={13} className="shrink-0 self-center" /> : <Check size={13} className="shrink-0 self-center text-success/80" />}
-        <span className="min-w-0 flex-1 break-words">
+        <span className="min-w-0 flex-1 truncate">
           {summary.line}
           {shared && !undone && (
             <span> · {sharedNames.length ? t("approval.applied.sharedSkill", { names: sharedNames.join(", ") }) : t("approval.applied.sharedSkillNobody")}</span>
           )}
           {undone && !cancels && <span> · {t("approval.applied.undone")}</span>}
         </span>
-        {!undone && canUndo && threadId && (
+        <span className="ml-auto flex shrink-0 items-baseline gap-x-2">
+          {!undone && canUndo && threadId && (
+            <button
+              type="button"
+              onClick={undo}
+              disabled={undoing}
+              className={cn(TEXT_ACTION, "text-accent disabled:opacity-60")}
+            >
+              {cancels ? t(undoing ? "approval.applied.cancelling" : "common.cancel") : t(undoing ? "approval.applied.undoing" : "approval.applied.undo")}
+            </button>
+          )}
+          {canShare && (
+            <button
+              type="button"
+              onClick={share}
+              disabled={sharing}
+              className="rounded-md px-1.5 py-0.5 font-medium text-accent hover:bg-inset disabled:opacity-60"
+            >
+              {sharing ? t("approval.applied.sharingSkill") : t("approval.applied.shareSkill")}
+            </button>
+          )}
           <button
             type="button"
-            onClick={undo}
-            disabled={undoing}
-            className={cn(TEXT_ACTION, "text-accent disabled:opacity-60")}
+            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+            className={cn(TEXT_ACTION, "text-ink-tertiary hover:text-ink-secondary")}
           >
-            {cancels ? t(undoing ? "approval.applied.cancelling" : "common.cancel") : t(undoing ? "approval.applied.undoing" : "approval.applied.undo")}
+            {open ? t("approval.applied.hideDetails") : t("approval.applied.details")}
           </button>
-        )}
-        {canShare && (
-          <button
-            type="button"
-            onClick={share}
-            disabled={sharing}
-            className="rounded-md px-1.5 py-0.5 font-medium text-accent hover:bg-inset disabled:opacity-60"
-          >
-            {sharing ? t("approval.applied.sharingSkill") : t("approval.applied.shareSkill")}
-          </button>
-        )}
-        <button
-          type="button"
-          aria-expanded={open}
-          onClick={() => setOpen((value) => !value)}
-          className={cn(TEXT_ACTION, "text-ink-tertiary hover:text-ink-secondary")}
-        >
-          {open ? t("approval.applied.hideDetails") : t("approval.applied.details")}
-        </button>
+        </span>
       </div>
       {shared && !undone && skippedNames.length > 0 && (
         <div className="mt-1 text-[13px] text-ink-tertiary">{t("approval.applied.shareSkipped", { names: skippedNames.join(", ") })}</div>
@@ -343,7 +345,7 @@ export const APPROVAL_CODE_CHIP =
   "inline-flex min-w-0 max-w-full items-baseline rounded-full bg-inset px-2 pb-px pt-[3px] font-mono text-[13px] leading-5 text-ink";
 
 const TEXT_ACTION =
-  "inline-flex h-6 items-center rounded-full px-2 hover:bg-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
+  "inline-flex h-6 shrink-0 items-center rounded-full px-2 hover:bg-inset focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 function firstLineOf(text: string): string {
   const line = text.split("\n", 1)[0] ?? "";

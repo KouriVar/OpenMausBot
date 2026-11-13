@@ -115,7 +115,19 @@ describe("the changes a reply applied on its own", () => {
     // The rows are in the card itself, not in a second box under the title bar.
     expect(appliedRows()).toHaveLength(1);
     expect(card.children).toHaveLength(2);
-    expect(appliedRows()[0]!.closest("[data-auto-applied-changes]")!.firstElementChild).toBe(card);
+    const row = appliedRows()[0]!;
+    expect(row.closest("[data-auto-applied-changes]")!.firstElementChild).toBe(card);
+    // Each row fills the card, its words take an ellipsis when long, and the actions end at the same right edge.
+    expect(row.getAttribute("class")).toContain("w-full");
+    expect(row.getAttribute("class")).not.toContain("max-w");
+    const line = row.firstElementChild!;
+    expect(line.children[1]!.getAttribute("class")).toContain("truncate");
+    expect(line.children[1]!.getAttribute("class")).toContain("flex-1");
+    const actions = line.children[2]!;
+    expect(actions.getAttribute("class")).toContain("ml-auto");
+    expect([...actions.querySelectorAll("button")].map((button) => button.textContent)).toEqual(
+      expect.arrayContaining([t("approval.applied.undo"), t("approval.applied.details")]),
+    );
   });
 
   it("folds a single automation change, naming what it updated", async () => {
