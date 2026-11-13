@@ -27,6 +27,34 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE028 · The 0.6.5 round: a tidier Settings column, and a menu bar in the app's language
+
+- The switches in Settings read as a light track and a white knob when off, with no dark outline around them; on is
+  unchanged.
+- The Settings left column is one list: This computer heads it as a plain row, an icon on the same 24px slot the page
+  rows use, on one line, with no badge tile and no bots count; Your account and This app left the middle of the list and
+  sit pinned at its bottom, avatar and second line kept, while the list above scrolls. Simple and Advanced share the
+  layout.
+- The macOS menu bar follows the app's language: the App menu (About, Open at Login, Hide, Hide Others, Show All, Quit)
+  and File, Edit, Server, View and Window with every item under them are written in the app's own words, Electron's own
+  role items labelled too, and they re-label when the language changes. The app is named OpenMausBot there and in About,
+  not the bundle's lowercase `openmausbot` — the display name only: the bundle id, the app's own name and every data
+  folder stay where they were.
+- About names the release once: V0.6.5 in the app, in the sidebar stamp and in About, without the repeated bundle
+  version in brackets beside it.
+
+中文：**V0.6.5：设置左栏更整齐，菜单栏跟着 App 的语言走**
+
+- 设置里的开关，关的时候只剩浅灰的轨道和白色圆点，外面那圈深色描边去掉了；开的状态不变。
+- 设置左栏合成一列：「这台电脑」像普通行一样打头，裸图标占和页面行一样的 24px 位置，一行显示，不再有图标外框、
+  也不再显示机器人数量；「你的账号」和「这个应用」从列表中间移到最底部固定住，头像和第二行副标题都保留，上面的列表
+  照常滚动。简易模式和高级模式共用这套布局。
+- macOS 顶部菜单栏跟着 App 的语言走：App 菜单（关于、登录时打开、隐藏、隐藏其他、全部显示、退出）以及文件、编辑、
+  服务器、显示、窗口和它们下面的每一项，都用 App 当前语言显示，Electron 自带的 role 项也带上了对应文案；切换语言后
+  菜单会跟着刷新。App 名在菜单和关于里统一显示为「OpenMausBot」，不再用小写的包名 `openmausbot` —— 只改显示名，
+  bundle id、App 自身的名称和各个数据目录都没动。
+- 关于里版本只写一次：App 内、侧栏戳和关于面板都显示 V0.6.5，括号里重复的包版本去掉了。
+
 ### OE026 · The 0.6.3 round: the browser panel stops flashing black between frames
 
 The right-side browser panel's live picture flashed black for two to four frames every quarter of a second or so, the
