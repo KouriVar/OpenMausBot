@@ -101,6 +101,23 @@ describe("the changes a reply applied on its own", () => {
     );
   });
 
+  it("is one card with one chevron: pointing right closed, up open, with the rows growing inside it", async () => {
+    await draw(transcript(onPath([skill("s1", "rough-cut")])));
+    const card = chip()!.firstElementChild!;
+    const chevron = () => chip()!.querySelector("button > svg")!;
+    expect(chip()!.querySelectorAll("button > svg")).toHaveLength(1);
+    expect(chevron().getAttribute("class")).not.toContain("-rotate-90");
+    expect(chip()!.querySelector("button > span")!.getAttribute("class")).toContain("text-sm");
+    await openChip();
+    // The same one icon turns, it is not swapped for another.
+    expect(chip()!.querySelectorAll("button > svg")).toHaveLength(1);
+    expect(chevron().getAttribute("class")).toContain("-rotate-90");
+    // The rows are in the card itself, not in a second box under the title bar.
+    expect(appliedRows()).toHaveLength(1);
+    expect(card.children).toHaveLength(2);
+    expect(appliedRows()[0]!.closest("[data-auto-applied-changes]")!.firstElementChild).toBe(card);
+  });
+
   it("folds a single automation change, naming what it updated", async () => {
     await draw(transcript(onPath([routine("r1", "Inbox brief")])));
     expect(chipTitle()).toBe(t("chat.autoApplied.automation.one"));

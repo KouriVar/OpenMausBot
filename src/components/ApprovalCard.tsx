@@ -283,7 +283,7 @@ function AppliedChangeLine({
     <div className="w-full max-w-[840px] text-[13px] text-ink-tertiary" data-applied-change={name}>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 leading-5">
         {undone ? <Undo2 size={13} className="shrink-0 self-center" /> : <Check size={13} className="shrink-0 self-center text-success/80" />}
-        <span className="min-w-0 break-words">
+        <span className="min-w-0 flex-1 break-words">
           {summary.line}
           {shared && !undone && (
             <span> · {sharedNames.length ? t("approval.applied.sharedSkill", { names: sharedNames.join(", ") }) : t("approval.applied.sharedSkillNobody")}</span>
