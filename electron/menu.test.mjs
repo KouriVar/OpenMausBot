@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("electron", () => ({
-  app: { name: "OpenMausBot" },
+  // What the packaged app reports: package.json's name, lowercase. The menu must read OpenMausBot anyway.
+  app: { name: "openmausbot" },
   Menu: { buildFromTemplate: (template) => template },
 }));
 
 import { readFileSync } from "node:fs";
 import nativeText from "./native-text.cjs";
-import { buildApplicationMenu } from "./menu.mjs";
+import { APP_DISPLAY_NAME, buildApplicationMenu } from "./menu.mjs";
 
 describe("buildApplicationMenu", () => {
   const originalPlatform = process.platform;
@@ -170,5 +171,28 @@ describe("buildApplicationMenu", () => {
     expect(build("win32")[0].submenu[0].label).toBe("Exit");
     expect(build("linux")[0].submenu[0].label).toBe("Quit");
     expect(build("linux").find((entry) => entry.role === "windowMenu").submenu.at(-1).label).toBe("Close");
+  });
+
+  it("writes the whole menu bar in the language the app shows, with the app's display name in it", () => {
+    const zh = nativeText.createNativeText({ saved: "zh" });
+    const openAtLogin = { checked: false, onToggle: vi.fn() };
+    const template = build("darwin", { t: zh.t, openAtLogin });
+    const appMenu = template[0];
+    expect(appMenu.label).toBe("OpenMausBot");
+    const appItems = Object.fromEntries(appMenu.submenu.filter((item) => item.role || item.id).map((item) => [item.role ?? item.id, item.label]));
+    expect(appItems).toMatchObject({ about: "关于 OpenMausBot", hide: "隐藏 OpenMausBot", hideOthers: "隐藏其他", unhide: "全部显示", quit: "退出 OpenMausBot", "open-at-login": "登录时打开" });
+    expect(Object.fromEntries(template.filter((menu) => menu.role).map((menu) => [menu.role, menu.label]))).toMatchObject({ fileMenu: "文件", editMenu: "编辑", viewMenu: "显示", windowMenu: "窗口" });
+    const server = template.find((menu) => menu.label === "服务器");
+    expect(server.submenu.map((item) => item.label)).toContain("连接到服务器…");
+    const edit = template.find((menu) => menu.role === "editMenu");
+    expect(edit.submenu.map((item) => item.label)).toEqual(expect.arrayContaining(["撤销", "重做", "剪切", "拷贝", "粘贴", "全选"]));
+    // No item falls through to its key, and every one of them has words.
+    expect(labelled(template).filter((item) => item.label.startsWith("native."))).toEqual([]);
+    expect(labelled(template).filter((item) => typeof item.label !== "string" || !item.label)).toEqual([]);
+  });
+
+  it("keeps the app's display name out of the package's lowercase name", () => {
+    expect(APP_DISPLAY_NAME).toBe("OpenMausBot");
+    expect(labelled(build("darwin")).filter((item) => /openmausbot/.test(item.label))).toEqual([]);
   });
 });
