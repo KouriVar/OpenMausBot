@@ -82,14 +82,16 @@ describe("Settings search in Simple mode", () => {
     expect(document.querySelector("[data-settings-hit]")!.textContent).toContain("Phone & devices");
   });
 
-  it("tags an Advanced row from Simple; choosing it lands on the page without changing the mode", () => {
+  it("leaves rows and pages only Advanced shows out of Simple's search, since this build cannot reach them", () => {
     type("parallel threads");
-    const hit = document.querySelector<HTMLButtonElement>('[data-settings-hit="parallel"]')!;
-    expect(hit.textContent).toContain("Advanced");
-    flushSync(() => hit.click());
-    // Fork: the window never changes the mode, so the chat head's bot panel survives the visit.
+    expect(document.querySelector('[data-settings-hit="parallel"]')).toBeNull();
+    expect(document.querySelector("[data-settings-no-match]")).not.toBeNull();
+    type("spending");
+    expect(document.querySelector('[data-settings-hit="page:usage"]')).toBeNull();
+    // What Simple does keep still comes back: an Advanced page's row, on the Simple page that shows it.
+    type("notifications");
+    expect(document.querySelector('[data-settings-hit="notifications"]')).not.toBeNull();
     expect(vi.mocked(setAdvancedMode)).not.toHaveBeenCalled();
-    expect(fixture.dispatch).toHaveBeenCalledWith({ type: "toggleAppSettings", open: true, section: "bots" });
   });
 
   it("says plainly when nothing matches, with the Help Center beside it", () => {

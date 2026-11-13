@@ -7,6 +7,7 @@ import { scrollWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { setAdvancedMode } from "@/lib/interface-mode";
 import { FORK_SETTINGS_KEEPS_MODE } from "@/fork/settings-mode";
+import { SIMPLE_ONLY } from "@/lib/simple-only";
 import { api, useStore, type ConfigStatus } from "@/state/store";
 import { useIsTopLayer } from "../Layer";
 import { LicenseExpiryBanner } from "../LicenseExpiryBanner";
@@ -82,8 +83,11 @@ export function SettingsWindow() {
   useEffect(() => window.ogb?.onOpenAppSettings?.(() => setQuery("")), []);
   useEffect(markOpened, []);
 
-  const hits = useMemo(() => searchSettings(query, ctx, (entry) => hitLabel({ entry, elsewhere: false, score: 0 }, place, ctx.desktop),
+  const found = useMemo(() => searchSettings(query, ctx, (entry) => hitLabel({ entry, elsewhere: false, score: 0 }, place, ctx.desktop),
     (candidate) => pageLabel(candidate, place, ctx.desktop)), [query, ctx, place]);
+  // Fork: Simple is the only mode, so a hit that only Advanced shows is one the window cannot take the person to; it
+  // never reaches the list.
+  const hits = SIMPLE_ONLY ? found.filter((hit) => !hit.advanced) : found;
 
   const keyHits = useMemo(() => (ctx.client || !query.trim() ? [] : KEY_CATALOG.filter((entry) => keyMatches(entry, query.trim().toLowerCase())).slice(0, 8)), [ctx.client, query]);
   const openKey = (entry: KeyEntry) => { setQuery(""); setNarrowPage(true); dispatch(entry.uses ? openKeySettings(entry.uses, entry.id) : openKeySettings(entry.id)); };
