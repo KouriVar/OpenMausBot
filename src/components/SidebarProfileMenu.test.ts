@@ -16,6 +16,7 @@ import {
   accountDot,
   accountLabel,
   toolMenuItems,
+  inboxDot,
   type PlanUsageWindows,
   selectPhoneDestination,
   profileLabel,
@@ -44,6 +45,18 @@ import { moveLine } from "@/lib/cloud-send";
 import { InitialsAvatar } from "./Avatar";
 
 const state = (patch: Partial<UpdaterState>): UpdaterState => ({ status: "idle", ...patch }) as UpdaterState;
+
+describe("the Inbox row's unread mark", () => {
+  it("is nothing while nothing waits, and a green dot at the row's far end when something does", () => {
+    expect(inboxDot(0)).toBeUndefined();
+    expect(inboxDot(-1)).toBeUndefined();
+    const html = renderToStaticMarkup(createElement("div", null, inboxDot(3)));
+    expect(html).toContain("data-inbox-dot");
+    expect(html).toContain("bg-success");
+    // Same -me-0.5 as the chevrons the rows above it draw, so the edges line up.
+    expect(html).toContain("-me-0.5");
+  });
+});
 
 describe("profileInitials", () => {
   it("takes the first letter of the first two words", () => {
@@ -400,10 +413,12 @@ describe("profileMenuItems", () => {
       onApps: apps,
       onUsage: noop, onSettings: noop, onShortcuts: noop, onAbout: noop, onHelp: noop, onFeedback: noop, onAccount: noop,
     };
-    // Fork: Simple's own menu stays what it is — no Apps, no phone, no help.
-    expect(profileMenuItems(shared).map((item) => item.key)).toEqual(["automations", "team-map", "usage", "settings"]);
-    const full = profileMenuItems({ ...shared, menu: "advanced" });
-    expect(full.map((item) => item.key)).toEqual(["automations", "team-map", "apps", "usage", "settings", "phone-app", "support", "account"]);
+    // Fork: Simple's own menu stays what it is — no Apps, no phone, no help; the Inbox row closes its tools group.
+    const inbox = { key: "inbox", label: "Inbox", onSelect: noop };
+    expect(profileMenuItems({ ...shared, inbox }).map((item) => item.key)).toEqual(["automations", "team-map", "inbox", "usage", "settings"]);
+    const full = profileMenuItems({ ...shared, inbox, menu: "advanced" });
+    // Advanced puts the Inbox right under Apps.
+    expect(full.map((item) => item.key)).toEqual(["automations", "team-map", "apps", "inbox", "usage", "settings", "phone-app", "support", "account"]);
     full.find((item) => item.key === "apps")!.onSelect();
     expect(apps).toHaveBeenCalledOnce();
   });

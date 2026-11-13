@@ -2278,7 +2278,9 @@ ipcMain.handle("desktop:skin", (event, skin) => {
   try {
     talk.skin(skin); const { color } = skinChrome(skin);
     const win = BrowserWindow.fromWebContents(event.sender) ?? mainWindow;
-    if (win && !win.isDestroyed()) {
+    // macOS keeps its window transparent: the sidebar's vibrancy is the system material behind it, and an opaque
+    // background colour would cover it. The page paints its own ground when the material is off.
+    if (win && !win.isDestroyed() && process.platform !== "darwin") {
       try { win.setBackgroundColor(color); } catch {}
     }
     if (mainWindow && event.sender === mainWindow.webContents) chromeRail.send("rail:skin", skin);

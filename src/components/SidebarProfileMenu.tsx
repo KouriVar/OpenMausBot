@@ -596,6 +596,13 @@ export function profileMenuItems({
   return groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
 }
 
+/** The Inbox row's unread mark: nothing while nothing waits, else a green dot at the row's far end, its edge level with
+ * the chevrons the rows above it draw (`-me-0.5` is the chevron's own). */
+export function inboxDot(count: number) {
+  if (count <= 0) return undefined;
+  return <span data-inbox-dot="" aria-hidden="true" className="-me-0.5 size-2 shrink-0 rounded-full bg-success" />;
+}
+
 export interface ArchivedBots {
   count: number;
   open: () => void;
@@ -687,9 +694,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     icon: <Inbox size={16} />,
     active: inboxPanel.open,
     onSelect: toggleInbox,
-    trailing: inboxCount > 0
-      ? <span data-inbox-dot="" aria-hidden="true" className="-me-0.5 size-2 shrink-0 rounded-full bg-success" />
-      : undefined,
+    trailing: inboxDot(inboxCount),
   };
   const railItems: SidebarMenuItem[] = railActions && RAIL_MENU_ACTIONS ? [
     {
