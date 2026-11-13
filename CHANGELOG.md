@@ -52,7 +52,10 @@ translucent panel colour and its rows a tint, and the chat, the settings window 
 Windows and Linux, the sidebar is the solid one it was. The alpha is one token (`--sidebar-glass-strength`, 62%) beside the
 per-skin glass colour, so it is tuned in one place; a chosen sidebar colour lays its tint over the glass and a sidebar
 picture still shows. `prefers-reduced-transparency` and high-contrast modes put the solid sidebar back. Nothing about the
-bundle id, the user-data path or any data folder changed.
+bundle id, the user-data path or any data folder changed. Later the same round it was turned down so more of the wallpaper
+shows: 22% of the panel on the dark skins, 28% on the light ones (two tokens, `--sidebar-glass-strength` and
+`--sidebar-glass-strength-light`), a selected row a 32% tint rather than a block, and the sidebar's quiet inks stepped
+toward the skin's ink with a halo behind them so the words still read over a bright picture.
 
 中文：**V0.6.9：Mac 侧栏变成「桌面壁纸的毛玻璃」**
 
@@ -61,7 +64,9 @@ Mac 上左栏现在向系统要一层 sidebar 材质（Finder、Aside 侧栏用�
 外观 → 样式 →「侧栏毛玻璃」开着（默认开）时，页面、窗口外框和侧栏底下那张卡片都不再上底色，侧栏本身换成半透明的面板色、行底色
 换成淡色叠色，聊天区、设置窗口和所有弹层继续实色；关掉、或在 Windows/Linux 上，侧栏还是原来的实色。透明度是一个 token
 （`--sidebar-glass-strength`，62%）加上每种皮肤自己的玻璃色，只在一处调；选了侧栏颜色就在毛玻璃上叠一层淡色，侧栏图片照旧显示。
-系统「减少透明度」和高对比模式下会回到实色侧栏。bundle id、userData 路径和任何数据目录都没动。
+系统「减少透明度」和高对比模式下会回到实色侧栏。bundle id、userData 路径和任何数据目录都没动。这一轮后半段又把透明度调低了，让壁纸
+透出更多：深色皮肤 22%、浅色皮肤 28%（两个 token：`--sidebar-glass-strength` 和 `--sidebar-glass-strength-light`），选中行
+改成 32% 的淡色叠层而不是色块，侧栏里那些浅色文字往皮肤的主文字色靠、并在字后面加一层同色系的光晕，亮壁纸上也还看得清。
 
 ### OE030 · The 0.6.8 round: a Chief can wear a department lead's flag
 

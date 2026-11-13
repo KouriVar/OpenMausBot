@@ -3650,22 +3650,40 @@ button:disabled.bg-danger {
 
 /* ────────────────────────────────────────────────────────────────────────
    FORK: THE SIDEBAR'S SYSTEM VIBRANCY (macOS)
-   The window asks the system for a sidebar material (electron/main.mjs);
-   these rules let it through. The page, the window's frame and the card that
-   holds the sidebar stop painting, the sidebar itself takes a translucent
-   panel colour, and the chat pane keeps its solid ground. `data-sidebar-vibrancy`
-   is set on <html> before the first paint by src/fork/sidebar-vibrancy.ts, so
-   the switch in Settings takes effect without a reload. The alpha is one
-   token per skin family (`--sidebar-glass-strength`), easy to tune.
+   The window asks the system for a material (electron/main.mjs); these rules let
+   it through. The page, the window's frame and the card that holds the sidebar
+   stop painting, the sidebar itself takes a translucent panel colour, and the
+   chat pane keeps its solid ground. `data-sidebar-vibrancy` is set on <html>
+   before the first paint by src/fork/sidebar-vibrancy.ts, so the switch in
+   Settings takes effect without a reload.
+
+   How much of the wallpaper shows is two tokens, one per skin family, so each
+   can be tuned on its own: `--sidebar-glass-strength` for the dark skins (the
+   default, since midnight is), `--sidebar-glass-strength-light` for the light
+   ones. Lower = more wallpaper.
    ──────────────────────────────────────────────────────────────────────── */
 :root[data-sidebar-vibrancy="on"] {
   /* Light skins' panel is warm white, dark skins' is near black; mixing with transparent gives each its own glass. */
-  --sidebar-glass-strength: 62%;
+  --sidebar-glass-strength: 22%;
+  --sidebar-glass-strength-light: 28%;
   --sidebar-glass: color-mix(in srgb, var(--color-panel) var(--sidebar-glass-strength), transparent);
   /* Rows over the material: a tint, never a solid block, so the wallpaper's colour still reads through a selection. */
-  --sidebar-raised: color-mix(in srgb, var(--color-raised) 55%, transparent);
-  --sidebar-raised-hover: color-mix(in srgb, var(--color-raised-hover) 65%, transparent);
-  --sidebar-menu-hover: color-mix(in srgb, var(--color-menu-hover) 70%, transparent);
+  --sidebar-raised: color-mix(in srgb, var(--color-raised) 32%, transparent);
+  --sidebar-raised-hover: color-mix(in srgb, var(--color-raised-hover) 40%, transparent);
+  --sidebar-menu-hover: color-mix(in srgb, var(--color-menu-hover) 45%, transparent);
+  /* Words keep their contrast over a picture: the quiet inks step toward the skin's own ink, and a halo the colour of the
+     scheme sits behind the glyphs. Nothing opaque is painted. */
+  --sidebar-halo: rgb(0 0 0 / 0.4);
+}
+/* The light skins: a little more panel so dark words hold on a bright wallpaper, and a light halo behind them. */
+:root[data-sidebar-vibrancy="on"]:is([data-skin="atelier"], [data-skin="lagoon"], [data-skin="linen"], [data-skin="daylight"], [data-skin="meadow"], [data-skin="pop"]) {
+  --sidebar-glass-strength: var(--sidebar-glass-strength-light);
+  --sidebar-halo: rgb(255 255 255 / 0.55);
+}
+:root[data-sidebar-vibrancy="on"] [data-sidebar] {
+  --color-ink-secondary: color-mix(in srgb, var(--color-ink) 88%, transparent);
+  --color-ink-tertiary: color-mix(in srgb, var(--color-ink) 74%, transparent);
+  text-shadow: 0 0.5px 1.5px var(--sidebar-halo);
 }
 :root[data-sidebar-vibrancy="on"] body {
   background-color: transparent;
