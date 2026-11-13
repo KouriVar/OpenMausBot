@@ -1,5 +1,6 @@
-import { Crown } from "lucide-react";
 import { t } from "@/lib/i18n";
+import { chiefMark } from "@/fork/chief-mark";
+import { chiefStyleOf } from "@/fork/chief-style";
 import type { Bot } from "@/state/store";
 
 export function SidebarBotRole({ role }: { role: string }) {
@@ -23,11 +24,13 @@ export function ChatHeadRole({ bot }: { bot: Pick<Bot, "title" | "chiefOfStaff">
   );
 }
 
-export function chiefOfStaffBadge(bot: Bot) {
+export function chiefOfStaffBadge(bot: Bot, style = chiefStyleOf(bot.id)) {
   if (!bot.chiefOfStaff) return null;
+  // The mark the person chose for this bot's Chief: a crown, or a department lead's flag.
+  const Mark = chiefMark(style);
   return (
     <span title={t("chat.chiefOfStaff")} className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-accent/12 px-2 py-0.5 text-[11px] font-medium text-accent @max-4xl/chathead:px-1.5">
-      <Crown size={11} aria-hidden="true" /> <span className="@max-4xl/chathead:sr-only">{t("chat.chiefOfStaff")}</span>
+      <Mark size={11} aria-hidden="true" /> <span className="@max-4xl/chathead:sr-only">{t("chat.chiefOfStaff")}</span>
     </span>
   );
 }

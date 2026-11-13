@@ -94,6 +94,7 @@ import { AttachmentGallery, collectMessageFiles, replyAttachmentGroup, splitMess
 import { ScreenFrame } from "./ScreenFrame";
 import { CompactionChip, DigestChip } from "./DigestChip";
 import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
+import { useChiefStyle } from "@/fork/chief-style";
 import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill"; import { useStoreRef } from "@/state/store-ref";
 import { sameFields, useStoreDispatch, useStoreSelector } from "@/state/store-select";
 import { sameDrawnBots } from "@/lib/drawn-bots";
@@ -862,6 +863,8 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
   // An opened page fills the messages area, between the header and the message box, which stays usable.
   const [pagePane, setPagePane] = useState<HTMLDivElement | null>(null);
   const advanced = useAdvancedMode();
+  // The Chief's mark (crown, or a department lead's flag): subscribed here, so a change in Settings shows at once.
+  const chiefStyle = useChiefStyle(bot.id);
   const phone = useMediaQuery(PHONE_LAYOUT);
   const phoneMenu = phone && !remoteClient;
   const simpleHead = !advanced && !remoteClient;
@@ -1081,7 +1084,7 @@ export function ChatView({ bot: profile }: { bot: Bot }) {
                 motion={mascotMotion?.kind ?? "none"} motionKey={mascotMotion?.nonce ?? 0} animated={headerAnimated}
                 sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader} />
               <span className="min-w-0 truncate text-[14px] font-medium text-ink">{bot.name}</span>
-              {chiefOfStaffBadge(bot)}
+              {chiefOfStaffBadge(bot, chiefStyle)}
               <ChevronRight size={14} aria-hidden="true" className="-ml-2.5 w-0 shrink-0 text-ink-secondary opacity-0 transition-[width,margin,opacity] duration-150 group-hover:ml-0 group-hover:w-3.5 group-hover:opacity-100 group-focus-visible:ml-0 group-focus-visible:w-3.5 group-focus-visible:opacity-100" />
             </button>
           )}
