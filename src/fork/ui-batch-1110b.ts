@@ -14,8 +14,5 @@ export const RAIL_ACTIONS_IN_MENU = FORK_UI_1110B;
 /** Group avatars in the sidebar draw 1.2x larger inside the same row slot: faces, overlap and rings scale. */
 export const GROUP_AVATAR_SCALE = 1.2;
 
-/** Simple's expanded footer carries search, inbox and + on the avatar's row instead of the header. */
-export const FOOTER_ACTIONS = true;
-
 /** The expanded footer's search and + are the account menu's first two rows; the header and footer draw neither. */
 export const ACCOUNT_MENU_ACTIONS = true;
