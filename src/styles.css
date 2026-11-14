@@ -78,6 +78,11 @@
   text-decoration-color: var(--color-ink-tertiary);
   text-underline-offset: 3px;
 }
+::highlight(omb-clarified) {
+  text-decoration: underline solid;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 3px;
+}
 .mention-editor textarea::selection {
   color: var(--color-ink);
   background: var(--color-raised-hover);

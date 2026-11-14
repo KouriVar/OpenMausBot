@@ -14,21 +14,30 @@ export function useComposerAmbiguity({ botId, threadId, text }: { botId: string 
   const [active, setActive] = useState<{ mark: AmbiguityMark; rect: DOMRect } | null>(null);
   const detected = useAmbiguityMarks(enabled, botId, threadId, text, composing);
   const marks = detected.filter((mark) => !assumptions.some((assumption) => assumption.word.toLocaleLowerCase() === mark.word.toLocaleLowerCase()));
+  const clarified = assumptions.flatMap((assumption) => {
+    const at = text.toLocaleLowerCase().indexOf(assumption.word.toLocaleLowerCase());
+    return at < 0 ? [] : [{ start: at, end: at + assumption.word.length }];
+  });
   const live = useCallback(() => assumptions.filter((assumption) => text.toLocaleLowerCase().includes(assumption.word.toLocaleLowerCase())), [assumptions, text]);
   const panel = active ? (
     <AmbiguityPanel
       mark={active.mark}
       rect={active.rect}
+      selected={assumptions.find((assumption) => assumption.word === active.mark.word)?.meaning}
       onClose={() => setActive(null)}
       onPick={(meaning) => {
         const word = active.mark.word;
-        setAssumptions((current) => [...current.filter((assumption) => assumption.word !== word), { word, meaning }]);
+        setAssumptions((current) => meaning
+          ? [...current.filter((assumption) => assumption.word !== word), { word, meaning }]
+          : current.filter((assumption) => assumption.word !== word));
         setActive(null);
       }}
     />
   ) : null;
   return {
     marks,
+    clarified,
+    activeMark: active?.mark ?? null,
     panel,
     live,
     restore: setAssumptions,

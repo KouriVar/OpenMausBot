@@ -2892,6 +2892,7 @@
   "chat.run.steps": "{count} steps · {tools}",
   "chat.run.showSteps": "Show every step",
   "chat.run.more": "+{count} more",
+  "composer.ambiguity.clear": "Clear this clarification",
   "composer.ambiguity.title": "What “{word}” means",
   "composer.ambiguity.close": "Close",
   "composer.ambiguity.scale": "Meaning",

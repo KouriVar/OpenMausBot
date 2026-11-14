@@ -4,6 +4,7 @@ import { Check, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import type { AmbiguityMark, AmbiguityToken } from "../../shared/composer-ambiguity";
+import { TRANSCRIPT_GAP } from "@/lib/composer-dock";
 import { MENU_ITEM, MENU_SHEET } from "./menu-recipe";
 
 const TOKEN: Record<AmbiguityToken, string> = {
@@ -15,14 +16,18 @@ const TOKEN: Record<AmbiguityToken, string> = {
 };
 
 /** The small panel a dashed word opens: the meanings it could carry here, in the control the model chose. */
-export function AmbiguityPanel({ mark, rect, onPick, onClose }: {
+export function AmbiguityPanel({ mark, rect, selected, onPick, onClose }: {
   mark: AmbiguityMark;
   rect: DOMRect;
-  onPick: (meaning: string) => void;
+  selected?: string;
+  onPick: (meaning: string | null) => void;
   onClose: () => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
-  const [slider, setSlider] = useState(Math.max(0, Math.floor((mark.options.length - 1) / 2)));
+  const [slider, setSlider] = useState(() => {
+    const at = selected === undefined ? -1 : mark.options.findIndex((option) => option.label === selected);
+    return at >= 0 ? at : Math.max(0, Math.floor((mark.options.length - 1) / 2));
+  });
   useEffect(() => {
     const away = (event: PointerEvent) => {
       if (!(event.target instanceof Node) || panel.current?.contains(event.target)) return;
@@ -39,14 +44,17 @@ export function AmbiguityPanel({ mark, rect, onPick, onClose }: {
 
   const width = 292;
   const left = Math.min(Math.max(8, rect.left), Math.max(8, window.innerWidth - width - 8));
-  const bottom = Math.min(window.innerHeight - 8, window.innerHeight - rect.top + 6);
+  const composer = document.querySelector<HTMLElement>('[data-tour="composer"]');
+  const bottom = composer
+    ? `calc(100vh - ${composer.getBoundingClientRect().top}px + ${TRANSCRIPT_GAP})`
+    : `calc(100vh - ${rect.top}px + ${TRANSCRIPT_GAP})`;
   const current = mark.options[Math.min(slider, mark.options.length - 1)]!;
   return (
     <div
       ref={panel}
       role="dialog"
       aria-label={t("composer.ambiguity.title", { word: mark.word })}
-      className={cn(MENU_SHEET, "fixed z-[70] !gap-1.5 animate-pop-in")}
+      className={cn(MENU_SHEET, "pointer-events-auto fixed z-[70] !gap-1.5 animate-pop-in")}
       style={{ left, bottom, width }}
     >
       <div className="flex items-start gap-2 px-2 pb-1 pt-1.5">
@@ -79,22 +87,27 @@ export function AmbiguityPanel({ mark, rect, onPick, onClose }: {
       ) : mark.control === "swatch" ? (
         <div className="flex flex-col gap-1 px-1.5 pb-1.5">
           {mark.options.map((option) => (
-            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8")}>
+            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8", selected === option.label && "bg-accent/10")}>
               <span aria-hidden="true" className={cn("size-4 shrink-0 rounded-full ring-1 ring-ink/15", TOKEN[option.token ?? "ink"])} />
               <span className="min-w-0 flex-1 truncate">{option.label}</span>
-              <Check size={13} className="shrink-0 text-ink-tertiary" />
+              <Check size={13} className={cn("shrink-0", selected === option.label ? "text-accent" : "text-ink-tertiary")} />
             </button>
           ))}
         </div>
       ) : (
         <div className="flex flex-col gap-1 px-1.5 pb-1.5">
           {mark.options.map((option) => (
-            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8")}>
+            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8", selected === option.label && "bg-accent/10")}>
               <span className="min-w-0 flex-1 truncate">{option.label}</span>
-              <Check size={13} className="shrink-0 text-ink-tertiary" />
+              <Check size={13} className={cn("shrink-0", selected === option.label ? "text-accent" : "text-ink-tertiary")} />
             </button>
           ))}
         </div>
+      )}
+      {selected !== undefined && (
+        <button type="button" onClick={() => onPick(null)} className={cn(MENU_ITEM, "mx-1.5 mb-1 min-h-8 text-ink-tertiary")}>
+          {t("composer.ambiguity.clear")}
+        </button>
       )}
     </div>
   );

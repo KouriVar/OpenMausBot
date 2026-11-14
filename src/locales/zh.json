@@ -2890,6 +2890,7 @@
   "chat.run.steps": "{count} 步 · {tools}",
   "chat.run.showSteps": "显示每一步",
   "chat.run.more": "另外 {count} 个",
+  "composer.ambiguity.clear": "取消澄清",
   "composer.ambiguity.title": "「{word}」指什么",
   "composer.ambiguity.close": "关闭",
   "composer.ambiguity.scale": "意思",

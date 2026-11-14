@@ -861,7 +861,7 @@ export function Composer({
           dir="auto"
           rows={1}
           value={text}
-          marks={ambiguity.marks} onMarkClick={ambiguity.onMarkClick} onCompositionStart={ambiguity.onCompositionStart} onCompositionEnd={ambiguity.onCompositionEnd}
+          marks={ambiguity.marks} clarified={ambiguity.clarified} activeMark={ambiguity.activeMark} onMarkClick={ambiguity.onMarkClick} onCompositionStart={ambiguity.onCompositionStart} onCompositionEnd={ambiguity.onCompositionEnd}
           onChange={(e) => {
             if (recording) stopDictation();
             editText(e.target.value);

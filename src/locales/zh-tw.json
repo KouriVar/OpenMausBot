@@ -2804,6 +2804,7 @@
   "chat.run.steps": "{count} 個步驟 · {tools}",
   "chat.run.showSteps": "顯示每個步驟",
   "chat.run.more": "+{count} 個",
+  "composer.ambiguity.clear": "取消澄清",
   "composer.ambiguity.title": "「{word}」指什麼",
   "composer.ambiguity.close": "關閉",
   "composer.ambiguity.scale": "意思",

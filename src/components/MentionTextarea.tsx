@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { useCallback, useLayoutEffect, useRef, type RefObject, type TextareaHTMLAttributes } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type RefObject, type TextareaHTMLAttributes } from "react";
 import { type MentionPeer } from "@/lib/mentions";
 import { MentionText } from "./MentionText";
 
@@ -28,16 +28,21 @@ function offsetRange(root: Node, start: number, end: number): Range | null {
   return null;
 }
 
-export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClassName, marks, onMarkClick, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & {
+export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClassName, marks, clarified, activeMark, onMarkClick, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & {
   wrapperClassName?: string;
   inputRef: RefObject<HTMLTextAreaElement | null>;
   peers: readonly MentionPeer[];
   everyone?: boolean;
   /** Ranges the composer marked as ambiguous; drawn as a dashed underline. */
   marks?: readonly TextMark[];
+  /** Words already clarified: a solid accent underline. */
+  clarified?: readonly TextMark[];
+  /** The word whose panel is open: a quiet yellow background. */
+  activeMark?: TextMark | null;
   onMarkClick?: (index: number, rect: DOMRect) => void;
 }) {
   const mirrorRef = useRef<HTMLDivElement>(null);
+  const [activeRects, setActiveRects] = useState<Array<{ left: number; top: number; width: number; height: number }>>([]);
   const sync = useCallback(() => {
     const input = inputRef.current;
     const mirror = mirrorRef.current;
@@ -62,12 +67,24 @@ export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClas
   useLayoutEffect(() => {
     const registry = (CSS as unknown as { highlights?: { set(name: string, value: unknown): void; delete(name: string): void } }).highlights;
     const HighlightCtor = (window as unknown as { Highlight?: new (...ranges: Range[]) => unknown }).Highlight;
-    if (!marks?.length || !registry || !HighlightCtor || !mirrorRef.current) return;
-    const ranges = marks.map((mark) => offsetRange(mirrorRef.current!, mark.start, mark.end)).filter((range): range is Range => Boolean(range));
-    if (!ranges.length) return;
-    registry.set("omb-ambiguous", new HighlightCtor(...ranges));
-    return () => registry.delete("omb-ambiguous");
-  }, [marks, props.value]);
+    if (registry && HighlightCtor && mirrorRef.current) {
+      const ranges = (list?: readonly TextMark[]) => (list ?? []).map((mark) => offsetRange(mirrorRef.current!, mark.start, mark.end)).filter((range): range is Range => Boolean(range));
+      const ambiguous = ranges(marks);
+      const settled = ranges(clarified);
+      if (ambiguous.length) registry.set("omb-ambiguous", new HighlightCtor(...ambiguous));
+      else registry.delete("omb-ambiguous");
+      if (settled.length) registry.set("omb-clarified", new HighlightCtor(...settled));
+      else registry.delete("omb-clarified");
+    }
+    const wrapper = mirrorRef.current?.parentElement;
+    const range = activeMark && mirrorRef.current ? offsetRange(mirrorRef.current, activeMark.start, activeMark.end) : null;
+    if (!range || !wrapper) {
+      setActiveRects([]);
+      return;
+    }
+    const box = wrapper.getBoundingClientRect();
+    setActiveRects(Array.from(range.getClientRects()).map((rect) => ({ left: rect.left - box.left, top: rect.top - box.top, width: rect.width, height: rect.height })));
+  }, [activeMark, clarified, marks, props.value]);
   useLayoutEffect(() => {
     let width = inputRef.current?.clientWidth;
     const observer = new ResizeObserver(() => {
@@ -80,6 +97,11 @@ export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClas
     return () => observer.disconnect();
   }, [inputRef, resize, sync]);
   return <div className={cn("mention-editor relative min-w-0 flex-1 self-center", wrapperClassName)}>
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+      {activeRects.map((rect, index) => (
+        <span key={index} className="absolute rounded-[3px] bg-[color-mix(in_srgb,var(--identity-yellow)_30%,transparent)]" style={rect} />
+      ))}
+    </div>
     <div ref={mirrorRef} dir={props.dir} aria-hidden="true" className="mention-editor-mirror pointer-events-none absolute inset-0 overflow-hidden">
       <MentionText text={String(props.value ?? "")} peers={peers} everyone={everyone} bare />{"\n"}
     </div>
