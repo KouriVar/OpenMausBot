@@ -111,6 +111,7 @@ import {
   RiGiftLine,
   RiGitBranchLine,
   RiGitCommitLine,
+  RiGitForkLine,
   RiGitMergeLine,
   RiGitPullRequestLine,
   RiGithubLine,
@@ -221,6 +222,7 @@ import {
   RiUsbLine,
   RiUserAddLine,
   RiUserLine,
+  RiUserMinusLine,
   RiVideoLine,
   RiVipCrownLine,
   RiVoiceprintLine,
@@ -356,6 +358,7 @@ export const Gauge = icon(RiDashboardLine, "Gauge");
 export const Gift = icon(RiGiftLine, "Gift");
 export const GitBranch = icon(RiGitBranchLine, "GitBranch");
 export const GitCommitHorizontal = icon(RiGitCommitLine, "GitCommitHorizontal");
+export const GitFork = icon(RiGitForkLine, "GitFork");
 export const Github = icon(RiGithubLine, "Github");
 export const GitPullRequest = icon(RiGitPullRequestLine, "GitPullRequest");
 export const Globe = icon(RiGlobalLine, "Globe");
@@ -504,6 +507,7 @@ export const Upload = icon(RiUploadLine, "Upload");
 export const UploadCloud = icon(RiUploadCloud2Line, "UploadCloud");
 export const Usb = icon(RiUsbLine, "Usb");
 export const User = icon(RiUserLine, "User");
+export const UserMinus = icon(RiUserMinusLine, "UserMinus");
 export const UserPlus = icon(RiUserAddLine, "UserPlus");
 export const UserRound = icon(RiUserLine, "UserRound");
 export const UserRoundPlus = icon(RiUserAddLine, "UserRoundPlus");
