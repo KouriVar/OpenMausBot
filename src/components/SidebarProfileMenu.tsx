@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Archive,
   ArrowDownToLine,
+  SideBarLine,
   Inbox,
   Plus,
   Puzzle,
@@ -59,10 +60,8 @@ import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
-import { displayAppVersionWithBuild } from "@/fork/version-label";
-import { useSidebarVersion } from "@/fork/sidebar-version";
-import { FORK_MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
-import { FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
+import { displayAppVersion } from "@/fork/version-label";
+import { ACCOUNT_MENU_PHONE_APP, ACCOUNT_MENU_SUPPORT, FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -486,6 +485,7 @@ export function profileMenuItems({
   usageSummary = null,
   update,
   updateTop = null,
+  version = null,
   move = [],
   account,
   accounts = [],
@@ -508,6 +508,8 @@ export function profileMenuItems({
   usageSummary?: UsageSummary | null;
   update: SidebarMenuItem | null;
   updateTop?: { label: string; action: string } | null;
+  /** the Current version row: the app's version, and this fork's releases page on a Mac */
+  version?: SidebarMenuItem | null;
   /** the move to My Cloud's own rows, first of all (AccountMove) */
   move?: SidebarMenuItem[];
   account: string | null;
@@ -567,8 +569,8 @@ export function profileMenuItems({
       present(...tools, apps, inbox),
       present(usageRow, settings),
       phone,
-      [support],
-      present(update),
+      ...(ACCOUNT_MENU_SUPPORT ? [[support]] : []),
+      present(version),
       [...present(accountItem), ...accounts],
     ].filter((group) => group.length > 0);
     const rows = groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
@@ -576,7 +578,7 @@ export function profileMenuItems({
   }
   if (!simple) {
     // Icon and rail densities ask for this menu with no account context; its rows are the ones they always had.
-    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, support, settings, ...present(update), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
+    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, ...(ACCOUNT_MENU_SUPPORT ? [support] : []), settings, ...present(version), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
   const raised: SidebarMenuItem | null = update && updateTop ? {
@@ -593,6 +595,7 @@ export function profileMenuItems({
     // Places you go first, then the app's own settings, then getting the phone app and help.
     [...(simple.tools ?? tools), ...present(inbox)],
     [...present(usageItem), settings],
+    present(version),
     // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
     FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
     FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],
@@ -713,27 +716,44 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
         else openInbox();
       },
     },
-    { key: "rail-search", label: t("sidebar.searchAria"), icon: <Search size={16} />, onSelect: railActions.onSearch },
+    { key: "rail-search", label: t("sidebar.search"), icon: <Search size={16} />, onSelect: railActions.onSearch },
     { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
     { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
   ] : [];
   const [, setHiddenSidebar] = useHiddenSidebar();
   const hideItems: SidebarMenuItem[] = FORK_HIDDEN_SIDEBAR
-    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <ArrowDownToLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
+    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <SideBarLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
     : [];
-  const versionOn = useSidebarVersion();
-  const stampItems: SidebarMenuItem[] = versionOn && FORK_MENU_BUILD_STAMP
-    ? [{ key: "build-stamp", label: "", stamp: `${productName()} ${displayAppVersionWithBuild(appVersion())}`, onSelect: () => {} }]
-    : [];
-  const items = [...hideItems, ...(bar ? menuActions : railItems), ...stampItems, ...profileMenuItems({
-    phone: simple
-      ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
-      : phoneMenuItems({
-        destinations,
-        connected: phone.kind === "connected",
-        onConnect: connectTo,
-        onGetApp: () => setPhoneAppOpen(true),
-      }),
+  const phoneItems = simple
+    ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
+    : phoneMenuItems({
+      destinations,
+      connected: phone.kind === "connected",
+      onConnect: connectTo,
+      onGetApp: () => setPhoneAppOpen(true),
+    });
+  const phoneRows = ACCOUNT_MENU_PHONE_APP ? phoneItems : phoneItems.filter((item) => item.key !== "phone-app");
+  const isMac = window.ogb?.platform === "darwin";
+  const versionItem: SidebarMenuItem = {
+    key: "current-version",
+    label: t("sidebar.menu.currentVersion"),
+    icon: update?.item.icon ?? <Info size={18} />,
+    value: displayAppVersion(appVersion()),
+    disabled: isMac ? false : update?.item.disabled ?? false,
+    keepOpen: isMac ? false : update?.item.keepOpen ?? false,
+    attention: update?.item.attention,
+    attentionTone: update?.item.attentionTone,
+    onSelect: () => {
+      if (isMac) {
+        void openExternalLink(__FORK_RELEASES_URL__);
+        return;
+      }
+      update?.item.onSelect();
+    },
+  };
+  const items = [...hideItems, ...(bar ? menuActions : railItems), ...profileMenuItems({
+    phone: phoneRows,
+    version: versionItem,
     usage: !remote,
     usageSummary: cloudUsage ?? engineUsage,
     update: update?.item ?? null,

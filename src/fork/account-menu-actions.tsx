@@ -36,7 +36,7 @@ export function sidebarAccountMenuActions({
   onArchived: () => void;
 }): SidebarMenuItem[] {
   return [
-    { key: "account-search", label: t("sidebar.searchAria"), icon: <Search size={16} />, onSelect: onSearch },
+    { key: "account-search", label: t("sidebar.search"), icon: <Search size={16} />, onSelect: onSearch },
     {
       key: "account-new",
       label: remote ? t("sidebar.new") : t("sidebar.newOrShare"),

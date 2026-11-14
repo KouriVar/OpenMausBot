@@ -30,6 +30,10 @@ export const FORK_MESSAGE_TIME_IN_MENU = true;
 /** The avatar menu keeps only what this build uses: no phone-app row, no support submenu, no place switcher. */
 export const FORK_PROFILE_MENU_MINIMAL = true;
 
+/** The avatar menu's phone-app row and support submenu stay in code but are not drawn. */
+export const ACCOUNT_MENU_PHONE_APP = false;
+export const ACCOUNT_MENU_SUPPORT = false;
+
 /** The message's actions live in a right-click menu now: the bubble shows no hover buttons, and the menu opens
  * anywhere on it with the reactions on top. */
 export const FORK_MESSAGE_MENU_ON_RIGHT_CLICK = true;

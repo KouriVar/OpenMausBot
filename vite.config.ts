@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { DurationSequencer } from "./scripts/testing/duration-sequencer.ts";
 import { hostE2eOnly, portableE2eFiles } from "./scripts/testing/host-e2e.ts";
 import { hostTimeout } from "./server/testing/host-timeout.ts";
+import { FORK_UPDATES_PAGE_URL } from "./electron/fork-updates.mjs";
 
 // The About dialog's version, inlined at build time: the preload bridge is
 // absent in dev.
@@ -67,6 +68,7 @@ export default defineConfig({
   },
   define: {
     __APP_VERSION__: JSON.stringify(version),
+    __FORK_RELEASES_URL__: JSON.stringify(FORK_UPDATES_PAGE_URL),
   },
   test: {
     environment: "node",

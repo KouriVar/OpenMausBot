@@ -5,6 +5,8 @@
 export const FORK_UPDATES = true;
 export const FORK_UPDATES_REPO = "KouriVar/OpenMausBot";
 export const FORK_UPDATES_RELEASES_URL = `https://github.com/${FORK_UPDATES_REPO}/releases/latest`;
+/** The fork's releases page, for the menu's Current version row. */
+export const FORK_UPDATES_PAGE_URL = `https://github.com/${FORK_UPDATES_REPO}/releases`;
 export const FORK_UPDATES_API = `https://api.github.com/repos/${FORK_UPDATES_REPO}/releases/latest`;
 /** macOS: no in-place install; the check opens the release page. Windows keeps the real updater. */
 export const FORK_UPDATES_MANUAL_PAGE = process.platform === "darwin";

@@ -195,6 +195,7 @@ import {
   RiShareLine,
   RiShieldCheckLine,
   RiShieldLine,
+  RiSideBarLine,
   RiShutDownLine,
   RiSignalTowerLine,
   RiSlackLine,
@@ -470,6 +471,7 @@ export const Settings = icon(RiSettings3Line, "Settings");
 export const Settings2 = icon(RiSettings2Line, "Settings2");
 export const Share = icon(RiShareLine, "Share");
 export const Share2 = icon(RiShareForwardLine, "Share2");
+export const SideBarLine = icon(RiSideBarLine, "SideBarLine");
 export const Shield = icon(RiShieldLine, "Shield");
 export const ShieldAlert = icon(RiShieldLine, "ShieldAlert");
 export const ShieldCheck = icon(RiShieldCheckLine, "ShieldCheck");

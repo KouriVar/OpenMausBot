@@ -10,6 +10,7 @@ import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { SidebarVersionRow } from "@/fork/SidebarVersionRow";
+import { SIDEBAR_VERSION_SETTING_SHOWN } from "@/fork/sidebar-version";
 import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
 import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
 import { AnalyticsRow } from "../../AnalyticsRow";
@@ -58,11 +59,13 @@ export function AppPage() {
         </SettingsRows>
       </SettingsGroup>
     )}
-    <SettingsGroup block="sidebar-version">
-      <SettingsRows>
-        <SidebarVersionRow />
-      </SettingsRows>
-    </SettingsGroup>
+    {SIDEBAR_VERSION_SETTING_SHOWN && (
+      <SettingsGroup block="sidebar-version">
+        <SettingsRows>
+          <SidebarVersionRow />
+        </SettingsRows>
+      </SettingsGroup>
+    )}
     {/* Simple keeps language and notifications here, since General is an Advanced page. */}
     {!ctx.advanced && (
       <SettingsGroup label={t("settings.app.languageNotifications")} block="typing">

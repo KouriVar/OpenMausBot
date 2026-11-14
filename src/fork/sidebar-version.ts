@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from "react";
 
 export const SIDEBAR_VERSION_KEY = "omb.fork.sidebarVersion";
+/** The switch stays in code, but 0.8.1's account menu has no separate version line to show or hide. */
+export const SIDEBAR_VERSION_SETTING_SHOWN = false;
 const EVENT = "omb:sidebar-version";
 
 const listeners = new Set<() => void>();
