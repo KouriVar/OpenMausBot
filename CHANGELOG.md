@@ -27,6 +27,22 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE044 · 0.8.2 — fill in the blanks, and say what a word means before sending
+
+`0.8.2` lets an answer stop for values only the person has, and lets the composer ask what an ambiguous word means before the message goes.
+
+- **Fill-in cards**: a bot can call `ask_fill` in the middle of an answer with a card of blanks — a Select, a MultiSelect, a short text or number Input, and a Table of fields for a two-dimensional grid. The card sends itself once every blank is filled, the answer continues in a new turn, the filled card stays read-only with the chosen values, and no extra user bubble appears. It works in all three interactive-answer tiers.
+- **Ambiguity before sending**: after 600ms without typing, the composer asks the fixed fast model for up to three words that could mean several things and underlines them with a dashed line. Clicking a word opens a small panel of 2–4 meanings with options, a slider or token swatches; an unfinished IME composition never triggers it, and a failed or slow request leaves the draft unmarked. Settings → General → Typing adds "Mark ambiguous words", off by default. What the person picks travels as a hidden `assumptions` field, not as part of the message; the sent bubble shows a quiet "Clarified N" line that opens to the chosen meanings.
+- **Version**: 0.8.2.
+
+中文：**V0.8.2：回答里留空待填，发送前说清一个词的意思**
+
+`0.8.2` 让回答为只有本人知道的值停下来，也让输入框在发送前问清一个词指的是什么。
+
+- **待填卡片**：机器人可以在回答中间调用 `ask_fill`，放一张带空位的卡片——单选下拉、多选、短文本或数字输入框，以及用 Table 排出的二维格子。每个空位填完后卡片自动提交，回答在下一轮接着写；已填的卡片变成只读并显示所选的值，不会多出一条用户消息。三档交互式回答设置下都能用。
+- **发送前标出歧义**：停止打字 600ms 后，输入框用固定的快模型找出最多三个可能有多种意思的词，并用虚线标出。点词会弹出 2–4 个具体意思的小面板，按类型用选项、滑块或色板呈现；中文输入法组字过程中不触发，网络失败或超时就静默不标。设置 → 通用 → 输入新增「发送前标出歧义」，默认关闭。选中的意思走隐藏的 `assumptions` 字段，不拼进消息正文；发送后的气泡下方显示一行安静的「已澄清 N 处」，点开能看到每个词选的是什么。
+- **版本**：0.8.2。
+
 ### OE043 · 0.8.1 — the account box, a text-only chat head, and a regrouped Settings
 
 `0.8.1` is a UI pass over the sidebar's foot and head: one account box that lines up with the composer, search and
