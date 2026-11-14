@@ -27,6 +27,32 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE040 · 0.7.5 — the sidebar's one left line, room around the wordmark, and a brand switch
+
+`0.7.5` puts every resting sidebar item on the line the traffic lights start from, gives the wordmark more air, and
+lets Settings → Appearance hide it.
+
+- **One left line**: the wordmark, department titles, bot avatars, group faces and the account avatar all start at the
+  traffic light red dot's left edge — 16 px from the sidebar's edge, or 12 px with the macOS frame on, where the lights
+  sit in its top bar. Selected and hovered surfaces still reach further left, symmetrically. Windows uses the same 16 px.
+- **Room around the wordmark**: 20 px above the mark and 20 px below it before the first section, in place of the old
+  4 px and 0 px; the same values on both sidebars.
+- **Show brand mark**: Settings → Appearance gains a switch, on by default and saved on this device. Turned off, the
+  wordmark and both of its gaps go away and the list moves up to the normal top-row rule.
+- **Version**: 0.7.5.
+
+中文：**V0.7.5：侧栏一条左对齐线，字标周围更宽松，品牌开关**
+
+`0.7.5` 把侧栏里所有静止状态的条目放到红绿灯红点所在的同一条左线上，给字标上下留出更宽松的空间，并在设置 → 外观里加了
+隐藏字标的开关。
+
+- **一条左对齐线**：字标、部门/分组标题、bot 头像、群聊头像和底部个人头像都从红绿灯红点左边缘开始 —— 距侧栏边缘 16px；
+  macOS 开着窗口边框时是 12px，因为红绿灯在边框顶栏里。选中和 hover 的底色仍可比内容往左多铺、左右对称；Windows 同样用 16px。
+- **字标周围的留白**：字标上方 20px，字标到第一个分组之间 20px（原来分别是 4px 和 0px），简易和高级模式一致。
+- **显示品牌标识**：设置 → 外观新增开关，默认打开，保存在这台设备上。关掉后字标和上下留白一起消失，下面的内容按顶栏的正常规则
+  上移。
+- **版本**：0.7.5。
+
 ### OE039 · 0.7.4 — the Sully Coe wordmark, and an HTML card that shows its page
 
 `0.7.4` puts the house wordmark at the top of both sidebars and closes the gap `0.7.2` wrote down: a compact HTML page
