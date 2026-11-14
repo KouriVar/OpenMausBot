@@ -36,11 +36,7 @@ import {
 import { DEVS_CHOICE, MentionMenu, teammateChoices, type MentionChoice } from "./MentionMenu"; import { useTeammates } from "@/state/team-people"; import { hiddenFromSidebar, useViewerEmail } from "@/lib/default-bot"; import { useMayAct } from "./SharedQueueLine";
 import { SlashCommandMenu } from "./SlashCommandMenu";
 import { MentionTextarea } from "./MentionTextarea";
-import { AmbiguityPanel } from "./AmbiguityPanel";
-import { useMarkAmbiguity } from "@/fork/mark-ambiguity";
-import { useAmbiguityMarks } from "@/hooks/use-ambiguity-marks";
-import type { AmbiguityMark } from "../../shared/composer-ambiguity";
-import type { Assumption } from "../../shared/assumptions";
+import { useComposerAmbiguity } from "@/hooks/use-composer-ambiguity";
 import { ComposerAttachments, pathForFile } from "./ComposerAttachments";
 import { PointedChips } from "./app/PointedChips"; import { SetupRequestChip, setupRequestPlaceholder } from "./SetupOffer";
 import { takePointedChips } from "@/lib/pointed-chips";
@@ -181,12 +177,7 @@ export function Composer({
     draftId,
     !group && bot && !state.config?.team ? `bot:${bot.id}` : undefined,
   );
-  const markAmbiguity = useMarkAmbiguity();
-  const [composing, setComposing] = useState(false);
-  const [assumptions, setAssumptions] = useState<Assumption[]>([]);
-  const [activeAmbiguity, setActiveAmbiguity] = useState<{ mark: AmbiguityMark; rect: DOMRect } | null>(null);
-  const ambiguityMarks = useAmbiguityMarks(markAmbiguity, group ? undefined : bot?.id, threadId, text, composing);
-  const shownMarks = ambiguityMarks.filter((mark) => !assumptions.some((assumption) => assumption.word.toLocaleLowerCase() === mark.word.toLocaleLowerCase()));
+  const ambiguity = useComposerAmbiguity({ botId: group ? undefined : bot?.id, threadId, text });
   const attachmentPending = useDraftAttachmentPending(draftId);
   const failedSends = useFailedComposerSends(draftId); const picks = mentionPicksFor(draftId);
   const [channelMode, setChannelMode] = useComposerChannelMode(draftId);
@@ -519,7 +510,6 @@ export function Composer({
     }
     refocusInput();
   };
-
   const hasContent = Boolean(effectiveText.trim()) || attachments.length > 0;
   const onCall = useOnCall();
   const media = useLiveMedia();
@@ -573,7 +563,7 @@ export function Composer({
   };
   const send = (followUp: FollowUp | undefined = followUpFor(false)) => {
     if (locked || attachmentPending) return;
-    const liveAssumptions = assumptions.filter((assumption) => text.toLocaleLowerCase().includes(assumption.word.toLocaleLowerCase()));
+    const liveAssumptions = ambiguity.live();
     if (
       attachments.some((attachment) => attachment.kind === "image") &&
       !imageTargetsSupport(effectiveText, effectiveChannelMode)
@@ -619,18 +609,16 @@ export function Composer({
         type: "send", botId: bot.id, text: body, sendId: sentDraft.sendId, replyToId: replyTo?.id, threadId, dataContext, mode: effectiveChannelMode, mentions: sentDraft.mentions,
         ...(liveAssumptions.length ? { assumptions: liveAssumptions } : {}),
         ...(points ? { pointed: points.pointed } : {}), ...(page ? { openPage: page } : {}), ...(followUp ? { followUp } : {}),
-        onError: () => { points?.restore(); restoreDraft(sentDraft); setAssumptions(liveAssumptions); },
+        onError: () => { points?.restore(); restoreDraft(sentDraft); ambiguity.restore(liveAssumptions); },
       });
       directMessageSent(state.instances, bot.modelSelection?.instanceId, busy && followUp !== "steer");
     }
     setText("");
-    setAssumptions([]);
-    setActiveAmbiguity(null);
+    ambiguity.clear();
     setAttachments([]); picks.clear();
     onConsumeReply?.();
     setChannelMode("chat");
   };
-
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const imageFiles = clipboardImageFiles(e.clipboardData);
     if (imageFiles.length > 0 || clipboardHasImages(e.clipboardData)) {
@@ -873,13 +861,7 @@ export function Composer({
           dir="auto"
           rows={1}
           value={text}
-          marks={shownMarks}
-          onMarkClick={(index, rect) => {
-            const mark = shownMarks[index];
-            if (mark) setActiveAmbiguity({ mark, rect });
-          }}
-          onCompositionStart={() => { setComposing(true); setActiveAmbiguity(null); }}
-          onCompositionEnd={() => setComposing(false)}
+          marks={ambiguity.marks} onMarkClick={ambiguity.onMarkClick} onCompositionStart={ambiguity.onCompositionStart} onCompositionEnd={ambiguity.onCompositionEnd}
           onChange={(e) => {
             if (recording) stopDictation();
             editText(e.target.value);
@@ -1024,18 +1006,7 @@ export function Composer({
       <div className="pointer-events-auto">
       {approvalDialogs}
       </div>
-      {activeAmbiguity && (
-        <AmbiguityPanel
-          mark={activeAmbiguity.mark}
-          rect={activeAmbiguity.rect}
-          onClose={() => setActiveAmbiguity(null)}
-          onPick={(meaning) => {
-            const word = activeAmbiguity.mark.word;
-            setAssumptions((current) => [...current.filter((assumption) => assumption.word !== word), { word, meaning }]);
-            setActiveAmbiguity(null);
-          }}
-        />
-      )}
+      {ambiguity.panel}
     </div>
   );
 }
