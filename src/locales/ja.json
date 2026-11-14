@@ -2182,7 +2182,6 @@
   "sidebar.section.collapse": "{name} を畳む",
   "sidebar.section.expandReorder": "{name} を開きます。Alt+上下で並べ替えます。",
   "sidebar.section.collapseReorder": "{name} を畳みます。Alt+上下で並べ替えます。",
-  "sidebar.section.dragToReorder": "ドラッグして並べ替え",
   "sidebar.section.deleteAria": "部署 {name} を削除",
   "sidebar.profile.you": "あなた",
   "sidebar.account.automationsNeedYou": "自動化で対応が必要です",

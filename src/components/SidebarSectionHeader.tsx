@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, GripVertical, MoreHorizontal } from "lucide-react";
+import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react";
 import { useEffect, useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from "react";
 
 import { cn } from "@/lib/cn";
@@ -158,21 +158,6 @@ export function SidebarSectionHeader({
           </span>
           {attentionLabel && <span className="sr-only">{attentionLabel}</span>}
         </div>
-      )}
-      {reorderable && (
-        <span
-          aria-hidden="true"
-          draggable
-          title={t("sidebar.section.dragToReorder")}
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          className={cn(
-            "flex size-6 shrink-0 cursor-grab items-center justify-center rounded text-ink-secondary hover:bg-raised hover:text-ink",
-            dragging && "opacity-40",
-          )}
-        >
-          <GripVertical size={13} />
-        </span>
       )}
     </div>
   );

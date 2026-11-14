@@ -116,13 +116,14 @@ describe("pinned circle thread list", () => {
     expect(markup).not.toContain("Drag to reorder");
   });
 
-  it("opens the same pinned bots as rows, in circle order, with the thread menu", () => {
+  it("opens the same pinned bots as rows, in circle order, each one bare for its right-click menu", () => {
     const markup = renderThreads(false, [atlas, beacon]);
     expect(markup).toContain('aria-expanded="true"');
     expect(markup).toContain("Collapse Pinned");
     expect(markup.indexOf("Atlas")).toBeLessThan(markup.indexOf("Beacon"));
-    expect(markup).toContain('aria-label="Actions for Atlas"');
-    expect(markup).toContain("Expand Atlas threads");
+    expect(markup).toContain('data-sidebar-bot-row="atlas"');
+    expect(markup).not.toContain('aria-label="Actions for Atlas"');
+    expect(markup).not.toContain("Expand Atlas threads");
     expect(markup).not.toContain("data-sidebar-pinned-circles");
     expect(markup).not.toContain("Drag to reorder");
   });

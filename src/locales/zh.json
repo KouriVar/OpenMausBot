@@ -2227,7 +2227,6 @@
   "sidebar.section.collapse": "收起 {name}",
   "sidebar.section.expandReorder": "展开 {name}。Alt+上/下可调整顺序。",
   "sidebar.section.collapseReorder": "收起 {name}。Alt+上/下可调整顺序。",
-  "sidebar.section.dragToReorder": "拖动以调整顺序",
   "sidebar.section.deleteAria": "删除 {name} 部门",
   "sidebar.profile.you": "你",
   "sidebar.account.automationsNeedYou": "自动化需要你",

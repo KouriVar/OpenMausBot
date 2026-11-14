@@ -1992,7 +1992,6 @@
   "sidebar.section.collapse": "Свернуть {name}",
   "sidebar.section.expandReorder": "Развернуть {name}. Alt+Up/Down меняет порядок.",
   "sidebar.section.collapseReorder": "Свернуть {name}. Alt+Up/Down меняет порядок.",
-  "sidebar.section.dragToReorder": "Перетащите, чтобы изменить порядок",
   "sidebar.section.deleteAria": "Удалить отдел {name}",
   "sidebar.profile.you": "Вы",
   "sidebar.menu.connectPhone": "Подключить телефон",

@@ -2415,7 +2415,6 @@
   "sidebar.section.collapse": "Collapse {name}",
   "sidebar.section.expandReorder": "Expand {name}. Alt+Up/Down reorders it.",
   "sidebar.section.collapseReorder": "Collapse {name}. Alt+Up/Down reorders it.",
-  "sidebar.section.dragToReorder": "Drag to reorder",
   "sidebar.section.deleteAria": "Delete {name} department",
   "sidebar.profile.you": "You",
   "sidebar.account.automationsNeedYou": "Automations need you",

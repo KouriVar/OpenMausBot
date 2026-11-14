@@ -2084,7 +2084,6 @@
   "sidebar.section.collapse": "{name} 접기",
   "sidebar.section.expandReorder": "{name} 펼치기. Alt+위/아래로 순서를 바꿔요.",
   "sidebar.section.collapseReorder": "{name} 접기. Alt+위/아래로 순서를 바꿔요.",
-  "sidebar.section.dragToReorder": "끌어서 순서 바꾸기",
   "sidebar.section.deleteAria": "{name} 부서 삭제",
   "sidebar.profile.you": "나",
   "sidebar.account.automationsNeedYou": "자동화에 확인이 필요해요",

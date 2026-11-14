@@ -2280,7 +2280,6 @@
   "sidebar.section.collapse": "Recolher {name}",
   "sidebar.section.expandReorder": "Expandir {name}. Alt + ↑ / ↓ reordena.",
   "sidebar.section.collapseReorder": "Recolher {name}. Alt + ↑ / ↓ reordena.",
-  "sidebar.section.dragToReorder": "Arrastar para reordenar",
   "sidebar.section.deleteAria": "Excluir a equipe {name}",
   "sidebar.profile.you": "Você",
   "sidebar.account.automationsNeedYou": "Automações aguardando você",

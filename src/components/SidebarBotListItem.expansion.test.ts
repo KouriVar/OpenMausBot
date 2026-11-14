@@ -74,16 +74,18 @@ describe("bot row expansion follows the visible thread tree", () => {
   it("puts a list back the way it was when the search that opened it is cleared (MOCA-293)", () => {
     const multiple = { ...bot, tasks: [...bot.tasks!, { threadId: "older", title: "Earlier", createdAt: 0 }] };
     expect(render(multiple, "Current")).toContain('data-sidebar-thread-row="current"');
+    // The search is the only thing that opens a tree, so clearing it closes the list and leaves the row alone.
     const cleared = render(multiple);
     expect(cleared).not.toContain('data-sidebar-thread-row=');
-    expect(cleared).toContain("Expand Atlas threads");
+    expect(cleared).not.toContain("Expand Atlas threads");
+    expect(cleared).toContain("The latest reply");
   });
 
   it("does not open a bot that matches a search only by name", () => {
     const multiple = { ...bot, tasks: [...bot.tasks!, { threadId: "older", title: "Earlier", createdAt: 0 }] };
     const markup = render(multiple, "Atlas");
     expect(markup).not.toContain('data-sidebar-thread-row=');
-    expect(markup).toContain("Expand Atlas threads");
+    expect(markup).not.toContain("Expand Atlas threads");
   });
 
   it("restores the owner row when an expanded list loses its second thread", () => {

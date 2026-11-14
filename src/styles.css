@@ -3803,3 +3803,29 @@ button:disabled.bg-danger {
     border-inline-start: 0;
   }
 }
+
+/* ────────────────────────────────────────────────────────────────────────
+   FORK: THE FOOTER'S TWO ROUND CONTROLS
+   Search and + sit on the sidebar's material, so their fill is 60% and only
+   the material reads through it; the glyphs stay at full strength. Hover and
+   press deepen that same fill one step instead of jumping back to the solid
+   colour. The edge keeps its 7% ink on light skins and steps to 20% where the
+   colour scheme is dark.
+   ──────────────────────────────────────────────────────────────────────── */
+[data-simple-footer-actions] button {
+  color: var(--color-ink);
+  background-color: color-mix(in srgb, var(--color-composer) 60%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ink) 7%, transparent);
+  transition: background-color 120ms;
+}
+[data-simple-footer-actions] button:is(:hover, [aria-expanded="true"]) {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--color-composer) 60%, transparent) 88%, var(--color-ink) 12%);
+}
+[data-simple-footer-actions] button:active {
+  background-color: color-mix(in srgb, color-mix(in srgb, var(--color-composer) 60%, transparent) 78%, var(--color-ink) 22%);
+}
+@container style(--code-color-scheme: dark) {
+  [data-simple-footer-actions] button {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ink) 20%, transparent);
+  }
+}

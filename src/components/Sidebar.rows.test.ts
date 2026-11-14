@@ -108,9 +108,9 @@ beforeAll(async () => {
   document.body.append(container);
   root = createRoot(container);
   await draw();
-  const toggle = document.querySelector<HTMLButtonElement>(`button[aria-label="${t("task.expandNamed", { name: "Atlas" })}"]`);
-  toggle!.click();
-  await settle();
+  // A thread opened from elsewhere reveals its bot's tree; Advanced draws no toggle of its own.
+  state = { ...state, revealThread: { threadId: "atlas-now", nonce: 1 } };
+  await draw();
 });
 afterAll(() => {
   root.unmount();

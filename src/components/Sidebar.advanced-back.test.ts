@@ -26,7 +26,7 @@ settleInterfaceMode();
 const { readAdvancedMode, setAdvancedMode } = await import("@/lib/interface-mode");
 const { Sidebar } = await import("./Sidebar");
 const { BotEditorStore, initialState } = await import("@/state/store");
-const { setLocale, t } = await import("@/lib/i18n");
+const { setLocale } = await import("@/lib/i18n");
 
 const thread = (threadId: string, title: string, projectId?: string): Task =>
   ({ threadId, title, createdAt: 1, busy: false, activity: "idle", modelSelection: { instanceId: "test", model: "m" }, approvalMode: "ask", projectId });
@@ -36,7 +36,7 @@ const atlas: Bot = {
   projects: [{ id: "taxes", name: "Taxes" }],
   tasks: [thread("loose", "Loose chat"), thread("filed", "Filed chat", "taxes")],
 };
-const state: AppState = {
+let state: AppState = {
   ...initialState, connected: true, selectedId: "atlas", activeView: "chat", bots: [atlas],
   instances: [{ instanceId: "test", driverKind: "codex", displayName: "Test", snapshot: { state: "available" } } as InstanceInfo],
 };
@@ -47,7 +47,7 @@ async function draw() {
   flushSync(() => root.render(createElement(BotEditorStore, { value, children: createElement(Sidebar, { open: true, onClose: () => {} }) })));
   await settle();
 }
-const expand = () => document.querySelector<HTMLButtonElement>(`button[aria-label="${t("task.expandNamed", { name: "Atlas" })}"]`);
+const revealFiled = () => { state = { ...state, revealThread: { threadId: "filed", nonce: 1 } }; };
 const folder = () => document.querySelector('[data-sidebar-folder-row="taxes"]');
 
 beforeAll(() => {
@@ -68,17 +68,19 @@ describe("thread folders after Advanced mode comes back", () => {
     expect(stored.has("omb-show-threads")).toBe(false);
     await draw();
     expect(folder(), "folded until opened").toBeNull();
-    flushSync(() => expand()!.click());
-    await settle();
+    revealFiled();
+    await draw();
     expect(folder()?.textContent).toContain("Taxes");
     expect(document.querySelector('[data-sidebar-thread-row="loose"]')).not.toBeNull();
   });
 
   it("hides them in Simple mode and shows them again when switched back", async () => {
+    revealFiled();
+    await draw();
+    expect(folder()?.textContent).toContain("Taxes");
     flushSync(() => setAdvancedMode(false));
     await draw();
     expect(folder()).toBeNull();
-    expect(expand()).toBeNull();
     flushSync(() => setAdvancedMode(true));
     await draw();
     expect(folder()?.textContent).toContain("Taxes");

@@ -1814,7 +1814,6 @@
   "sidebar.section.collapse": "Contraer {name}",
   "sidebar.section.expandReorder": "Expandir {name}. Alt+Arriba/Abajo lo reordena.",
   "sidebar.section.collapseReorder": "Contraer {name}. Alt+Arriba/Abajo lo reordena.",
-  "sidebar.section.dragToReorder": "Arrastra para reordenar",
   "sidebar.section.deleteAria": "Eliminar el departamento {name}",
   "sidebar.profile.you": "Tú",
   "sidebar.menu.connectPhone": "Conectar tu teléfono",

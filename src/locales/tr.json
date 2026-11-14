@@ -1518,7 +1518,6 @@
   "sidebar.section.collapse": "{name} bölümünü daralt",
   "sidebar.section.expandReorder": "{name} bölümünü genişlet. Alt+Yukarı/Aşağı sırasını değiştirir.",
   "sidebar.section.collapseReorder": "{name} bölümünü daralt. Alt+Yukarı/Aşağı sırasını değiştirir.",
-  "sidebar.section.dragToReorder": "Yeniden sıralamak için sürükleyin",
   "sidebar.section.deleteAria": "{name} departmanını sil",
   "sidebar.profile.you": "Siz",
   "sidebar.menu.connectPhone": "Telefonunuzu bağlayın",

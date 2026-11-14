@@ -87,10 +87,10 @@ describe("bot-first sidebar", () => {
   });
 
   it.each([
-    { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-6"] },
+    { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-3", "pr-3"] },
     // Fork: Advanced's rail is Simple's rail, so its bot portrait is the same 40px in the same 54px slot.
     { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
-    { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-2.5", "pr-9"] },
+    { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-3", "pr-3"] },
     { advanced: false, enabled: false, density: "comfortable", size: 46, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"] },
     { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
   ] as const)("sizes bot portraits and row spacing in $density density with threads $enabled (advanced $advanced)", ({ advanced, enabled, density, size, spacing }) => {
@@ -241,7 +241,7 @@ describe("bot-first sidebar", () => {
     expect(advanced).not.toContain("focus-visible:ring-accent/60");
   });
 
-  it("hides even the selected Simple row's actions until hover or focus, where Advanced keeps them shown", () => {
+  it("hides even the selected Simple row's actions until hover or focus, and draws none at all in Advanced", () => {
     fixture.showThreads = false;
     fixture.state = { ...fixture.state, selectedId: bot.id, activeView: "chat" };
     const candidate = { ...bot, tasks: [], projects: [] };
@@ -250,7 +250,8 @@ describe("bot-first sidebar", () => {
     expect(simple).toMatch(/data-bot-actions="atlas"[^>]*class="[^"]*\bpointer-events-none opacity-0 group-hover:pointer-events-auto/);
     expect(simple).toContain('class="flex items-baseline justify-between gap-2 pr-7"');
     fixture.advanced = true;
-    expect(renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", candidate)))).toMatch(/data-bot-actions="atlas"[^>]*class="[^"]*\bpointer-events-auto opacity-100/);
+    // Advanced keeps every row operation in the right-click menu, so the row draws no menu trigger in any state.
+    expect(renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", candidate)))).not.toContain("data-bot-actions");
   });
 
   it("marks an unread Simple group chat with the same top-right dot as a bot row, said once for a screen reader", () => {
@@ -297,7 +298,7 @@ describe("bot-first sidebar", () => {
     { advanced: false, density: "icons", face: 36, spacing: ["h-[54px]", "justify-center"], name: "font-semibold", preview: "text-[13px] font-medium leading-[18px]" },
     // Fork: Advanced's rail is Simple's rail, so a group chat there draws the same 36px faces in the same 54px slot.
     { advanced: true, density: "icons", face: 36, spacing: ["h-[54px]", "justify-center"], name: "font-semibold", preview: "text-[13px] font-medium leading-[18px]" },
-    { advanced: true, density: "comfortable", face: 32, spacing: ["gap-2", "py-1.5", "pl-6", "pr-9"], name: "font-semibold", preview: "text-[13px] font-medium leading-[18px]" },
+    { advanced: true, density: "comfortable", face: 32, spacing: ["gap-2", "py-1.5", "pl-3", "pr-9"], name: "font-semibold", preview: "text-[13px] font-medium leading-[18px]" },
   ] as const)("sizes group chat rows in $density density (advanced $advanced)", ({ advanced, density, face, spacing, name, preview }) => {
     fixture.advanced = advanced;
     const group: Group = { id: "room", threadId: "room-thread", name: "Launch", memberIds: [bot.id], messages: [], defaultResponder: { kind: "mentions" }, bulletin: "", unread: false, createdAt: 1 };
@@ -364,10 +365,13 @@ describe("bot-first sidebar", () => {
   });
 
   it.each(densities)("keeps selection separate from expansion in %s density", (density) => {
+    fixture.advanced = true;
     fixture.state.selectedId = bot.id;
     const markup = renderToStaticMarkup(createElement(BotListItem, rowProps(density)));
     expect(markup).not.toContain("data-sidebar-thread-row");
-    if (density !== "icons") expect(markup).toContain('aria-label="Expand Atlas threads" aria-expanded="false"');
+    expect(markup).not.toContain('aria-label="Expand Atlas threads"');
+    // Only a search that matches a thread opens the tree; selecting the bot never does.
+    if (density !== "icons") expect(renderToStaticMarkup(createElement(BotListItem, rowProps(density, bot, "history")))).toContain("data-sidebar-thread-row");
   });
 
   it.each(densities)("with Advanced threads off, hides thread browsing and creation but keeps attention accessible in %s density", (density) => {
@@ -536,13 +540,10 @@ describe("bot-first sidebar", () => {
 
   // fork 定制：头像只保留右下单点，合上游时此处一律取我方。
   it.each(densities)("lists the bot with no thread tree in Simple mode, only a row for each thread that waits on the person, keeping its dots, in %s density", (density) => {
-    // Its threads were left expanded in Advanced mode.
+    // Its threads sit open in Advanced while a search matches them; Simple never lists a tree, whatever Advanced left open.
     fixture.advanced = true;
-    let tree: ReactNode;
-    function Capture() { tree = botRow(rowProps(density)); return tree; }
-    renderToStaticMarkup(createElement(Capture));
-    findElement(tree, "aria-label", "Expand Atlas threads")?.props.onClick!({} as MouseEvent);
-    if (density !== "icons") expect(renderToStaticMarkup(createElement(BotListItem, rowProps(density)))).toContain('aria-label="Atlas threads"');
+    fixture.showThreads = true;
+    if (density !== "icons") expect(renderToStaticMarkup(createElement(BotListItem, rowProps(density, bot, "history")))).toContain('aria-label="Atlas threads"');
     fixture.advanced = false;
     fixture.showThreads = false;
     for (const query of ["", "history"]) {

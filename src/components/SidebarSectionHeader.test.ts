@@ -26,7 +26,7 @@ describe("SidebarSectionHeader", () => {
     expect(html).not.toContain("uppercase");
   });
 
-  it("draws nothing but the name, the chevron and the grip, whatever the pointer does", () => {
+  it("draws nothing but the name and the chevron, whatever the pointer does", () => {
     const html = renderToStaticMarkup(
       createElement(SidebarSectionHeader, {
         name: "Work",
@@ -36,7 +36,10 @@ describe("SidebarSectionHeader", () => {
         dragging: false,
       }),
     );
-    expect(html).toContain("lucide-grip-vertical");
+    // See the header's naming and collision tests for the name itself.
+    expect(html).toContain("Work");
+    expect(html).toContain("lucide-chevron-down");
+    expect(html).not.toContain("lucide-grip-vertical");
     expect(html).not.toContain("lucide-plus");
     expect(html).not.toContain("lucide-trash");
     // The header's only buttons are its name toggle and (in Simple) the menu; here, the toggle.

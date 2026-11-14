@@ -766,7 +766,6 @@
   "sidebar.section.collapse": "{name} समेटें",
   "sidebar.section.expandReorder": "{name} खोलें। Alt+ऊपर/नीचे से क्रम बदलें।",
   "sidebar.section.collapseReorder": "{name} समेटें। Alt+ऊपर/नीचे से क्रम बदलें।",
-  "sidebar.section.dragToReorder": "क्रम बदलने के लिए खींचें",
   "sidebar.profile.you": "आप",
   "sidebar.menu.connectPhone": "अपना फ़ोन कनेक्ट करें",
   "sidebar.menu.connectPhone.team": "{team} से",

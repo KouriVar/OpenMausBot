@@ -930,7 +930,6 @@
   "sidebar.section.collapse": "{name} einklappen",
   "sidebar.section.expandReorder": "{name} ausklappen. Alt+Auf/Ab ordnet um.",
   "sidebar.section.collapseReorder": "{name} einklappen. Alt+Auf/Ab ordnet um.",
-  "sidebar.section.dragToReorder": "Zum Umsortieren ziehen",
   "sidebar.profile.you": "Du",
   "sidebar.menu.connectPhone": "Telefon verbinden",
   "sidebar.menu.connectPhone.team": "mit {team}",

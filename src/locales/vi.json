@@ -1518,7 +1518,6 @@
   "sidebar.section.collapse": "Thu gọn {name}",
   "sidebar.section.expandReorder": "Mở rộng {name}. Nhấn Alt+Lên/Xuống để sắp xếp lại.",
   "sidebar.section.collapseReorder": "Thu gọn {name}. Nhấn Alt+Lên/Xuống để sắp xếp lại.",
-  "sidebar.section.dragToReorder": "Kéo để sắp xếp lại",
   "sidebar.section.deleteAria": "Xóa phòng ban {name}",
   "sidebar.profile.you": "Bạn",
   "sidebar.menu.connectPhone": "Kết nối điện thoại",

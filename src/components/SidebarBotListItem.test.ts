@@ -8,9 +8,10 @@ vi.mock("./DesktopCapabilities", () => ({
   useDesktopCapabilities: () => ({}),
 }));
 // Advanced mode's rows: Simple mode keeps one conversation per bot, so its rows have no thread controls.
+const mode = vi.hoisted(() => ({ advanced: true }));
 vi.mock("@/lib/interface-mode", async (original) => ({
   ...await original<typeof import("@/lib/interface-mode")>(),
-  useAdvancedMode: () => true,
+  useAdvancedMode: () => mode.advanced,
 }));
 
 import { ConfirmDialogCard } from "./ConfirmDialog";
@@ -88,31 +89,35 @@ describe("BotListItem", () => {
     expect(preview).not.toContain("waiting-dot");
   });
 
-  it("offers direct New thread and New folder icons and a keyboard-accessible bot menu", () => {
-    const markup = renderRow(bot());
-    expect(markup).toContain('aria-label="New thread"');
-    expect(markup).toContain('aria-label="New folder under Atlas"');
-    expect(markup).toContain('aria-label="Actions for Atlas"');
-    expect(markup).toContain('aria-haspopup="menu"');
+  it("leaves every row action to the right-click menu, with no control drawn on the row", () => {
+    const markup = renderRow(bot({...twoThreads(), messages: [{ id: "b1", role: "bot", kind: "text", text: "Sunny.", at: 1 }] as Bot["messages"]}));
+    expect(markup).not.toContain('aria-label="New thread"');
+    expect(markup).not.toContain('aria-label="New folder under Atlas"');
+    expect(markup).not.toContain('aria-label="Actions for Atlas"');
+    expect(markup).not.toContain("aria-haspopup");
+    // The whole row is still the target: selectable, focusable, and the surface the context menu opens on.
+    expect(markup).toContain('role="button" tabindex="0"');
+    expect(markup).toContain('data-sidebar-bot-row="atlas"');
   });
   const twoThreads = (): Partial<Bot> => ({
     tasks: [{ threadId: "thread-atlas", title: "Current", createdAt: 2 }, { threadId: "thread-earlier", title: "Earlier", createdAt: 1 }],
   });
 
-  it("shows the thread toggle only once there is a list to open", () => {
+  it("draws no thread toggle, whether or not there is a list to open", () => {
     expect(renderRow(bot())).not.toContain("Expand Atlas threads");
     expect(renderRow(bot())).not.toContain('data-sidebar-thread-row=');
-    expect(renderRow(bot(twoThreads()))).toContain("Expand Atlas threads");
-    expect(renderRow(bot({ projects: [{ id: "p1", name: "Research" }] }))).toContain("Expand Atlas threads");
+    expect(renderRow(bot(twoThreads()))).not.toContain("Expand Atlas threads");
+    expect(renderRow(bot({ projects: [{ id: "p1", name: "Research" }] }))).not.toContain("Expand Atlas threads");
   });
 
-  it("keeps the native thread toggle beside, not inside, the selectable bot row", () => {
-    const markup = renderRow(bot(twoThreads()));
-    expect(markup).toContain('role="button" tabindex="0"');
-    expect(markup).toContain('</div><button type="button" aria-label="Expand Atlas threads" aria-expanded="false"');
-    const toggle = markup.match(/<button[^>]*aria-label="Expand Atlas threads"[^>]*>/)?.[0];
-    expect(toggle).toContain("focus-visible:ring-1");
-    expect(toggle).not.toContain("hover:bg-");
+  it("reserves no gutter, so a bot with a thread list and one without start in the same place", () => {
+    const row = (markup: string) => markup.match(/<div[^>]*data-sidebar-bot-row="atlas"[^>]*>/)?.[0] ?? "";
+    for (const markup of [renderRow(bot(twoThreads())), renderRow(bot())]) {
+      expect(row(markup)).toContain("pl-3 pr-3");
+      expect(row(markup)).not.toContain("pl-6");
+      expect(row(markup)).not.toContain("pr-9");
+      expect(markup).not.toContain("absolute left-0.5");
+    }
   });
 
   it("previews the last reply, not the digest receipt that follows it", () => {
@@ -155,12 +160,25 @@ describe("BotListItem", () => {
       expect(markup).not.toContain("Call with Atlas");
     });
 
-    it("times the open row by the last reply, not by the hang-up", () => {
-      const markup = draw(bot({
-        messages: [spoken, { id: "b1", role: "bot", kind: "text", text: "Sunny in Pune.", at: at(1) }, record] as Bot["messages"],
-      }), { selected: true });
-      expect(markup).toContain(formatTime(at(1)));
+    const timed = () => bot({
+      messages: [spoken, { id: "b1", role: "bot", kind: "text", text: "Sunny in Pune.", at: at(1) }, record] as Bot["messages"],
+    });
+
+    it("keeps no time on an Advanced row at all, so the row is only avatar, name and preview", () => {
+      const markup = draw(timed(), { selected: true });
+      expect(markup).not.toContain(formatTime(at(1)));
       expect(markup).not.toContain(formatTime(at(2)));
+    });
+
+    it("keeps Simple's time, still taken from the last reply and not from the hang-up", () => {
+      try {
+        mode.advanced = false;
+        const markup = draw(timed(), { selected: true });
+        expect(markup).toContain(formatTime(at(1)));
+        expect(markup).not.toContain(formatTime(at(2)));
+      } finally {
+        mode.advanced = true;
+      }
     });
 
     it("names the step the bot is on while it works, when the call ended under it", () => {
@@ -389,12 +407,11 @@ describe("BotListItem", () => {
     expect(markup).not.toContain('data-testid="teammate-wait-dot"');
   });
 
-  it("keeps Archive in the Actions menu and reveals quiet row controls on focus as well as hover", () => {
+  it("keeps Archive in the right-click menu and draws no quiet row controls to reveal", () => {
     const markup = renderRow(bot());
     expect(markup).not.toContain('aria-label="Archive Atlas"');
-    expect(markup).toContain('aria-label="Actions for Atlas"');
-    expect(markup).toContain("group-focus-within:opacity-100");
-    expect(markup).toContain("group-hover:pointer-events-auto");
+    expect(markup).not.toContain('aria-label="Actions for Atlas"');
+    expect(markup).not.toContain("group-hover:pointer-events-auto");
     expect(markup).not.toContain("pr-[92px]");
   });
 });

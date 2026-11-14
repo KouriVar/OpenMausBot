@@ -766,7 +766,6 @@
   "sidebar.section.collapse": "Replier {name}",
   "sidebar.section.expandReorder": "Déplier {name}. Alt+Haut/Bas le réordonne.",
   "sidebar.section.collapseReorder": "Replier {name}. Alt+Haut/Bas le réordonne.",
-  "sidebar.section.dragToReorder": "Faites glisser pour réordonner",
   "sidebar.profile.you": "Vous",
   "sidebar.menu.connectPhone": "Connecter votre téléphone",
   "sidebar.menu.connectPhone.team": "à {team}",

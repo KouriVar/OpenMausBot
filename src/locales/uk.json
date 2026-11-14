@@ -885,7 +885,6 @@
   "sidebar.section.collapse": "Згорнути {name}",
   "sidebar.section.expandReorder": "Розгорнути {name}. Alt+Вгору/Вниз змінює порядок.",
   "sidebar.section.collapseReorder": "Згорнути {name}. Alt+Вгору/Вниз змінює порядок.",
-  "sidebar.section.dragToReorder": "Перетягніть, щоб змінити порядок",
   "sidebar.profile.you": "Ви",
   "sidebar.menu.connectPhone": "Підключити телефон",
   "sidebar.menu.connectPhone.team": "до {team}",

@@ -1939,7 +1939,6 @@
   "sidebar.section.collapse": "Zwiń: {name}",
   "sidebar.section.expandReorder": "Rozwiń: {name}. Alt+Up/Down zmienia kolejność.",
   "sidebar.section.collapseReorder": "Zwiń: {name}. Alt+Up/Down zmienia kolejność.",
-  "sidebar.section.dragToReorder": "Przeciągnij, aby zmienić kolejność",
   "sidebar.section.deleteAria": "Usuń dział: {name}",
   "sidebar.profile.you": "Ty",
   "sidebar.menu.connectPhone": "Połącz telefon",
