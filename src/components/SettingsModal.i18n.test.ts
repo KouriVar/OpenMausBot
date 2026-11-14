@@ -33,8 +33,8 @@ afterEach(() => {
 });
 
 describe("Settings in another language", () => {
-  // This fork draws its place row as this computer's About row, and lists Your account among the pages.
-  const NAV = ["settings.page.bots", "settings.page.desktops", "settings.page.spending", "settings.page.data", "settings.page.account",
+  // This fork draws its place row as this computer's About row; Your account has no row of its own.
+  const NAV = ["settings.page.bots", "settings.page.desktops", "settings.page.spending", "settings.page.data",
     "settings.page.browser", "settings.section.general", "settings.section.appearance", "settings.section.phoneDevices"] as const;
   // Fork: this build is Simple-only, so the nav-footer Advanced switch it would read is not rendered.
 

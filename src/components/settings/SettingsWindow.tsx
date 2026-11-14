@@ -196,7 +196,7 @@ export function SettingsWindow() {
                 <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
                   {!narrow && closeButton}
                   <div ref={scrollRef} data-settings-scroll data-settings-content="" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
-                    className={cn("settings-scroll min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]", narrow ? "pb-12" : "px-8 pb-12")}>
+                    className={cn("settings-scroll min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]", !narrow && "px-8")}>
                     <div className={cn("flex max-w-[640px] flex-col", narrow && "max-w-none")}>
                       <SettingsPageHeader page={page} ctx={ctx} place={place} scrolled={scrolled} narrow={narrow} missing={missing} />
                       <div key={target.page} data-settings-page-body={target.page} className={cn("flex flex-col gap-6", narrow && "px-4")}>
@@ -206,6 +206,11 @@ export function SettingsWindow() {
                             : <><SettingsSkeletonCard place={place.name} /><SettingsSkeletonCard place={place.name} /></>
                           : <SettingsPageBody page={target.page} />}
                       </div>
+                      {/* The room under a page's last block is content, not the scroller's own bottom padding: only
+                          content is guaranteed to be part of what a scroll container can scroll to, and this 48 px is
+                          also where the scroller's 10 px fade lands, so it must never be a block's own text. One
+                          spacer for every page keeps that room the same on all of them. */}
+                      <div aria-hidden="true" data-settings-end="" className="h-12 shrink-0" />
                     </div>
                   </div>
                 </div>

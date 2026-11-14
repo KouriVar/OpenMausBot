@@ -13,7 +13,7 @@ export function WidgetChart({ node }: { node: WidgetNode }) {
   const drawn = useRef<Result | null>(null);
   const [width, setWidth] = useState(WIDGET_CHART_WIDTH);
   const [failed, setFailed] = useState<string | null>(null);
-  const specText = useMemo(() => JSON.stringify(widgetChartSpec(node)), [node]);
+  const specText = useMemo(() => JSON.stringify(widgetChartSpec(node, WIDGET_CHART_WIDTH, theme)), [node, theme]);
   const height = widgetChartHeight(node, width);
   const size = useRef({ width, height });
   size.current = { width, height };

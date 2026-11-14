@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { t } from "@/lib/i18n";
 import { widgetNumber, widgetString, type WidgetNode } from "../../../shared/widget";
-import { RichTable, type TableAlign, type TableCell, type TableColumn } from "../RichTable";
+import { RichTable, SMALL_TABLE_ROWS, type TableAlign, type TableCell, type TableColumn } from "../RichTable";
 import { useWidgetForm } from "./WidgetControls";
 import { COL_SIZE, kids } from "./widget-style";
 
@@ -69,5 +69,5 @@ export function WidgetTable({ node, drawCell }: { node: WidgetNode; drawCell: (c
     }));
     return { columns, rows: cells, headless: !head };
   }, [node, drawCell]);
-  return <RichTable {...model} name={form.name || t("table.title")} card={false} />;
+  return <RichTable {...model} name={form.name || t("table.title")} card={false} sortable={model.rows.length > SMALL_TABLE_ROWS} />;
 }

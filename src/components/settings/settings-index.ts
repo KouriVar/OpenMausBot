@@ -42,6 +42,8 @@ export interface SettingsPage {
   icon?: LucideIcon;
   synonyms: string[];
   when: (ctx: SettingsContext) => boolean;
+  /** false leaves the page out of the menu; a link, a notice or search still opens it. */
+  nav?: boolean;
 }
 
 const notClient = (ctx: SettingsContext) => !ctx.client;
@@ -76,7 +78,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["people", "members", "invite", "roles", "bot access", "sharing", "team"] },
   { id: "installations", owner: "place", labelKey: "settings.section.workspaces", icon: Server, when: (ctx) => !ctx.client && ctx.installations,
     synonyms: ["installations", "fleet", "clients", "tenants"] },
-  { id: "account", owner: "account", labelKey: "settings.page.account", when: () => true,
+  { id: "account", owner: "account", labelKey: "settings.page.account", nav: false, when: () => true,
     synonyms: ["account", "sign in", "log in", "log out", "sign out", "email", "organization", "mausbot cloud"] },
   { id: "plan", owner: "account", labelKey: "settings.page.plan", icon: CreditCard, when: (ctx) => !ctx.client && ctx.plan,
     synonyms: ["plan", "billing", "subscription", "invoice", "receipt", "payment", "card", "upgrade", "trial", "cancel", "refund", "usage & billing", "mausbot cloud", "weekly", "limits"] },

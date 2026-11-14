@@ -37252,7 +37252,13 @@
       "settings.insetLayout.title": "a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5",
       "settings.insetLayout.classic": "ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9",
       "settings.insetLayout.inset": "145824df14a56d7e2064dfae80337a28995e0fb9b57f3bd9bc20a25156ddb9e6",
-      "settings.insetLayout.note": "ffc65b57932488e939e08fc59c5af8a2e66c84b3b7163ab9c96eb2099e03ec9d"
+      "settings.insetLayout.note": "ffc65b57932488e939e08fc59c5af8a2e66c84b3b7163ab9c96eb2099e03ec9d",
+      "settings.interactiveAnswers.title": "316ca407f74ddfe3d5dc0691d131b266e87be417ccd13eb2c82cb495459a4f5a",
+      "settings.interactiveAnswers.subtitle": "ba48897c0869c454c128d67df8620bcf1bb27288d4da93731fb20347e9465774",
+      "settings.interactiveAnswers.off": "ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1",
+      "settings.interactiveAnswers.components": "a150ce22160259313c47bc66940b905a9c2196924fd447f802cff12dbb1e9702",
+      "settings.interactiveAnswers.html": "add811936cfed8b128cbae15951dbb844c2d3116f44b7a1e533494d5aef87219",
+      "settings.interactiveAnswers.error": "1336093ecf6c7c7dfd421d9affa9a2cd678ad2f907fb88364f0478557ed282a9"
     },
     "zh": {
       "pro.fromPrice": "a48a04a457d60b08b54fc83e7a6c4584ffedb1e23621859084900c8521a3af7b",
@@ -45523,7 +45529,24 @@
       "settings.insetLayout.title": "a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5",
       "settings.insetLayout.classic": "ae25d6481fc1741ffee4a95cd05de7b6375f7e1b0c63c006640b366094f2c4a9",
       "settings.insetLayout.inset": "145824df14a56d7e2064dfae80337a28995e0fb9b57f3bd9bc20a25156ddb9e6",
-      "settings.insetLayout.note": "ffc65b57932488e939e08fc59c5af8a2e66c84b3b7163ab9c96eb2099e03ec9d"
+      "settings.insetLayout.note": "ffc65b57932488e939e08fc59c5af8a2e66c84b3b7163ab9c96eb2099e03ec9d",
+      "settings.experimental.usbPhoneTakeover": "831cdc89b2e989e104bbdd7985875e02a7b0b93c5efe095f265832af5f1e130e",
+      "settings.experimental.usbPhoneTakeoverShort": "888f5cd74903ff3df2d68e1026cf6cb0bafbf8275156c3b1ec0e4133b873fd7a",
+      "settings.experimental.usbPhoneTakeoverDetail": "5eb3537bc77eb35417bee4ba9fb4acc94c0bd2be31a30a5a8c7f8d6cd5e0395e",
+      "publishedApps.title": "9ddfc0e18af9ac5e94dc674948c4bdc642014ec0c7be79b1d74168859d83e038",
+      "publishedApps.empty.title": "b377a1d634cec4382fe65bede8fc5241513aa25b4aa873a87c8edfa1a2955178",
+      "publishedApps.empty.body": "f22e77fd77039538f047fd73e5eca39d2f65b54a085501d6d72e6c2de5837046",
+      "chat.preview.pin": "d5112330c62b1d4f09810792611f10db67c27fcafdf8c81274ecd8a8656d2748",
+      "chat.preview.unpin": "ee3c716130546a45492c899f7486b67f880e5631a2b8b8065bb16be9956d0b43",
+      "chat.preview.pinHint": "f5f31cfdaf2c8d4a02bf609b4d9006246fd561a7c8e1b8d81985feea435682a8",
+      "chat.preview.unpinHint": "3df27bb21925a0a6ad3458a902df50be9e666b88a233d1a7c81b14f216c71e01",
+      "chat.preview.pinFull": "f3cb86a1f0b52a900f5f7a62701255b5f1fdc8189864d129ffa8e6d836778679",
+      "settings.interactiveAnswers.title": "316ca407f74ddfe3d5dc0691d131b266e87be417ccd13eb2c82cb495459a4f5a",
+      "settings.interactiveAnswers.subtitle": "ba48897c0869c454c128d67df8620bcf1bb27288d4da93731fb20347e9465774",
+      "settings.interactiveAnswers.off": "ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1",
+      "settings.interactiveAnswers.components": "a150ce22160259313c47bc66940b905a9c2196924fd447f802cff12dbb1e9702",
+      "settings.interactiveAnswers.html": "add811936cfed8b128cbae15951dbb844c2d3116f44b7a1e533494d5aef87219",
+      "settings.interactiveAnswers.error": "1336093ecf6c7c7dfd421d9affa9a2cd678ad2f907fb88364f0478557ed282a9"
     },
     "zh-tw": {
       "whop.description": "1a07cf04ef17029448d3781415cbac16d54e66b821907a40d94e0e6349710e70",
@@ -55925,7 +55948,13 @@
       "native.update.restartNow": "09af1002abafb2dadfd2a9e61d7b0493c2a1da0e4859645116db0d462d175b08",
       "native.update.notNow": "a0e63d7c7125d29af84d6919af5550529be77c327324940c98c4b2cb13a99c8c",
       "settings.page.importExport": "b12c287c9e55811b73677da6aa7d08332161ab79068db46619b0234171cd8002",
-      "settings.data.takeOut": "8203b675521ca3584bae77d0c065141984a80a1138e11868ca0377a990e51c6e"
+      "settings.data.takeOut": "8203b675521ca3584bae77d0c065141984a80a1138e11868ca0377a990e51c6e",
+      "settings.interactiveAnswers.title": "316ca407f74ddfe3d5dc0691d131b266e87be417ccd13eb2c82cb495459a4f5a",
+      "settings.interactiveAnswers.subtitle": "ba48897c0869c454c128d67df8620bcf1bb27288d4da93731fb20347e9465774",
+      "settings.interactiveAnswers.off": "ca7981b46ecf2c1787b6d76d81d9fd7fa0ca95842e2fcc2a452869891a9334d1",
+      "settings.interactiveAnswers.components": "a150ce22160259313c47bc66940b905a9c2196924fd447f802cff12dbb1e9702",
+      "settings.interactiveAnswers.html": "add811936cfed8b128cbae15951dbb844c2d3116f44b7a1e533494d5aef87219",
+      "settings.interactiveAnswers.error": "1336093ecf6c7c7dfd421d9affa9a2cd678ad2f907fb88364f0478557ed282a9"
     },
     "uk": {
       "pro.fromPrice": "a48a04a457d60b08b54fc83e7a6c4584ffedb1e23621859084900c8521a3af7b",

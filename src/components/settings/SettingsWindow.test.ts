@@ -52,12 +52,12 @@ const render = (section: AppSettingsSection = fixture.section) => { fixture.sect
 const navPages = (html: string) => [...html.matchAll(/data-settings-page="([a-z]+)"/g)].map((match) => match[1]);
 
 describe("the Settings window", () => {
-  it("heads the list with this computer's About row, lists Your account among the pages, and pins This app to its foot", () => {
+  it("heads the list with this computer's About row, lists the pages, and pins This app to its foot", () => {
     fixture.advanced = true;
     const html = render();
-    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "transfer", "data", "account", "general", "appearance", "app"]);
+    expect(navPages(html)).toEqual(["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "transfer", "data", "general", "appearance", "app"]);
     expect(html).toContain("About this computer");
-    expect(html).toContain("Your account");
+    expect(html).toContain("You and your bots");
     expect(html).toContain("This app");
     expect(html).toContain('aria-current="page"');
     // The foot holds This app's row, after the scrolling list, so the list can scroll under it.
@@ -70,6 +70,49 @@ describe("the Settings window", () => {
     const placeRow = html.slice(identity, html.indexOf("</button>", identity));
     expect(placeRow).not.toContain("data-place-badge");
     expect(placeRow.match(/<span/g)?.length).toBe(2);
+  });
+
+  it("leaves Your account out of the menu, with no empty group standing in for it", () => {
+    fixture.advanced = true;
+    const html = render();
+    expect(navPages(html)).not.toContain("account");
+    expect(html).not.toContain('data-settings-page="account"');
+    // The account owner drew no head row of its own, so with Plan & billing unreadable here its group is gone too:
+    // the app's pages follow the place's pages on the list's own mt-0.5 (2px), never a 16px mt-4 left by an empty group.
+    expect(html).not.toContain('data-settings-group="account"');
+    const appGroup = html.slice(html.indexOf('data-settings-group="app"'));
+    const appTag = appGroup.slice(0, appGroup.indexOf(">"));
+    expect(appTag).toContain("mt-0.5");
+    expect(appTag).not.toContain("mt-4");
+    expect(html.indexOf('data-settings-page="data"')).toBeLessThan(html.indexOf('data-settings-page="general"'));
+  });
+
+  it("still opens the account page from an old link, out of the menu and never blank", () => {
+    fixture.advanced = true;
+    const html = render("account");
+    expect(html).toMatch(/data-settings-page-open="account"/);
+    expect(html).toContain("Your MausBot account");
+    expect(navPages(html)).not.toContain("account");
+    // The outer menu's Cloud row sends its old name here when no plan can be read.
+    expect(render("cloudAccount")).toMatch(/data-settings-page-open="account"/);
+  });
+
+  it("keeps one shared clearance under every page's last block, inside the content", () => {
+    fixture.advanced = true;
+    // The limits rows read the server's saved room timeout, so the fixture supplies one.
+    fixture.config = { rooms: { turnTimeoutMinutes: 5 } };
+    const pages = ["overview", "phone", "ai", "bots", "desktops", "vault", "usage", "transfer", "data", "general", "appearance", "app", "account"] as const;
+    for (const page of pages) {
+      const html = render(page);
+      const body = html.indexOf(`data-settings-page-body="${page}"`);
+      const end = html.indexOf('aria-hidden="true" data-settings-end=""');
+      // The clearance is the last thing in the scrolling column, on every page, so no page's own block can sit in the
+      // scroller's padding; the scroller itself carries none, which is what keeps WebKit's dropped-padding case out.
+      expect(body, page).toBeGreaterThan(-1);
+      expect(end, page).toBeGreaterThan(body);
+      expect(html.slice(end, end + 80), page).toContain("h-12");
+      expect(html.slice(0, body), page).not.toContain("pb-12");
+    }
   });
 
   it("titles Overview with this computer's About name and its status line, never For …", () => {
@@ -89,15 +132,15 @@ describe("the Settings window", () => {
   });
 
   // Owner decision (Nov 11): Simple's nav is shorter, the same for every person and every rail. Fork: this build is
-  // local-only, so Plan & billing is not offered and the list has eight entries.
-  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "transfer", "account", "appearance", "app"];
+  // local-only, so Plan & billing is not offered and the list has seven entries.
+  const SIMPLE_NAV = ["overview", "phone", "ai", "vault", "transfer", "appearance", "app"];
   const SIMPLE_PEOPLE: Array<[string, () => void]> = [
     ["a person with only this computer", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} } }))],
     ["This computer's rail, with My Cloud", () => vi.stubGlobal("window", desktopHere({ cloudAccount: { state: () => new Promise(() => {}), onState: () => () => {} }, workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) } }))],
     ["My Cloud's rail in the desktop window", () => { vi.stubGlobal("window", { ogb: { platform: "darwin", cloudPlan: { state: () => new Promise(() => {}) }, workspaces: { state: () => new Promise(() => {}), places: () => new Promise(() => {}) } } }); fixture.config = { cloudHome: true }; }],
     ["My Cloud in a browser", () => { vi.stubGlobal("window", {}); fixture.config = { cloudHome: true }; }],
   ];
-  it.each(SIMPLE_PEOPLE)("shows Simple's eight entries for %s", (_who, set) => {
+  it.each(SIMPLE_PEOPLE)("shows Simple's entries for %s", (_who, set) => {
     set();
     fixture.advanced = false;
     expect(navPages(render("overview"))).toEqual(SIMPLE_NAV);

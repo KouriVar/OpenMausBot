@@ -5,7 +5,7 @@ import { None, logger, parse, View } from "vega";
 import { compile, type Config, type TopLevelSpec } from "vega-lite";
 import { describe, expect, it } from "vitest";
 
-import { VEGA_CATEGORY_RANGE, vegaConfig } from "./vega-config.ts";
+import { VEGA_CATEGORY_RANGE, vegaConfig, vegaInk } from "./vega-config.ts";
 import { parseWidgetInput, type WidgetNode } from "./widget.ts";
 import { widgetChartHeight, widgetChartSpec } from "./widget-chart.ts";
 import { WIDGET_SAMPLES } from "./widget-samples.ts";
@@ -32,7 +32,7 @@ interface Drawn {
 type Scene = { marktype?: string; role?: string; items?: Array<Record<string, unknown> & { items?: Scene[] }> };
 
 async function draw(node: WidgetNode, width = 400): Promise<Drawn> {
-  const spec = { ...widgetChartSpec(node, width)!, width };
+  const spec = { ...widgetChartSpec(node, width, "dark")!, width };
   const silent = logger(None);
   const { spec: runtime } = compile(spec as unknown as TopLevelSpec, { config: vegaConfig("dark") as Config, logger: silent });
   const view = new View(parse(runtime), { renderer: "none" }).logger(silent);
@@ -55,6 +55,9 @@ async function draw(node: WidgetNode, width = 400): Promise<Drawn> {
 
 const count = (markup: string, piece: string) => markup.split(piece).length - 1;
 const marks = (markup: string, role: string) => count(markup, `aria-roledescription="${role}"`);
+/** The words a chart writes in one ink: the axis config's for a tick, the theme's for a value. */
+const written = (markup: string, colour: string) =>
+  [...markup.matchAll(new RegExp(`<text[^>]*fill="${colour}"[^>]*>([^<]*)</text>`, "g"))].map((match) => match[1]!);
 
 describe("widgetChartSpec", () => {
   it.each([["bar", 10, 0, 0], ["line", 0, 2, 10], ["area", 0, 2, 10]])("draws one mark per value of every series for %s", async (type, bars, lines, points) => {
@@ -84,19 +87,29 @@ describe("widgetChartSpec", () => {
     expect(count(path, "M")).toBe(2);
   });
 
-  it("labels the x axis by row, and draws the y axis, the grid and the legend only when they are on", async () => {
+  it("labels the x axis by row and the y axis by value, and draws the grid and the legend only when they are on", async () => {
     const plain = (await draw(two("bar"))).svg;
     for (const row of data) expect(plain).toContain(`>${row.day}</text>`);
     expect(count(plain, "role-axis-grid")).toBe(1);
-    expect(count(plain, 'aria-roledescription="axis"')).toBe(1);
+    expect(count(plain, 'aria-roledescription="axis"')).toBe(2);
     expect(plain).toContain(">Beta</text>");
 
-    const node = chart({ series: [{ type: "bar", dataKey: "a", label: "Alpha" }], showYAxis: true, showGrid: false, showLegend: false, height: 200 });
-    const dressed = (await draw(node)).svg;
-    expect(count(dressed, "role-axis-grid")).toBe(0);
-    expect(count(dressed, 'aria-roledescription="axis"')).toBe(2);
-    expect(dressed).not.toContain('aria-roledescription="legend"');
+    const node = chart({ series: [{ type: "bar", dataKey: "a", label: "Alpha" }], showYAxis: false, showGrid: false, showLegend: false, height: 200 });
+    const bare = (await draw(node)).svg;
+    expect(count(bare, "role-axis-grid")).toBe(0);
+    expect(count(bare, 'aria-roledescription="axis"')).toBe(1);
+    expect(bare).not.toContain('aria-roledescription="legend"');
     expect(widgetChartSpec(node)!.height).toBe(200);
+  });
+
+  it("writes each bar's value over it and numbers the y axis, in inks that read on the chart's ground", async () => {
+    const { svg } = await draw(chart({ series: [{ type: "bar", dataKey: "a", label: "Alpha" }] }));
+    expect(written(svg, vegaInk("dark"))).toEqual(["4", "6", "9", "5", "2"]);
+    const tickInk = (vegaConfig("dark").axis as { labelColor: string }).labelColor;
+    // the rows are named under the plot and the values counted up its side, up to the headroom over the tallest bar
+    expect(written(svg, tickInk)).toEqual(expect.arrayContaining(["Mon", "Tue", "Wed", "Thu", "Fri", "0", "10"]));
+    // a chart with no room for a label (its bars are a pile) writes none
+    expect(written((await draw(two("bar", { stack: "all" }))).svg, vegaInk("dark"))).toEqual([]);
   });
 
   it("keeps two rows named alike as two bands, and two series labelled alike in their own colours", async () => {

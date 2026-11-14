@@ -123,7 +123,7 @@ function PageItem({ page, label, current, dot, onOpen }: { page: SettingsPage; l
   return (
     <button type="button" data-settings-page={page.id} data-settings-section={page.id} aria-current={current ? "page" : undefined} onClick={onOpen}
       className={cn(NAV_ITEM, current ? "bg-menu-active font-medium" : "hover:bg-menu-hover")}>
-      <span className="flex w-6 shrink-0 justify-center">{page.id === "account" ? <YouAvatar size={18} /> : Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} />}</span>
+      <span className="flex w-6 shrink-0 justify-center">{Icon && <Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} />}</span>
       <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-hidden" title={label}>
         <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap [grid-area:1/1]">{label}</span>
         <span aria-hidden="true" className="invisible h-0 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium [grid-area:1/1]">{label}</span>
@@ -212,20 +212,20 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
       </div>
       <div ref={listRef} onKeyDown={moveFocus} className={cn("settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto", narrow ? "px-2 pb-4 pt-1" : "px-3 pb-3 pt-3")}>
         {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : OWNERS.map((owner, index) => {
-          // This computer heads the list as one more row; the app's pages simply follow it, and Your account is one
-          // more page row between them.
+          // This computer heads the list as one more row; the app's pages follow it on the list's 2 px rhythm. The
+          // account group draws no head row of its own, so it starts a section instead.
           const identity = owner === "account" ? null : lines[owner];
-          const group = pages.filter((page) => page.owner === owner && page.id !== identity?.page);
+          const group = pages.filter((page) => page.owner === owner && page.id !== identity?.page && page.nav !== false);
           const heads = owner === "place";
           if (!identity && group.length === 0) return null;
           return (
-            <div key={owner} role="group" aria-label={identity?.name ?? t("settings.page.account")} data-settings-group={owner} className={cn("flex flex-col gap-0.5", (heads || !identity) && index > 0 && "mt-4")}>
+            <div key={owner} role="group" aria-label={identity?.name ?? t("settings.page.account")} data-settings-group={owner} className={cn("flex flex-col gap-0.5", index > 0 && (identity ? "mt-0.5" : "mt-4"))}>
               {heads && identity && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
               <div className={cn("flex flex-col gap-0.5", heads && "mt-0.5")}>
                 {group.map((page) => narrow ? (
                   <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
                     className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">
-                    <span className="flex w-6 shrink-0 justify-center">{page.id === "account" ? <YouAvatar size={18} /> : page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
+                    <span className="flex w-6 shrink-0 justify-center">{page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
                     <span className="min-w-0 flex-1 truncate">{t(page.labelKey)}</span>
                     {dot(page.id) && <span aria-hidden="true" className={cn("size-1.5 rounded-full", dot(page.id) === "success" ? "bg-success" : "bg-warning")} />}
                     <ChevronRight size={14} aria-hidden="true" className="text-ink-tertiary rtl:-scale-x-100" />

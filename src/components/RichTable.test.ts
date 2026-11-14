@@ -35,6 +35,16 @@ describe("rich table rendering", () => {
     expect(long).toContain('aria-label="Search all rows…"');
     expect(long).toContain("9 of 9 rows");
   });
+  it("draws the header names alone, and drops the sort column from the header, when its caller says it is too short to sort", () => {
+    const table = (sortable: boolean) => renderToStaticMarkup(createElement(RichTable, { columns: [{ text: "Name" }], rows: [[{ text: "Alpha" }], [{ text: "Beta" }]], sortable }));
+    const sortable = table(true);
+    expect(sortable).toContain('aria-label="Sort by Name"');
+    expect(sortable).toContain('aria-sort="none"');
+    const plain = table(false);
+    expect(plain).not.toContain("Sort by Name");
+    expect(plain).not.toContain("aria-sort=");
+    expect(plain).toContain(">Name</span>");
+  });
   it("bounds the DOM for a large table", () => {
     const html = renderToStaticMarkup(createElement(RichTable, { columns: [{ text: "ID" }], rows: Array.from({ length: 5000 }, (_, i) => [{ text: String(i) }]) }));
     expect(html).toContain('aria-rowcount="5001"');

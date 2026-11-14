@@ -43,6 +43,14 @@ describe("buildSrcdoc", () => {
     expect(buildSrcdoc({ html: "<p>x</p>", csp: CSP })).not.toContain("mausbot");
   });
 
+  it("gives the sandbox the app's focus ring in place of the browser's, and lets the page's own rule win", () => {
+    const doc = botHtmlDocument({ messageId: "m1", rev: 0, html: "<style>:focus-visible{outline:none}</style><p>x</p>" });
+    // The browser's ring takes the system accent; ours takes the skin's focus colour the host passes in.
+    expect(doc.srcdoc).toContain(":where(:focus-visible){outline:2px solid var(--color-ring-primary,#1084fe);outline-offset:2px}");
+    // `:where` carries no specificity, so a page that styles its own focus keeps it.
+    expect(doc.srcdoc).toContain("<style>:focus-visible{outline:none}</style>");
+  });
+
   it("keeps the helper free of anything that would end its script element", () => {
     expect(APP_HELPER_SOURCE).not.toMatch(/<\/script/i);
     expect(APP_ROOM_HELPER_SOURCE).not.toMatch(/<\/script/i);

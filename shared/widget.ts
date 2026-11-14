@@ -477,7 +477,7 @@ const SPECS: Record<string, NodeSpec> = {
     },
   },
   Icon: { props: { name: icon("dot"), color: inkColor, size: oneOf("xs", "sm", "md", "lg", "xl", "2xl", "3xl") } },
-  Chart: { props: { data: chartData, series: chartSeries, xAxis: chartAxis, showYAxis: on, showLegend: off, showGrid: off, height: length(400), aspectRatio, flex: flexShare, width: length() } },
+  Chart: { props: { data: chartData, series: chartSeries, xAxis: chartAxis, showYAxis: off, showLegend: off, showGrid: off, height: length(400), aspectRatio, flex: flexShare, width: length() } },
   Badge: { props: { label: line(WIDGET_LIMITS.label, "nonEmpty"), color: oneOf("secondary", "success", "danger", "warning", "info", "discovery"), variant: oneOf("soft", "solid", "outline", "dot"), size: oneOf("sm", "md", "lg"), pill: off } },
   Progress: { props: { value: progressValue, label: line(WIDGET_LIMITS.caption) } },
   Button: { props: { label: line(WIDGET_LIMITS.label), iconStart: icon(), iconEnd: icon(), block: on, disabled: on, submit: on, onClickAction: action } },

@@ -28,6 +28,17 @@ describe("the pages", () => {
     expect(ids(fullContext())).toEqual([...PLACE_PAGES, "account", "plan", "app", "general", "appearance"]);
   });
 
+  it("keeps a page out of the menu without losing it: Your account still resolves and stays searchable", () => {
+    const ctx = fullContext();
+    expect(visiblePages(ctx).find((page) => page.id === "account")?.nav).toBe(false);
+    expect(resolveSettingsTarget("account", ctx)).toEqual({ page: "account" });
+    expect(resolveSettingsTarget("organization", ctx)).toEqual({ page: "account", anchor: "organization" });
+    expect(resolveSettingsTarget("cloudAccount", { ...ctx, plan: false })).toEqual({ page: "account" });
+    expect(find("sign in", ctx)[0]?.entry.page).toBe("account");
+    // Plan & billing is a page of its own and keeps its menu entry.
+    expect(visiblePages(ctx).find((page) => page.id === "plan")?.nav).not.toBe(false);
+  });
+
   it.each(Object.entries(PEOPLE))("keeps the same place pages, in the same order, for %s", (who, ctx) => {
     // A team's member is offered none of the installation's admin pages (AI, Desktops, Spending, Import & export, Data).
     const expected = who === "a team member" ? PLACE_PAGES.filter((id) => !["ai", "desktops", "usage", "transfer", "data"].includes(id)) : PLACE_PAGES;

@@ -35,6 +35,11 @@ export function vegaSurface(theme: VegaTheme): string {
   return INK[theme].surface;
 }
 
+/** The ink the config draws text in, for a spec that has to name a colour before the config is applied. */
+export function vegaInk(theme: VegaTheme): string {
+  return INK[theme].text;
+}
+
 export function vegaConfig(theme: VegaTheme): Record<string, unknown> {
   const ink = INK[theme];
   const text = { font: VEGA_FONT, labelFont: VEGA_FONT, titleFont: VEGA_FONT, labelFontSize: 11, titleFontSize: 11, titleFontWeight: 500 };
@@ -89,7 +94,7 @@ export function vegaConfig(theme: VegaTheme): Record<string, unknown> {
     // A hairline in the surface colour separates pie slices and heatmap cells.
     arc: { stroke: ink.surface, strokeWidth: 1 },
     rect: { stroke: ink.surface, strokeWidth: 1 },
-    text: { color: ink.text, font: VEGA_FONT },
+    text: { color: vegaInk(theme), font: VEGA_FONT },
     scale: { bandPaddingInner: 0.25 },
   };
 }

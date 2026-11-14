@@ -14,6 +14,9 @@
 // races the SDK's answer.
 import { APP_PROTOCOL_VERSION } from "../app.ts";
 
+/** The sandboxed document's base styles: the host's variables with light/dark defaults, and this app's focus ring in
+ * place of the browser's, which follows the system accent rather than the skin's. `:where` keeps the page's own
+ * `:focus-visible` rule the winner. */
 export const APP_THEME_STYLE = [
   ":root{color-scheme:light dark;",
   "--color-text-primary:light-dark(#1d1d1f,#ececee);",
@@ -23,6 +26,7 @@ export const APP_THEME_STYLE = [
   "--color-border-primary:light-dark(#d8d8de,#3a3a40);",
   "--font-sans:system-ui,-apple-system,\"Segoe UI\",Roboto,\"Helvetica Neue\",Arial,sans-serif;",
   "--font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}",
+  ":where(:focus-visible){outline:2px solid var(--color-ring-primary,#1084fe);outline-offset:2px}",
 ].join("");
 
 /** Plain ES2017 with no imports: it runs as written in every browser engine the apps ship in. */

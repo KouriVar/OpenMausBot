@@ -1,6 +1,7 @@
 // A widget's Chart as a Vega-Lite spec, drawn with the same config as every
 // other chart, so its palette, type and hairlines match the Data panel's. Pure,
 // so the server can render the same spec headless for a client that cannot.
+import { vegaInk, type VegaTheme } from "./vega-config.ts";
 import { widgetNumber, type WidgetNode } from "./widget.ts";
 
 interface ChartSeries {
@@ -48,8 +49,10 @@ export function widgetChartHeight(node: WidgetNode, width: number): number {
 /** The Vega-Lite spec for a Chart node, its rows inline and its width the
  * container's; null when there is nothing to draw. Bars that share a `stack`
  * pile up in one slot of the row's band (rising and falling piles apart); the
- * rest sit side by side. Lines and areas break where a row has no value. */
-export function widgetChartSpec(node: WidgetNode, width = WIDGET_CHART_WIDTH): Record<string, unknown> | null {
+ * rest sit side by side. Lines and areas break where a row has no value. A bar
+ * carries its value over it, and the y axis is drawn with tick labels, both in
+ * the theme's ink. */
+export function widgetChartSpec(node: WidgetNode, width = WIDGET_CHART_WIDTH, theme: VegaTheme = "light"): Record<string, unknown> | null {
   const { rows, series, xKey } = readChart(node);
   if (!rows.length || !series.length) return null;
   const compact = new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 2 });
@@ -68,23 +71,30 @@ export function widgetChartSpec(node: WidgetNode, width = WIDGET_CHART_WIDTH): R
     return { row: at, series: index, group, mark: item.type, value, tip: value === null ? null : `${rowLabels[at]} · ${item.label}: ${compact.format(value)}` };
   }));
   const highest = Math.max(0, ...values.map((datum) => Math.abs(datum.value ?? 0)));
+  const ceiling = Math.max(0, ...values.map((datum) => datum.value ?? 0));
   const showGrid = node.showGrid !== false;
-  const yAxis = node.showYAxis === true
-    ? { title: null, grid: showGrid, tickCount: 4, ...(highest >= 10_000 ? { format: "~s", labelExpr: "replace(datum.label, 'G', 'B')" } : {}) }
+  const labelledAxis = node.showYAxis !== false;
+  const yAxis = labelledAxis
+    ? { title: null, grid: showGrid, tickCount: 4, ticks: true, domain: false, ...(highest >= 10_000 ? { format: "~s", labelExpr: "replace(datum.label, 'G', 'B')" } : {}) }
     : showGrid ? { title: null, grid: true, tickCount: 4, labels: false, ticks: false, domain: false } : null;
   const y = (stack: "zero" | null) => ({ field: "value", type: "quantitative", stack, axis: yAxis });
   const has = (type: ChartSeries["type"]) => series.some((item) => item.type === type);
   const stacked = series.some((item) => item.type === "bar" && item.stack);
   const point = rows.length > 40 ? false : { size: rows.length > 16 ? 8 : 24 };
+  const groupOffset = groups.length > 1 ? { field: "group", type: "nominal", scale: { domain: groups, paddingInner: 0.08 } } : null;
+  const overBar = has("bar") && !stacked;
+  // Values written over the tallest bar need the room above it; a pile's own height already fills the plot.
+  const headroom = overBar && ceiling > 0 ? { scale: { domainMax: ceiling * 1.12 } } : {};
+  const overY = { y: { ...y("zero"), ...headroom } };
   const layer = [
     has("bar") && {
       transform: [{ filter: "datum.mark === 'bar' && datum.value !== null" }],
       mark: { type: "bar", ...(stacked ? {} : { cornerRadiusEnd: 3 }) },
       encoding: {
-        y: y("zero"),
+        ...overY,
         // the first series at the foot of its pile, as it is listed
         order: { field: "series", type: "quantitative" },
-        ...(groups.length > 1 ? { xOffset: { field: "group", type: "nominal", scale: { domain: groups, paddingInner: 0.08 } } } : {}),
+        ...(groupOffset ? { xOffset: groupOffset } : {}),
       },
     },
     has("area") && {
@@ -97,6 +107,17 @@ export function widgetChartSpec(node: WidgetNode, width = WIDGET_CHART_WIDTH): R
       mark: { type: "line", point },
       encoding: { y: y(null) },
     },
+    // A pile's segments have no room for a label of their own; its tip carries the value.
+    overBar && {
+      transform: [{ filter: "datum.mark === 'bar' && datum.value !== null" }],
+      mark: { type: "text", dy: -6, fontSize: 10, fontWeight: 500, aria: false },
+      encoding: {
+        ...overY,
+        text: { field: "value", type: "quantitative", ...(highest >= 10_000 ? { format: "~s" } : {}) },
+        color: { value: vegaInk(theme) },
+        ...(groupOffset ? { xOffset: groupOffset } : {}),
+      },
+    },
   ].filter(Boolean);
   const legend = hasLegend(node, series)
     ? { title: null, orient: "bottom", direction: "horizontal", symbolOpacity: 1, labelExpr: "seriesLabels[datum.value]", ...(series.reduce((sum, item) => sum + item.label.length, 0) > 48 ? { columns: 2 } : {}) }
@@ -106,7 +127,7 @@ export function widgetChartSpec(node: WidgetNode, width = WIDGET_CHART_WIDTH): R
     width: "container",
     height: widgetChartHeight(node, width),
     autosize: { type: "fit", contains: "padding" },
-    padding: { top: 4, right: 0, bottom: 0, left: 0 },
+    padding: { top: 4, right: 0, bottom: 0, left: labelledAxis ? 36 : 0 },
     params: [{ name: "rowLabels", value: rowLabels }, { name: "seriesLabels", value: series.map((item) => item.label) }],
     data: { values },
     encoding: {

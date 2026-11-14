@@ -227,6 +227,23 @@ describe("a widget table", () => {
     expect(find('[role="region"]')!.getAttribute("aria-label")).toBe("Spend by bot");
   });
 
+  it("keeps the sort arrows off a short comparison, and sorts a table long enough to need them", () => {
+    const table = (rows: number) => parse({ type: "Card", children: [{ type: "Table", children: [
+      { type: "Table.Row", header: true, children: [{ type: "Table.Cell", children: [{ type: "Text", value: "Name" }] }] },
+      ...Array.from({ length: rows }, (_, index) => ({ type: "Table.Row", children: [{ type: "Table.Cell", children: [{ type: "Text", value: `Row ${rows - index}` }] }] })),
+    ] }] });
+    const names = (rows: number) => Array.from({ length: rows }, (_, index) => `Row ${index + 1}`);
+    const sortButton = () => find<HTMLButtonElement>(`thead button[aria-label="${t("table.sort", { column: "Name" })}"]`);
+    mount(table(3));
+    expect(all("thead button")).toHaveLength(0);
+    act(() => root.unmount());
+    root = createRoot(host);
+    mount(table(9));
+    expect(all("tbody tr").map((line) => line.textContent)).toEqual(names(9).reverse());
+    act(() => sortButton()!.click());
+    expect(all("tbody tr").map((line) => line.textContent)).toEqual(names(9));
+  });
+
   it("leaves out the heading row of a table with none, and spreads a cell over the columns it spans", () => {
     mount(parse({ type: "Card", children: [{ type: "Table", children: [
       { type: "Table.Row", children: [{ type: "Table.Cell", colSpan: 2, children: [{ type: "Text", value: "Wide" }] }, { type: "Table.Cell", children: [{ type: "Text", value: "C" }] }] },

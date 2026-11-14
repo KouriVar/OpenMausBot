@@ -21,6 +21,8 @@ export interface RichTableProps {
   headless?: boolean;
   /** Simple mode draws a reply's table as a card; a table inside a card of its own (a widget) opts out. */
   card?: boolean;
+  /** A table too short to sort reads better without the header's sort buttons; false draws the names alone. */
+  sortable?: boolean;
 }
 
 /** The native modal supplies focus containment, Escape, an inert background and focus restoration. */
@@ -45,14 +47,14 @@ export function TableDialog({ title, onClose, children, returnFocus }: { title: 
   );
 }
 
-const SMALL_TABLE_ROWS = 8;
+export const SMALL_TABLE_ROWS = 8;
 
 /** Simple mode's table card: the composer surface with a hairline edge and no footer. Its header row starts at the
  * top; the hover plate floats over the header's right end and takes no room. Only touch screens, where the plate is
  * always shown and its buttons keep 40px targets, give it a band of its own. */
 const TABLE_CARD = "group/table relative w-fit min-w-[min(100%,20rem)] max-w-full overflow-hidden rounded-[18px] bg-card text-ink touch:pt-11";
 
-export function RichTable({ columns, rows, name = t("table.title"), expanded = false, direction = "ltr", headless = false, card: asCard = true }: RichTableProps) {
+export function RichTable({ columns, rows, name = t("table.title"), expanded = false, direction = "ltr", headless = false, card: asCard = true, sortable = true }: RichTableProps) {
   const simple = !useAdvancedMode();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -103,7 +105,7 @@ export function RichTable({ columns, rows, name = t("table.title"), expanded = f
           <span role="status" className="shrink-0 text-[12px] tabular-nums">{t("table.count", { shown: order.length.toLocaleString(), total: rows.length.toLocaleString(), columns: columns.length })}</span>
         </div>
       )}
-      <TableViewport columns={columns} rows={rows} order={order} name={name} wrap={wrap} large={false} sort={sort} direction={direction} headless={headless} look="card" onSort={sortBy} />
+      <TableViewport columns={columns} rows={rows} order={order} name={name} wrap={wrap} large={false} sort={sort} direction={direction} headless={headless} sortable={sortable} look="card" onSort={sortBy} />
       {status}
     </div>
   );
@@ -122,7 +124,7 @@ export function RichTable({ columns, rows, name = t("table.title"), expanded = f
         {search("flex min-w-24 flex-1 items-center gap-2 px-1 text-ink-secondary")}
         {actions}
       </div>}
-      <TableViewport columns={columns} rows={rows} order={order} name={name} wrap={wrap} large={large} sort={sort} direction={direction} headless={headless}
+      <TableViewport columns={columns} rows={rows} order={order} name={name} wrap={wrap} large={large} sort={sort} direction={direction} headless={headless} sortable={sortable}
         look={simple ? "quiet" : "panel"} onSort={sortBy} />
       <footer className={small
         ? "flex items-center justify-end gap-0.5 border-t border-hairline/30 px-1.5 py-1 text-[11px] text-ink-tertiary"
@@ -141,7 +143,7 @@ export function RichTable({ columns, rows, name = t("table.title"), expanded = f
  * card in a Simple reply: header names are the sort buttons, rows are split by hairlines, and nothing else is drawn. */
 type TableLook = "panel" | "quiet" | "card";
 
-function TableViewport({ columns, rows, order, name, wrap, large, sort, onSort, direction, headless = false, look = "panel" }: RichTableProps & {
+function TableViewport({ columns, rows, order, name, wrap, large, sort, onSort, direction, headless = false, sortable = true, look = "panel" }: RichTableProps & {
   order: number[]; wrap: boolean; large: boolean; sort: TableSort; onSort: (column: number) => void; look?: TableLook;
 }) {
   const card = look === "card";
@@ -190,18 +192,20 @@ function TableViewport({ columns, rows, order, name, wrap, large, sort, onSort, 
     <table dir={direction} aria-label={name} aria-rowcount={order.length + 1} className={cn("[max-width:max(100%,854px)] w-full border-separate border-spacing-0 text-[14px]", fit ? "table-auto" : "table-fixed", card && "leading-5")} style={fit ? undefined : { minWidth: widths.reduce((a, b) => a + b, 0) }}>
       {!fit && <colgroup>{widths.map((width, index) => <col key={index} style={{ width }} />)}</colgroup>}
       <thead ref={heading} hidden={headless} className={cn("sticky top-0 z-10", look === "panel" ? "bg-raised" : look === "card" ? "bg-card" : "bg-composer")}><tr aria-rowindex={1}>
-        {columns.map((column, index) => <th key={index} scope="col" aria-sort={sort?.column === index ? sort.descending ? "descending" : "ascending" : "none"}
+        {columns.map((column, index) => <th key={index} scope="col" aria-sort={!sortable ? undefined : sort?.column === index ? sort.descending ? "descending" : "ascending" : "none"}
           className={card ? "border-b-[0.5px] border-ink/[0.07] px-2 py-2 align-bottom text-[13px] font-medium leading-[18px]" : "h-10 border-b border-hairline/60 px-2 py-2 font-medium"} style={{ textAlign: alignment(column, index) }}>
           <div className="break-words [overflow-wrap:anywhere]" style={fit ? { minWidth: minimums[index] } : undefined}>
             {card ? (
-              <button type="button" className="group/th inline-flex max-w-full items-center gap-1 align-top text-start font-medium [text-align:inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60" aria-label={sortLabel(column, index)} title={sortLabel(column, index)} onClick={() => onSort(index)}>
-                {alignment(column, index) === "right" && cardArrow(index)}
-                <span dir="auto">{header(column, index)}</span>
-                {alignment(column, index) !== "right" && cardArrow(index)}
-              </button>
+              sortable ? (
+                <button type="button" className="group/th inline-flex max-w-full items-center gap-1 align-top text-start font-medium [text-align:inherit] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60" aria-label={sortLabel(column, index)} title={sortLabel(column, index)} onClick={() => onSort(index)}>
+                  {alignment(column, index) === "right" && cardArrow(index)}
+                  <span dir="auto">{header(column, index)}</span>
+                  {alignment(column, index) !== "right" && cardArrow(index)}
+                </button>
+              ) : <span dir="auto">{header(column, index)}</span>
             ) : <>
               <span dir="auto">{header(column, index)}</span>
-              <button type="button" className="table-action ms-1 inline-flex align-middle" aria-label={sortLabel(column, index)} title={sortLabel(column, index)} onClick={() => onSort(index)}>{arrow(index)}</button>
+              {sortable && <button type="button" className="table-action ms-1 inline-flex align-middle" aria-label={sortLabel(column, index)} title={sortLabel(column, index)} onClick={() => onSort(index)}>{arrow(index)}</button>}
             </>}
           </div>
         </th>)}
