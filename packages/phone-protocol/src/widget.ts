@@ -3,6 +3,7 @@
 // Model input is normalised here once; every renderer reads canonical trees only.
 import type { JsonValue } from "./json.ts";
 import { readWidgetText } from "./widget-text.ts";
+import { multiSelectAnswer } from "./widget-multiselect.ts";
 import { buttonStyle } from "./widget-button-style.ts";
 
 export const WIDGET_VERSION = 1;
@@ -104,7 +105,7 @@ export interface WidgetSettled {
 export interface WidgetPayload {
   v: 1;
   root: WidgetRoot;
-  /** A card the note fills in: every field complete sends it on, and the reply goes on from where it stopped. */
+  /** A fill card: every field complete sends it on, and the reply goes on from where it stopped. */
   fill?: true;
   /** How many times show_widget has replaced the tree (absent: never). An
    * update renumbers node ids, so a press names the revision it was made on
@@ -490,7 +491,6 @@ const SPECS: Record<string, NodeSpec> = {
   DayPicker: { props: { ...FIELD, defaultValue: weekdaysReader } },
   Checkbox: { props: { ...FIELD, defaultChecked: on } },
   RadioGroup: { props: { ...FIELD, options, defaultValue: text(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
-  // MausBot addition: one field holding several picked values, comma-separated like DayPicker.
   MultiSelect: { props: { ...FIELD, options, defaultValue: line(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
   Input: { props: { ...FIELD, inputType, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), pattern: text(200) } },
   Textarea: { props: { ...FIELD, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), rows: integer(1, 12), maxRows: integer(1, 20), autoResize: on } },
@@ -808,11 +808,8 @@ export type ResolvedWidgetAction =
  * holds answers in the person's own words (see `WidgetOther`). */
 export function resolveWidgetAction(payload: WidgetPayload, ref: string, values: unknown, other?: unknown): ResolvedWidgetAction {
   if (payload.settled) return { ok: false, status: 409, error: "This was already answered." };
-  // A fill card has no button to press: every field complete sends it on.
   const filling = ref === "fill" && payload.fill === true;
-  const entry: WidgetActionEntry | undefined = filling
-    ? { ref: "fill", label: "Filled", action: { type: "fill" }, kind: "confirm", tone: "submit" }
-    : widgetActions(payload.root).find((candidate) => candidate.ref === ref);
+  const entry: WidgetActionEntry | undefined = filling ? { ref: "fill", label: "Filled", action: { type: "fill" }, kind: "confirm", tone: "submit" } : widgetActions(payload.root).find((candidate) => candidate.ref === ref);
   if (!entry) return { ok: false, status: 404, error: "That button is no longer on this widget." };
   if (entry.client) return { ok: false, status: 400, error: "That action opens on the device and is not sent." };
   const done = (clean: WidgetValues, own: WidgetOther, lines: string[]): ResolvedWidgetAction => ({
@@ -829,7 +826,6 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
   if (!isRecord(typed)) return { ok: false, status: 400, error: "other must be an object of field names." };
   const known = new Set(fields.map((field) => field.name));
   for (const key of [...Object.keys(given), ...Object.keys(typed)]) if (!known.has(key)) return { ok: false, status: 400, error: `There is no field named ${JSON.stringify(key)} here.` };
-
   const initial = widgetInitialValues(scope);
   const clean: WidgetValues = {};
   const own: WidgetOther = {};
@@ -872,17 +868,9 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
       shown = option.label;
     }
     if (value && field.type === "MultiSelect") {
-      const picked = value.split(",").map((part) => part.trim()).filter(Boolean);
-      const offered = widgetFieldOptions(field.node);
-      const labels = picked.map((pickedValue) => {
-        const option = offered.find((candidate) => candidate.value === pickedValue);
-        return option?.label;
-      });
-      if (picked.length === 0 || labels.some((label) => label === undefined)) {
-        return { ok: false, status: 400, error: `${field.label} must be one or more of the offered options.` };
-      }
-      kept = picked.join(",");
-      shown = labels.join(", ");
+      const checked = multiSelectAnswer(field.node, field.label, value);
+      if (typeof checked === "string") return { ok: false, status: 400, error: checked };
+      kept = checked.kept; shown = checked.shown;
     }
     if (value && field.type === "TimePicker") {
       const time = timeOfDay(value, "");
@@ -910,7 +898,6 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
   }
   return done(clean, own, lines);
 }
-
 /** A word to the bot about a widget that parses but does not do what it
  * looks like it is for: rows to choose between and no way to choose, or one
  * time, date or set of days typed in a one-line field (a Textarea may list
@@ -950,7 +937,6 @@ export function widgetAdvice(root: WidgetRoot): string | undefined {
   }
   return notes.length ? notes.join(" ") : undefined;
 }
-
 /** Days as a person says them: "Every day", "Weekdays", "Weekends", or the names. */
 export function dayList(days: string): string {
   const picked = days.split(",").filter(Boolean);
@@ -960,8 +946,6 @@ export function dayList(days: string): string {
   const names: Record<string, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
   return picked.map((day) => names[day] ?? day).join(", ");
 }
-
-
 function inlineText(node: WidgetNode): string {
   switch (node.type) {
     case "Text": case "Title": case "Caption": case "Label":
@@ -990,7 +974,6 @@ function inlineText(node: WidgetNode): string {
       return (Array.isArray(node.children) ? node.children : []).map(inlineText).filter(Boolean).join(" · ");
   }
 }
-
 function blockLines(node: WidgetNode): string[] {
   const children = Array.isArray(node.children) ? node.children : [];
   if (node.type === "ListViewItem") return [`- ${inlineText(node)}`];
@@ -999,7 +982,6 @@ function blockLines(node: WidgetNode): string[] {
   const stacked = node.type === "Col" || node.type === "Form" || node.type === "Transition" || (node.type === "Box" && node.direction !== "row");
   return stacked ? children.flatMap(blockLines) : [inlineText(node)];
 }
-
 /** The readable version of a widget: the message `text`, read by previews,
  * notifications, exports, replayed history and clients that do not know the kind. */
 export function widgetToText(root: WidgetRoot): string {
