@@ -15,10 +15,19 @@ import { useYou } from "./account-summary";
 import { Switch, SettingsTag } from "../SettingsPrimitives";
 import { usePhonePlaceState } from "./phone-status";
 import type { SettingsPlace } from "./settings-context";
-import { OWNERS, pageById, type SearchHit, type SettingsContext, type SettingsOwner, type SettingsPage, type SettingsPageId } from "./settings-index";
+import { pageById, type SearchHit, type SettingsContext, type SettingsOwner, type SettingsPage, type SettingsPageId } from "./settings-index";
 import { useUpdaterState } from "@/lib/updater";
 import { keySection, type KeyEntry } from "../keys/key-catalog";
 import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
+
+/** The fork's nav order: who you are, then the models and machines, then what they keep, then the bill, then this
+ * computer. Pages this build adds on top (a plan, people, installations) follow the last named group. */
+const FORK_NAV_ORDER: readonly { key: string; ids: readonly SettingsPageId[] }[] = [
+  { key: "you", ids: ["bots", "general", "appearance"] },
+  { key: "models", ids: ["ai", "desktops", "phone"] },
+  { key: "library", ids: ["vault", "data", "transfer"] },
+  { key: "spending", ids: ["usage"] },
+];
 
 export const NAV_ITEM = "relative flex h-8 w-full shrink-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[13px] leading-5 text-ink transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
 
@@ -204,6 +213,8 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
   const dot = (page: SettingsPageId) => page === "phone" && phone.kind === "paired" && phone.connected ? "success" as const
     : page === "phone" && phone.kind === "attention" ? "warning" as const : null;
   const searching = query.trim() !== "";
+  const listed = new Set(FORK_NAV_ORDER.flatMap((group) => group.ids));
+  const rest = pages.filter((page) => page.nav !== false && page.id !== "app" && page.id !== "overview" && !listed.has(page.id));
   return (
     <nav aria-label={t("settings.title")} className={cn("flex min-h-0 flex-col", narrow ? "flex-1" : "w-[220px] shrink-0 shadow-[inset_-0.5px_0_0_var(--settings-edge)]")}>
       <div className={cn("shrink-0", narrow ? "px-4 pb-2" : "p-3 pb-0")}>
@@ -211,18 +222,30 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
           onFirst={() => listRef.current?.querySelector<HTMLElement>("button[data-settings-hit], button[data-settings-page]")?.focus()} />
       </div>
       <div ref={listRef} onKeyDown={moveFocus} className={cn("settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto", narrow ? "px-2 pb-4 pt-1" : "px-3 pb-3 pt-3")}>
-        {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : OWNERS.map((owner, index) => {
-          // This computer heads the list as one more row; the app's pages follow it on the list's 2 px rhythm. The
-          // account group draws no head row of its own, so it starts a section instead.
-          const identity = owner === "account" ? null : lines[owner];
-          const group = pages.filter((page) => page.owner === owner && page.id !== identity?.page && page.nav !== false);
-          const heads = owner === "place";
-          if (!identity && group.length === 0) return null;
-          return (
-            <div key={owner} role="group" aria-label={identity?.name ?? t("settings.page.account")} data-settings-group={owner} className={cn("flex flex-col gap-0.5", index > 0 && (identity ? "mt-0.5" : "mt-4"))}>
-              {heads && identity && <PlaceRow page={identity.page} name={identity.name} kind={place.kind} current={current === identity.page} onOpen={() => onOpen(identity.page)} />}
-              <div className={cn("flex flex-col gap-0.5", heads && "mt-0.5")}>
-                {group.map((page) => narrow ? (
+        {searching ? <SearchResults ctx={ctx} place={place} hits={hits} keyHits={keyHits} onKey={onKey} query={query} onHit={onHit} /> : (
+          <>
+            {FORK_NAV_ORDER.map((group, index) => {
+              const rows = group.ids.map((id) => pages.find((page) => page.id === id)).filter((page): page is SettingsPage => Boolean(page));
+              if (rows.length === 0) return null;
+              return (
+                <div key={group.key} data-settings-group={group.key} className={cn("flex flex-col gap-0.5", index > 0 && "mt-3")}>
+                  {rows.map((page) => narrow ? (
+                    <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
+                      className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">
+                      <span className="flex w-6 shrink-0 justify-center">{page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
+                      <span className="min-w-0 flex-1 truncate">{t(page.labelKey)}</span>
+                      {dot(page.id) && <span aria-hidden="true" className={cn("size-1.5 rounded-full", dot(page.id) === "success" ? "bg-success" : "bg-warning")} />}
+                      <ChevronRight size={14} aria-hidden="true" className="text-ink-tertiary rtl:-scale-x-100" />
+                    </button>
+                  ) : (
+                    <PageItem key={page.id} page={page} label={t(page.labelKey)} current={current === page.id} dot={dot(page.id)} onOpen={() => onOpen(page.id)} />
+                  ))}
+                </div>
+              );
+            })}
+            {rest.length > 0 && (
+              <div data-settings-group="more" className="mt-3 flex flex-col gap-0.5">
+                {rest.map((page) => narrow ? (
                   <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
                     className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">
                     <span className="flex w-6 shrink-0 justify-center">{page.icon && <page.icon size={16} strokeWidth={1.75} aria-hidden="true" className="text-ink-secondary" />}</span>
@@ -234,9 +257,12 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
                   <PageItem key={page.id} page={page} label={t(page.labelKey)} current={current === page.id} dot={dot(page.id)} onOpen={() => onOpen(page.id)} />
                 ))}
               </div>
+            )}
+            <div data-settings-group="about" className="mt-3 flex flex-col gap-0.5">
+              <PlaceRow page="overview" name={placeName(place)} kind={place.kind} current={current === "overview"} onOpen={() => onOpen("overview")} />
             </div>
-          );
-        })}
+          </>
+        )}
       </div>
       {/* This app stays put at the bottom while the list above scrolls. */}
       <div data-settings-footer="" className={cn("shrink-0 shadow-[inset_0_0.5px_0_var(--settings-edge)]", narrow ? "px-2 pb-2 pt-1" : "px-3 pb-3 pt-1.5")}>
