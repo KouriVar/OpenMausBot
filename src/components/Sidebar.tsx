@@ -119,6 +119,7 @@ import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_SIMPLE, ROW_RA
 import { useChiefStyle } from "@/fork/chief-style";
 import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
+import { SidebarBrand } from "@/fork/SidebarBrand";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -1313,6 +1314,14 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           {!bottomActions && !(simpleDesk && FOOTER_ACTIONS) && plusControl}
         </div>}
       </div>
+
+      {/* Fork: the Sully Coe wordmark sits under the window's top row, its left edge on the sidebar's
+          24px line, in both Simple and Advanced. The icons rail has no room for a wordmark. */}
+      {density !== "icons" && !phone && (
+        <div data-sidebar-brand="" className="flex shrink-0 items-center pl-6 pr-4 pt-1">
+          <SidebarBrand className="h-5 w-auto text-ink" />
+        </div>
+      )}
 
       <OrganizationIdentity compact={density === "icons"} />
       {phone ? null : chrome ? searchShown && <SidebarSearchPill query={query} onQuery={setQuery} onClose={closeSearch} /> : <div className={cn("pt-1 pb-3", density === "icons" ? "hidden" : "px-3")}>
