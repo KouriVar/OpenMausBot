@@ -1,13 +1,11 @@
 import { localizedTaskTitle } from "@/lib/task-title";
 import { ChevronRight, Lock, UserRound, Users } from "lucide-react";
-import { useRef, type ComponentProps } from "react";
+import { useRef } from "react";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import type { Bot } from "@/state/store"; import { useStoreSelector } from "@/state/store-select";
 import { awayFromMainThread } from "@/state/thread-navigation";
-import { BotAvatar } from "./Avatar";
-import { FORK_BLOUB_SESSION_ANIMATION } from "@/fork/bloub-skin";
 import { CHATHEAD_PILL_PAD, CHATHEAD_PILL_PAD_BEFORE, FORK_UI_1111 } from "@/fork/ui-batch-1111";
 import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { sidebarBotActivityTasks } from "./SidebarBotActivity";
@@ -30,12 +28,11 @@ function privacyLabelOf(privacy: ChatHeadPrivacy): string | null {
   }
 }
 
-/** Simple mode's whole chat header: the bot's face and name in one pill, which opens and closes the bot panel. Away from
+/** The whole chat header in both modes: the bot's name in one pill, which opens and closes the bot panel. Away from
  * the bot's main conversation it also names the one on screen. A dot says another of the bot's conversations needs a
  * look; a team chat says who can read it with one quiet glyph. */
-export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
+export function ChatHeadPill({ bot, privacy, onToggle }: {
   bot: Bot;
-  avatar: Pick<ComponentProps<typeof BotAvatar>, "state" | "motion" | "motionKey" | "animated">;
   privacy: ChatHeadPrivacy;
   onToggle: () => void;
 }) {
@@ -62,7 +59,6 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
       aria-controls={open ? BOT_PANEL_ID : undefined}
       className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full text-ink", FORK_UI_1111 ? CHATHEAD_PILL_PAD : CHATHEAD_PILL_PAD_BEFORE, ELEVATED_FLOAT, ELEVATED_HOVER)}
     >
-      <BotAvatar bot={bot} size={24} {...avatar} hitRef={pillRef} sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader} />
       <span dir="auto" className="min-w-0 truncate text-[14px] font-medium leading-5">{bot.name}</span>
       {conversation && (
         <>
