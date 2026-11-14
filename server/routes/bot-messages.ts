@@ -13,7 +13,7 @@ import type { ResolvedSender } from "../../shared/wire.ts";
 import { admit } from "../admission.ts";
 import { dismissQuestionCard } from "../card-dismissal.ts";
 import { AppMessageRate, appContextBlock, prepareAppMessage } from "../chat-apps.ts";
-import { prepareWidgetFill, prepareWidgetPress, reopenCancelledPress } from "../chat-widgets.ts";
+import { prepareBlankFill, prepareWidgetFill, prepareWidgetPress, reopenCancelledPress, type BlankFillResult } from "../chat-widgets.ts";
 import type { ModelSelection, RequestOutcome, SteerOutcome } from "../contracts.ts";
 import { parseDataContext, type DataContext } from "../data-context.ts";
 import { OPEN_PAGE_BAD, openPageBlock } from "../open-page.ts";
@@ -78,6 +78,11 @@ export interface BotMessageRouteDeps {
     dataContext?: DataContext; compactOnly?: boolean; cardContinuation?: boolean; editedMessageId?: string;
     assumptions?: import("../../shared/assumptions.ts").Assumption[];
   }): Promise<Message>;
+  /** A text answer's blank was filled: start the hidden continuation that rewrites it in place. */
+  blankContinuation?(input: {
+    botId: string; threadId: string; messageId: string; text: string;
+    fill: Extract<BlankFillResult, { ok: true }>;
+  }): Promise<unknown>;
   usageTriggerFor(auth: RequestAuth): UsageTrigger;
   messageSender(auth: RequestAuth): ResolvedSender | undefined;
   cloudGuestSendRefusal(auth: RequestAuth, threadId: string): string | null;
@@ -272,6 +277,19 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       const phone = fromPhone(auth);
       // A phone's send without an id gets one, so the turn it starts can be known as the phone's.
       const sendId = parseSendId(body.sendId) ?? (phone ? randomUUID() : undefined);
+      const blankFill = filling ? prepareBlankFill(store, threadId, body.widgetFill, sendId) : null;
+      if (blankFill && !blankFill.ok) return json(res, blankFill.status, { error: blankFill.error });
+      if (blankFill) {
+        store.patchMessage(threadId, blankFill.messageId, { blankValues: blankFill.values });
+        if (blankFill.complete && blankFill.changed) {
+          try {
+            await deps.blankContinuation?.({ botId: bot.id, threadId, messageId: blankFill.messageId, text: blankFill.text, fill: blankFill });
+          } catch (error) {
+            return json(res, 409, { error: error instanceof Error ? error.message : String(error) });
+          }
+        }
+        return json(res, 202, { ok: true, threadId });
+      }
       const fill = filling ? prepareWidgetFill(store, threadId, body.widgetFill, sendId) : null;
       if (fill && !fill.ok) return json(res, fill.status, { error: fill.error });
       if (fill) {

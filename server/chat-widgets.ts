@@ -5,6 +5,7 @@ import {
   type WidgetAction, type WidgetNode, type WidgetPayload, type WidgetRoot, type WidgetSettled,
 } from "../shared/widget.ts";
 import type { MausColor } from "../shared/wire.ts";
+import { blankDefs, blankFillPlan, parseBlankValues, type BlankDef, type BlankFillPlan } from "../shared/blanks.ts";
 import type { ChatApps } from "./chat-apps.ts";
 import type { BotFolders } from "./pages/bundle.ts";
 import { createOptionsCard } from "./options-card.ts";
@@ -260,6 +261,58 @@ export function prepareWidgetFill(
     return { ok: false, status: 400, error: "widgetFill must be {messageId, rev?, values?, other?}" };
   }
   return prepareWidgetPress(store, threadId, { messageId, ref: "fill", values, other, rev }, sendId);
+}
+
+export interface BlankFillRequest {
+  messageId: string;
+  values: Record<string, string>;
+}
+
+export type BlankFillResult =
+  | {
+    ok: true;
+    messageId: string;
+    text: string;
+    defs: Record<string, BlankDef>;
+    values: Record<string, string>;
+    changed?: string;
+    /** The blank was filled before, so its paragraph and the tail are rewritten. */
+    changedFilled: boolean;
+    /** Every blank now has a value: the answer may go on. */
+    complete: boolean;
+    plan: BlankFillPlan;
+    sendId?: string;
+  }
+  | { ok: false; status: 400 | 404 | 409; error: string };
+
+/** A fill on a bot text row with `<blank>` tags. Returns null when the id names
+ * a widget or anything else, leaving the widget fill path to answer it. */
+export function prepareBlankFill(
+  store: Pick<AgentCardStore, "messagesFor">,
+  threadId: string,
+  raw: unknown,
+  sendId: string | undefined,
+): BlankFillResult | null {
+  if (!isRecord(raw)) return null;
+  const { messageId } = raw;
+  if (typeof messageId !== "string" || !/^[\w-]+$/.test(messageId)) return null;
+  const message = store.messagesFor(threadId).find((candidate) => candidate.id === messageId);
+  if (!message || message.role !== "bot" || message.kind !== "text" || !message.text?.includes("<blank>")) return null;
+  const text = message.text;
+  const defs = blankDefs(text);
+  if (!Object.keys(defs).length) return null;
+  const incoming = parseBlankValues(raw.values, defs);
+  if (!Object.keys(incoming).length) return { ok: false, status: 400, error: "widgetFill.values must name at least one blank with text." };
+  const previous = parseBlankValues(message.blankValues, defs);
+  const values = { ...previous, ...incoming };
+  const changed = Object.keys(incoming).find((key) => (previous[key] ?? "") !== (incoming[key] ?? ""));
+  if (!changed) {
+    return { ok: true, messageId, text, defs, values, changedFilled: false, complete: false, plan: blankFillPlan(text, Object.keys(defs)[0]!, false), ...(sendId ? { sendId } : {}) };
+  }
+  const changedFilled = Boolean((previous[changed] ?? "").trim());
+  const complete = Object.keys(defs).every((key) => Boolean(values[key]?.trim()));
+  const plan = blankFillPlan(text, changed, changedFilled);
+  return { ok: true, messageId, text, defs, values, changed, changedFilled, complete, plan, ...(sendId ? { sendId } : {}) };
 }
 
 /** A cancelled queued press never reached the bot, so the widget is live again. */

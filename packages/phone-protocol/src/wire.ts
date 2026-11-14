@@ -461,6 +461,9 @@ export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCard
   widget?: WidgetPayload;
   /** Words the person clarified before sending; the model reads them ahead of the message, and clients show a quiet note. */
   assumptions?: Assumption[];
+  /** Inline blanks in a bot answer, by their key: the values the person filled, kept
+   * out of `text` so the same answer can be edited again. */
+  blankValues?: Record<string, string>;
   /** widget rows the server built from records (mail, calendar, other
    * bots' work) rather than the bot: replayed to the bot only as labelled
    * data, never as its own words, and never edited by a bot. */

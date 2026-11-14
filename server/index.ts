@@ -470,6 +470,8 @@ import { appliesNow, directApply, UNDO_STALE, type DirectApply } from "./direct-
 import { createTeamMemoryRequests } from "./team-memory-requests.ts";
 import { createAgentCard } from "./chat-widgets.ts";
 import { assumptionsBlock, type Assumption } from "../shared/assumptions.ts";
+import { blankContinuationPrompt, mergeBlankContinuation } from "../shared/blanks.ts";
+import type { BlankFillResult } from "./chat-widgets.ts";
 import { createChatAppRoutes, createChatApps, createChatAppsMcp } from "./routes/chat-apps.ts";
 import { buildBotOverview, type BotOverview, connectedAppsFacts } from "./bot-overview.ts";
 import { ProfileRequestService } from "./profile-requests.ts";
@@ -4931,6 +4933,31 @@ function requestBehavior(value: unknown): "allow" | "deny" | "answer" | null {
   return value === "allow" || value === "deny" || value === "answer" ? value : null;
 }
 
+interface BlankContinuation {
+  messageId: string;
+  text: string;
+  values: Record<string, string>;
+  plan: Extract<BlankFillResult, { ok: true }>["plan"];
+  parts: string[];
+  turnId?: string;
+}
+const blankContinuations = new Map<string, BlankContinuation>();
+
+/** A text answer's blank was filled: the model writes only what follows, and the
+ * answer row keeps the whole sentence. Nothing streams as a separate bubble. */
+async function startBlankContinuation(input: { botId: string; threadId: string; messageId: string; text: string; fill: Extract<BlankFillResult, { ok: true }> }): Promise<unknown> {
+  const answer = store.messagesFor(input.threadId).find((message) => message.id === input.messageId);
+  const requestMessageId = answer?.requestMessageId ?? store.activePath(input.threadId).findLast((message) => message.role === "user" && message.kind === "text")?.id;
+  const prompt = blankContinuationPrompt({ defs: input.fill.defs, values: input.fill.values, plan: input.fill.plan, ...(input.fill.changed ? { changed: input.fill.changed } : {}) });
+  blankContinuations.set(input.threadId, { messageId: input.messageId, text: input.text, values: input.fill.values, plan: input.fill.plan, parts: [] });
+  try {
+    return await startTurn(input.botId, prompt, { threadId: input.threadId, cardContinuation: true, ...(requestMessageId ? { requestMessageId } : {}) });
+  } catch (error) {
+    blankContinuations.delete(input.threadId);
+    throw error;
+  }
+}
+
 const lastReply = new Map<string, string>();
 const stoppedTurns = new Map<string, string | undefined>(), personStops = new PersonStops();
 // The turn each thread runs, from its start to its end, and nothing once the thread is idle: what Stop and the rescue check.
@@ -6300,6 +6327,21 @@ bus.subscribe((event: RuntimeEvent) => {
   const completedTurnId = event.type === "turn.completed"
     ? groupGoalCompletionTurnId(event.turnId, goalCoordinatorTurn?.turnId)
     : event.turnId;
+  const blankTurn = blankContinuations.get(event.threadId);
+  if (blankTurn && event.type === "turn.started" && event.turnId) blankTurn.turnId = event.turnId;
+  const blankActive = Boolean(blankTurn) && blankTurn!.turnId !== undefined && (event.turnId === undefined || event.turnId === blankTurn!.turnId);
+  const blankAssistant = blankActive && ((event.type === "content.delta" && event.streamKind === "assistant_text") ||
+    (event.type === "item.completed" && event.itemType === "assistant_text"));
+  if (blankTurn && blankActive && event.type === "turn.completed") {
+    const output = blankTurn.parts.join("\n\n");
+    if (output.trim()) {
+      const merged = mergeBlankContinuation({ text: blankTurn.text, values: blankTurn.values, plan: blankTurn.plan, output });
+      store.patchMessage(event.threadId, blankTurn.messageId, { text: merged.text, blankValues: merged.values });
+    }
+    blankContinuations.delete(event.threadId);
+  } else if (blankTurn && ((event.type === "session.exited") || (event.type === "runtime.error" && event.terminal === true))) {
+    blankContinuations.delete(event.threadId);
+  }
   if (goalCoordinatorTurn?.discard && retiredProviderTurns.has(event.turnId)) {
     goalTurns.remove(event.threadId, goalCoordinatorTurn);
     return;
@@ -6341,7 +6383,7 @@ bus.subscribe((event: RuntimeEvent) => {
     broadcast({ kind: "runtime", event: publicAssistantEvent });
   }
   const privateImageEvent = event.type === "item.completed" && event.itemType === "assistant_image";
-  if (!privateImageEvent) {
+  if (!privateImageEvent && !blankAssistant) {
     // Exact executable input is internal; the bus's persistence redactor does not scrub the live event.
     const publicEvent = event.type === "request.opened" ? { ...event, command: undefined, commandLine: undefined, reads: undefined } : publicReplyEvent(event, groupSpeakers.get(event.threadId)?.botId);
     broadcast({ kind: "runtime", event: publicEvent });
@@ -6377,6 +6419,10 @@ bus.subscribe((event: RuntimeEvent) => {
     const spoken = assistantTranscript(text);
     if (spoken.kind === "stopped") {
       pushStoppedTurn(turnId);
+      return;
+    }
+    if (blankActive && event.type === "item.completed" && event.itemType === "assistant_text") {
+      blankTurn!.parts.push(spoken.text);
       return;
     }
     pushMessage({ role: "bot", kind: "text", text: spoken.text, turnId, ...(event.type === "item.completed" && event.itemId ? { itemId: event.itemId } : {}) });
@@ -12058,7 +12104,7 @@ ROUTES.push(createBotMessageRoutes({
   routines: () => routines,
   fromPhone: phones.fromPhone, notePhoneSend: phones.noteSend,
   desktopManaged: DESKTOP_MANAGED, cloudHome: Boolean(CLOUD_HOME), DirectSendRefused,
-  acceptDirectSend, directSendRefusal, startTurn, usageTriggerFor, messageSender, cloudGuestSendRefusal, cloudThreadRefusal, runOwners, runActor, resolveAccessRequest: (threadId, requestId, behavior, message) => lendingLifts?.resolve(threadId, requestId, behavior) ?? accessRequests.resolve(threadId, requestId, behavior, message), relayRefusal: CLOUD_TEAM ? (bot, email) => relayedSendRefusal(bot, email, Boolean(email && teamOwners.people?.list().some((one) => one.email === email && one.role !== "member"))) : undefined,
+  acceptDirectSend, directSendRefusal, startTurn, blankContinuation: startBlankContinuation, usageTriggerFor, messageSender, cloudGuestSendRefusal, cloudThreadRefusal, runOwners, runActor, resolveAccessRequest: (threadId, requestId, behavior, message) => lendingLifts?.resolve(threadId, requestId, behavior) ?? accessRequests.resolve(threadId, requestId, behavior, message), relayRefusal: CLOUD_TEAM ? (bot, email) => relayedSendRefusal(bot, email, Boolean(email && teamOwners.people?.list().some((one) => one.email === email && one.role !== "member"))) : undefined,
   noAiRefusal: noAiNotice.refusal, cardAnswerRefusal, commandRememberRefusal, requestBehavior, requestedTaskBot, botForThread, threadBusy,
   botAtThreadCapacity, parksBehindCoordination, activeGroupTurnForBot, runningTurnInstance, engineSteersImages, resolveReplyTarget,
   turnSelection, policyModelRefusal, clearUnattended, drainQueuedSends, answeringCardAs, resolveAndSendTrust, resolveAndSendTeamSetup, resolveAndSendMcp,

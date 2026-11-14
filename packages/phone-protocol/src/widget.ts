@@ -5,6 +5,7 @@ import type { JsonValue } from "./json.ts";
 import { readWidgetText } from "./widget-text.ts";
 import { multiSelectAnswer } from "./widget-multiselect.ts";
 import { buttonStyle } from "./widget-button-style.ts";
+import { isSkinUi, parseSkin, parseSkinOption, skinAnswerText, SKIN_MAX_OPTIONS, type SkinSpec, type SkinUi } from "./skins.ts";
 
 export const WIDGET_VERSION = 1;
 
@@ -358,16 +359,71 @@ const status: Reader = (raw, path) => {
   return name ? { text: label, icon: name } : { text: label };
 };
 
+/** The optional decoration an option carries for a skin: a sample sentence, a
+ * colour, a font, a picture glyph, a map point or a layout name. The value and
+ * label stay the canonical pair every renderer and press already reads. */
+function skinOptionProps(record: Record<string, unknown>): Record<string, unknown> {
+  const option = parseSkinOption({
+    label: record.label ?? record.value, value: record.value,
+    sample: record.sample, hex: record.hex, font: record.font, icon: record.icon, emoji: record.emoji,
+    lat: record.lat, lng: record.lng, layout: record.layout, note: record.note,
+  });
+  if (!option) return {};
+  const { label: _label, value: _value, ...rest } = option;
+  return rest;
+}
+
+const skinUi: Reader = (raw) => (isSkinUi(raw) ? raw as SkinUi : undefined);
+/** A slider bound: a number, or a date for the dates skin. */
+const skinBound: Reader = (raw) => {
+  const number = decimal(-1_000_000, 1_000_000)(raw, "");
+  if (typeof number === "number") return number;
+  return isoDate(raw, "");
+};
+const skinStep: Reader = (raw) => {
+  const number = decimal(0.0001, 1_000_000)(raw, "");
+  return typeof number === "number" ? Math.round(number * 1000) / 1000 : undefined;
+};
+const skinUnit: Reader = (raw) => line(16)(raw, "");
+const skinLabel: Reader = (raw) => line(60)(raw, "");
+const skinColumns: Reader = (raw) => integer(1, 6)(raw, "");
+const skinMinuteStep: Reader = (raw) => integer(1, 60)(raw, "");
+const skinAxis: Reader = (raw) => {
+  if (!isRecord(raw)) return undefined;
+  const label = line(60)(raw.label, "");
+  const start = line(60)(raw.start, "");
+  const end = line(60)(raw.end, "");
+  return label || start || end ? { ...(label ? { label } : {}), ...(start ? { start } : {}), ...(end ? { end } : {}) } : undefined;
+};
+const skinAxes: Reader = (raw) => {
+  if (!isRecord(raw)) return undefined;
+  const x = skinAxis(raw.x, "");
+  const y = skinAxis(raw.y, "");
+  return x || y ? { ...(x ? { x } : {}), ...(y ? { y } : {}) } : undefined;
+};
+const skinCells: Reader = (raw) => {
+  if (!Array.isArray(raw)) return undefined;
+  const cells = raw.map((cell) => line(160)(cell, "")).filter((cell): cell is string => typeof cell === "string");
+  return cells.length ? cells.slice(0, 16) : undefined;
+};
+const SKIN_PROPS: Record<string, Reader> = {
+  ui: skinUi, multi: on, min: skinBound, max: skinBound, step: skinStep, unit: skinUnit,
+  minLabel: skinLabel, maxLabel: skinLabel, columns: skinColumns, minuteStep: skinMinuteStep,
+  axes: skinAxes, cells: skinCells,
+};
+
+const FREE_OPTION_UIS = new Set(["dates", "time", "slider", "range"]);
 const options: Reader = (raw, path) => {
-  if (!Array.isArray(raw) || raw.length < 1 || raw.length > WIDGET_LIMITS.options) return fail(path, `needs 1 to ${WIDGET_LIMITS.options} items`);
+  if (raw === undefined || raw === null) return undefined;
+  if (!Array.isArray(raw) || raw.length > WIDGET_LIMITS.options) return fail(path, `needs up to ${WIDGET_LIMITS.options} items`);
   const seen = new Set<string>();
-  return raw.map((item, index) => {
+  return raw.slice(0, SKIN_MAX_OPTIONS).map((item, index) => {
     const at = `${path}[${index}]`;
     const record: Record<string, unknown> = isRecord(item) ? item : { value: item };
     const value = line(200, "nonEmpty")(typeof record.value === "boolean" ? String(record.value) : record.value, `${at}.value`) as string;
     if (seen.has(value)) return fail(at, `repeats the value ${JSON.stringify(value)}`);
     seen.add(value);
-    return { label: (line(WIDGET_LIMITS.label)(record.label, `${at}.label`) as string | undefined) ?? value, value };
+    return { label: (line(WIDGET_LIMITS.label)(record.label, `${at}.label`) as string | undefined) ?? value, value, ...skinOptionProps(record) };
   });
 };
 
@@ -484,14 +540,14 @@ const SPECS: Record<string, NodeSpec> = {
   Badge: { props: { label: line(WIDGET_LIMITS.label, "nonEmpty"), color: oneOf("secondary", "success", "danger", "warning", "info", "discovery"), variant: oneOf("soft", "solid", "outline", "dot"), size: oneOf("sm", "md", "lg"), pill: off } },
   Progress: { props: { value: progressValue, label: line(WIDGET_LIMITS.caption) } },
   Button: { props: { label: line(WIDGET_LIMITS.label), iconStart: icon(), iconEnd: icon(), block: on, disabled: on, submit: on, onClickAction: action } },
-  Select: { props: { ...FIELD, options, placeholder: PLACEHOLDER, defaultValue: text(200), clearable: on, block: on } },
+  Select: { props: { ...FIELD, ...SKIN_PROPS, options, placeholder: PLACEHOLDER, defaultValue: text(200), clearable: on, block: on } },
   DatePicker: { props: { ...FIELD, placeholder: PLACEHOLDER, defaultValue: isoDate, min: isoDate, max: isoDate, clearable: on, block: on } },
   // MausBot additions: a time of day, and days of the week
-  TimePicker: { props: { ...FIELD, placeholder: PLACEHOLDER, defaultValue: timeOfDay, min: timeOfDay, max: timeOfDay, step: integer(1, 60), clearable: on, block: on } },
+  TimePicker: { props: { ...FIELD, ui: skinUi, placeholder: PLACEHOLDER, defaultValue: timeOfDay, min: timeOfDay, max: timeOfDay, step: integer(1, 60), clearable: on, block: on } },
   DayPicker: { props: { ...FIELD, defaultValue: weekdaysReader } },
   Checkbox: { props: { ...FIELD, defaultChecked: on } },
-  RadioGroup: { props: { ...FIELD, options, defaultValue: text(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
-  MultiSelect: { props: { ...FIELD, options, defaultValue: line(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
+  RadioGroup: { props: { ...FIELD, ...SKIN_PROPS, options, defaultValue: text(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
+  MultiSelect: { props: { ...FIELD, ...SKIN_PROPS, options, defaultValue: line(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
   Input: { props: { ...FIELD, inputType, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), pattern: text(200) } },
   Textarea: { props: { ...FIELD, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), rows: integer(1, 12), maxRows: integer(1, 20), autoResize: on } },
   Transition: { props: {}, children: "one" },
@@ -555,13 +611,18 @@ function normalize(input: unknown, path: string, depth: number, slot: "root" | "
     if (context.fields.has(name)) return fail(`${path}.name`, `repeats the field name ${JSON.stringify(name)}`);
     context.fields.add(name);
     if (context.fields.size > WIDGET_LIMITS.fields) return fail(path, `the widget has more than ${WIDGET_LIMITS.fields} fields`);
+    if ((type === "Select" || type === "RadioGroup" || type === "MultiSelect")
+      && (!Array.isArray(node.options) || node.options.length === 0) && !FREE_OPTION_UIS.has(String(node.ui))) {
+      return fail(`${path}.options`, "needs at least one option, unless the skin is dates, time, slider or range.");
+    }
     if (type === "TimePicker" || type === "DatePicker") {
       if (typeof node.min === "string" && typeof node.max === "string" && node.min > node.max) delete node.max;
       const picked = node.defaultValue;
       if (typeof picked === "string" && ((typeof node.min === "string" && picked < node.min) || (typeof node.max === "string" && picked > node.max))) delete node.defaultValue;
     }
     const chosen = node.defaultValue;
-    if ((type === "Select" || type === "RadioGroup") && chosen !== undefined && !(node.options as Array<{ value: string }>).some((option) => option.value === chosen)) delete node.defaultValue;
+    if ((type === "Select" || type === "RadioGroup") && chosen !== undefined && !FREE_OPTION_UIS.has(String(node.ui))
+      && !(Array.isArray(node.options) ? node.options as Array<{ value: string }> : []).some((option) => option.value === chosen)) delete node.defaultValue;
     if (type === "Select" || type === "RadioGroup") node.allowOther = raw.allowOther !== false;
   }
 
@@ -790,6 +851,26 @@ export function widgetFieldOptions(node: WidgetNode): Array<{ label: string; val
   return Array.isArray(node.options) ? node.options as Array<{ label: string; value: string }> : [];
 }
 
+/** The skin a choice field asked for, with its options and skin props. A field without one is a list. */
+export function widgetSkin(node: WidgetNode): SkinSpec {
+  const options = widgetFieldOptions(node).map((option, index) => {
+    const raw = Array.isArray(node.options) && node.options[index] && typeof node.options[index] === "object"
+      ? node.options[index] as Record<string, unknown>
+      : {};
+    return { ...raw, label: option.label, value: option.value };
+  });
+  return parseSkin({
+    ui: node.ui, options, multi: node.type === "MultiSelect" || node.multi === true, min: node.min, max: node.max, step: node.step,
+    unit: node.unit, minLabel: node.minLabel, maxLabel: node.maxLabel, minuteStep: node.minuteStep,
+    columns: node.columns, axes: node.axes, cells: node.cells, placeholder: node.placeholder,
+    other: widgetTakesOther(node),
+  });
+}
+
+/** A skin whose answer is not one of the options: a slider's grade, a date, a
+ * time, a map point or a pad cell. Its value still travels as one string. */
+const FREE_SKINS: ReadonlySet<SkinUi> = new Set(["slider", "range", "dates", "time", "pad", "map", "grid"]);
+
 /** What each field holds before the person touches it. */
 export function widgetInitialValues(scope: WidgetNode): WidgetValues {
   const values: WidgetValues = {};
@@ -863,9 +944,14 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
     let shown = value;
     let kept = value;
     if (value && (field.type === "Select" || field.type === "RadioGroup" || field.type === "ListView")) {
-      const option = widgetFieldOptions(field.node).find((candidate) => candidate.value === value);
-      if (!option) return { ok: false, status: 400, error: `${field.label} must be one of the offered options.` };
-      shown = option.label;
+      const skin = widgetSkin(field.node);
+      if (FREE_SKINS.has(skin.ui)) {
+        shown = skinAnswerText(skin, value) ?? value;
+      } else {
+        const option = widgetFieldOptions(field.node).find((candidate) => candidate.value === value);
+        if (!option) return { ok: false, status: 400, error: `${field.label} must be one of the offered options.` };
+        shown = option.label;
+      }
     }
     if (value && field.type === "MultiSelect") {
       const checked = multiSelectAnswer(field.node, field.label, value);
@@ -964,8 +1050,10 @@ function inlineText(node: WidgetNode): string {
       return `[chart: ${(Array.isArray(node.series) ? node.series as Array<{ label?: string; dataKey: string }> : []).map((series) => series.label ?? series.dataKey).join(", ")}]`;
     case "Checkbox":
       return `[ ] ${widgetString(node, "label") ?? String(node.name)}`;
-    case "Select": case "RadioGroup":
-      return `(${(Array.isArray(node.options) ? node.options as Array<{ label: string }> : []).slice(0, 6).map((option) => option.label).join(" / ")})`;
+    case "Select": case "RadioGroup": {
+      const offered = (Array.isArray(node.options) ? node.options as Array<{ label: string }> : []).slice(0, 6).map((option) => option.label);
+      return offered.length ? `(${offered.join(" / ")})` : `[${widgetString(node, "label") ?? String(node.name ?? "value")}]`;
+    }
     case "DayPicker":
       return `[${typeof node.defaultValue === "string" ? dayList(node.defaultValue) : "days"}]`;
     case "Input": case "Textarea": case "DatePicker": case "TimePicker":

@@ -25,12 +25,12 @@ export function useComposerAmbiguity({ botId, threadId, text }: { botId: string 
       rect={active.rect}
       selected={assumptions.find((assumption) => assumption.word === active.mark.word)?.meaning}
       onClose={() => setActive(null)}
-      onPick={(meaning) => {
+      onPick={(meaning, keepOpen) => {
         const word = active.mark.word;
         setAssumptions((current) => meaning
           ? [...current.filter((assumption) => assumption.word !== word), { word, meaning }]
           : current.filter((assumption) => assumption.word !== word));
-        setActive(null);
+        if (!keepOpen) setActive(null);
       }}
     />
   ) : null;

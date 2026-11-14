@@ -1,34 +1,31 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Check, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
-import type { AmbiguityMark, AmbiguityToken } from "../../shared/composer-ambiguity";
+import type { AmbiguityMark } from "../../shared/composer-ambiguity";
+import { parseSkin, skinAnswerText, type SkinSpec } from "../../packages/phone-protocol/src/skins";
 import { TRANSCRIPT_GAP } from "@/lib/composer-dock";
 import { MENU_ITEM, MENU_SHEET } from "./menu-recipe";
+import { OptionSkin } from "./widget/OptionSkin";
 
-const TOKEN: Record<AmbiguityToken, string> = {
-  accent: "bg-accent",
-  success: "bg-success",
-  warning: "bg-warning",
-  danger: "bg-danger",
-  ink: "bg-ink",
-};
+function markSkin(mark: AmbiguityMark): SkinSpec {
+  if (mark.skin) return mark.skin;
+  if (mark.control === "slider") return parseSkin({ ui: "slider", options: mark.options, multi: false });
+  return parseSkin({ ui: "list", options: mark.options });
+}
 
 /** The small panel a dashed word opens: the meanings it could carry here, in the control the model chose. */
 export function AmbiguityPanel({ mark, rect, selected, onPick, onClose }: {
   mark: AmbiguityMark;
   rect: DOMRect;
   selected?: string;
-  onPick: (meaning: string | null) => void;
+  onPick: (meaning: string | null, keepOpen?: boolean) => void;
   onClose: () => void;
 }) {
   const panel = useRef<HTMLDivElement>(null);
   const [left, setLeft] = useState<number>();
-  const [slider, setSlider] = useState(() => {
-    const at = selected === undefined ? -1 : mark.options.findIndex((option) => option.label === selected);
-    return at >= 0 ? at : Math.max(0, Math.floor((mark.options.length - 1) / 2));
-  });
+  const [draft, setDraft] = useState(selected ?? "");
   useEffect(() => {
     const away = (event: PointerEvent) => {
       if (!(event.target instanceof Node) || panel.current?.contains(event.target)) return;
@@ -43,12 +40,12 @@ export function AmbiguityPanel({ mark, rect, selected, onPick, onClose }: {
     };
   }, [onClose]);
 
-  const width = 292;
+  const skin = markSkin(mark);
+  const width = skin.ui === "pad" || skin.ui === "map" || skin.ui === "grid" || skin.ui === "layouts" ? 320 : 292;
   const composer = document.querySelector<HTMLElement>('[data-tour="composer"]');
   const bottom = composer
     ? `calc(100vh - ${composer.getBoundingClientRect().top}px + ${TRANSCRIPT_GAP})`
     : `calc(100vh - ${rect.top}px + ${TRANSCRIPT_GAP})`;
-  const current = mark.options[Math.min(slider, mark.options.length - 1)]!;
   useLayoutEffect(() => {
     const box = panel.current;
     if (!box) return;
@@ -76,45 +73,13 @@ export function AmbiguityPanel({ mark, rect, selected, onPick, onClose }: {
           <X size={14} />
         </button>
       </div>
-      {mark.control === "slider" ? (
-        <div className="px-2 pb-2">
-          <input
-            type="range"
-            min={0}
-            max={mark.options.length - 1}
-            step={1}
-            value={slider}
-            onChange={(event) => setSlider(Number(event.target.value))}
-            aria-label={t("composer.ambiguity.scale")}
-            className="h-5 w-full accent-accent"
-          />
-          <div className="mt-1 flex justify-between gap-2 text-[11px] leading-4 text-ink-tertiary">
-            {mark.options.map((option, index) => <span key={option.label} className={index === slider ? "text-ink" : undefined}>{option.label}</span>)}
-          </div>
-          <button type="button" onClick={() => onPick(current.label)} className={cn(MENU_ITEM, "mt-2 min-h-8 justify-center bg-ink px-2 text-app hover:bg-ink/90")}>
-            {t("composer.ambiguity.use", { meaning: current.label })}
-          </button>
-        </div>
-      ) : mark.control === "swatch" ? (
-        <div className="flex flex-col gap-1 pb-1.5">
-          {mark.options.map((option) => (
-            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8", selected === option.label && "bg-accent/10")}>
-              <span aria-hidden="true" className={cn("size-4 shrink-0 rounded-full ring-1 ring-ink/15", TOKEN[option.token ?? "ink"])} />
-              <span className="min-w-0 flex-1 truncate">{option.label}</span>
-              {selected === option.label && <Check size={13} className="shrink-0 text-accent" />}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-1 pb-1.5">
-          {mark.options.map((option) => (
-            <button key={option.label} type="button" onClick={() => onPick(option.label)} className={cn(MENU_ITEM, "min-h-8", selected === option.label && "bg-accent/10")}>
-              <span className="min-w-0 flex-1 truncate">{option.label}</span>
-              {selected === option.label && <Check size={13} className="shrink-0 text-accent" />}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="px-1.5 pb-1">
+        <OptionSkin spec={skin} value={draft || selected || ""} ariaLabel={t("composer.ambiguity.title", { word: mark.word })}
+          onChange={(next) => {
+            setDraft(next);
+            if (next) onPick(skinAnswerText(skin, next) ?? next, skin.ui === "slider" || skin.ui === "range");
+          }} />
+      </div>
       {selected !== undefined && (
         <button type="button" onClick={() => onPick(null)} className={cn(MENU_ITEM, "mb-1 min-h-8 text-ink-tertiary")}>
           {t("composer.ambiguity.clear")}

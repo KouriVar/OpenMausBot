@@ -19,6 +19,7 @@ import { interactiveAnswersMode } from "@/lib/feature-flags";
 import { isOmbUiFence, parseOmbUiFence } from "@/lib/omb-ui-fence";
 import { DEFAULT_INTERACTIVE_ANSWER_MODE, showsComponentFences, type InteractiveAnswerMode } from "../../shared/interactive-answers";
 import { InlineWidget } from "./widget/InlineWidget";
+import { BlankProvider, BlankSlotLink, BlankStatus, prepareBlankMarkdown, useBlankMessage, type BlankMessageInfo } from "./widget/BlankInline";
 
 import { parseFenceInfo } from "../lib/code-block";
 import { markdownImageName, markdownImageOpenUrl } from "../lib/markdown-image";
@@ -671,6 +672,7 @@ function MarkdownLink({ href, children, ...rest }: { href?: string; children?: R
   const { threads, currentBotId, message, delivered, originals } = useContext(MessageScopeContext);
   const linkMenu = useThreadLinkMenu(href), openPage = usePageOpener({ beside: true });
   if (!href) return <span className="break-words">{children}</span>;
+  if (href.startsWith("#omb-blank")) return <BlankSlotLink href={href} />;
   if (isUseMyComputerUrl(href)) return <UseMyComputerLink>{children}</UseMyComputerLink>;
   const address = parseThreadRefUrl(href);
   const ref = address ? resolveThreadRefAddress(threads, address, currentBotId) : null;
@@ -845,7 +847,7 @@ function markdownParts(text: string, streaming: boolean): MarkdownPart[] {
   });
 }
 
-function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS, everyone = false, mentionPerson, delivered, originals }: {
+function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, everyone = false, mentionPerson, delivered, originals }: {
   text: string; message?: MessageAttachmentContext;
   mentionPeers?: readonly MentionPeer[]; everyone?: boolean; mentionPerson?: MentionPerson;
   /** Delivered copies by file name, and the originals those copies came from (copy path -> original). */
@@ -908,6 +910,47 @@ function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS,
   );
 }
 
+type ChatMarkdownProps = {
+  text: string; message?: MessageAttachmentContext;
+  mentionPeers?: readonly MentionPeer[]; everyone?: boolean; mentionPerson?: MentionPerson;
+  delivered?: DeliveredFiles; originals?: DeliveredFiles;
+  /** A bot row whose `<blank>` tags this transcript draws; absent leaves the tags alone. */
+  blank?: BlankMessageInfo;
+};
+
+const sameBlank = (a: BlankMessageInfo | undefined, b: BlankMessageInfo | undefined): boolean =>
+  a === b || (a !== undefined && b !== undefined && a.botId === b.botId && a.threadId === b.threadId && a.messageId === b.messageId && JSON.stringify(a.values) === JSON.stringify(b.values));
+
+/** A message with inline blanks is drawn in two pieces while its tail is being
+ * rewritten: the old tail stays, dimmed, until the server replaces it. */
+function ChatMarkdownComponent({ blank, ...props }: ChatMarkdownProps) {
+  const state = useBlankMessage(blank, props.text);
+  if (!blank) {
+    const quiet = props.text.includes("<blank>") ? prepareBlankMarkdown(props.text, {}) : null;
+    return <ChatMarkdownBody {...props} text={quiet?.source ?? props.text} />;
+  }
+  const full = prepareBlankMarkdown(props.text, state.values);
+  if (state.rewriteAt === undefined) {
+    return (
+      <BlankProvider state={state}>
+        <ChatMarkdownBody {...props} text={full.source} />
+        <BlankStatus state={state} />
+      </BlankProvider>
+    );
+  }
+  const head = prepareBlankMarkdown(props.text.slice(0, state.rewriteAt), state.values);
+  const tail = prepareBlankMarkdown(props.text.slice(state.rewriteAt), state.values);
+  return (
+    <BlankProvider state={state}>
+      <ChatMarkdownBody {...props} text={head.source} />
+      <div className="text-ink-tertiary" data-blank-rewriting="">
+        <ChatMarkdownBody {...props} text={tail.source} />
+      </div>
+      <BlankStatus state={state} />
+    </BlankProvider>
+  );
+}
+
 export function samePeers(previous: readonly MentionPeer[], next: readonly MentionPeer[]): boolean {
   if (previous === next) return true;
   if (previous.length !== next.length) return false;
@@ -923,6 +966,7 @@ export const ChatMarkdown = memo(ChatMarkdownComponent, (previous, next) => (
   && previous.everyone === next.everyone && sameMentionPerson(previous.mentionPerson, next.mentionPerson)
   && previous.message?.threadId === next.message?.threadId
   && previous.message?.messageId === next.message?.messageId
+  && sameBlank(previous.blank, next.blank)
   && sameDelivered(previous.delivered, next.delivered) && sameDelivered(previous.originals, next.originals)
 ));
 

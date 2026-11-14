@@ -24,7 +24,8 @@ export function useAmbiguityMarks(enabled: boolean, botId: string | undefined, t
           typeof mark.word === "string" && Number.isInteger(mark.start) && Number.isInteger(mark.end)
           && mark.start >= 0 && mark.end > mark.start && mark.end <= text.length
           && text.slice(mark.start, mark.end).toLocaleLowerCase() === mark.word.toLocaleLowerCase()
-          && Array.isArray(mark.options) && mark.options.length >= 2);
+          && Array.isArray(mark.options)
+          && (mark.skin?.ui === "dates" || mark.skin?.ui === "time" || mark.skin?.ui === "slider" || mark.skin?.ui === "range" || mark.options.length >= 2));
         setMarks(next.slice(0, 3));
       }).catch(() => {
         // Network trouble or a timeout simply leaves the draft unmarked.

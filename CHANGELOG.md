@@ -27,6 +27,30 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE045 · 0.8.3 — controls inside the sentence
+
+`0.8.3` finishes the intra-turn controls started in 0.8.2: one option model behind every skin, blanks that sit inside the sentence, and the fixes the 0.8.2 trial asked for.
+
+- **One set of skins**: blanks, `ask_fill` fields and the composer's ambiguity panel now share the same option data and the same 15 controls — list, samples, swatches, fonts, thumbs, slider, range, dates, time, emoji, toggle, grid, pad, layouts and map. An unusable skin falls back to the list instead of failing; colours and wireframes use the existing tokens, and both themes follow.
+- **Blanks inside the sentence**: a reply may write `<blank>{"key","ask","kind","ui",...}</blank>`. An empty slot shows its short ask on a dashed line; a filled one shows the chosen words in accent with a solid line and opens again on a click. `"wait": true` holds the words after it until the slot is filled, and an unfinished tag never shows its JSON while streaming.
+- **Continuing and rewriting**: filling every blank sends the existing `widgetFill` with `cardContinuation`, adds no user bubble, and hides the values as `[[key: value]]` (empty as `[[key: empty]]`). Single picks send at once, other skins after 450ms, dates and multi-picks after 900ms. Changing a filled blank rewrites from that paragraph; unchanged later paragraphs travel as `[[keep N]]`, and the old tail is dimmed until the new one lands.
+- **The 0.8.2 trial fixes**: confirmed assumptions are injected as settled conditions and are never asked again; the ambiguity slider selects on release with no confirm button; a crowded slider shows only the current grade in full with short end labels; and `ask_fill` fields use the same skins instead of four dropdowns.
+- **Ambiguity by skin**: `/api/composer/ambiguities` now returns a `ui` and its params per word (ages as a slider, places as a map, weekends as dates, budgets as a range); the panel draws that skin and keeps the existing highlight, edit and clear behaviour.
+- **Prompts**: both prompts carry the meaning-to-skin mapping, say text chips are the fallback, prefer an in-sentence blank over a card unless four or more values are needed, and show the dinner, birthday and laptop examples.
+- **Version**: 0.8.3.
+
+中文：**V0.8.3：句子里的控件**
+
+`0.8.3` 补完 0.8.2 开的「轮内控件」：所有皮肤共用一套选项数据，空位嵌进句子，并修掉 0.8.2 试用发现的问题。
+
+- **一套皮肤**：空位、`ask_fill` 字段和输入框歧义面板共用同一组选项与 15 种控件——文字芯片、示例句、色块、字体、图标、单值滑块、双端区间、日期、时间、表情、开关、九宫格、二维垫、版式线框和点阵地图。参数不合法时退回文字芯片而不是报错；颜色和线框只用现有 token，深浅色都跟随。
+- **句子里的空位**：回答可以写 `<blank>{"key","ask","kind","ui",...}</blank>`。未填是虚线下划线加短提示，填完显示所选内容并改成强调色实线，再点可以修改；`"wait": true` 的空位后面的正文先不显示；流式输出时没写完的标签不露出 JSON。
+- **续写与重写**：所有空位填完后走原有的 `widgetFill` 加 `cardContinuation`，不新增用户消息，回传隐藏的 `[[key: value]]`（空位写 `[[key: empty]]`）。单选立即发送，其他皮肤 450ms，日期和多选 900ms。改动已填的空会从它所在段落往后重写，不变的段落用 `[[keep N]]` 保留，重写期间旧后文变淡，新内容到了再替换。
+- **0.8.2 试用修复**：已确认的假设按既定条件注入，不再重复询问；歧义面板的滑块松手即选中，不要确认按钮；档位多或文字长时只完整显示当前档，两端用短标签；`ask_fill` 字段也按皮肤渲染，不再四个全是下拉。
+- **按皮肤问歧义**：`/api/composer/ambiguities` 为每个词返回 `ui` 和参数（年龄给滑块、地点给地图、周末给日期、预算给区间），面板照此绘制，原有的黄色高亮、实线、可改选和取消澄清都保留。
+- **提示词**：两处提示词都写入「意思 → 皮肤」的映射，说明文字芯片只是退路；需要四个以上值或整张表单时才用卡片，其余默认嵌在句子里；并加入聚餐、生日和笔记本三个例子。
+- **版本**：0.8.3。
+
 ### OE044 · 0.8.2 — fill in the blanks, and say what a word means before sending
 
 `0.8.2` lets an answer stop for values only the person has, and lets the composer ask what an ambiguous word means before the message goes.

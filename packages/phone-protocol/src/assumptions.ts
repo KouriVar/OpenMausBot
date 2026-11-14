@@ -24,9 +24,11 @@ export function parseAssumptions(value: unknown): Assumption[] | undefined {
   return out.length ? out : undefined;
 }
 
-/** What the model reads before the person's words: the words, and what they meant here. */
+/** What the model reads before the person's words: the words, and what they meant here.
+ * They are settled conditions, not hints: asking for one again is the fault this
+ * block exists to prevent. */
 export function assumptionsBlock(assumptions: readonly Assumption[] | undefined): string {
   if (!assumptions?.length) return "";
   const lines = assumptions.map((assumption) => `- "${assumption.word}": ${assumption.meaning}`);
-  return `\n\nThe person clarified what these words mean in their message:\n${lines.join("\n")}`;
+  return `\n\nThe person already confirmed these conditions before sending. Treat them as given: do not ask about them again, do not repeat these dimensions in ask_fill, <blank> or your own questions, and do not offer a different meaning for them. Ask only for dimensions these conditions do not cover; if they cover everything the answer needs, answer directly.\n${lines.join("\n")}`;
 }
