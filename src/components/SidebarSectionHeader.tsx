@@ -75,11 +75,26 @@ export function SidebarSectionHeader({
 
   const dropMark = dropInto ? "bg-accent/10 outline outline-2 -outline-offset-2 outline-accent/70" : undefined;
 
+  // The whole title row toggles; the ⋯ button and a rename field keep their own clicks.
+  const onRowClick = (event: MouseEvent<HTMLDivElement>) => {
+    if (!onToggle || naming) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest("button, input, textarea, select")) return;
+    onToggle();
+  };
+  // At the row's far right, on the same line as the bot row's content edge. Absolute, so the name never moves.
+  const arrow = onToggle && !naming ? (
+    <Chevron
+      size={line ? 14 : 13}
+      aria-hidden="true"
+      className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-secondary opacity-0 transition-opacity duration-150 group-hover/section:opacity-100 group-focus-within/section:opacity-100", line ? "right-2" : "right-3")}
+    />
+  ) : null;
+
   if (line) {
     const tail = (
       <span aria-hidden="true" className="relative flex size-4 shrink-0 items-center justify-center">
-        {count !== undefined && <span className={cn("text-[12px] tabular-nums leading-4 text-ink-secondary transition-opacity", onToggle && "group-hover/section:opacity-0 group-focus-within/section:opacity-0 touch:opacity-0")}>{count}</span>}
-        {onToggle && <Chevron size={14} className="absolute text-ink-secondary opacity-0 transition-opacity group-hover/section:opacity-100 group-focus-within/section:opacity-100 touch:opacity-100" />}
+        {count !== undefined && <span className="text-[12px] tabular-nums leading-4 text-ink-secondary">{count}</span>}
       </span>
     );
     return (
@@ -92,7 +107,8 @@ export function SidebarSectionHeader({
         draggable={reorderable || undefined}
         onDragStart={reorderable ? onDragStart : undefined}
         onDragEnd={reorderable ? onDragEnd : undefined}
-        className={cn("group/section flex h-[30px] items-center gap-1.5 rounded-[6px] pl-0 pr-2 pb-1.5 pt-2 hover:bg-raised/50", reorderable && "cursor-grab", dragging && "opacity-40", naming && "py-0.5", dropMark)}
+        className={cn("group/section relative flex h-[30px] items-center gap-1.5 rounded-[6px] pl-0 pr-2 pb-1.5 pt-2 hover:bg-raised/50", reorderable && "cursor-grab", dragging && "opacity-40", naming && "py-0.5", dropMark)}
+        onClick={onRowClick}
       >
         {naming ? <SectionNameField {...naming} /> : onToggle ? (
           <button
@@ -123,18 +139,19 @@ export function SidebarSectionHeader({
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             onClick={(event) => onMenu(event.currentTarget)}
-            className="flex h-[18px] w-[22px] shrink-0 items-center justify-center rounded-[6px] text-ink-tertiary opacity-0 transition-opacity hover:bg-raised hover:text-ink focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus group-hover/section:opacity-100 group-focus-within/section:opacity-100 aria-expanded:bg-raised aria-expanded:text-ink aria-expanded:opacity-100 touch:opacity-100"
+            className={cn("flex h-[18px] w-[22px] shrink-0 items-center justify-center rounded-[6px] text-ink-tertiary opacity-0 transition-opacity hover:bg-raised hover:text-ink focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus group-hover/section:opacity-100 group-focus-within/section:opacity-100 aria-expanded:bg-raised aria-expanded:text-ink aria-expanded:opacity-100 touch:opacity-100", onToggle && "me-5")}
           >
             <MoreHorizontal size={15} aria-hidden="true" />
           </button>
         )}
         {!onMenu && reserveMenu && !naming && <span aria-hidden="true" className="w-[22px] shrink-0" />}
+        {arrow}
       </div>
     );
   }
 
   return (
-    <div className={cn("flex items-center gap-1 rounded-md pl-0 pr-2 pb-1", dropMark)} data-section={name} data-section-drop={dropInto ? "" : undefined} tabIndex={onContextMenu ? -1 : undefined} onContextMenu={naming ? undefined : onContextMenu}>
+    <div className={cn("group/section relative flex items-center gap-1 rounded-md pl-0 pr-2 pb-1", dropMark)} data-section={name} data-section-drop={dropInto ? "" : undefined} tabIndex={onContextMenu ? -1 : undefined} onContextMenu={naming ? undefined : onContextMenu} onClick={onRowClick}>
       {naming ? <SectionNameField {...naming} /> : onToggle ? (
         <button
           type="button"
@@ -148,7 +165,6 @@ export function SidebarSectionHeader({
           <span className="truncate text-[12px] font-semibold text-ink-secondary">
             {name}
           </span>
-          <Chevron size={13} className="shrink-0 text-ink-secondary" aria-hidden="true" />
           <SectionAttention attention={attention} label={attentionLabel} alert={alert} />
         </button>
       ) : (
@@ -159,6 +175,7 @@ export function SidebarSectionHeader({
           {attentionLabel && <span className="sr-only">{attentionLabel}</span>}
         </div>
       )}
+      {arrow}
     </div>
   );
 }

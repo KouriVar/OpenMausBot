@@ -121,7 +121,7 @@ import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
 import { SidebarBrand } from "@/fork/SidebarBrand";
 import { useBrandMark } from "@/fork/brand-mark";
-import { SIDEBAR_BRAND_GAP_TOP, SIDEBAR_CONTENT_LEFT, SIDEBAR_CONTENT_LEFT_FRAMED, sidebarBrandBottomPadding, sidebarBrandListTop, sidebarRowInset } from "@/fork/sidebar-metrics";
+import { SIDEBAR_BRAND_GAP_TOP, SIDEBAR_CONTENT_LEFT, SIDEBAR_CONTENT_LEFT_FRAMED, sidebarBrandBottomPadding, sidebarBrandListTop, sidebarRowInset, sidebarSectionTopPadding } from "@/fork/sidebar-metrics";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -1093,6 +1093,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   const rowInset = sidebarRowInset(contentLeft);
   const brandListTop = sidebarBrandListTop(simple);
   const brandBottomPadding = sidebarBrandBottomPadding(simple);
+  const sectionTopPadding = sidebarSectionTopPadding(simple);
   const draggableChrome = capabilities.windowChrome !== "native";
   // SAFETY: Electron's -webkit-app-region is not in React's CSSProperties type; the renderer accepts it as an inline
   // style.
@@ -1454,8 +1455,8 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
                   "flex flex-col",
                   // Fork: the icons rail keeps Simple's 4px between bots in both modes, so switching never nudges them.
                   advanced && density !== "icons" || simpleDesk ? "gap-0.5" : "gap-1",
-                  density !== "icons" && index > 0 && !simple && "pt-3",
                 )}
+                style={density !== "icons" && index > 0 ? { paddingTop: sectionTopPadding } : undefined}
               >
                 {layout.dropLine(id, "before")}
                 {density !== "icons" && !headless && (

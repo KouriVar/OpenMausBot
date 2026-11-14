@@ -397,7 +397,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       {/* Fork: Inset's one card. The sidebar stays the window's ground; the content and every panel beside it are this
           single rounded card, clipped once here, so no child ever draws a second frame. */}
       <div data-inset-card={inset ? "" : undefined}
-        className={inset ? "relative flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[var(--inset-radius)] bg-[var(--inset-card)] shadow-[0_0_0_1px_var(--inset-edge)] m-[var(--inset-gap)] ms-[var(--inset-gap)]" : "contents"}>
+        className={inset ? "relative flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[var(--inset-radius)] bg-[var(--inset-card)] shadow-[0_0_0_1px_var(--inset-edge)] mt-[var(--inset-gap-top)] mr-[var(--inset-gap-right)] mb-[var(--inset-gap-bottom)] ml-[var(--inset-gap-left)]" : "contents"}>
       {state.activeView === "team-map" ? (
         <TeamMapPage />
       ) : state.activeView === "files" ? (

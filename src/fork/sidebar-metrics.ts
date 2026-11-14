@@ -13,9 +13,9 @@ export const SIDEBAR_CONTENT_LEFT_FRAMED = 12;
 export const SIDEBAR_ROW_BOX_LEFT = 12;
 
 /** The wordmark's breathing room: above the mark, and the real distance from its bottom to the first
- * department title's text. Top is 0 for the trial: the top row's own 60px is all the air above it. */
+ * department title's text. Top stays 0: the top row's own 60px is all the air above it. */
 export const SIDEBAR_BRAND_GAP_TOP = 0;
-export const SIDEBAR_BRAND_GAP_BOTTOM = 12;
+export const SIDEBAR_BRAND_GAP_BOTTOM = 24;
 
 /** What the list already adds above its first section: its own top padding and the title's line box. The
  * brand's bottom padding is the target gap minus these, so the measured distance is 12 in both modes. */
@@ -24,15 +24,25 @@ export const SIDEBAR_BRAND_LIST_TOP_SIMPLE = 4;
 export const SIDEBAR_SECTION_TITLE_OFFSET = 2;
 export const SIDEBAR_SECTION_TITLE_OFFSET_SIMPLE = 8;
 
+/** Between two departments: the list's own gap, the next section's top padding, and its title's line box. */
+export const SIDEBAR_SECTION_GAP = 12;
+export const SIDEBAR_SECTION_LIST_GAP = 2;
+
 /** The list's top padding while the wordmark is shown. */
 export function sidebarBrandListTop(simple: boolean): number {
   return simple ? SIDEBAR_BRAND_LIST_TOP_SIMPLE : SIDEBAR_BRAND_LIST_TOP;
 }
 
-/** The wordmark wrapper's bottom padding for a real 12px between its ink and the first section's text. */
+/** The wordmark wrapper's bottom padding for a real 24px between its ink and the first section's text. */
 export function sidebarBrandBottomPadding(simple: boolean): number {
   const titleOffset = simple ? SIDEBAR_SECTION_TITLE_OFFSET_SIMPLE : SIDEBAR_SECTION_TITLE_OFFSET;
   return Math.max(0, SIDEBAR_BRAND_GAP_BOTTOM - sidebarBrandListTop(simple) - titleOffset);
+}
+
+/** A department's top padding for a real 12px from the previous department's last line to its title text. */
+export function sidebarSectionTopPadding(simple: boolean): number {
+  const titleOffset = simple ? SIDEBAR_SECTION_TITLE_OFFSET_SIMPLE : SIDEBAR_SECTION_TITLE_OFFSET;
+  return Math.max(0, SIDEBAR_SECTION_GAP - SIDEBAR_SECTION_LIST_GAP - titleOffset);
 }
 
 /** The left padding a row or a section header adds inside the list box to reach the line. */
