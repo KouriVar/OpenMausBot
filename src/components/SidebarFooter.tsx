@@ -44,7 +44,7 @@ function SimpleSidebarFooter({ owner, archived, menuActions }: { owner: string |
       <CloudUsageCard />
       <SidebarPlaceStatus place={place} className="mb-2 px-1" />
       <AccountMoveStatus kind={move.kind} place={move.place} retry={move.retry} onOpen={openAccount} className="ps-1" />
-      <div className="mt-2">
+      <div className="mt-2" style={{ marginLeft: "calc(8px - var(--sidebar-content-left, 16px))", marginRight: "-8px" }}>
         <SidebarProfileMenu bar simple={account} menuActions={menuActions} />
       </div>
     </div>

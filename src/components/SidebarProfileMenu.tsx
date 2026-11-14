@@ -798,7 +798,8 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
             ref={triggerRef}
             data-sidebar-account=""
             data-account-bar=""
-            className={cn("flex h-11 w-full items-center gap-2 rounded-xl px-2.5 text-left transition-colors", open ? "bg-raised" : "hover:bg-raised/50")}
+            className={cn("flex h-11 w-full items-center gap-2 rounded-xl pe-2 text-left transition-colors", open ? "bg-raised" : "hover:bg-raised/50")}
+            style={{ paddingLeft: "calc(var(--sidebar-content-left, 16px) - 8px)" }}
           >
             <span className="relative flex shrink-0">
               <InitialsAvatar initials={initials} avatarUrl={profile?.avatarUrl} size={28} fallback={nameless} fontSize={12} className="ring-1 ring-inset ring-ink/[0.04]" />
