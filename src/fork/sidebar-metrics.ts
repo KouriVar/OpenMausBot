@@ -13,8 +13,8 @@ export const SIDEBAR_CONTENT_LEFT_FRAMED = 12;
 export const SIDEBAR_ROW_BOX_LEFT = 12;
 
 /** The wordmark's breathing room: above the mark, and the real distance from its bottom to the first
- * department title's text. */
-export const SIDEBAR_BRAND_GAP_TOP = 24;
+ * department title's text. Top is 0 for the trial: the top row's own 60px is all the air above it. */
+export const SIDEBAR_BRAND_GAP_TOP = 0;
 export const SIDEBAR_BRAND_GAP_BOTTOM = 12;
 
 /** What the list already adds above its first section: its own top padding and the title's line box. The
