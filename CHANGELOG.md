@@ -27,6 +27,48 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE042 · 0.8.0 — interactive answers, the quieter sidebar, and the 0.7.x polish, in one release
+
+`0.8.0` gathers everything since 0.7.0: interactive answers drawn inside a reply, the Advanced sidebar's quieter rows,
+the whole of upstream v0.1.157, the Sully Coe wordmark and a page card that follows its page, the sidebar's one left
+line and its brand switch, and the inset card's uneven margins with the department arrow.
+
+- **Interactive answers (0.7.1)**: answers, choices and small tools render as components inside the reply, three levels
+  deep, with the settings row that chooses Components, inline `omb-ui` blocks, or plain values.
+- **A quieter Advanced sidebar (0.7.2)**: a bot row keeps its avatar, name, role marks and preview; the expand chevron,
+  time, `+`, folder and `…` go, and every avatar and section title starts on one line. Settings loses its duplicate
+  "Your account" entry, and every page ends on the shared spacer.
+- **Upstream v0.1.157, merged (0.7.3)**: 238 upstream commits over v0.1.155–v0.1.157, with this fork's own screens kept
+  and the Chinese pack brought back to 100%.
+- **The wordmark and a page card that fits (0.7.4)**: the Sully Coe wordmark is inline SVG at the top of both sidebars,
+  following the skin; an HTML page card now grows to the height the page reports, up to 520px, and shrinks below 220px
+  instead of showing a blank window.
+- **One left line, and a brand switch (0.7.5)**: the wordmark, department titles, bot and group avatars and the account
+  avatar start on the traffic-light red dot's line; the icons rail and Windows keep the same rule, and Settings →
+  Appearance can hide the wordmark.
+- **Inset margins and the department rhythm (0.7.6)**: the inset content card is flush left with 4px above, right and
+  below; the wordmark keeps 0px above and 24px below, departments sit 12px apart expanded or collapsed, and the
+  department chevron moves to the row's far right, hidden until hover or keyboard focus.
+- **Version**: 0.8.0.
+
+中文：**V0.8.0：交互式回答、更安静的侧栏，以及 0.7.x 的全部收尾**
+
+`0.8.0` 汇总 0.7.0 以来的全部改动：正文里的交互式回答、高级模式侧栏的精简、上游 v0.1.157 全量合入、Sully Coe 字标和
+会跟着页面高度的 HTML 卡片、侧栏的一条左对齐线与品牌开关，以及内嵌卡片的四边间距和部门箭头。
+
+- **交互式回答（0.7.1）**：回答、选项和小工具作为组件画在回复里，分三档；设置里有组件、内联 `omb-ui` 块和纯数值的
+  三选一。
+- **高级模式侧栏更安静（0.7.2）**：bot 行只留头像、名字、身份标记和摘要；展开箭头、时间、`+`、文件夹和 `…` 都收进
+  右键菜单，头像和分组标题从同一条线开始。设置去掉重复的「你的账号」，每页末尾统一留白。
+- **上游 v0.1.157 全量合入（0.7.3）**：合入 v0.1.155–v0.1.157 的 238 个上游提交，保留我方界面，中文包恢复到 100%。
+- **字标和会自适应的页面卡片（0.7.4）**：Sully Coe 字标以内联 SVG 放在两种侧栏顶部并跟随皮肤；HTML 页面卡片按页面
+  报告的高度增长到 520px 上限，低于 220px 时跟着变矮，不再是一扇空白窗口。
+- **一条左对齐线和品牌开关（0.7.5）**：字标、部门标题、bot/群聊头像和底部个人头像都从红绿灯红点所在线开始，图标栏和
+  Windows 用同一规则；设置 → 外观可以隐藏字标。
+- **内嵌间距和部门节奏（0.7.6）**：内嵌内容卡片左边贴侧栏、其余三边各 4px；字标上方 0px、下方到首个部门 24px，
+  部门之间展开或折叠都是 12px；部门箭头移到整行最右，默认隐藏，悬停或键盘聚焦才显示。
+- **版本**：0.8.0。
+
 ### OE041 · 0.7.6 — the inset card's uneven margins, a roomier sidebar rhythm, and a quieter department arrow
 
 `0.7.6` gives the inset content card a flush left edge and 4px on its other three sides, opens the sidebar's vertical
