@@ -10819,6 +10819,6 @@
   "settings.interactiveAnswers.subtitle": "Deixe o bot responder com gráficos, cartões e outros componentes",
   "settings.interactiveAnswers.off": "Desligado",
   "settings.interactiveAnswers.components": "Componentes",
-  "settings.interactiveAnswers.html": "Componentes + HTML",
+  "settings.interactiveAnswers.html": "Componentes + HTML em sandbox",
   "settings.interactiveAnswers.error": "Não foi possível salvar a preferência de respostas interativas."
 }

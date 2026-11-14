@@ -50,7 +50,7 @@ describe("interactive answers", () => {
     ] as const) {
       store.config = { features: { interactiveAnswers: mode } };
       draw();
-      expect(radios().map((radio) => radio.textContent), mode).toEqual(["Off", "Components", "Components + HTML"]);
+      expect(radios().map((radio) => radio.textContent), mode).toEqual(["Off", "Components", "Components + HTML sandbox"]);
       expect(checked(), mode).toEqual(expected);
     }
   });

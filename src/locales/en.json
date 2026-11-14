@@ -10819,6 +10819,6 @@
   "settings.interactiveAnswers.subtitle": "Let the bot answer with charts, cards and other components",
   "settings.interactiveAnswers.off": "Off",
   "settings.interactiveAnswers.components": "Components",
-  "settings.interactiveAnswers.html": "Components + HTML",
+  "settings.interactiveAnswers.html": "Components + HTML sandbox",
   "settings.interactiveAnswers.error": "Could not save the interactive answers setting."
 }

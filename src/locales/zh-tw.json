@@ -10404,6 +10404,6 @@
   "settings.interactiveAnswers.subtitle": "讓機器人用圖表、卡片等元件來回答",
   "settings.interactiveAnswers.off": "關閉",
   "settings.interactiveAnswers.components": "元件",
-  "settings.interactiveAnswers.html": "元件 + HTML",
+  "settings.interactiveAnswers.html": "元件 + HTML 沙盒",
   "settings.interactiveAnswers.error": "無法儲存互動式回答設定。"
 }

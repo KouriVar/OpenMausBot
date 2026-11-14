@@ -8273,6 +8273,6 @@
   "settings.interactiveAnswers.subtitle": "让机器人用图表、卡片等组件来回答",
   "settings.interactiveAnswers.off": "关闭",
   "settings.interactiveAnswers.components": "组件",
-  "settings.interactiveAnswers.html": "组件 + HTML",
+  "settings.interactiveAnswers.html": "组件 + HTML 沙盒",
   "settings.interactiveAnswers.error": "无法保存交互式回答设置。"
 }

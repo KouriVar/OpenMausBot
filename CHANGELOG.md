@@ -27,6 +27,47 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE036 · 0.7.1 — interactive answers: components drawn inside the reply
+
+`0.7.1` puts the bot's components where they belong — inside the answer, not in a card after it — and gives the whole
+thing one switch: **Settings → Appearance → Chat → Interactive answers**, off, components (the default) or components +
+HTML sandbox.
+
+- **One switch, three tiers** (Settings → Appearance → Chat): **Off**, **Components** and **Components + HTML sandbox**,
+  the same segmented pill as **Light or dark**, saved to `features.interactiveAnswers` and live on the next reply with no
+  restart; the row sits in the Chat group beside Tool calls, with the subtitle "Let the bot answer with charts, cards and
+  other components", in Simple and Advanced alike.
+- **A component drawn where the reply puts it**: a reply carries one as a fenced `omb-ui` block whose body is the same
+  widget tree `show_widget` already takes — no second vocabulary — and the chat draws it inline at that point through the
+  same renderer, view-only, on the reply's own surface: no bubble around it and no card inside the card, and its type and
+  colours follow the light, dark and inset layouts. While the block is still arriving the reply shows a quiet
+  placeholder; a block that fails to parse, or names a node the renderer does not know, falls back to the ordinary code
+  block instead of an empty answer.
+- **Each tier also decides what the model is given**: **Off** teaches nothing about components and lists neither
+  `show_widget` nor `show_html`, so an `omb-ui` block is plain code; **Components** lists `show_widget` and teaches the
+  inline block; **Components + HTML sandbox** adds `show_html` with the rule to prefer a component and keep HTML for what
+  a component cannot do — animation, a simulation, a canvas.
+- **Not in this round**: a press inside an inline component sends nothing back to the model, so components in a reply are
+  drawn view-only; that is the 0.7.2 round, as are the HTML sandbox's expand, source view and error states.
+
+中文：**V0.7.1：交互式回答 —— 组件直接画在回答正文里**
+
+`0.7.1` 把机器人的组件放回它该在的地方 —— 回答正文里，而不是回答之后的一张卡片 —— 并且给这一整套只有一个开关：**设置 → 外观 →
+聊天 → 交互式回答**，关闭、组件（默认）或组件 + HTML 沙盒。
+
+- **一个开关，三档**（设置 → 外观 → 聊天）：**关闭**、**组件**、**组件 + HTML 沙盒**，分段控件和**浅色或深色**那一行同款，存进
+  `features.interactiveAnswers`，下一条回答就生效、不用重启；这一行在「聊天」分组里、跟着「工具调用」，副标题是「让机器人用图表、
+  卡片等组件来回答」，简易模式和高级模式都看得到。
+- **组件画在回答里它自己的位置**：回答里用一个 `omb-ui` 围栏块承载组件，块体就是 `show_widget` 已经在用的那棵组件树 —— 不另起
+  一套词表 —— 聊天用同一个渲染器在围栏所在处直接把它画进正文，只读，画在回答自己的底面上：外面不再套气泡，也不再卡片套卡片，
+  字号、颜色跟着浅色、深色和内嵌布局走。块还在流式输出时先显示一个安静的占位；解析不了、或节点类型不认识的块退回普通代码块，
+  不会变成空白回答。
+- **每一档同时决定给模型什么**：**关闭**不教组件、也不挂 `show_widget` 和 `show_html`，`omb-ui` 块按普通代码显示；**组件**挂
+  `show_widget` 并教正文块；**组件 + HTML 沙盒**再挂 `show_html`，写明优先用组件、只有动画、模拟、画布这类组件做不了的才写
+  HTML。
+- **这一轮不做**：正文组件里的按钮、滑块不会把结果回传给模型，所以正文组件一律只读；那是 0.7.2 的事，HTML 沙盒的展开、看源码
+  和出错提示也在那时。
+
 ### OE035 · 0.7.0 — first release on upstream v0.1.155
 
 `0.7.0` is the first release cut on upstream `v0.1.155`, and it is the whole of the `0.6.8`–`0.6.12` rounds gathered into
