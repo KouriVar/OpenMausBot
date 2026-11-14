@@ -38,7 +38,7 @@ function SimpleSidebarFooter({ owner, archived, actions }: { owner: string | nul
   // The move's words open the account menu just below them, where the move's row is.
   const openAccount = () => footer.current?.querySelector("[data-sidebar-account]")?.closest("button")?.click();
   return (
-    <div ref={footer} data-sidebar-footer="simple" className="px-4 pb-4 pt-2">
+    <div ref={footer} data-sidebar-footer="simple" className="pr-4 pb-4 pt-2" style={{ paddingLeft: "var(--sidebar-content-left, 16px)" }}>
       <CloudRoomCard />
       <CloudUsageCard />
       <SidebarPlaceStatus place={place} className="mb-2 px-1" />
@@ -69,7 +69,8 @@ export function SidebarFooter({ density, simple = false, owner = null, archived,
   // Fork: Advanced's sidebar keeps Simple's shape, so the tools section is gone — its rows live in the account menu.
   const toolsInMenu = advanced && FORK_ADVANCED_SIMPLE_SHELL;
   return (
-    <div className={cn("pb-3 pt-2", density === "icons" ? "flex flex-col items-center gap-1 px-2" : "px-3")}>
+    <div className={cn("pb-3 pt-2", density === "icons" ? "flex flex-col items-center gap-1 px-2" : "pr-3")}
+      style={density === "icons" ? undefined : { paddingLeft: "var(--sidebar-content-left, 16px)" }}>
       {!toolsInMenu && <SidebarFooterNav density={density} collapsed={toolsCollapsed} onToggleCollapsed={onToggleTools} />}
       {density === "icons" ? (
         <>

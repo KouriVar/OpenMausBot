@@ -120,6 +120,8 @@ import { useChiefStyle } from "@/fork/chief-style";
 import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
 import { SidebarBrand } from "@/fork/SidebarBrand";
+import { useBrandMark } from "@/fork/brand-mark";
+import { SIDEBAR_BRAND_GAP_BOTTOM, SIDEBAR_BRAND_GAP_TOP, SIDEBAR_CONTENT_LEFT, SIDEBAR_CONTENT_LEFT_FRAMED, sidebarRowInset } from "@/fork/sidebar-metrics";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -202,13 +204,13 @@ export const GroupListItem = memo(function GroupListItem({
       className={cn(
         "relative flex w-full items-center text-left", FORK_UI_1110 ? ROW_RADIUS : "rounded-md", SIMPLE_ROW_FOCUS,
         density === "icons" ? (railTile ? "h-[54px] justify-center" : "justify-center px-1 py-1.5") : simpleRow
-          ? cn("gap-2 py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]", !group.dm && hasThreadList ? "pl-6" : "pl-2")
-          // Advanced: a room's chevron keeps its own gutter; without one the faces line up with the section's
-          // title, so the extra 3px is the row slot's half of the cluster's 1.2x scale.
-          : cn("gap-2 py-1.5 pr-9", !group.dm && hasThreadList ? "pl-6" : members.length > 1 ? "pl-[15px]" : "pl-3"),
+          ? cn("gap-2 py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
+          // Advanced: the faces line up with the section's title on the sidebar's one left line.
+          : cn("gap-2 py-1.5 pr-9"),
         selected && !expanded ? "bg-raised" : "hover:bg-raised/50",
         rowSurface(selected),
       )}
+      {...(density !== "icons" ? { style: { paddingLeft: simpleRow ? "calc(var(--sidebar-row-inset, 4px) + 0.5px)" : "var(--sidebar-row-inset, 4px)" } } : {})}
       title={density === "icons" ? group.name : undefined}
       aria-label={density === "icons" ? group.name : undefined}
     >
@@ -745,8 +747,8 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
     "flex w-full items-center rounded-xl text-left", SIMPLE_ROW_FOCUS,
     iconOnly
       ? railTile ? "h-[54px] justify-center" : "justify-center"
-      : simpleRow ? cn("gap-2 py-2 pl-2 pr-2 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
-        : cn(showThreads ? "gap-2 py-2" : "gap-3 py-2", "pl-3 pr-3"),
+      : simpleRow ? cn("gap-2 py-2 pr-2 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
+        : cn(showThreads ? "gap-2 py-2" : "gap-3 py-2", "pr-3"),
     !iconOnly && "max-md:rounded-2xl max-md:py-2.5",
     selected ? "bg-raised" : "hover:bg-raised/50",
     simpleRow && rowSurface(selected),
@@ -758,7 +760,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const onLiveCall = liveBadgeFor(bot.id, liveMedia, liveCall);
   const body = (
     <>
-      <span className={cn("relative flex shrink-0", simpleRow && "-m-[3px]")} title={iconOnly || simpleList ? undefined : [bot.name, ...details].join(" · ")}>
+      <span className={cn("relative flex shrink-0")} title={iconOnly || simpleList ? undefined : [bot.name, ...details].join(" · ")}>
         <span className={cn("relative flex items-center justify-center", simpleRow && bot.chiefOfStaff && cn("overflow-hidden border border-hairline/40 bg-raised/40", ROW_RADIUS_SIMPLE))} style={simpleRow && bot.chiefOfStaff ? { width: avatarSize + 6, height: avatarSize + 6 } : undefined}>
         <BotAvatar
           bot={bot}
@@ -907,6 +909,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         }}
         onContextMenu={onContextMenu}
         className={rowClass}
+        {...(!iconOnly ? { style: { paddingLeft: "var(--sidebar-row-inset, 4px)" } } : {})}
       >
         {body}
       </div>
@@ -977,6 +980,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   const [plusOpen, setPlusOpen] = useState(false);
   const plusMotion = useMenuMotion(plusOpen);
   const advanced = useAdvancedMode();
+  const brandMark = useBrandMark();
   const attentionPinned = useAttentionPinned();
   const inboxSupport = useInboxSupport();
   const [newRoom, setNewRoom] = useState(false);
@@ -1084,6 +1088,9 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   // frame off on macOS, the traffic lights sit in the top row's corner.
   const framed = windowFramed(capabilities), corner = framed && simpleDesk;
   const lights = capabilities.windowChrome === "mac-inset" && !framed;
+  // Fork: the one left line, measured from the traffic lights (16 with the frame off, 12 in the frame bar).
+  const contentLeft = framed && capabilities.windowChrome === "mac-inset" ? SIDEBAR_CONTENT_LEFT_FRAMED : SIDEBAR_CONTENT_LEFT;
+  const rowInset = sidebarRowInset(contentLeft);
   const draggableChrome = capabilities.windowChrome !== "native";
   // SAFETY: Electron's -webkit-app-region is not in React's CSSProperties type; the renderer accepts it as an inline
   // style.
@@ -1260,7 +1267,11 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
         // The phone's list covers the whole screen: choosing the bot that is already open has to dismiss it too.
         if (phone && open && event.target instanceof Element && !(event.target instanceof HTMLInputElement) && event.target.closest("[data-sidebar-bot-row], [data-sidebar-hero]")) onClose();
       }}
-      style={{ "--sidebar-width": `${sizing.width}px` } as CSSProperties}
+      style={{
+        "--sidebar-width": `${sizing.width}px`,
+        "--sidebar-content-left": `${contentLeft}px`,
+        "--sidebar-row-inset": `${rowInset}px`,
+      } as CSSProperties}
       className={cn(
         "relative flex h-full shrink-0 flex-col max-md:[--scroll-fade-surface:var(--color-app)]",
         vibrancy.on ? "bg-[var(--sidebar-glass)]" : "bg-panel",
@@ -1315,10 +1326,11 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
         </div>}
       </div>
 
-      {/* Fork: the Sully Coe wordmark sits under the window's top row, its left edge on the sidebar's
-          24px line, in both Simple and Advanced. The icons rail has no room for a wordmark. */}
-      {density !== "icons" && !phone && (
-        <div data-sidebar-brand="" className="flex shrink-0 items-center pl-6 pr-4 pt-1">
+      {/* Fork: the Sully Coe wordmark sits under the window's top row, its left edge on the sidebar's shared
+          content line, in both Simple and Advanced. The icons rail has no room for a wordmark. */}
+      {brandMark && density !== "icons" && !phone && (
+        <div data-sidebar-brand="" className="flex shrink-0 items-center pr-4"
+          style={{ paddingLeft: "var(--sidebar-content-left, 16px)", paddingTop: SIDEBAR_BRAND_GAP_TOP, paddingBottom: SIDEBAR_BRAND_GAP_BOTTOM }}>
           <SidebarBrand className="h-5 w-auto text-ink" />
         </div>
       )}

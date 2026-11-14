@@ -10847,5 +10847,7 @@
   "settings.browser.proxyConfigured": "New built-in browser connections use this SOCKS5 proxy. My Chrome keeps its own settings; private and local destinations stay protected.",
   "settings.browser.proxyInactive": "Saved, but active only with the built-in browser on supported hosts.",
   "settings.browser.proxySave": "Save",
-  "settings.browser.proxyClear": "Remove"
+  "settings.browser.proxyClear": "Remove",
+  "settings.brandMark.title": "Show brand mark",
+  "settings.brandMark.subtitle": "The Sully Coe wordmark at the top of the sidebar. Saved on this device; on by default."
 }

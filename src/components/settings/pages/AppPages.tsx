@@ -8,6 +8,7 @@ import { AboutDialog } from "../../AboutDialog";
 import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
+import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
 import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
 import { AnalyticsRow } from "../../AnalyticsRow";
@@ -161,6 +162,7 @@ export function AppearancePage() {
         <ThemeRow simple />
         <ThemePickerRow open={themes} onToggle={() => setThemes((open) => !open)} />
         {themes && <div data-settings-block="themes" className="p-4"><SkinPicker /></div>}
+        <BrandMarkRow />
         <SidebarVibrancyRow />
         <ColorUserBubblesRow simple />
         <ForkBoldTextRow />
