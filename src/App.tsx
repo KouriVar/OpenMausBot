@@ -20,7 +20,7 @@ import { viewerClosedRelease } from "@/components/computer-takeover";
 import { Sidebar } from "@/components/Sidebar";
 import { HiddenSidebarEdge } from "@/components/HiddenSidebarEdge";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
-import { setSidebarDensity } from "@/lib/sidebar-preferences";
+import { setSidebarDensity, useSidebarDensity } from "@/lib/sidebar-preferences";
 import { ChatView } from "@/components/ChatView";
 import { GroupView } from "@/components/GroupView";
 import { ForkPanel } from "@/components/ForkPanel";
@@ -181,6 +181,8 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const roomPanelOpen = useRoomPanelShown({ group, state, simple: !advanced && !remoteClient });
   const sidePanelOpen = (Boolean(bot) && (state.settingsOpen || state.computerOpen || state.inspectorOpen || state.activityOpen)) || Boolean(state.forkPanel) || roomPanelOpen || (notificationFeed && state.notificationsOpen) || inboxShown;
   const collapseSidebar = sidePanelOpen && !sidebarAndPanelFit;
+  const sidebarDensity = useSidebarDensity();
+  const sidebarCollapsed = collapseSidebar || sidebarDensity === "icons" || hiddenSidebar;
   const calendarFocus = state.activeView === "routines" && state.routinesFocus.view === "calendar";
   const notificationTray = notificationFeed && !calendarFocus;
 
@@ -397,6 +399,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       {/* Fork: Inset's one card. The sidebar stays the window's ground; the content and every panel beside it are this
           single rounded card, clipped once here, so no child ever draws a second frame. */}
       <div data-inset-card={inset ? "" : undefined}
+        style={inset ? { "--inset-gap-left": sidebarCollapsed ? "4px" : "0px" } as React.CSSProperties : undefined}
         className={inset ? "relative flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[var(--inset-radius)] bg-[var(--inset-card)] shadow-[0_0_0_1px_var(--inset-edge)] mt-[var(--inset-gap-top)] mr-[var(--inset-gap-right)] mb-[var(--inset-gap-bottom)] ml-[var(--inset-gap-left)]" : "contents"}>
       {state.activeView === "team-map" ? (
         <TeamMapPage />

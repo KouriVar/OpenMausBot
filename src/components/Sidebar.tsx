@@ -745,7 +745,8 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
   const title = bot.title.trim();
   const details = [title, bot.chiefOfStaff ? t("sidebar.bot.chiefOfStaff") : ""].filter(Boolean);
   const rowClass = cn(
-    "flex w-full items-center rounded-xl text-left", SIMPLE_ROW_FOCUS,
+    "flex items-center rounded-xl text-left", SIMPLE_ROW_FOCUS,
+    iconOnly ? "w-full" : "-mx-1",
     iconOnly
       ? railTile ? "h-[54px] justify-center" : "justify-center"
       : simpleRow ? cn("gap-2 py-2 pr-2 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
@@ -910,7 +911,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         }}
         onContextMenu={onContextMenu}
         className={rowClass}
-        {...(!iconOnly ? { style: { paddingLeft: "var(--sidebar-row-inset, 4px)" } } : {})}
+        {...(!iconOnly ? { style: { paddingLeft: "calc(var(--sidebar-row-inset, 4px) + 4px)" } } : {})}
       >
         {body}
       </div>
