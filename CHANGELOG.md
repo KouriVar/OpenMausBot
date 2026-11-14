@@ -27,6 +27,30 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE039 · 0.7.4 — the Sully Coe wordmark, and an HTML card that shows its page
+
+`0.7.4` puts the house wordmark at the top of both sidebars and closes the gap `0.7.2` wrote down: a compact HTML page
+card now follows the height its page reports, so a page that centres its content is no longer a blank 220 px window.
+
+- **The Sully Coe wordmark**: the drawing in `src/assets/brand/sully-coe.svg` is drawn inline at the top of the sidebar,
+  under the traffic lights, 20 px tall and on the same 24 px line as the avatars and section titles. It shows in Simple
+  and Advanced and on Windows too; every black is `currentColor` and the white inside the Personal label is the
+  sidebar's own ground, so the mark and its label invert with the skin. The icons rail keeps its room for avatars.
+- **An HTML page card sizes to its page**: the frame grows to the height the page reports, up to its 520 px start. A page
+  shorter than the 220 px card is shown whole, with no blank below it; a taller one keeps the 220 px window and its
+  bottom fade, and only then draws the fade at all.
+
+中文：**V0.7.4：Sully Coe 字标，HTML 卡片能看见自己的页面**
+
+`0.7.4` 把 Sully Coe 字标放上两种侧栏的顶部，并补上 0.7.2 留下的那个缺口：聊天里的 HTML 页面卡片跟着页面自己报告的高度走，
+内容垂直居中的页面不再是一扇空白的 220px 窗口。
+
+- **Sully Coe 字标**：`src/assets/brand/sully-coe.svg` 里的画以内联 SVG 放在侧栏顶部、红绿灯下方，高 20px，左起点和头像、
+  分组标题同在 24px 线上。简易模式、高级模式和 Windows 都显示；原来的黑色全部改成 `currentColor`，Personal 标签里的白色
+  改用侧栏底色，所以皮肤一换，字标和标签就跟着反色。图标栏不放字标，那里留给头像。
+- **HTML 页面卡片按页面高度自适应**：iframe 长到页面报告的高度，最多到页面自己的 520px 起点。比 220px 卡片矮的页面整页
+  显示，下面不留空白；更高的页面保留 220px 窗口和底部渐隐，而且只有这时才画渐隐。
+
 ### OE038 · 0.7.3 — the whole upstream in, this fork's screens unchanged, Chinese complete
 
 `0.7.3` merges 238 upstream commits (v0.1.155-v0.1.157) on top of everything 0.7.2 changed, and this fork's own screens
