@@ -46,6 +46,7 @@ const LINES: Record<string, number> = {
   "server/cli.ts": 1062,
   "src/components/AttachmentPreview.tsx": 1049,
   "server/meetings/meetbot.ts": 1047,
+  "packages/phone-protocol/src/widget.ts": 1087,
   "src/components/Composer.tsx": 1012,
 };
 
