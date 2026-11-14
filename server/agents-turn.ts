@@ -4,6 +4,7 @@
 // when it calls it.
 import { AGENTS_PROXY_ENV } from "./agents-bridge-switch.ts";
 import { roleToolEnv } from "./chief-level.ts";
+import type { InteractiveAnswerMode } from "../shared/interactive-answers.ts";
 
 /** The facts of a conversation that decide its agents tools. A settings change may change them; a turn never does. */
 export interface AgentsConversation {
@@ -17,7 +18,7 @@ export interface AgentsConversation {
   botDriven?: boolean;
   /** `x`: a research credential is held (a treg key or a plan's); `research`: research works for it too; `appHosting`:
    * the plan's included app hosting reaches this server. */
-  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; meetings?: boolean; appHosting?: boolean };
+  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; interactiveAnswers: InteractiveAnswerMode; meetings?: boolean; appHosting?: boolean };
 }
 
 /** What one turn may do. Its bearer carries this to the harness, which checks it on every call. */
@@ -52,6 +53,7 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     OMB_IMAGE_GENERATION: flag(host.imageGeneration),
     OMB_MEETINGS: flag(host.meetings === true && !conversation.room),
     OMB_APP_HOSTING: flag(host.appHosting === true),
+    OMB_INTERACTIVE_ANSWERS: host.interactiveAnswers,
     OMB_COMPUTER_SELECTION: flag(!conversation.room && bot.computer !== "off" && !conversation.teamComputer && !conversation.botDriven),
   };
 }

@@ -2,11 +2,12 @@
 // whatever started the turn and whatever the turn may do, so the provider's cached prompt carries over from turn to turn.
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
+import { INTERACTIVE_ANSWER_MODES, type InteractiveAnswerMode } from "../shared/interactive-answers.ts";
 import { TOOL_BRIDGE_ENV } from "./drivers/agents-bridge.ts";
 import { agentsMcp } from "./drivers/agents-mcp.ts";
 import { agentsServerEnv, botDrivenConversation, COMPUTER_OFF_REFUSAL, computerPickRefusal, directTurnKind, roomSkillsRefusal, type AgentsConversation, type AgentsTurn } from "./agents-turn.ts";
 
-const HOST: AgentsConversation["host"] = { skillAuthoring: true, sharedComputers: true, cloudHome: false, team: false, voiceNotes: true, x: true, research: true, imageGeneration: false };
+const HOST: AgentsConversation["host"] = { skillAuthoring: true, sharedComputers: true, cloudHome: false, team: false, voiceNotes: true, x: true, research: true, imageGeneration: false, interactiveAnswers: "widgets+html" };
 const CHAT: AgentsConversation = { threadId: "thread-1", bot: { id: "bot-1", chiefOfStaff: true }, room: false, teamComputer: false, host: HOST };
 const ROOM: AgentsConversation = { ...CHAT, threadId: "room-1", room: true };
 
@@ -90,6 +91,21 @@ describe("one conversation's agents tools", () => {
     expect(await selects({ ...CHAT, bot: { ...CHAT.bot, computer: "off" } })).toBe(false);
     expect(await selects({ ...CHAT, teamComputer: true })).toBe(false);
     expect(await selects({ ...CHAT, bot: { ...CHAT.bot, computer: "browser" } })).toBe(true);
+  });
+
+  it("carries the conversation's interactive answers tier, and lists the card tools that tier allows", async () => {
+    const at = async (interactiveAnswers: InteractiveAnswerMode) => {
+      const { env, wire } = (await everyTurn({ ...CHAT, host: { ...HOST, interactiveAnswers } }))[0]!;
+      return { env, names: (JSON.parse(wire) as { tools: Array<{ name: string }> }).tools.map((tool) => tool.name) };
+    };
+    for (const tier of INTERACTIVE_ANSWER_MODES) expect((await at(tier)).env.OMB_INTERACTIVE_ANSWERS).toBe(tier);
+    expect((await at("widgets+html")).names).toEqual(expect.arrayContaining(["show_widget", "show_html"]));
+    expect((await at("widgets")).names).toEqual(expect.arrayContaining(["show_widget"]));
+    expect((await at("widgets")).names).not.toContain("show_html");
+    const off = (await at("off")).names;
+    expect(off).not.toContain("show_widget");
+    expect(off).not.toContain("show_html");
+    for (const tier of INTERACTIVE_ANSWER_MODES) expect((await at(tier)).names).toEqual(expect.arrayContaining(["publish_page", "unpublish_page"]));
   });
 });
 

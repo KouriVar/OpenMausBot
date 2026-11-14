@@ -16,6 +16,7 @@ import { withoutComputerEngine } from "./computer-engine-removal.ts";
 import { newBotDefaultsSchema, type NewBotDefaults } from "./new-bot-defaults.ts";
 import { replaySettings } from "./replay-settings.ts";
 import { EFFORT_LEVELS, type EffortLevel } from "../shared/wire.ts";
+import { INTERACTIVE_ANSWER_MODES, interactiveAnswerMode, type InteractiveAnswerMode } from "../shared/interactive-answers.ts";
 import { isModelVariant, type InstanceConfigMap, type McpServerSpec, type ModelSelection } from "./contracts.ts";
 import { API_KEY_FLEET, DEFAULT_FLEET, OPENAI_API_INSTANCE, OPENROUTER_API_INSTANCE, CLAUDE_API_INSTANCE, PRODUCT_FLEET_ADDITIONS } from "./instance-fleets.ts";
 export { CLAUDE_API_INSTANCE, OPENAI_API_INSTANCE, OPENROUTER_API_INSTANCE, XAI_API_INSTANCE } from "./instance-fleets.ts";
@@ -239,6 +240,8 @@ const featureConfigSchema = z.object({
   /** One shared skills store that bots read by assignment. Off unless true. */
   skillsLibrary: z.boolean().optional(),
   shareLearnedSkills: z.enum(["off", "ask", "auto"]).optional(),
+  /** off: no component tools and no component teaching; widgets: components only; widgets+html: the show_html page too. */
+  interactiveAnswers: z.enum(INTERACTIVE_ANSWER_MODES).optional(),
   /** Memory upkeep also reads a member bot's room turns. Off unless true. */
   roomMemoryCapture: z.boolean().optional(),
   /** Room jobs to several members run side by side, each in a thread of its own. Off unless true. */
@@ -484,7 +487,7 @@ export interface AppConfig extends HelperConfig {
   context?: { rebuildBytes?: number; compactAt?: number; autoCompact?: boolean; roomCompactAt?: number; roomSessions?: boolean; replayToolHistory?: boolean };
   memory?: { captureQuietMs?: number; tidyHour?: number };
   localVm?: { mode?: "shared" | "per-bot" | "pool"; maxInstances?: number; idleTimeoutMinutes?: number; preserveInstalledApps?: boolean; memoryGb?: number; cpus?: number };
-  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; smartSetupChoices?: boolean; autoRecall?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; savedSteps?: boolean; usbPhoneTakeover?: boolean; cloudComputerAutoReplace?: boolean };
+  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; smartSetupChoices?: boolean; autoRecall?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; savedSteps?: boolean; usbPhoneTakeover?: boolean; cloudComputerAutoReplace?: boolean; interactiveAnswers?: InteractiveAnswerMode };
   onboarding?: { completedAt?: string; version?: number; reelSeen?: boolean; hintsSeen?: string[]; firstTurnAt?: string };
   browserProfiles?: BrowserProfile[];
   browserEngine?: BrowserEngineConfig;
@@ -637,6 +640,10 @@ export function autoRecallEnabled(cfg: AppConfig): boolean {
 
 export function roomMemoryCaptureEnabled(cfg: AppConfig): boolean {
   return cfg.features?.roomMemoryCapture === true;
+}
+
+export function interactiveAnswersMode(cfg: AppConfig): InteractiveAnswerMode {
+  return interactiveAnswerMode(cfg.features?.interactiveAnswers);
 }
 
 export const DEFAULT_CAPTURE_QUIET_MS = 2 * 60_000;

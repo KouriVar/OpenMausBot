@@ -18,6 +18,7 @@ import { MAUSBOT_TOOL_DEFINITIONS } from "./agents-mausbot-tools.ts";
 import { PERSON_TOOL_DEFINITIONS } from "./agents-person-tools.ts";
 import { RESEARCH_TOOL_DEFINITIONS, RESEARCH_TOOL_NAMES, X_TOOL_NAMES } from "./agents-research-tools.ts";
 import type { CatalogProfile } from "./agents-catalog-profile.ts";
+import { toolListForInteractiveAnswers, UNTIERED_INTERACTIVE_ANSWERS } from "../interactive-answers.ts";
 import { advertisedSchema } from "./agents-schema.ts";
 export { catalogProfileFromEnv, type CatalogProfile } from "./agents-catalog-profile.ts";
 
@@ -946,7 +947,7 @@ const CLOUD_HOME_SURFACE = {
 };
 
 export function availableTools(profile: CatalogProfile) {
-  const tools = catalogTools(profile);
+  const tools = toolListForInteractiveAnswers(catalogTools(profile), profile.interactiveAnswers ?? UNTIERED_INTERACTIVE_ANSWERS);
   const placed = profile.cloudHome
     ? tools.filter(tool => !LOCAL_VM_TOOL_NAMES.has(tool.name)).map(tool => tool.name === "select_computer"
       ? { ...tool, inputSchema: { ...tool.inputSchema, properties: { surface: CLOUD_HOME_SURFACE } } }

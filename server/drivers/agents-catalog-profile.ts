@@ -1,4 +1,6 @@
 // The OMB_* switches the harness gives the agents proxy, read into the profile agents-catalog.ts lists tools for.
+import { interactiveAnswersFromEnv } from "../interactive-answers.ts";
+import type { InteractiveAnswerMode } from "../../shared/interactive-answers.ts";
 
 /** Which tools a conversation is shown, the same on every one of its turns. Presentation only: the server still
  * authenticates and scopes every call. */
@@ -28,6 +30,9 @@ export interface CatalogProfile {
   /** A room's thread: the wait tools are not mounted, since a room holds no wait. */
   room?: boolean;
   imageGeneration?: boolean;
+  /** How replies may carry components: the card tools this conversation lists. Absent on a hand-built profile means the
+   * whole card set. */
+  interactiveAnswers?: InteractiveAnswerMode;
   /** A cloud computer can be had here (Boat): the meeting tools and reset_cloud_computer are mounted. */
   meetings?: boolean;
   /** The plan's included app hosting reaches this server: publish_app is mounted. */
@@ -51,6 +56,7 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     computerSelection: env.OMB_COMPUTER_SELECTION === "1",
     room: env.OMB_ROOM === "1",
     imageGeneration: env.OMB_IMAGE_GENERATION === "1",
+    interactiveAnswers: interactiveAnswersFromEnv(env),
     meetings: env.OMB_MEETINGS === "1",
     appHosting: env.OMB_APP_HOSTING === "1",
   };

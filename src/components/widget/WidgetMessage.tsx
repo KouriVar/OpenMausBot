@@ -23,6 +23,8 @@ import { newWidgetSendId, sendWidgetAction, type WidgetSendResult } from "./widg
 
 const WIDTH: Record<string, string> = { sm: "max-w-[360px]", md: "max-w-[440px]", lg: "max-w-[600px]", full: "max-w-[600px]" };
 const SURFACE = "w-full overflow-hidden rounded-2xl bg-composer ring-1 ring-composer-ring transition-opacity";
+/** Inside a reply the message is the surface already: the card keeps its spacing and its own parts, not a second frame. */
+const INLINE_SURFACE = "w-full transition-opacity";
 const SENT_MS = 1600;
 
 function labelledFields(node: WidgetNode, into = new Set<string>()): Set<string> {
@@ -37,8 +39,9 @@ function isEmpty(field: WidgetField, values: WidgetValues, other: WidgetOther): 
   return field.type === "Checkbox" ? value !== true : typeof value !== "string" || !value.trim();
 }
 
-/** `viewOnly`: shown in a room, where a press would speak for everyone; links and thread jumps still open. */
-export function WidgetMessage({ botId, threadId, message, viewOnly }: { botId: string; threadId?: string; message: Message; viewOnly?: boolean }) {
+/** `viewOnly`: shown in a room, where a press would speak for everyone; links and thread jumps still open.
+ * `inline`: drawn inside a reply, whose message is the surface, so the card brings no frame or width cap of its own. */
+export function WidgetMessage({ botId, threadId, message, viewOnly, inline }: { botId: string; threadId?: string; message: Message; viewOnly?: boolean; inline?: boolean }) {
   const simple = !useAdvancedMode();
   const serverCard = (message as { serverCard?: true }).serverCard === true;
   const locale = activeLocale();
@@ -49,10 +52,10 @@ export function WidgetMessage({ botId, threadId, message, viewOnly }: { botId: s
       : null;
   }
   // Replacing a widget renumbers node ids, so a new revision remounts the card.
-  return <WidgetCard key={payload.rev ?? 0} botId={botId} threadId={threadId} messageId={message.id} payload={payload} viewOnly={viewOnly === true} />;
+  return <WidgetCard key={payload.rev ?? 0} botId={botId} threadId={threadId} messageId={message.id} payload={payload} viewOnly={viewOnly === true} inline={inline === true} />;
 }
 
-function WidgetCard({ botId, threadId, messageId, payload, viewOnly }: { botId: string; threadId?: string; messageId: string; payload: WidgetPayload; viewOnly: boolean }) {
+function WidgetCard({ botId, threadId, messageId, payload, viewOnly, inline }: { botId: string; threadId?: string; messageId: string; payload: WidgetPayload; viewOnly: boolean; inline: boolean }) {
   const root = payload.root;
   const { state, dispatch, flushBotPatches } = useStore();
   const showThreads = useShowThreads();
@@ -232,9 +235,9 @@ function WidgetCard({ botId, threadId, messageId, payload, viewOnly }: { botId: 
         data-widget={messageId}
         data-widget-state={settled ? "settled" : viewOnly ? "view-only" : pending !== undefined ? "sending" : "live"}
         data-widget-compact={compact || undefined}
-        className={cn("w-full text-start", WIDTH[widgetString(root, "size") ?? "lg"] ?? WIDTH.lg)}
+        className={cn("w-full text-start", !inline && (WIDTH[widgetString(root, "size") ?? "lg"] ?? WIDTH.lg))}
       >
-        <div className={cn(SURFACE, pending !== undefined && "opacity-[0.55]")}>
+        <div className={cn(inline ? INLINE_SURFACE : SURFACE, pending !== undefined && "opacity-[0.55]")}>
           {headed && (
             <div className={cn("flex items-start gap-3 px-4 pt-3.5", kids(root).length ? "pb-3" : "pb-3.5")}>
               <div className="min-w-0 flex-1">

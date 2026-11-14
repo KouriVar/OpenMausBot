@@ -7,6 +7,7 @@ import type { ConnectorToolGrant } from "../shared/wire.ts";
 import { loginLabel, type LoginPlace } from "../shared/logins.ts";
 import { vaultNameKey } from "../shared/vault.ts";
 import { isConversational, type ReplyStyle } from "../shared/reply-style.ts";
+import { COMPONENT_FENCE_TAG, type InteractiveAnswerMode } from "../shared/interactive-answers.ts";
 import { REPLY_HABITS_PROMPT } from "./reply-habits.ts";
 
 export type PromptPart = { id: string; label: string; text: string };
@@ -276,6 +277,18 @@ export const THREADS_PROMPT =
   " A thread is one conversation with its own history and its own run; a bot can have several running at once, and the person sees them as rows under that bot. Use start_thread to open one on yourself for separate work; to hand a teammate a job in a fresh thread of its own, use coordinate_bots with thread \"new\". Use list_threads to see how the ones you opened are going. When you mention a thread to the person, write its title as #Title so it links. When the person says to burst something, or a request is clearly many independent items worked in parallel, use the burst tool: it shows a card, nothing runs until they press Run, and the results come back here as one merged reply. Do not use a ticket comment, a note, or a room post as a stand-in for a thread.";
 export const WIDGET_PROMPT =
   " Unless the person asked you, in this chat or in your instructions, to check with them first, ask only what you cannot find or sensibly default yourself, and one thing at a time. When the answer is a pick from a few options (a time, a day, one of a few choices), offer them with show_widget as tap-to-answer choices instead of asking the person to type: a Card with a Row of Buttons, one per option, whose onClickAction sends that option in one tap, at most six; the caption can say they may also just type an answer. When the person wants to change something that already exists, such as a routine, a reminder, a booking or a setting, show it as a form prefilled with its current values (each field's defaultValue), say in the caption that this is how it is set now, and give it a confirm button that saves the change, so they edit what is there instead of describing it again. Use a form with several fields only for that, or when several required details truly cannot be defaulted. A plain yes or no, such as whether to go ahead, needs no widget: ask it in one short sentence; the person answers in a word or with 👍 or 👎 on your message, and either comes back to you as their reply. Put data and comparisons in a markdown table in your message, not in a widget.";
+/** A component fence draws where the reply puts it, in the same tree show_widget posts. It only draws: what the person
+ * picks in it never comes back, so a question is still the tool's. */
+export const COMPONENT_FENCE_PROMPT =
+  ` A component belongs in the reply at the point the person should see it: write a fenced code block tagged ${COMPONENT_FENCE_TAG} whose body is the same JSON widget tree show_widget takes. Open the block on a line of its own, never inside a sentence, and the chat draws the component there. The fence only draws: nothing the person touches in it comes back to you, so a question they answer is still show_widget.`;
+/** The widest tier's page tool: a component is what a reply reaches for first. */
+export const HTML_PAGE_PROMPT =
+  " A page is what a component cannot draw: prefer a component; write HTML only for animation, a simulation, a canvas or something else a component cannot do.";
+/** What the prompt teaches about components, or nothing at all when replies carry none. */
+export function interactiveAnswersPrompt(mode: InteractiveAnswerMode): string {
+  if (mode === "off") return "";
+  return WIDGET_PROMPT + COMPONENT_FENCE_PROMPT + (mode === "widgets+html" ? HTML_PAGE_PROMPT : "");
+}
 const APPLIED_RESULT_PROMPT =
   " Follow the tool result: a change you ask for (your skills, profile or model, or as a Chief a teammate's) applies immediately at every access level and the person sees it with an Undo; then continue the requested work without asking for another confirmation. Only a pending result (a Cloud conversation its owner did not drive) waits for the owner: then end the turn. Never claim success before an applied result, and report failures honestly. Full Access does not grant another bot broader permissions.";
 const AUTOMATION_COMPLETION_PROMPT =

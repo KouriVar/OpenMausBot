@@ -8268,5 +8268,11 @@
   "settings.insetLayout.title": "布局",
   "settings.insetLayout.classic": "经典",
   "settings.insetLayout.inset": "内嵌",
-  "settings.insetLayout.note": "内嵌：把主内容变成柔和底色上的圆角卡片"
+  "settings.insetLayout.note": "内嵌：把主内容变成柔和底色上的圆角卡片",
+  "settings.interactiveAnswers.title": "交互式回答",
+  "settings.interactiveAnswers.subtitle": "让机器人用图表、卡片等组件来回答",
+  "settings.interactiveAnswers.off": "关闭",
+  "settings.interactiveAnswers.components": "组件",
+  "settings.interactiveAnswers.html": "组件 + HTML",
+  "settings.interactiveAnswers.error": "无法保存交互式回答设置。"
 }

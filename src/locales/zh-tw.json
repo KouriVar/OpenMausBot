@@ -10399,5 +10399,11 @@
   "computer.recovery.restartTitle": "停止並重新啟動這台雲端電腦。開著的程式會被關閉；檔案會保留。",
   "computer.recovery.replace": "取代電腦",
   "computer.recovery.replaceTitle": "刪除這台雲端電腦並給機器人一台新的。只存在上面的檔案會遺失。",
-  "backup.importAction": "匯入…"
+  "backup.importAction": "匯入…",
+  "settings.interactiveAnswers.title": "互動式回答",
+  "settings.interactiveAnswers.subtitle": "讓機器人用圖表、卡片等元件來回答",
+  "settings.interactiveAnswers.off": "關閉",
+  "settings.interactiveAnswers.components": "元件",
+  "settings.interactiveAnswers.html": "元件 + HTML",
+  "settings.interactiveAnswers.error": "無法儲存互動式回答設定。"
 }

@@ -1,5 +1,5 @@
 // Security: model output never reaches the DOM as raw HTML (no rehype-raw); Shiki's output is generator-escaped.
-import { createContext, Fragment, memo, use, useContext, useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { createContext, Fragment, memo, use, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
 import Markdown, { defaultUrlTransform, type Components, type ExtraProps, type Options as MarkdownOptions } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -14,6 +14,11 @@ import { MentionChip } from "./BloubIdentity";
 import { createMarkdownRenderCache } from "@/lib/markdown-render-cache";
 import { closedFence, openFence, splitMarkdownBlocks } from "@/lib/markdown-stream-blocks";
 import { StreamingReplyContext } from "@/state/live-reply";
+import { StoreContext, StoreSourceContext } from "@/state/store-context";
+import { interactiveAnswersMode } from "@/lib/feature-flags";
+import { isOmbUiFence, parseOmbUiFence } from "@/lib/omb-ui-fence";
+import { DEFAULT_INTERACTIVE_ANSWER_MODE, showsComponentFences, type InteractiveAnswerMode } from "../../shared/interactive-answers";
+import { InlineWidget } from "./widget/InlineWidget";
 
 import { parseFenceInfo } from "../lib/code-block";
 import { markdownImageName, markdownImageOpenUrl } from "../lib/markdown-image";
@@ -601,8 +606,26 @@ const MessageScopeContext = createContext<MessageScope>({ threads: [] });
 /** The source of the block still being written, whose last fence may be open; null for finished text. */
 const StreamSourceContext = createContext<string | null>(null);
 
+const NO_SUBSCRIPTION = () => () => {};
+
+/** A preview or a test may draw a reply without the app's store: the setting then reads as the default. */
+function useInteractiveAnswersMode(): InteractiveAnswerMode {
+  const source = useContext(StoreSourceContext);
+  const store = useContext(StoreContext);
+  const read = () => interactiveAnswersMode((source ? source.getState() : store?.state)?.config);
+  return useSyncExternalStore(source?.subscribe ?? NO_SUBSCRIPTION, read, read);
+}
+
+const InteractiveAnswersContext = createContext<InteractiveAnswerMode>(DEFAULT_INTERACTIVE_ANSWER_MODE);
+
+/** A component fence still being written: its body is not a tree yet, so none of it is drawn. */
+function PendingComponentFence() {
+  return <div data-omb-ui-pending="" aria-busy="true" className="my-2.5 min-h-16 rounded-xl bg-ink/[0.04]" />;
+}
+
 function MarkdownCode({ node, children }: BlockProps) {
   const streamSource = use(StreamSourceContext);
+  const answerMode = use(InteractiveAnswersContext);
   const position = (node as { position?: { start: { offset?: number }; end: { offset?: number } } } | undefined)?.position;
   const open = streamSource !== null && !closedFence(streamSource, position?.start.offset, position?.end.offset);
   const child: any = Array.isArray(children) ? children[0] : children;
@@ -611,6 +634,11 @@ function MarkdownCode({ node, children }: BlockProps) {
   const flat = (n: any): string =>
     typeof n === "string" ? n : Array.isArray(n) ? n.map(flat).join("") : (n?.props?.children ? flat(n.props.children) : "");
   const code = flat(child?.props?.children).replace(/\n$/, "");
+  if (isOmbUiFence(lang) && showsComponentFences(answerMode)) {
+    if (open) return <PendingComponentFence />;
+    const fence = parseOmbUiFence(code);
+    if (fence.ok) return <InlineWidget root={fence.root} />;
+  }
   if (lang.trim().toLowerCase() === "mermaid" && !open) {
     return <MermaidDiagram code={code} />;
   }
@@ -826,6 +854,8 @@ function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS,
   // use() may be called conditionally: only a message that can hold a thread link subscribes to the thread list.
   const { threads, currentBotId } = MAY_LINK_THREAD.test(text) ? use(ThreadRefsContext) : NO_THREAD_REFS;
   const streaming = use(StreamingReplyContext);
+  const answerMode = useInteractiveAnswersMode();
+  const componentFences = showsComponentFences(answerMode);
   const parts = useMemo(() => markdownParts(text, streaming), [text, streaming]);
   const needsMath = parts.some((part) => !part.fence && normalizedSourceHasMath(part.source));
   const [katexReady, setKatexReady] = useState(() => katexPlugin !== null);
@@ -848,7 +878,7 @@ function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS,
   const linksThreads = threads.length > 0;
   const draw = ({ text: partText, source, finished }: MarkdownPart) => {
     const mentions = source.includes("@");
-    const variant = `${mathPlugin ? "math" : ""}\u0003${mentions ? `${peerSignature(mentionPeers)}\u0001${everyone ? 1 : 0}\u0001${mentionPerson?.profileName ?? ""}` : ""}\u0003${linksThreads ? `${threadListId(threads)}\u0001${currentBotId ?? ""}` : ""}`;
+    const variant = `${mathPlugin ? "math" : ""}\u0003${mentions ? `${peerSignature(mentionPeers)}\u0001${everyone ? 1 : 0}\u0001${mentionPerson?.profileName ?? ""}` : ""}\u0003${linksThreads ? `${threadListId(threads)}\u0001${currentBotId ?? ""}` : ""}\u0003${answerMode}`;
     // Markdown is a plain function of its options (no hooks), so its elements can be kept and drawn again.
     const render = () => {
       const remarkPlugins = [...BASE_REMARK_PLUGINS];
@@ -861,14 +891,19 @@ function ChatMarkdownComponent({ text, message, mentionPeers = NO_MENTION_PEERS,
   };
   // A message still streaming has no saved files to fetch yet.
   const scope = { message: streaming ? undefined : message, imageOffsets: streaming ? undefined : parts[0]?.imageOffsets, threads, currentBotId, delivered, originals };
+  const fenceBlock = (fence: NonNullable<MarkdownPart["fence"]>) => componentFences && isOmbUiFence(fence.lang)
+    ? <PendingComponentFence />
+    : <CodeBlock code={fence.code} lang={fence.lang} initialWrap={fence.wrap} open />;
   return (
     <MessageScopeContext.Provider value={scope}>
-      <div className="chat-md min-w-0 [&>*+*]:mt-2.5">
-        {parts.map((part, index) => (
-          // The whole text's tree puts a line break between its top-level blocks; the parts keep it.
-          <Fragment key={index}>{index > 0 && "\n"}{part.fence ? <CodeBlock code={part.fence.code} lang={part.fence.lang} initialWrap={part.fence.wrap} open /> : draw(part)}</Fragment>
-        ))}
-      </div>
+      <InteractiveAnswersContext value={answerMode}>
+        <div className="chat-md min-w-0 [&>*+*]:mt-2.5">
+          {parts.map((part, index) => (
+            // The whole text's tree puts a line break between its top-level blocks; the parts keep it.
+            <Fragment key={index}>{index > 0 && "\n"}{part.fence ? fenceBlock(part.fence) : draw(part)}</Fragment>
+          ))}
+        </div>
+      </InteractiveAnswersContext>
     </MessageScopeContext.Provider>
   );
 }

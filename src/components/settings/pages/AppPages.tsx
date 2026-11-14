@@ -9,6 +9,7 @@ import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
+import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
 import { AnalyticsRow } from "../../AnalyticsRow";
 import { ChatWidthRow, FontRow, SidebarToolsLayoutRow } from "../../AppearanceSelectRows";
 import {
@@ -169,6 +170,7 @@ export function AppearancePage() {
     </SettingsGroup>
     <SettingsGroup label={t("settings.appearance.chat")} block="chat">
       <SettingsRows>
+        <InteractiveAnswersRow />
         {!ctx.client && <ToolCallsRow />}
         {ctx.advanced && <RunCardRow />}
         {ctx.advanced && <ChatWidthRow />}

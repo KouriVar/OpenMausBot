@@ -175,6 +175,7 @@ import {
   autoRecallEnabled,
   captureQuietMs,
   roomMemoryCaptureEnabled,
+  interactiveAnswersMode,
   tidyHour,
   sharedComputersEnabled, ownerLendingEnabled,
   builtInBrowserEnabled,
@@ -409,7 +410,7 @@ import {
   customMcpPrompt,
   CREDENTIAL_PROMPT,
   longCommandsPrompt,
-  THREADS_PROMPT, WIDGET_PROMPT, JUST_DO_IT_PROMPT,
+  THREADS_PROMPT, JUST_DO_IT_PROMPT,
   LEARN_PROMPT,
   PROFILE_PROMPT,
   TEAM_MEMORY_PROMPT,
@@ -418,7 +419,7 @@ import {
   WEBHOOK_PROMPT, BOT_API_PROMPT, AUTOMATION_REPLY_PROMPT,
   resolveComputerPromptKind,
   savedLoginsPrompt, savedSecretsPrompt, heavyPrompt,
-  teamAvailabilityPart,
+  teamAvailabilityPart, interactiveAnswersPrompt,
 } from "./system-prompt.ts";
 import { shellTimeoutHookResult } from "./shell-timeout-hint.ts";
 import { spillToolResult } from "./tool-result-spill.ts";
@@ -1834,7 +1835,7 @@ function agentsIntegration(
   const bot = store.bot(botId), speaking = botForThread(botId, threadId) ?? bot;
   // Only advertises the tools; the routes behind them refuse regardless.
   const host = { skillAuthoring: skillAuthoringEnabled(cfg), sharedComputers: botLending(), cloudHome: Boolean(CLOUD_HOME), team: Boolean(CLOUD_TEAM),
-    voiceNotes: tts.voiceReady(cfg, speaking?.voice) && speaking?.voiceNotes !== false, x: Boolean(researchCredential(cfg.treg?.key)), research: researchAvailability.available(), imageGeneration: imageGenerationReady(cfg), meetings: boat.boatConfigured(cfg), appHosting: hostingCredential() !== null };
+    voiceNotes: tts.voiceReady(cfg, speaking?.voice) && speaking?.voiceNotes !== false, x: Boolean(researchCredential(cfg.treg?.key)), research: researchAvailability.available(), imageGeneration: imageGenerationReady(cfg), interactiveAnswers: interactiveAnswersMode(cfg), meetings: boat.boatConfigured(cfg), appHosting: hostingCredential() !== null };
   return { ...agentsProxyLaunch(), env: agentsServerEnv({ threadId, bot: bot ?? { id: botId }, room: Boolean(store.groupByThread(threadId)), teamComputer: Boolean(bot && inheritedTeamComputer(bot)), botDriven: automated || botDrivenConversation(store.taskByThread(botId, threadId)), host },
     { generation, depth, skillAuthoring, roomHandoffId, ...(hostFiles && !CLOUD_HOME && !HOSTED_WORKSPACE ? { deliversSavedFiles: true } : {}) },
     (turn) => mintInternalCapability({ botId, threadId, kind: "agents", createdBots: 0, openedThreads: 0, ...turn }), `http://127.0.0.1:${PORT}`) };
@@ -8263,7 +8264,7 @@ async function beginTurn(
         : integrations.agents && sectionPeers.length > 0
           ? peerRosterSystemPrompt(sectionPeers, bot)
           : "") + (integrations.agents ? personalReach.prompt(bot, threadId, sectionPeers) : "");
-      const credentialPrompt = integrations.agents ? CREDENTIAL_PROMPT + savedSecretsPrompt(botLogins.secretNamesFor(bot.id, vaultReaders.turn(threadId))) + THREADS_PROMPT + WIDGET_PROMPT : "";
+      const credentialPrompt = integrations.agents ? CREDENTIAL_PROMPT + savedSecretsPrompt(botLogins.secretNamesFor(bot.id, vaultReaders.turn(threadId))) + THREADS_PROMPT + interactiveAnswersPrompt(interactiveAnswersMode(cfg)) : "";
       const routinePrompt = integrations.agents ? TRIGGER_PROMPT : "";
       const profilePrompt = integrations.agents ? PROFILE_PROMPT : "";
       const recallPrompt = integrations.agents && bot.memoryEnabled !== false ? SESSION_SEARCH_SYSTEM_PROMPT : "";

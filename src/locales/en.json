@@ -10814,5 +10814,11 @@
   "settings.insetLayout.title": "Layout",
   "settings.insetLayout.classic": "Classic",
   "settings.insetLayout.inset": "Inset",
-  "settings.insetLayout.note": "Inset: the main content becomes a rounded card on a soft ground"
+  "settings.insetLayout.note": "Inset: the main content becomes a rounded card on a soft ground",
+  "settings.interactiveAnswers.title": "Interactive answers",
+  "settings.interactiveAnswers.subtitle": "Let the bot answer with charts, cards and other components",
+  "settings.interactiveAnswers.off": "Off",
+  "settings.interactiveAnswers.components": "Components",
+  "settings.interactiveAnswers.html": "Components + HTML",
+  "settings.interactiveAnswers.error": "Could not save the interactive answers setting."
 }
