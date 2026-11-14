@@ -20,6 +20,6 @@ export const AMBIGUITY_FAST_MODEL = "auto/deepseek-v4.1-flash[1m]";
 
 export const AMBIGUITY_MAX_WORDS = 3;
 export const AMBIGUITY_MAX_TEXT = 2_000;
-export const AMBIGUITY_TIMEOUT_MS = 2_500;
+export const AMBIGUITY_TIMEOUT_MS = 5_000;
 
 export const AMBIGUITY_TOKENS: readonly AmbiguityToken[] = ["accent", "success", "warning", "danger", "ink"];

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { api } from "@/state/api";
-import type { AmbiguityMark } from "../../shared/composer-ambiguity";
+import { AMBIGUITY_TIMEOUT_MS, type AmbiguityMark } from "../../shared/composer-ambiguity";
 
 const DEBOUNCE_MS = 600;
 
@@ -17,7 +17,7 @@ export function useAmbiguityMarks(enabled: boolean, botId: string | undefined, t
         method: "POST",
         body: JSON.stringify({ botId, threadId, text }),
         signal: controller.signal,
-        timeoutMs: 2_500,
+        timeoutMs: AMBIGUITY_TIMEOUT_MS,
         background: true,
       }).then((answer) => {
         const next = (answer.marks ?? []).filter((mark) =>
