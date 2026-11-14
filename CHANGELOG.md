@@ -27,6 +27,44 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE043 · 0.8.1 — the account box, a text-only chat head, and a regrouped Settings
+
+`0.8.1` is a UI pass over the sidebar's foot and head: one account box that lines up with the composer, the search
+and new-chat rows at the top of its menu with the version line under them, a text-only chat head pill in both modes,
+wider row surfaces, and a Settings column grouped by what each page is for.
+
+- **The account box**: the sidebar's foot is one clickable box — avatar, the profile's name, and an empty slot at its
+  trailing edge for a future button. Its height matches the composer's, and its bottom sits the same distance from the
+  window's foot, the inset layout's 4px card margin included.
+- **Search, new and the version line**: the footer's search and `+` buttons move to the top of the account menu, with
+  "MausBot V0.8.x" under them. Settings → This app adds "Show version in sidebar" (on by default); off leaves no gap.
+- **A text-only chat head**: the profile pill's bot avatar is hidden in Advanced as it already was in Simple, so the
+  pill carries only its name and conversation.
+- **Wider row surfaces**: a selected or hovered bot row's background reaches 4px further on each side, leaving 8px to
+  the sidebar's edges while the 16px content line stays put.
+- **The collapsed inset card**: with the sidebar collapsed to icons, the inset layout's conversation area regains its
+  4px left margin; expanded, it stays flush.
+- **Settings in five groups**: Profile, General, Appearance ｜ Models, Desktops & browser, Connected devices ｜ Vault,
+  Data, Import & export ｜ Spending ｜ About this computer. Every old deep link still opens its page, and This app's
+  card stays pinned at the foot.
+- **Version**: 0.8.1.
+
+中文：**V0.8.1：账号框、纯文字聊天头，以及重新分组的设置**
+
+`0.8.1` 是侧栏底部和顶部的一次界面整理：账号信息合成一个与输入框对齐的框，搜索和新建放在头像菜单最上面、版本行
+紧随其后；两种模式的聊天头胶囊都只留文字；行底色铺得更宽；设置左栏按页面用途分成五组。
+
+- **账号框**：侧栏底部是一个整体可点的框——头像、个人资料里的名字，最右边预留一个空的按钮位供以后使用。它的高度
+  与会话输入框一致，底边到窗口底的距离也一致（内嵌布局的 4px 卡片外边距计算在内）。
+- **搜索、新建和版本行**：底栏的搜索和 `+` 移进头像菜单最上面，版本行「MausBot V0.8.x」放在它们下面。设置 → 这个
+  应用新增「在侧栏显示版本号」，默认开启；关闭后版本行消失，不留空位。
+- **纯文字聊天头**：资料胶囊里的 bot 头像在高级模式也隐藏（简易模式本来就不显示），胶囊只保留名字和会话名。
+- **更宽的选中底色**：选中或悬停的 bot 行底色左右各多铺 4px，距侧栏边缘保留 8px，内容对齐线仍是 16px。
+- **折叠后的内嵌卡片**：侧栏折叠成图标栏时，内嵌布局的会话区恢复 4px 左边距；侧栏展开时仍然贴边。
+- **五组设置**：个人资料、通用、外观 ｜ 模型、桌面和浏览器、互联设备 ｜ 保险库、数据、导入与导出 ｜ 花费 ｜
+  关于本机。所有旧深链照常打开对应页面，底部「这个应用」卡片不动。
+- **版本**：0.8.1。
+
 ### OE042 · 0.8.0 — interactive answers, the quieter sidebar, and the 0.7.x polish, in one release
 
 `0.8.0` gathers everything since 0.7.0: interactive answers drawn inside a reply, the Advanced sidebar's quieter rows,
