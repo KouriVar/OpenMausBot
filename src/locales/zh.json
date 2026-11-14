@@ -10933,5 +10933,7 @@
   "settings.profile.awayEmailsHelp": "当队友提到你、有机器人在等你的回答，或你委托的工作在你不在应用里时完成，会发一封邮件给你。邮件里绝不会包含任何人写的内容。",
   "settings.profile.awayEmailsError": "没能保存。请重试。",
   "settings.brandMark.title": "显示品牌标识",
-  "settings.brandMark.subtitle": "侧栏顶部的 Sully Coe 字标。保存在这台设备上，默认显示。"
+  "settings.brandMark.subtitle": "侧栏顶部的 Sully Coe 字标。保存在这台设备上，默认显示。",
+  "settings.sidebarVersion.title": "在侧栏显示版本号",
+  "settings.sidebarVersion.subtitle": "账号菜单顶部的版本号。保存在这台设备上，默认显示。"
 }

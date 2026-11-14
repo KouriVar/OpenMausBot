@@ -3,8 +3,7 @@ import { useRef } from "react";
 import { cn } from "@/lib/cn";
 import type { SidebarDensity } from "@/lib/sidebar-preferences";
 import { useStore } from "@/state/store";
-import type { ReactNode } from "react";
-import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
+import { useInsetLayout } from "@/fork/inset-layout";
 import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
 import { useAdvancedMode } from "@/lib/interface-mode";
 
@@ -12,10 +11,10 @@ import { AccountMoveStatus, useAccountMoveLine } from "./AccountMove";
 import { CloudRoomCard } from "./CloudRoomCard";
 import { CloudUsageCard } from "./CloudUsageMeter";
 import { endCloudHowTo, useWorkspacePlace, type WorkspacePlace } from "./DesktopWorkspaceSwitcher";
-import { SidebarConnectApps } from "./SidebarConnectApps";
 import { SidebarBottomButtons, SidebarFooterNav } from "./SidebarFooterNav";
 import { phoneSettingsAction, SidebarPhoneButton } from "./SidebarPhoneButton";
 import { SidebarProfileMenu, useSimpleAccount, type ArchivedBots } from "./SidebarProfileMenu";
+import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 import { UpdateIndicator } from "./UpdateIndicator";
 
 export function useSimplePlace(): WorkspacePlace {
@@ -29,8 +28,10 @@ export function SidebarPlaceStatus({ place, className }: { place: WorkspacePlace
   return null;
 }
 
-function SimpleSidebarFooter({ owner, archived, actions }: { owner: string | null; archived?: ArchivedBots; actions?: ReactNode }) {
+function SimpleSidebarFooter({ owner, archived, menuActions }: { owner: string | null; archived?: ArchivedBots; menuActions?: SidebarMenuItem[] }) {
   const { state } = useStore();
+  const advanced = useAdvancedMode();
+  const { inset } = useInsetLayout();
   const place = useSimplePlace();
   const account = useSimpleAccount(place, owner, archived);
   const move = useAccountMoveLine(state.config?.cloudHome === true);
@@ -38,34 +39,31 @@ function SimpleSidebarFooter({ owner, archived, actions }: { owner: string | nul
   // The move's words open the account menu just below them, where the move's row is.
   const openAccount = () => footer.current?.querySelector("[data-sidebar-account]")?.closest("button")?.click();
   return (
-    <div ref={footer} data-sidebar-footer="simple" className="pr-4 pb-4 pt-2" style={{ paddingLeft: "var(--sidebar-content-left, 16px)" }}>
+    <div ref={footer} data-sidebar-footer="simple" className="pr-4 pt-2" style={{ paddingLeft: "var(--sidebar-content-left, 16px)", paddingBottom: (advanced ? 12 : 16) + (inset ? 4 : 0) }}>
       <CloudRoomCard />
       <CloudUsageCard />
       <SidebarPlaceStatus place={place} className="mb-2 px-1" />
       <AccountMoveStatus kind={move.kind} place={move.place} retry={move.retry} onOpen={openAccount} className="ps-1" />
-      <div className="flex items-center gap-2 not-first:mt-2">
-        <SidebarProfileMenu simple={account} />
-        {!FOOTER_ACTIONS && <SidebarConnectApps />}
-        <UpdateIndicator className="size-9" />
-        {actions && <div data-simple-footer-actions className="ms-auto flex items-center gap-2">{actions}</div>}
+      <div className="mt-2">
+        <SidebarProfileMenu bar simple={account} menuActions={menuActions} />
       </div>
     </div>
   );
 }
 
-export function SidebarFooter({ density, simple = false, owner = null, archived, toolsCollapsed, onToggleTools, footerActions }: {
+export function SidebarFooter({ density, simple = false, owner = null, archived, toolsCollapsed, onToggleTools, menuActions }: {
   density: SidebarDensity;
   simple?: boolean;
   owner?: string | null;
   archived?: ArchivedBots;
   toolsCollapsed: boolean;
   onToggleTools?: () => void;
-  /** Simple's collapsed footer row: search, inbox and + sit on the account's own row. */
-  footerActions?: ReactNode;
+  /** The account menu's first rows: search and the new-chat menu. */
+  menuActions?: SidebarMenuItem[];
 }) {
   const { dispatch } = useStore();
   const advanced = useAdvancedMode();
-  if (simple) return <SimpleSidebarFooter owner={owner} archived={archived} actions={footerActions} />;
+  if (simple) return <SimpleSidebarFooter owner={owner} archived={archived} menuActions={menuActions} />;
   // Fork: Advanced's sidebar keeps Simple's shape, so the tools section is gone — its rows live in the account menu.
   const toolsInMenu = advanced && FORK_ADVANCED_SIMPLE_SHELL;
   return (

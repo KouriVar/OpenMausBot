@@ -6,6 +6,7 @@ import { useMenuMotion } from "./MenuMotion";
 import { popoverClosesOnKey, usePopoverDismiss } from "@/hooks/use-popover-dismiss";
 import { submenuIntent, type Point, type SubmenuIntent } from "@/lib/submenu-intent";
 import { MENU_HEADING, MENU_ITEM_SEPARATOR, MENU_SHEET } from "./menu-recipe";
+import { MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
 
 export interface SidebarMenuItem {
   key: string;
@@ -32,6 +33,8 @@ export interface SidebarMenuItem {
   wrap?: boolean;
   /** the row's tooltip, for what its one line leaves out */
   title?: string;
+  /** a quiet line of text, not a row: no role, no focus, nothing to choose */
+  stamp?: string;
   onSelect: () => void;
   tourId?: string;
 }
@@ -118,6 +121,9 @@ function MenuRows({
         <div key={item.key} className={cn("flex flex-col", !dense || item.separatorBefore || item.heading ? "gap-1" : undefined, dense && item.separatorBefore && "pt-1")}>
           {item.separatorBefore && <div role="separator" className={MENU_ITEM_SEPARATOR} />}
           {item.heading && <div className={MENU_HEADING}>{item.heading}</div>}
+          {item.stamp !== undefined ? (
+            <div data-menu-stamp="" className={MENU_BUILD_STAMP}>{item.stamp}</div>
+          ) : (
           <button
             type="button"
             role={item.checked === undefined ? "menuitem" : "menuitemradio"}
@@ -165,6 +171,7 @@ function MenuRows({
             )}
             {(item.submenu || item.chevron) && <ChevronRight size={14} aria-hidden className="-me-0.5 shrink-0 text-ink-secondary rtl:-scale-x-100" />}
           </button>
+          )}
         </div>
       ))}
     </>

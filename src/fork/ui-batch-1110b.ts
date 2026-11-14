@@ -16,3 +16,6 @@ export const GROUP_AVATAR_SCALE = 1.2;
 
 /** Simple's expanded footer carries search, inbox and + on the avatar's row instead of the header. */
 export const FOOTER_ACTIONS = true;
+
+/** The expanded footer's search and + are the account menu's first two rows; the header and footer draw neither. */
+export const ACCOUNT_MENU_ACTIONS = true;

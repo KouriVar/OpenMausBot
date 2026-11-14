@@ -10849,5 +10849,7 @@
   "settings.browser.proxySave": "Save",
   "settings.browser.proxyClear": "Remove",
   "settings.brandMark.title": "Show brand mark",
-  "settings.brandMark.subtitle": "The Sully Coe wordmark at the top of the sidebar. Saved on this device; on by default."
+  "settings.brandMark.subtitle": "The Sully Coe wordmark at the top of the sidebar. Saved on this device; on by default.",
+  "settings.sidebarVersion.title": "Show version in sidebar",
+  "settings.sidebarVersion.subtitle": "The build number at the top of the account menu. Saved on this device; on by default."
 }

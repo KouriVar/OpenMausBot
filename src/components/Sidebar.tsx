@@ -73,6 +73,7 @@ import { SidebarFooter } from "./SidebarFooter";
 import { SidebarPhoneBar } from "./SidebarPhoneBar";
 import { PhoneHero } from "./SidebarPhoneHero";
 import { SidebarProfileMenu } from "./SidebarProfileMenu";
+import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { GlassBar, GlassScrollFrame, GlassScroller } from "./GlassScrollFrame";
 import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
@@ -88,7 +89,7 @@ import { SidebarResizeHandle, useSidebarWidth } from "./SidebarResizeHandle";
 import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BUTTON, SidebarSearchPill, SidebarSearchToggle } from "./SidebarSimpleTop";
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
 import { SimpleRailFooter } from "./SidebarSimpleRail";
-import { FOOTER_ACTIONS } from "@/fork/ui-batch-1110b";
+import { ACCOUNT_MENU_ACTIONS } from "@/fork/ui-batch-1110b";
 import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -1188,7 +1189,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
         <div role="menu" aria-label={remoteClient ? t("sidebar.new") : t("sidebar.newOrShare")} onKeyDown={navigateThreadMenu} className={cn(
           "absolute z-40 w-max min-w-[200px] overflow-hidden", MENU_SHEET,
           // Fork: the + sits on the footer's action row, so its menu opens upward or it opens past the window.
-          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : FOOTER_ACTIONS ? "bottom-full right-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
+          rail ? "left-full top-0 ml-4" : bottomActions ? "bottom-full left-0 mb-1.5" : cn("top-full", advanced ? "mt-1" : "mt-1.5", "right-0"),
           plusMotion.className,
         )} {...plusMotion.exitProps}>
           {advanced && <button
@@ -1259,6 +1260,36 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
     </div>
   );
 
+  const accountMenuActions: SidebarMenuItem[] = [
+    { key: "account-search", label: t("sidebar.searchAria"), icon: <Search size={16} />, onSelect: () => setSearchOpen(true) },
+    {
+      key: "account-new",
+      label: remoteClient ? t("sidebar.new") : t("sidebar.newOrShare"),
+      icon: <Plus size={16} />,
+      submenu: [
+        ...(advanced
+          ? [{ key: "account-new-chat", label: t("sidebar.newChat.title"), icon: <MessageSquarePlus size={16} />, onSelect: () => setNewChatOpen(true) }]
+          : plusBot
+            ? [{ key: "account-new-thread", label: t("sidebar.newConversationWith", { name: plusBot.name }), icon: <SquarePen size={16} />, onSelect: () => dispatch({ type: "newTask", botId: plusBot.id }) }]
+            : []),
+        ...(teamSettingsAllowed !== false || state.config?.team
+          ? [{ key: "account-new-bot", label: t(advanced ? "sidebar.newBot" : "sidebar.newBotSimple"), icon: <BotIcon size={16} />, onSelect: () => dispatch({ type: "newBot" }) }]
+          : []),
+        { key: "account-new-channel", label: t("sidebar.newChannel.title"), icon: <Users size={16} />, onSelect: () => setNewRoom(true) },
+        ...(advanced && !remoteClient && teamSettingsAllowed !== false
+          ? [{ key: "account-new-team", label: t("team.create"), icon: <FolderPlus size={16} />, onSelect: () => setNewTeam(true) }]
+          : []),
+        ...(teamSettingsAllowed !== false
+          ? [{ key: "account-team-library", label: t("sidebar.teamLibrary"), icon: <LayoutTemplate size={16} />, onSelect: () => setTeamLibraryOpen(true) }]
+          : []),
+        ...(advanced && archivedBots.length > 0
+          ? [{ key: "account-archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, onSelect: () => setArchivedBotsOpen(true) }]
+          : []),
+      ],
+      onSelect: () => {},
+    },
+  ];
+
   return (
     <aside
       ref={sidebarRef} data-sidebar-root={!phone || open ? "" : undefined}
@@ -1323,9 +1354,9 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           className={cn("relative flex shrink-0 items-center", density === "icons" ? "flex-col gap-1" : corner ? "pointer-events-auto" : simpleDesk ? "gap-2" : chrome ? "gap-1 pl-0.5" : "ml-0.5 gap-0.5")}
           style={windowNoDragStyle}
         >
-          {simpleDesk && !FOOTER_ACTIONS && <SidebarSearchToggle ref={searchToggleRef} corner={corner} open={searchShown} onToggle={() => (searchShown ? closeSearch() : setSearchOpen(true))} />}
+          {simpleDesk && !ACCOUNT_MENU_ACTIONS && <SidebarSearchToggle ref={searchToggleRef} corner={corner} open={searchShown} onToggle={() => (searchShown ? closeSearch() : setSearchOpen(true))} />}
           {advanced && inboxSupport === "no" && <SidebarActiveThreads entries={attention} icons={density === "icons"} phone={phone} dispatch={dispatch} />}
-          {!bottomActions && !(simpleDesk && FOOTER_ACTIONS) && plusControl}
+          {!bottomActions && !(simpleDesk && ACCOUNT_MENU_ACTIONS) && plusControl}
         </div>}
       </div>
 
@@ -1546,12 +1577,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           </div>}
         />
       </RailActionsProvider> : phone ? <SidebarPhoneBar query={query} onQuery={setQuery} /> : <SidebarFooter density={density} simple={simpleDesk} owner={cloudOwner} archived={archivedEntry} toolsCollapsed={sectionCollapsed(TOOLS_SECTION_ID)} onToggleTools={layoutInteractive ? () => toggleSection(TOOLS_SECTION_ID) : undefined}
-        footerActions={simpleDesk && FOOTER_ACTIONS ? <>
-          <button type="button" onClick={searchShown ? closeSearch : () => setSearchOpen(true)} aria-label={t("sidebar.searchAria")} title={t("sidebar.searchAria")} className={SIMPLE_TOP_BUTTON}>
-            <Search size={18} strokeWidth={1.5} aria-hidden="true" />
-          </button>
-          <div className="relative flex">{plusControl}</div>
-        </> : undefined} />}
+        menuActions={simpleDesk ? accountMenuActions : undefined} />}
       </GlassBar>
       </GlassScrollFrame>
 

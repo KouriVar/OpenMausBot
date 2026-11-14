@@ -60,7 +60,8 @@ import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { displayAppVersionWithBuild } from "@/fork/version-label";
-import { FORK_MENU_BUILD_STAMP, MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
+import { useSidebarVersion } from "@/fork/sidebar-version";
+import { FORK_MENU_BUILD_STAMP } from "@/fork/ui-batch-1111";
 import { FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
@@ -624,8 +625,8 @@ export function useSimpleAccount(place: WorkspacePlace, owner: string | null, ar
 }
 
 /** `circle` is the phone's round avatar button at the top of the bot list. */
-export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = false, simple: account }: {
-  iconOnly?: boolean; rail?: boolean; circle?: boolean; simple?: SimpleAccount;
+export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = false, bar = false, menuActions = [], simple: account }: {
+  iconOnly?: boolean; rail?: boolean; circle?: boolean; bar?: boolean; menuActions?: SidebarMenuItem[]; simple?: SimpleAccount;
 } = {}) {
   const { state, dispatch } = useStore();
   const simple = account !== undefined;
@@ -720,55 +721,11 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const hideItems: SidebarMenuItem[] = FORK_HIDDEN_SIDEBAR
     ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <ArrowDownToLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
     : [];
-  const items = railItems.length ? [...hideItems, ...railItems, ...profileMenuItems({
-    phone: simple
-      ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
-      : phoneMenuItems({
-        destinations,
-        connected: phone.kind === "connected",
-        onConnect: connectTo,
-        onGetApp: () => setPhoneAppOpen(true),
-      }),
-    usage: !remote,
-    usageSummary: cloudUsage ?? engineUsage,
-    update: update?.item ?? null,
-    updateTop: simple ? simpleUpdateTop(update) : null,
-    move: move.items,
-    account: cloudAccount ? cloudRowLabel(accounts.view) : null,
-    accounts: accountMenuItems(accounts),
-    advancedToggle,
-    // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
-    inbox: inboxRow,
-    tools: toolMenuItems({
-      activeView: state.activeView,
-      activePanel: state.webPanelId,
-      automationsNeedYou,
-      onAutomations: () => dispatch({ type: "showRoutines", view: "list" }),
-      onTeamMap: () => dispatch({ type: "showTeamMap" }),
-      onFiles: filesReady ? () => dispatch({ type: "showFiles" }) : undefined,
-      onPublishedApps: () => dispatch({ type: "showPublishedApps" }),
-      onPanel: (id) => dispatch({ type: "showWebPanel", id }),
-      panels,
-      archived: account?.archived,
-    }),
-    // Fork: Advanced draws its own menu, one group per kind of thing; Simple's stays as it is. The rail's own rows
-    // already carry Apps, so it is not offered twice there.
-    menu: advancedNow ? "advanced" : undefined,
-    onApps: rail ? undefined : () => dispatch({ type: "togglePlugins", open: true }),
-    ...(account ? { simple: {
-      places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
-    } } : {}),
-    onUsage: () => dispatch({ type: "toggleAppSettings", open: true, section: "usage" }),
-    onSettings: () => dispatch({ type: "toggleAppSettings" }),
-    onShortcuts: () => {
-      triggerRef.current?.closest("button")?.focus();
-      dispatch({ type: "toggleShortcuts", open: true });
-    },
-    onAbout: () => setAboutOpen(true),
-    onHelp: () => void openExternalLink(HELP_CENTER_URL),
-    onFeedback: () => void openExternalLink(FEEDBACK_URL),
-    onAccount: openCloudAccount,
-  })] : [...hideItems, ...profileMenuItems({
+  const versionOn = useSidebarVersion();
+  const stampItems: SidebarMenuItem[] = versionOn && FORK_MENU_BUILD_STAMP
+    ? [{ key: "build-stamp", label: "", stamp: `${productName()} ${displayAppVersionWithBuild(appVersion())}`, onSelect: () => {} }]
+    : [];
+  const items = [...hideItems, ...(bar ? menuActions : railItems), ...stampItems, ...profileMenuItems({
     phone: simple
       ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
       : phoneMenuItems({
@@ -831,13 +788,26 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       <SidebarPopoverMenu
         items={items}
         ariaLabel={name}
-        header={FORK_MENU_BUILD_STAMP ? <div className={MENU_BUILD_STAMP}>{`${productName()} ${displayAppVersionWithBuild(appVersion())}`}</div> : undefined}
         onOpenChange={simple ? setMenuOpen : undefined}
-        triggerClassName={iconOnly || simple ? cn("shrink-0", circle || simple ? "rounded-full" : "rounded-xl") : "w-full"}
-        triggerTitle={iconOnly || simple ? label : undefined}
+        triggerClassName={bar ? "w-full" : iconOnly || simple ? cn("shrink-0", circle || simple ? "rounded-full" : "rounded-xl") : "w-full"}
+        triggerTitle={bar || iconOnly || simple ? label : undefined}
         triggerLabel={label}
         triggerTour={account?.place.switchable ? "server-switcher" : undefined}
-        renderTrigger={({ open }) => simple ? (
+        renderTrigger={({ open }) => bar ? (
+          <span
+            ref={triggerRef}
+            data-sidebar-account=""
+            data-account-bar=""
+            className={cn("flex h-11 w-full items-center gap-2 rounded-xl px-2.5 text-left transition-colors", open ? "bg-raised" : "hover:bg-raised/50")}
+          >
+            <span className="relative flex shrink-0">
+              <InitialsAvatar initials={initials} avatarUrl={profile?.avatarUrl} size={28} fallback={nameless} fontSize={12} className="ring-1 ring-inset ring-ink/[0.04]" />
+              {dot && <span aria-hidden data-account-dot={dot} className={cn("absolute -right-0.5 -top-0.5 size-2 rounded-full ring-2 ring-panel", DOT_COLOR[dot])} />}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[14px] font-medium leading-5 text-ink">{name}</span>
+            <span aria-hidden data-account-action-slot="" className="flex size-8 shrink-0" />
+          </span>
+        ) : simple ? (
           <span
             ref={triggerRef}
             data-sidebar-account=""
