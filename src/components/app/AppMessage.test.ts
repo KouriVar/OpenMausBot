@@ -11,6 +11,7 @@ import { APP_SAMPLES, MCP_APP_SAMPLES } from "../../../shared/app-samples";
 import { botHtmlDocument, mcpAppDocument } from "../../../shared/app-frame/document";
 import { createAppPool, type AppPool } from "./app-pool";
 import { AppMessage, forgetAppRows } from "./AppMessage";
+import { PAGE_HEIGHT, PAGE_PREVIEW_HEIGHT, PagePaneContext } from "./PageTools";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -54,6 +55,19 @@ const view = (message: Message, room?: boolean) => createElement(BotEditorStore,
 const mount = async (message: Message, room?: boolean) => {
   await act(async () => { root.render(view(message, room)); });
   await settle();
+};
+/** The same row in a chat that has a page pane: its page is a compact card, not the full-height one. */
+const mountPane = async (message: Message) => {
+  const pane = document.createElement("div");
+  await act(async () => {
+    root.render(createElement(BotEditorStore, {
+      value: store,
+      children: createElement(PagePaneContext.Provider, { value: pane },
+        createElement(AppMessage, { botId: "pepper", botName: "Pepper", threadId: "t1", message, pool })),
+    }));
+  });
+  await settle();
+  return pane;
 };
 /** Let fetches, pool grants and effects run. */
 const settle = () => act(async () => { for (let i = 0; i < 6; i += 1) await new Promise((resolve) => setTimeout(resolve, 0)); });
@@ -199,6 +213,27 @@ describe("a bot's page", () => {
     expect(flushBotPatches).toHaveBeenCalledWith("pepper");
     expect(posts("/api/bots/pepper/messages")).toEqual([{ threadId: "t1", sendId: expect.any(String), appMessage: { messageId: "a1", text: "I have had 3 cups." } }]);
     expect(toView.find((message) => message.id === "m2")).toEqual({ jsonrpc: "2.0", id: "m2", result: {} });
+  });
+
+  it("sizes a compact card to its page, and only clips a taller one with the fade", async () => {
+    await mountPane(row(htmlPayload({ height: PAGE_HEIGHT.start })));
+    expect(find<HTMLElement>("[data-app-box]")!.style.height).toBe(`${PAGE_PREVIEW_HEIGHT}px`);
+    await handshake();
+    // Shorter than the card's window: the card follows the page down, with no blank below it.
+    await fromView({ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: { height: 150 } });
+    expect(find<HTMLElement>("[data-app-box]")!.style.height).toBe("150px");
+    expect(frame().style.height).toBe("150px");
+    expect(find("[data-app-fade]")).toBeNull();
+    // Taller than the window: the frame keeps its content height, the card clips it and the fade returns.
+    await fromView({ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: { height: 333 } });
+    expect(find<HTMLElement>("[data-app-box]")!.style.height).toBe(`${PAGE_PREVIEW_HEIGHT}px`);
+    expect(frame().style.height).toBe("333px");
+    expect(find("[data-app-fade]")).toBeTruthy();
+    // Never past the page's own 520px start.
+    await fromView({ jsonrpc: "2.0", method: "ui/notifications/size-changed", params: { height: 900 } });
+    expect(find<HTMLElement>("[data-app-box]")!.style.height).toBe(`${PAGE_PREVIEW_HEIGHT}px`);
+    expect(frame().style.height).toBe(`${PAGE_HEIGHT.start}px`);
+    expect(find("[data-app-fade]")).toBeTruthy();
   });
 
   it("keeps what the page says it shows for the model, and follows its height", async () => {

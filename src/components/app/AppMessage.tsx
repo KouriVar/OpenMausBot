@@ -85,8 +85,16 @@ function AppRow({ botId, botName, threadId, message, payload, pool, room }: {
   const rev = page ? version.rev : payload.rev ?? 0;
   const bordered = payload.border !== false;
   const docKey = payload.doc ? `${message.id}:${payload.doc}:${rev}` : "";
-  const [height, setHeight] = useState(() => heights.get(`${message.id}:${rev}`) ?? heights.get(`${message.id}:${rev - 1}`) ?? payload.height
-    ?? (page ? PAGE_HEIGHT.start : APP_FRAME_LIMITS.defaultHeight));
+  // In a bot chat a page is a compact card that opens in the chat's page pane; elsewhere it stays a full card.
+  const paneSlot = useContext(PagePaneContext);
+  const pane = page && !room ? paneSlot : null;
+  const [height, setHeight] = useState(() => {
+    const remembered = heights.get(`${message.id}:${rev}`) ?? heights.get(`${message.id}:${rev - 1}`);
+    const start = remembered ?? payload.height ?? (page ? (pane ? PAGE_PREVIEW_HEIGHT : PAGE_HEIGHT.start) : APP_FRAME_LIMITS.defaultHeight);
+    // The compact card starts at the size it will show, so a page centred in its own viewport is centred in
+    // the card's 220px rather than 180px below it. The View's reported height replaces this once it speaks.
+    return pane ? Math.min(start, PAGE_PREVIEW_HEIGHT) : start;
+  });
   const [infoOpen, setInfoOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [reload, setReload] = useState(0);
@@ -96,9 +104,6 @@ function AppRow({ botId, botName, threadId, message, payload, pool, room }: {
   const frame = useRef<AppFrameHandle | null>(null);
   const wide = useRef<AppFrameHandle | null>(null);
   const [fullScreen, setFullScreen] = useState(false);
-  // In a bot chat a page is a compact card that opens in the chat's page pane; elsewhere it stays a full card.
-  const paneSlot = useContext(PagePaneContext);
-  const pane = page && !room ? paneSlot : null;
   const paneOpen = Boolean(pane && fullScreen);
   const row = useRef<HTMLDivElement | null>(null);
   const mounted = useRef(true);
@@ -214,8 +219,12 @@ function AppRow({ botId, botName, threadId, message, payload, pool, room }: {
   const state = collapsed ? "collapsed" : current ? "live" : noPage ? "unavailable" : slot.live ? "loading" : "idle";
   const infoId = `${uid}-info`;
 
-  // The compact card clips the page at its natural size, so it reads as a preview of the real thing.
-  const boxHeight = pane ? Math.min(height, PAGE_PREVIEW_HEIGHT) : height;
+  // The page frame grows to the height its content reports, up to the page's own 520px start. The compact
+  // card is a window onto that frame: as tall as the content while it fits, otherwise 220px with a fade.
+  const preview = Boolean(pane);
+  const frameHeight = preview ? Math.min(height, PAGE_HEIGHT.start) : height;
+  const boxHeight = preview ? Math.min(height, PAGE_PREVIEW_HEIGHT) : height;
+  const previewClipped = preview && height > PAGE_PREVIEW_HEIGHT;
   const body = collapsed ? null : fullScreen && current ? (
     <div data-app-box className={cn("relative w-full", bordered && "border-t border-ink/[0.08]")} style={{ height: boxHeight }}>
       <AppPlaceholder height={boxHeight} open={() => setFullScreen(false)} label={t(pane ? "chat.preview.closePage" : "chat.preview.exitFullScreen")} />
@@ -232,19 +241,20 @@ function AppRow({ botId, botName, threadId, message, payload, pool, room }: {
           botId={botId}
           threadId={threadId}
           title={payload.title}
-          height={height}
+          height={frameHeight}
           handle={frame}
           onHeight={onHeight}
           onProblem={setProblem}
           onTeardownRequested={onTeardownRequested}
-          {...(page ? { maxHeight: PAGE_HEIGHT.cap } : {})}
+          {...(page ? { maxHeight: preview ? PAGE_HEIGHT.start : PAGE_HEIGHT.cap } : {})}
         />
       ) : (
         <AppPlaceholder height={boxHeight} loading={slot.live} open={slot.live ? undefined : reloadNow} />
       )}
       {pane && current && !point.pointing && (
-        <button type="button" data-page-open onClick={() => setFullScreen(true)} aria-label={t("chat.preview.openPage")}
-          className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-panel via-transparent to-transparent pb-3">
+        <button type="button" data-page-open {...(previewClipped ? { "data-app-fade": "" } : {})} onClick={() => setFullScreen(true)} aria-label={t("chat.preview.openPage")}
+          className={cn("absolute inset-0 flex items-end justify-center pb-3",
+            previewClipped && "bg-gradient-to-t from-panel via-transparent to-transparent")}>
           <span className="ui-pill">{t("chat.preview.openPage")}</span>
         </button>
       )}

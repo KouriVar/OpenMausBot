@@ -24,8 +24,11 @@ afterEach(async () => { for (const page of pages.splice(0)) await page.happyDOM.
 /** What the fake frame's layout answers: the page's flow when html and body are freed, at a frame of `height`, and the
  * elements under the frame's middle. "window" follows the frame; `freed` is an element's height in the freed layout. */
 interface Scene {
-  flow: (height: number) => number;
+  flow: (height: number, wrapperFreed?: boolean) => number;
   under?: Array<{ position?: "absolute" | "fixed"; width: number | "window"; height: number | "window"; freed?: number }>;
+  /** An in-flow wrapper the height of the window, like `main{min-height:100vh}` around a short card. Its
+   * height once freed is what the page's flow becomes. */
+  wrapper?: { height: number | "window"; freed: number };
 }
 
 function boot(engaged = true, options: { scene?: Scene; start?: number; loaded?: boolean; room?: boolean } = {}) {
@@ -72,7 +75,15 @@ function boot(engaged = true, options: { scene?: Scene; start?: number; loaded?:
     const freed = () => root.style.getPropertyValue("height") === "max-content";
     const size = (value: number | "window", window: number) => (value === "window" ? window : value);
     const rect = (width: number, height: number) => ({ width, height, top: 0, left: 0, right: width, bottom: height, x: 0, y: 0, toJSON() {} }) as DOMRect;
-    root.getBoundingClientRect = () => rect(frame.innerWidth as number, freed() ? scene.flow(frame.innerHeight as number) : frame.innerHeight as number);
+    const wrapper = scene.wrapper ? document.createElement("div") : null;
+    const wrapperFreed = () => Boolean(wrapper && wrapper.style.getPropertyValue("height") === "max-content");
+    if (wrapper && scene.wrapper) {
+      document.body.appendChild(wrapper);
+      wrapper.getBoundingClientRect = () => rect(frame.innerWidth as number,
+        wrapperFreed() ? scene.wrapper!.freed : size(scene.wrapper!.height, frame.innerHeight as number));
+    }
+    root.getBoundingClientRect = () => rect(frame.innerWidth as number,
+      freed() ? scene.flow(frame.innerHeight as number, wrapperFreed()) : frame.innerHeight as number);
     const under = (scene.under ?? []).map((layer) => {
       const element = document.createElement("div");
       document.body.appendChild(element);
@@ -240,6 +251,12 @@ describe("the height a bot page reports", () => {
 
   it("is the content's when the flow is taller than a small page, even over a window layer", async () => {
     expect(await settled(boot(true, { scene: { flow: flow(300), under: [{ position: "absolute", width: "window", height: "window" }] } }))).toEqual([300]);
+  });
+
+  it("is the content's inside a flow wrapper pinned to the window, not the wrapper's 520", async () => {
+    expect(await settled(boot(true, {
+      scene: { wrapper: { height: "window", freed: 150 }, flow: (_height, wrapperFreed) => (wrapperFreed ? 150 : 520) },
+    }))).toEqual([150]);
   });
 
   it.skipIf(FORK_CI)("leaves the starting height once the flow needs more", async () => {

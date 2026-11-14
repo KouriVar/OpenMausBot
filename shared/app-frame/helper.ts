@@ -82,9 +82,27 @@ const helperSource = (room: boolean) => `(function () {
   // in it, which in a frame that sizes to its content only ever reports the
   // frame's current height while the content spills out above and below.
   // Both are freed for the measurement and put back before the next paint.
+  // A page often wraps its content in a flow element pinned to the window (main{min-height:100vh},
+  // .page{height:100vh}). Freeing html and body alone leaves that wrapper at the frame's height, so a
+  // short card centred in it reports the full 520 and the card's own window shows only its blank top.
+  // Free the in-flow boxes that reach the window as well; positioned layers keep their size.
+  var windowTall = function () {
+    var height = window.innerHeight || 0;
+    if (!height || !document.body || typeof document.body.querySelectorAll !== "function") return [];
+    var found = [];
+    var all = document.body.querySelectorAll("*");
+    for (var i = 0; i < all.length; i++) {
+      var element = all[i];
+      if (element.getBoundingClientRect().height < height * 0.9) continue;
+      var position = window.getComputedStyle(element).position;
+      if (position === "absolute" || position === "fixed") continue;
+      found.push(element);
+    }
+    return found;
+  };
   var freedHeights = function (elements) {
     var body = document.body;
-    var boxes = body ? [root, body] : [root];
+    var boxes = body ? [root, body].concat(windowTall()) : [root];
     var saved = boxes.map(function (box) { return [box.style.height, box.style.minHeight, box.style.maxHeight]; });
     boxes.forEach(function (box) {
       box.style.setProperty("height", "max-content", "important");
