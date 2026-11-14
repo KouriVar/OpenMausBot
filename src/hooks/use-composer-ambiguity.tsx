@@ -42,8 +42,8 @@ export function useComposerAmbiguity({ botId, threadId, text }: { botId: string 
     live,
     restore: setAssumptions,
     clear: () => { setAssumptions([]); setActive(null); },
-    onMarkClick: (index: number, rect: DOMRect) => {
-      const mark = marks[index];
+    onMarkClick: (range: { start: number; end: number }, rect: DOMRect) => {
+      const mark = detected.find((candidate) => candidate.start === range.start && candidate.end === range.end);
       if (mark) setActive({ mark, rect });
     },
     onCompositionStart: () => { setComposing(true); setActive(null); },

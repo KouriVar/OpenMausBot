@@ -39,7 +39,7 @@ export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClas
   clarified?: readonly TextMark[];
   /** The word whose panel is open: a quiet yellow background. */
   activeMark?: TextMark | null;
-  onMarkClick?: (index: number, rect: DOMRect) => void;
+  onMarkClick?: (mark: TextMark, rect: DOMRect) => void;
 }) {
   const mirrorRef = useRef<HTMLDivElement>(null);
   const [activeRects, setActiveRects] = useState<Array<{ left: number; top: number; width: number; height: number }>>([]);
@@ -110,11 +110,11 @@ export function MentionTextarea({ inputRef, peers, everyone = false, wrapperClas
         props.onClick?.(event);
         if (!marks?.length || !onMarkClick || !inputRef.current || !mirrorRef.current) return;
         const at = inputRef.current.selectionStart ?? 0;
-        const index = marks.findIndex((mark) => at >= mark.start && at <= mark.end);
-        if (index < 0) return;
-        const range = offsetRange(mirrorRef.current, marks[index]!.start, marks[index]!.end);
+        const clicked = [...(marks ?? []), ...(clarified ?? [])].find((mark) => at >= mark.start && at <= mark.end);
+        if (!clicked) return;
+        const range = offsetRange(mirrorRef.current, clicked.start, clicked.end);
         const rect = range?.getBoundingClientRect();
-        if (rect) onMarkClick(index, rect);
+        if (rect) onMarkClick(clicked, rect);
       }} />
   </div>;
 }

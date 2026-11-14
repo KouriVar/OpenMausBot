@@ -1,11 +1,13 @@
-import { createContext, useContext, type Ref } from "react";
-import { Calendar, Check, ChevronsUpDown, LoaderCircle, X } from "lucide-react";
+import { createContext, useContext, useRef, useState, type Ref } from "react";
+import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, LoaderCircle, X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { t } from "@/lib/i18n";
+import { intlLocale, t } from "@/lib/i18n";
 import {
   WIDGET_LIMITS, threadActionTarget, widgetNumber, widgetString, widgetTakesOther, type WidgetActionEntry, type WidgetField, type WidgetNode, type WidgetOther, type WidgetValues,
 } from "../../../shared/widget";
 import { isWidgetDot, widgetIcon, widgetIconFilled } from "./widget-icons";
+import { MENU_ITEM } from "../menu-recipe";
+import { WidgetMenu } from "./WidgetMenu";
 
 export interface WidgetForm {
   uid: string;
@@ -122,9 +124,9 @@ export function WidgetButton({ actionRef, label, look, iconStart, iconEnd, block
 
 
 export const WIDGET_FIELD =
-  "block h-9 w-full min-w-0 rounded-lg border border-hairline/40 bg-inset px-3 text-[14px] leading-5 text-ink placeholder:text-ink-tertiary disabled:cursor-not-allowed disabled:opacity-60 user-invalid:border-danger aria-[invalid=true]:border-danger";
+  "block h-9 w-full min-w-0 rounded-lg border border-hairline/40 bg-inset px-3 text-[14px] leading-5 text-ink placeholder:text-ink-tertiary focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-60 user-invalid:border-danger aria-[invalid=true]:border-danger";
 export const WIDGET_BARE =
-  "h-9 min-w-0 max-w-full cursor-pointer rounded-lg border border-transparent bg-transparent text-[14px] font-medium leading-5 text-ink enabled:hover:bg-ink/[0.07] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger";
+  "h-9 min-w-0 max-w-full cursor-pointer rounded-lg border border-transparent bg-transparent text-[14px] font-medium leading-5 text-ink focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-focus enabled:hover:bg-ink/[0.07] disabled:cursor-not-allowed disabled:opacity-60 aria-[invalid=true]:border-danger";
 export const WIDGET_FIELD_ACTION =
   "flex size-7 shrink-0 items-center justify-center rounded-full text-ink-tertiary hover:bg-ink/[0.07] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
@@ -173,27 +175,63 @@ const OTHER_OPTION = " other";
 
 export function WidgetSelect({ node, bare }: { node: WidgetNode; bare: boolean }) {
   const field = useWidgetField(node);
-  const open = node.clearable === true;
+  const [open, setOpen] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
   const choosingOther = field.other !== undefined;
-  const select = (
-    <span className={cn("relative min-w-0 items-center", bare ? "inline-flex" : "flex w-full")}>
-      <select
-        {...field.control}
-        value={choosingOther ? OTHER_OPTION : field.text}
-        onChange={(event) => (event.target.value === OTHER_OPTION ? field.chooseOther() : field.set(event.target.value))}
-        className={cn(bare ? WIDGET_BARE : WIDGET_FIELD, "appearance-none", bare ? "ps-2 pe-7 text-end [field-sizing:content]" : "pe-9", !field.text && !choosingOther && "text-ink-tertiary")}
-      >
-        <option value="" disabled={!open} hidden={!open}>{widgetString(node, "placeholder") ?? t("widget.choose")}</option>
-        {optionsOf(node).map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-        {field.takesOther && <option value={OTHER_OPTION}>{t("question.other")}</option>}
-      </select>
-      <ChevronsUpDown aria-hidden="true" size={14} className={cn("pointer-events-none absolute text-ink-tertiary", bare ? "end-2" : "end-3")} />
-    </span>
-  );
-  if (!field.takesOther) return select;
+  const options = optionsOf(node);
+  const selected = options.find((option) => option.value === field.text);
+  const { id, required, disabled } = field.control;
+  const pick = (value: string) => {
+    if (value === OTHER_OPTION) field.chooseOther();
+    else field.set(value);
+    setOpen(false);
+  };
   return (
-    <span className={cn("min-w-0 flex-col gap-2", bare ? "inline-flex items-end" : "flex w-full")}>
-      {select}
+    <span className={cn("flex min-w-0 flex-col gap-2", bare ? "inline-flex items-end" : "w-full")}>
+      <span className={cn("relative min-w-0 items-center", bare ? "inline-flex" : "flex w-full")}>
+        <button
+          ref={button}
+          type="button"
+          id={id}
+          disabled={disabled}
+          data-widget-field={field.name}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-invalid={field.invalid || undefined}
+          aria-describedby={field.invalid ? field.form.errorId : undefined}
+          aria-label={field.control["aria-label"]}
+          aria-required={required || undefined}
+          onClick={() => setOpen((current) => !current)}
+          className={cn(
+            bare ? WIDGET_BARE : WIDGET_FIELD,
+            "flex! min-w-0 items-center gap-2 text-start",
+            bare ? "ps-2 pe-7 justify-end text-end" : "pe-3",
+            !selected && !choosingOther && "text-ink-tertiary",
+          )}
+        >
+          <span dir="auto" className="min-w-0 flex-1 truncate">{choosingOther ? t("question.other") : selected?.label ?? widgetString(node, "placeholder") ?? t("widget.choose")}</span>
+          <ChevronDown aria-hidden="true" size={14} className="shrink-0 text-ink-tertiary" />
+        </button>
+        <WidgetMenu anchor={button.current} open={open} onClose={() => setOpen(false)}>
+          {node.clearable === true && field.text && !disabled && (
+            <button type="button" role="option" aria-selected={false} onClick={() => pick("")} className={cn(MENU_ITEM, "min-h-8 text-ink-tertiary")}>
+              <X aria-hidden="true" size={13} /> {t("widget.clear", { label: field.control["aria-label"] })}
+            </button>
+          )}
+          {options.map((option) => (
+            <button key={option.value} type="button" role="option" aria-selected={field.text === option.value} onClick={() => pick(option.value)} className={cn(MENU_ITEM, "min-h-8")}>
+              <span className="min-w-0 flex-1 truncate">{option.label}</span>
+              {field.text === option.value && <Check aria-hidden="true" size={13} className="shrink-0 text-accent" />}
+            </button>
+          ))}
+          {field.takesOther && (
+            <button type="button" role="option" aria-selected={choosingOther} onClick={() => pick(OTHER_OPTION)} className={cn(MENU_ITEM, "min-h-8")}>
+              <span className="min-w-0 flex-1 truncate">{t("question.other")}</span>
+              {choosingOther && <Check aria-hidden="true" size={13} className="shrink-0 text-accent" />}
+            </button>
+          )}
+        </WidgetMenu>
+      </span>
       {choosingOther && <WidgetOtherInput name={field.name} disabled={field.disabled} focus />}
     </span>
   );
@@ -223,41 +261,86 @@ export function WidgetOtherInput({ name, disabled, focus, ref }: { name: string;
   );
 }
 
-/** Chromium's own calendar indicator is stretched over the whole field and left invisible; the icon is ours. */
-const DATE_INDICATOR =
-  "[&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:size-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0";
+function isoDay(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
 
 export function WidgetDatePicker({ node, bare }: { node: WidgetNode; bare: boolean }) {
   const field = useWidgetField(node);
-  // An empty date input shows its own dd/mm/yyyy, so a placeholder stands in until the field is focused.
-  const placeholder = !field.text ? widgetString(node, "placeholder") : undefined;
+  const [open, setOpen] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
+  const [cursor, setCursor] = useState(() => {
+    const parsed = field.text ? new Date(`${field.text}T00:00:00`) : new Date();
+    return new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+  });
+  const min = widgetString(node, "min");
+  const max = widgetString(node, "max");
+  const today = isoDay(new Date());
+  const monthLabel = new Intl.DateTimeFormat(intlLocale(), { month: "long", year: "numeric" }).format(cursor);
+  const weekdays = Array.from({ length: 7 }, (_, index) => new Intl.DateTimeFormat(intlLocale(), { weekday: "narrow" }).format(new Date(2024, 0, 1 + index)));
+  const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+  const offset = (first.getDay() + 6) % 7;
+  const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
+  const cells = Array.from({ length: offset + days }, (_, index) => index < offset ? null : new Date(cursor.getFullYear(), cursor.getMonth(), index - offset + 1));
+  const { id, required, disabled } = field.control;
+  const placeholder = widgetString(node, "placeholder") ?? t("widget.chooseDate");
   return (
     <span className={cn("min-w-0 items-center gap-1", bare ? "inline-flex" : "flex w-full")}>
       <span className={cn("relative flex min-w-0 items-center", !bare && "flex-1")}>
         <Calendar aria-hidden="true" size={14} className={cn("pointer-events-none absolute z-[1] text-ink-secondary", bare ? "start-2" : "start-3")} />
-        <input
-          {...field.control}
-          type="date"
-          value={field.text}
-          min={widgetString(node, "min")}
-          max={widgetString(node, "max")}
-          onChange={(event) => field.set(event.target.value)}
-          className={cn(
-            bare ? WIDGET_BARE : WIDGET_FIELD, "peer relative tabular-nums [color-scheme:var(--code-color-scheme)]", bare ? "ps-7 pe-2" : "ps-8", DATE_INDICATOR,
-            placeholder && "text-transparent focus:text-ink",
-          )}
-        />
-        {placeholder && (
-          <span aria-hidden="true" className={cn("pointer-events-none absolute truncate text-[14px] leading-5 text-ink-tertiary peer-focus:hidden", bare ? "start-7 end-2" : "start-8 end-3")}>
-            {placeholder}
-          </span>
-        )}
+        <button
+          ref={button}
+          type="button"
+          id={id}
+          disabled={disabled}
+          data-widget-field={field.name}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-invalid={field.invalid || undefined}
+          aria-describedby={field.invalid ? field.form.errorId : undefined}
+          aria-label={field.control["aria-label"]}
+          aria-required={required || undefined}
+          onClick={() => setOpen((current) => !current)}
+          className={cn(bare ? WIDGET_BARE : WIDGET_FIELD, "flex! items-center gap-2 text-start tabular-nums", bare ? "ps-7 pe-7 justify-end" : "ps-8 pe-3", !field.text && "text-ink-tertiary")}
+        >
+          <span dir="auto" className="min-w-0 flex-1 truncate">{field.text || placeholder}</span>
+          <ChevronDown aria-hidden="true" size={14} className="shrink-0 text-ink-tertiary" />
+        </button>
       </span>
-      {node.clearable === true && field.text && !field.disabled && (
+      {node.clearable === true && field.text && !disabled && (
         <button type="button" aria-label={t("widget.clear", { label: field.control["aria-label"] })} onClick={() => field.set("")} className={WIDGET_FIELD_ACTION}>
           <X aria-hidden="true" size={14} />
         </button>
       )}
+      <WidgetMenu anchor={button.current} open={open} onClose={() => setOpen(false)} minWidth={252} role="dialog" label={field.control["aria-label"]}>
+        <div className="flex items-center justify-between gap-1 px-1 pb-1">
+          <button type="button" aria-label={t("widget.previousMonth")} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} className="flex size-7 items-center justify-center rounded-md text-ink-secondary hover:bg-menu-hover hover:text-ink">
+            <ChevronLeft size={15} />
+          </button>
+          <span className="text-[13px] font-medium leading-[18px] text-ink">{monthLabel}</span>
+          <button type="button" aria-label={t("widget.nextMonth")} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} className="flex size-7 items-center justify-center rounded-md text-ink-secondary hover:bg-menu-hover hover:text-ink">
+            <ChevronRight size={15} />
+          </button>
+        </div>
+        <div className="grid grid-cols-7 gap-0.5 px-1">
+          {weekdays.map((weekday, index) => <span key={index} className="flex size-8 items-center justify-center text-[11px] text-ink-tertiary">{weekday}</span>)}
+          {cells.map((date, index) => {
+            if (!date) return <span key={index} className="size-8" />;
+            const value = isoDay(date);
+            const unavailable = (min !== undefined && value < min) || (max !== undefined && value > max);
+            const chosen = field.text === value;
+            return (
+              <button key={value} type="button" role="gridcell" aria-selected={chosen} disabled={disabled || unavailable} onClick={() => { field.set(value); setOpen(false); }}
+                className={cn("flex size-8 items-center justify-center rounded-md text-[13px] tabular-nums transition-colors",
+                  chosen ? "bg-accent text-accent-ink" : value === today ? "text-ink ring-1 ring-ink/20" : "text-ink-secondary hover:bg-menu-hover hover:text-ink",
+                  unavailable && "opacity-40")}>
+                {date.getDate()}
+              </button>
+            );
+          })}
+        </div>
+      </WidgetMenu>
     </span>
   );
 }
@@ -393,7 +476,7 @@ export function WidgetInput({ node, bare }: { node: WidgetNode; bare: boolean })
       placeholder={widgetString(node, "placeholder")}
       pattern={widgetString(node, "pattern")}
       onChange={(event) => field.set(event.target.value)}
-      className={cn(WIDGET_FIELD, bare && "w-44 max-w-[60%] text-end")}
+      className={cn(WIDGET_FIELD, bare && "w-44 max-w-[60%] text-end", widgetString(node, "inputType") === "number" && "appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0")}
     />
   );
 }
