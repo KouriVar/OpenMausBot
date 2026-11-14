@@ -5,11 +5,11 @@
 
 ## 这是什么
 
-这是我自用的 OpenMausBot 个人 fork：在官方代码之上按自己的使用习惯改界面、加汉化、关掉不需要的东西。
+这是我自用的 OpenMausBot 个人 fork。在官方代码之上按自己的习惯改界面、加汉化、关掉用不到的入口。
 
-- **只保留 Simple 模式**（`SIMPLE_ONLY = true`），不提供 Advanced 模式开关。
-- **版本号自己一套**：V0.1、V0.2……跟官方版本号无关；每个版本基于官方哪个 tag（例如 `v0.1.151`）写在 [CHANGELOG.md](CHANGELOG.md) 的对应小节里。
-- 发布走本仓库的 GitHub Releases，一律标为 pre-release；不发布 npm 包、Docker 镜像或其它渠道。
+- **默认 Simple 模式**（`SIMPLE_ONLY = true`）。高级模式要在设置 → 这个应用连点应用图标十次解锁。
+- **版本号自己一套**：V0.1.0、V0.2.0……跟官方版本号无关。每个版本基于官方哪个 tag，写在 [CHANGELOG.md](CHANGELOG.md) 对应小节里。
+- 发布走本仓库的 GitHub Releases，不发布 npm 包、Docker 镜像或其它渠道。
 
 ## 和官方的主要区别
 
@@ -27,24 +27,25 @@
   - 侧栏可以整体隐藏，左边缘留一个细长提手，点击或向右拖可唤回收起状态的侧栏；
   - 姿态/头像相关的小修（Bloub 头像、群组头像、行圆角等）。
 - **汉化**：右键菜单（含「更多」子菜单）、首次回复提示、新 bot 引导卡片、设置页大部分新增文案等均为中文。
-- **更新跟随本仓库**：更新源指向 `KouriVar/OpenMausBot` 的 Release，不会把自己替换成官方版本。Windows 自动检查、下载并原地安装新版本；macOS 未签名不能原地替换，点「检查更新」会在有新版本时打开发版页。
+- **交互式回答**：图表、卡片和小工具直接画在回复正文里。设置 → 外观 → 聊天里三档可选：组件（默认）、内联 `omb-ui` 块、纯数值。
+- **更新跟随本仓库**：更新源指向 `KouriVar/OpenMausBot` 的 Release，不会被替换成官方版本。Windows 会检查、下载并原地安装新版本；macOS 用 Apple Development 签名、未公证，不能原地替换，点「检查更新」会在有新版本时打开发版页。
 - **精简入口**：按需隐藏了一些云服务/付费相关入口与设置项（详见 CHANGELOG 里的 A 编号条目）。
 
 ## 下载安装
 
-到本仓库的 **Releases** 页面下载（个人构建均为 pre-release，选择最新 `v0.x.y`）：
+到本仓库的 **Releases** 页面下载。选最新的 V0.x.y 版本：
 
 - **macOS arm64**：`.dmg` 或 `.zip`
 - **Windows x64**：`OpenMausBot-<版本>-setup.exe`
 
 安装说明：
 
-- **macOS**：包未签名、未公证。首次打开如果被拦，右键 App →「打开」，或到「系统设置 → 隐私与安全性」里点「仍要打开」。如果提示「已损坏」，先去掉隔离属性再打开（把路径换成实际的 App 路径）：
+- **macOS**：用 Apple Development 签名，未公证。首次打开如果被拦，右键 App →「打开」，或到「系统设置 → 隐私与安全性」里点「仍要打开」。如果提示「已损坏」，先去掉隔离属性再打开（把路径换成实际的 App 路径）：
   ```bash
   xattr -dr com.apple.quarantine /Applications/OpenMausBot.app
   ```
 - **Windows**：安装包未签名，SmartScreen 会提示「Windows 已保护你的电脑」，点「更多信息 → 仍要运行」即可。
-- **升级**：不会自动更新；下载新版安装包覆盖安装即可。安装前建议先退出旧版。
+- **升级**：Windows 会在应用内提示并安装新版本。macOS 下载新 dmg 覆盖安装，安装前先退出旧版。
 
 ## macOS 首次打开要授予的权限
 
@@ -90,10 +91,11 @@ bash apply-ui-patch.sh
 
 ## 版本号规则
 
-- `package.json` 用 semver：`0.2.0` 这样。
-- 界面里显示成 `V0.3`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
-- git tag 用 `v0.x.y`，Release 标 pre-release。
-- [CHANGELOG.md](CHANGELOG.md) 每个版本新增一节：写清「基于官方 vX.Y.Z」和本版全部改动；历史 A 编号条目保留、不复用。
+- `package.json` 用 semver：`0.8.0` 这样。
+- 界面里显示成 `V0.8.0`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
+- git tag 用小写 `v0.x.y`，和界面上的 V0.x.y 只差大小写。
+- Release 标题也用 V0.8.0 这种写法。
+- [CHANGELOG.md](CHANGELOG.md) 每个版本新增一节：写清基于官方哪个 tag 和本版全部改动；历史条目保留、不复用。
 
 ## 合并上游的流程
 
