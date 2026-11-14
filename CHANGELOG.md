@@ -27,6 +27,78 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE037 · 0.7.2 — a quieter Advanced sidebar, inline answers finished, Settings fixed
+
+`0.7.2` trims the Advanced sidebar down to what a row has to say, finishes the parts of 0.7.1's components that read as
+unfinished — a bar with no value on it, a table of three rows with sort arrows, a "Pin to sidebar" in a Chinese window,
+a browser focus ring inside the sandbox — and fixes the settings window: one duplicate entry leaves the left column and
+the room under a page's last block now belongs to the content. One gap is written down instead of changed: an HTML page
+card's preview is a 220px window onto a page that keeps its own height, so a page that centres its content looks blank
+in the card until it is opened.
+
+- **A bot row keeps only its own content** (Advanced; Simple is untouched): avatar, name, role marks (crown, flag) and
+  the reply preview. The expand chevron on the left is gone and so is the gutter it reserved, and no state — resting,
+  hovered or selected — draws the time, a new-thread `+`, a new folder or the `…` menu; every operation goes through the
+  right-click menu, which the whole row still opens.
+- **Every avatar now starts on one line**, at x = 24 px from the sidebar's list edge: a bot's avatar (with or without a
+  thread list to open), a section title's text and a group chat's faces. A selected row carries 12 px on both sides
+  instead of 24/36, so its pill is symmetric and starts from the left like any other row.
+- **A section header keeps its chevron and its keyboard reorder** (Alt+Up/Down) and no longer draws the drag dot on its
+  right; dragging still works from the whole row where it worked before, and the `sidebar.section.dragToReorder` key goes
+  with the dot.
+- **The footer's two round controls** (search and `+`) become 60% fills — in both the light and the dark skin — so only
+  the material behind them shows through while the glyph stays at full strength; hover and press deepen that same fill by
+  one step instead of snapping back to a solid colour, and the edge keeps its 7% ink on light skins and steps to 20% on
+  dark ones.
+- **Inline bar charts name their numbers**: each bar carries its value above it and the y axis is drawn with numbered
+  ticks (a chart can still ask for the old axis with `showYAxis: false`); a stacked pile keeps no per-segment labels,
+  because they would land on the segment above it.
+- **A short table is a comparison, not a data grid**: an inline table of eight rows or fewer drops the sort arrows in
+  its header, while a longer one keeps sorting and its arrows; markdown tables and the data panel are unchanged.
+- **Chinese copy caught up where the pack had none**: the page card's "Pin to sidebar" (`固定到侧栏`) and the hints and
+  full-pin notice beside it, the USB phone takeover row in Early features (`查看并接管 USB 手机`, with its description),
+  and the Published apps page (`已发布的应用`, its empty state and its explanation).
+- **The HTML sandbox takes the app's focus ring**: native controls inside a bot's page (a slider, a button) draw the
+  skin's focus colour instead of the browser's own ring, and a page that styles `:focus-visible` itself still wins.
+- **Settings loses "Your account" from the left column** because Profile already covers it: the page itself stays — every
+  old link, the profile menu's Cloud row and search still open it, never blank — and the place and app groups close up to
+  the same 2px rhythm as every other pair of rows instead of leaving an empty group's 16px behind. What only that page
+  offered, and Profile does not, is the Cloud sign-in, the sign-out, the other-email and organization rows and the
+  product-updates consent.
+- **The last block of a settings page can be scrolled fully into view**: the 48 px under it is now a spacer inside the
+  scrolling content instead of the scroller's own bottom padding, so it counts in what can be scrolled to, it is the same
+  on every page, and the scroller's 10 px fade lands on that empty room instead of on a block's text.
+
+中文：**V0.7.2：高级模式侧栏更安静，正文组件收尾，设置页修复**
+
+`0.7.2` 把高级模式侧栏精简到一行真正要说的内容，补完 0.7.1 正文组件里几处「没做完」的地方 —— 柱子上没有数值、三行的表也
+带排序箭头、中文窗口里的 "Pin to sidebar"、沙盒里浏览器的焦点框 —— 并修好设置窗口：「你的账号」这个重复入口从左栏消失，
+页面最后一块下面的留白改由内容自己占。有一处不改、只写进说明：聊天里 HTML 页面卡片的预览是「220px 的窗口看一张按自己
+高度排版的页面」，所以内容垂直居中的页面在卡片里看起来是空白，点开才看得到。
+
+- **bot 行只留自己的内容**（高级模式；简易模式不动）：头像、名字、身份标记（皇冠、旗子）和正文摘要。左侧的展开箭头删掉了，
+  给箭头预留的空位也一起删掉；默认、hover、选中三种状态都不再出现时间、新建对话的 `+`、新建文件夹和 `…` 菜单 —— 所有操作
+  走右键菜单，整行任意位置仍然能弹出。
+- **所有头像现在都从同一条线开始**，距侧栏列表边缘 x = 24 px：bot 头像（有没有可展开的会话都一样）、分组标题的文字起点、
+  群聊头像。选中行的左右边距都是 12 px（原来是 24/36），底色从左边正常铺开、左右对称。
+- **分组标题保留折叠箭头和键盘调整顺序**（Alt+上/下），右边的拖动点点删掉；原来支持整行拖动的地方照旧，跟着消失的
+  `sidebar.section.dragToReorder` 文案也一并清掉。
+- **底栏两个圆形按钮**（搜索和 `+`）的填充改成 60% 不透明度 —— 浅色、深色都一样 —— 只让后面的毛玻璃透出来，图标保持全不透明；
+  hover 和按下是在这 60% 上再深一档，而不是跳回实色；描边浅色模式保持 7% 墨色，深色模式改为 20%。
+- **正文柱状图标出数值**：每根柱子顶上写自己的值，纵轴画出带数字的刻度（图表仍可用 `showYAxis: false` 关回旧样式）；堆叠柱
+  不加分段数值，因为会落到上一层柱子上。
+- **行数少的表是对比表，不是数据网格**：正文里 8 行及以下的表格不再显示表头排序箭头，更长的表格照旧可以排序、箭头保留；
+  markdown 表格和数据面板不变。
+- **补齐中文文案**：页面卡片的固定按钮（`固定到侧栏`）以及旁边的提示和「固定已满」说明、抢先体验里的 USB 手机接管行
+  （`查看并接管 USB 手机` 连同说明）、已发布的应用页（`已发布的应用`、空状态和说明）。
+- **HTML 沙盒改用应用的焦点样式**：机器人页面里的原生控件（滑块、按钮）画皮肤的焦点色，而不是浏览器自己的焦点框；页面
+  自己写了 `:focus-visible` 的仍然以页面为准。
+- **设置左栏去掉「你的账号」**，因为它和个人资料重复：页面本身保留 —— 旧链接、头像菜单里的 Cloud 行、搜索都还能打开它，
+  不会空白 —— 属地和应用两组之间收成和其他行一样的 2px 节奏，不再留下空组的 16px。只有那一页有、个人资料没有的功能是：
+  Cloud 登录、退出登录、其他邮箱与组织、产品更新邮件同意。
+- **每个设置页的最后一块都能完整滚出来**：它下面的 48 px 现在是滚动内容里的一个占位，而不是滚动容器自己的下内边距 ——
+  这样它一定计入「能滚到哪里」，每个页面都一样，滚动区那 10px 的淡出也落在空处而不是压在文字上。
+
 ### OE036 · 0.7.1 — interactive answers: components drawn inside the reply
 
 `0.7.1` puts the bot's components where they belong — inside the answer, not in a card after it — and gives the whole
