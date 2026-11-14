@@ -27,6 +27,32 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE041 · 0.7.6 — the inset card's uneven margins, a roomier sidebar rhythm, and a quieter department arrow
+
+`0.7.6` gives the inset content card a flush left edge and 4px on its other three sides, opens the sidebar's vertical
+rhythm, and moves a department's chevron to the row's far right.
+
+- **Inset layout**: the content card now sits flush against the sidebar's right edge, with 4px above, right and below;
+  its rounded corners and hairline are unchanged. Windows follows the same measurements.
+- **Sidebar rhythm**: 0px above the wordmark, 24px from its bottom to the first department title's text, and 12px from a
+  department's last line — its title when collapsed — to the next department title. The values live in
+  `src/fork/sidebar-metrics.ts` and account for the list's own padding and the title's line box.
+- **Department arrow**: the chevron moves to the title row's far right, on the same content edge as a bot row. It is
+  opacity-only, hidden at rest and shown on hover or keyboard focus, so the name never moves; the whole title row
+  toggles, and the arrow points down when open and right when collapsed.
+- **Version**: 0.7.6.
+
+中文：**V0.7.6：内嵌卡片四边不等距，侧栏纵向节奏更宽松，部门箭头更安静**
+
+`0.7.6` 让内嵌布局的内容卡片左边紧贴侧栏、其余三边各 4px，拉开侧栏的纵向节奏，并把部门标题的箭头移到整行最右侧。
+
+- **内嵌布局**：内容卡片左边与侧栏右边缘齐平，上、右、下各 4px；圆角和细描边不变。Windows 用同一套数值。
+- **侧栏纵向节奏**：字标上方 0px，字标底部到第一个部门标题文字 24px；上一个部门最后一行（折叠时就是标题）底部到下一个
+  部门标题文字 12px。数值放在 `src/fork/sidebar-metrics.ts`，并把列表自身的内边距和标题行高一起算进去。
+- **部门箭头**：箭头移到标题行最右侧，和 bot 行内容右边界对齐；只用透明度过渡，静止时隐藏，悬停或键盘聚焦时显示，
+  文字不位移；点击整行即可展开/收起，展开朝下、收起朝右。
+- **版本**：0.7.6。
+
 ### OE040 · 0.7.5 — the sidebar's one left line, room around the wordmark, and a brand switch
 
 `0.7.5` puts every resting sidebar item on the line the traffic lights start from, gives the wordmark more air, and
