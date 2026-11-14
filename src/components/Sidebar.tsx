@@ -121,7 +121,7 @@ import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
 import { SidebarBrand } from "@/fork/SidebarBrand";
 import { useBrandMark } from "@/fork/brand-mark";
-import { SIDEBAR_BRAND_GAP_BOTTOM, SIDEBAR_BRAND_GAP_TOP, SIDEBAR_CONTENT_LEFT, SIDEBAR_CONTENT_LEFT_FRAMED, sidebarRowInset } from "@/fork/sidebar-metrics";
+import { SIDEBAR_BRAND_GAP_TOP, SIDEBAR_CONTENT_LEFT, SIDEBAR_CONTENT_LEFT_FRAMED, sidebarBrandBottomPadding, sidebarBrandListTop, sidebarRowInset } from "@/fork/sidebar-metrics";
 
 export { PinnedBotCircle, PinnedCircleThreadPanel, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 export { ArchivedBotRow, ArchivedBotsPanel, archivedDeleteAllCopy, botConfirmCopy, type BotConfirmKind } from "./ArchivedBotsPanel";
@@ -1091,6 +1091,8 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   // Fork: the one left line, measured from the traffic lights (16 with the frame off, 12 in the frame bar).
   const contentLeft = framed && capabilities.windowChrome === "mac-inset" ? SIDEBAR_CONTENT_LEFT_FRAMED : SIDEBAR_CONTENT_LEFT;
   const rowInset = sidebarRowInset(contentLeft);
+  const brandListTop = sidebarBrandListTop(simple);
+  const brandBottomPadding = sidebarBrandBottomPadding(simple);
   const draggableChrome = capabilities.windowChrome !== "native";
   // SAFETY: Electron's -webkit-app-region is not in React's CSSProperties type; the renderer accepts it as an inline
   // style.
@@ -1273,7 +1275,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
         "--sidebar-row-inset": `${rowInset}px`,
       } as CSSProperties}
       className={cn(
-        "relative flex h-full shrink-0 flex-col max-md:[--scroll-fade-surface:var(--color-app)]",
+        "relative flex h-full shrink-0 flex-col",
         vibrancy.on ? "bg-[var(--sidebar-glass)]" : "bg-panel",
         density === "icons" && !rail ? SIDEBAR_ICON_COLUMN_EDGE : "border-r-[0.5px] border-edge",
         sizing.resizing && !sizing.snapping ? "transition-none" : "transition-[width] duration-200 motion-reduce:transition-none",
@@ -1287,7 +1289,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
         reveal && "motion-safe:animate-[sidebar-reveal_180ms_ease-out]",
       )}
     >
-      <GlassScrollFrame className="flex-1" fade><PlaceTint />
+      <GlassScrollFrame className="flex-1" stacked><PlaceTint />
       <GlassBar edge="top">
       <div
         data-sidebar-top-row={corner ? "corner" : true}
@@ -1330,7 +1332,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           content line, in both Simple and Advanced. The icons rail has no room for a wordmark. */}
       {brandMark && density !== "icons" && !phone && (
         <div data-sidebar-brand="" className="flex shrink-0 items-center pr-4"
-          style={{ paddingLeft: "var(--sidebar-content-left, 16px)", paddingTop: SIDEBAR_BRAND_GAP_TOP, paddingBottom: SIDEBAR_BRAND_GAP_BOTTOM }}>
+          style={{ paddingLeft: "var(--sidebar-content-left, 16px)", paddingTop: SIDEBAR_BRAND_GAP_TOP, paddingBottom: brandBottomPadding }}>
           <SidebarBrand className="h-5 w-auto text-ink" />
         </div>
       )}
@@ -1400,7 +1402,8 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
 
       <GlassScroller className={rail ? "[scrollbar-gutter:stable_both-edges]" : simpleDesk ? "px-3" : density === "icons" ? "px-2 [scrollbar-gutter:stable_both-edges]" : "px-2"}>
         {/* Fork: the icons rail keeps Simple's 8px breathing room at the top; only Advanced's list runs tighter. */}
-        <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced && density !== "icons" ? "gap-0.5" : "gap-1 pb-2 pt-2")}>
+        <div className={cn("flex flex-col", simpleDesk ? cn("gap-0.5 pb-2", !tiles && "pt-2") : advanced && density !== "icons" ? "gap-0.5" : "gap-1 pb-2 pt-2")}
+          style={brandMark && simpleDesk && !tiles ? { paddingTop: brandListTop } : undefined}>
           {matchingBots.length === 0 && visibleGroups.length === 0 && q && q.length < MIN_QUERY && (
             <div className="px-3 py-6 text-center text-[13px] text-ink-secondary">{t("sidebar.noMatch", { query })}</div>
           )}

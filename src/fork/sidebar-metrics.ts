@@ -12,9 +12,28 @@ export const SIDEBAR_CONTENT_LEFT_FRAMED = 12;
 /** The list box starts 12 px inside the sidebar, so a row's own padding is the difference. */
 export const SIDEBAR_ROW_BOX_LEFT = 12;
 
-/** The wordmark's breathing room: above the mark and between it and the first section. */
-export const SIDEBAR_BRAND_GAP_TOP = 20;
-export const SIDEBAR_BRAND_GAP_BOTTOM = 20;
+/** The wordmark's breathing room: above the mark, and the real distance from its bottom to the first
+ * department title's text. */
+export const SIDEBAR_BRAND_GAP_TOP = 24;
+export const SIDEBAR_BRAND_GAP_BOTTOM = 12;
+
+/** What the list already adds above its first section: its own top padding and the title's line box. The
+ * brand's bottom padding is the target gap minus these, so the measured distance is 12 in both modes. */
+export const SIDEBAR_BRAND_LIST_TOP = 8;
+export const SIDEBAR_BRAND_LIST_TOP_SIMPLE = 4;
+export const SIDEBAR_SECTION_TITLE_OFFSET = 2;
+export const SIDEBAR_SECTION_TITLE_OFFSET_SIMPLE = 8;
+
+/** The list's top padding while the wordmark is shown. */
+export function sidebarBrandListTop(simple: boolean): number {
+  return simple ? SIDEBAR_BRAND_LIST_TOP_SIMPLE : SIDEBAR_BRAND_LIST_TOP;
+}
+
+/** The wordmark wrapper's bottom padding for a real 12px between its ink and the first section's text. */
+export function sidebarBrandBottomPadding(simple: boolean): number {
+  const titleOffset = simple ? SIDEBAR_SECTION_TITLE_OFFSET_SIMPLE : SIDEBAR_SECTION_TITLE_OFFSET;
+  return Math.max(0, SIDEBAR_BRAND_GAP_BOTTOM - sidebarBrandListTop(simple) - titleOffset);
+}
 
 /** The left padding a row or a section header adds inside the list box to reach the line. */
 export function sidebarRowInset(contentLeft: number): number {
