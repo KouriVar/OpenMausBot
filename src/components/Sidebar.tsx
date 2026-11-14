@@ -73,7 +73,6 @@ import { SidebarFooter } from "./SidebarFooter";
 import { SidebarPhoneBar } from "./SidebarPhoneBar";
 import { PhoneHero } from "./SidebarPhoneHero";
 import { SidebarProfileMenu } from "./SidebarProfileMenu";
-import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { GlassBar, GlassScrollFrame, GlassScroller } from "./GlassScrollFrame";
 import { FORK_ADVANCED_SIMPLE_SHELL } from "@/fork/advanced-sidebar";
@@ -90,6 +89,7 @@ import { PHONE_TOP_BUTTON, SIMPLE_CORNER_BUTTON, SIMPLE_ROW_FOCUS, SIMPLE_TOP_BU
 import { isSidebarToggle } from "@/lib/keyboard-shortcuts";
 import { SimpleRailFooter } from "./SidebarSimpleRail";
 import { ACCOUNT_MENU_ACTIONS } from "@/fork/ui-batch-1110b";
+import { sidebarAccountMenuActions } from "@/fork/account-menu-actions";
 import { RAIL_MENU_ACTIONS, RailActionsProvider } from "@/fork/rail-actions";
 import { SidebarBottomActions } from "./SidebarBottomActions";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -1261,35 +1261,15 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
     </div>
   );
 
-  const accountMenuActions: SidebarMenuItem[] = [
-    { key: "account-search", label: t("sidebar.searchAria"), icon: <Search size={16} />, onSelect: () => setSearchOpen(true) },
-    {
-      key: "account-new",
-      label: remoteClient ? t("sidebar.new") : t("sidebar.newOrShare"),
-      icon: <Plus size={16} />,
-      submenu: [
-        ...(advanced
-          ? [{ key: "account-new-chat", label: t("sidebar.newChat.title"), icon: <MessageSquarePlus size={16} />, onSelect: () => setNewChatOpen(true) }]
-          : plusBot
-            ? [{ key: "account-new-thread", label: t("sidebar.newConversationWith", { name: plusBot.name }), icon: <SquarePen size={16} />, onSelect: () => dispatch({ type: "newTask", botId: plusBot.id }) }]
-            : []),
-        ...(teamSettingsAllowed !== false || state.config?.team
-          ? [{ key: "account-new-bot", label: t(advanced ? "sidebar.newBot" : "sidebar.newBotSimple"), icon: <BotIcon size={16} />, onSelect: () => dispatch({ type: "newBot" }) }]
-          : []),
-        { key: "account-new-channel", label: t("sidebar.newChannel.title"), icon: <Users size={16} />, onSelect: () => setNewRoom(true) },
-        ...(advanced && !remoteClient && teamSettingsAllowed !== false
-          ? [{ key: "account-new-team", label: t("team.create"), icon: <FolderPlus size={16} />, onSelect: () => setNewTeam(true) }]
-          : []),
-        ...(teamSettingsAllowed !== false
-          ? [{ key: "account-team-library", label: t("sidebar.teamLibrary"), icon: <LayoutTemplate size={16} />, onSelect: () => setTeamLibraryOpen(true) }]
-          : []),
-        ...(advanced && archivedBots.length > 0
-          ? [{ key: "account-archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, onSelect: () => setArchivedBotsOpen(true) }]
-          : []),
-      ],
-      onSelect: () => {},
-    },
-  ];
+  const accountMenuActions = sidebarAccountMenuActions({
+    advanced, remote: remoteClient, plusBotName: plusBot?.name,
+    canAddBot: teamSettingsAllowed !== false || Boolean(state.config?.team), teamLibrary: teamSettingsAllowed !== false,
+    archivedCount: archivedBots.length,
+    onSearch: () => setSearchOpen(true), onNewChat: () => setNewChatOpen(true),
+    onNewThread: () => { if (plusBot) dispatch({ type: "newTask", botId: plusBot.id }); },
+    onNewBot: () => dispatch({ type: "newBot" }), onNewChannel: () => setNewRoom(true),
+    onNewTeam: () => setNewTeam(true), onTeamLibrary: () => setTeamLibraryOpen(true), onArchived: () => setArchivedBotsOpen(true),
+  });
 
   return (
     <aside
