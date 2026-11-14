@@ -27,6 +27,63 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE038 · 0.7.3 — the whole upstream in, this fork's screens unchanged, Chinese complete
+
+`0.7.3` merges 238 upstream commits (v0.1.155-v0.1.157) on top of everything 0.7.2 changed, and this fork's own screens
+come through it untouched: the Advanced sidebar's rows, the settings window's left column, the avatar menu's Inbox row,
+the department header, the one-card inset layout and the three-way interactive answers setting are all still as 0.7.2
+left them. The release is the merge, the Chinese pack and the version.
+
+- **Upstream's features, inside this fork's own screens**: the settings window now applies every Appearance, General and
+  remote-access preference as it is changed, each on a Change card that can be undone, with the new `app_settings` tool
+  letting a bot change the same settings on a Change/Cancel card; the built-in browser gains an optional SOCKS5 proxy for
+  public sites and an app locale; voice gains listening with an ElevenLabs key, Thai through Eleven v3, Georgian
+  Mtavruli and Fish Audio Live 3 as a Live-call provider; a Custom ACP engine can opt in to `/steer` steering; team
+  setup works in bulk for a Chief (up to 40 bots, an added rule) and a default bot can be demoted to a regular bot;
+  any message can fork its conversation into its own panel; the inbox gains Mark all as read; the phone's wire, card,
+  widget, mascot and pairing code move into `packages/phone-protocol` and a paired phone can read the desktop's version
+  from `/api/health`; usage bars split by the models a group ran; a bot finds the skills a trusted project ships; and the
+  shared Local VM's holds, hand-backs and parked turns keep their place.
+- **Everything 0.7.2 fixed is still in place**: the Advanced sidebar keeps its quiet rows (no drag dot on a section
+  header, no expand chevron or left gutter on a bot row, avatars and section titles on the 24 px line, 12 px either side
+  of a selected row, no time or `+` or folder or `…` on a bot row, the footer's two controls at a 60% fill and a 20%
+  edge in the dark); the settings window still has no Your account entry, closes the gap between Data and General, and
+  ends every page on the shared `[data-settings-end]` spacer; the avatar menu still carries Inbox under Apps with its
+  unread dot, and the sidebar's bottom bar still has no inbox button; a department's header is still its name and
+  chevron only, with 部门设置 in its menu; the inset layout is still one card; and interactive answers still has its
+  three levels defaulting to Components, inline `omb-ui` blocks, bar values with a numbered y axis, no sort arrows on a
+  table of eight rows or fewer, and the sandbox's own focus ring.
+- **Chinese caught up**: 492 strings the 0.7.2 report listed and 0.1.156/0.1.157 added — image generation, engines, the
+  keys rows and ModelGo, the skins' taglines, the 1Password login choices, the away-email help, the app-settings cards,
+  the cloud-desktop reset, Burst, room picks, the SOCKS5 proxy row, Amazon Bedrock, Ollama, the published-apps cards,
+  the team side and conversation sharing, and the 24 mascot bodies. `i18n:check` passes on all 16 languages, with zh and
+  pt-br at 100%, and `source-hashes.json` is recorded against this fork's own English again.
+
+中文：**V0.7.3：上游全量合入，我方界面原样，中文补齐**
+
+`0.7.3` 在 0.7.2 的全部改动之上合入上游 238 个提交（v0.1.155–v0.1.157），我方自己的界面在这次合并后完全不变：高级模式侧栏的
+行、设置窗口左栏、头像菜单里的收件箱行、部门标题行、只有一张卡片的内嵌布局，以及三档交互式回答，都还是 0.7.2 的样子。
+这一版做的就是合并、中文和版本号。
+
+- **上游的新功能，接在我方界面里**：设置窗口现在改哪一项就立刻生效（外观、通用、远程访问全部如此），每项都在可撤销的
+  更改卡片上完成；新的 `app_settings` 工具让机器人也能在「更改 / 取消」卡片上改同样的设置；内置浏览器新增可选的 SOCKS5
+  代理（只用于公开网站）和应用语言；语音新增用 ElevenLabs 密钥收听、用 Eleven v3 说泰语、格鲁吉亚语 Mtavruli，以及
+  Fish Audio Live 3 作为实时通话提供方；自定义 ACP 引擎可以选择启用 `/steer` 转向；团队设置支持批量编辑（参谋长最多
+  40 个机器人，并可加一条规则），默认机器人可以降级为普通机器人；任意消息都能把对话分叉到独立面板；收件箱新增「全部标为
+  已读」；手机的通信协议、卡片、组件、吉祥物和配对码移入 `packages/phone-protocol`，配对的手机可以从 `/api/health` 读到
+  桌面端的版本；用量柱状图按群里运行过的模型分色；机器人能找到受信任项目自带的技能；共享本地虚拟机的占用、交回和暂存的
+  回合都保持原位。
+- **0.7.2 修好的地方一处不少**：高级模式侧栏仍是那套安静的行（分组标题没有拖动点点，bot 行没有展开箭头和左侧空位，头像和
+  分组标题对齐在 24px，选中行左右各 12px，bot 行没有时间、`+`、文件夹和 `…`，底栏两个控件 60% 填充、深色模式 20% 描边）；
+  设置窗口仍没有「你的账号」入口，「数据」和「通用」之间没有多余空隙，每页底部仍是共享的 `[data-settings-end]` 占位；
+  头像菜单的「应用」下面仍有「收件箱」和未读绿点，底栏仍然没有收件箱按钮；部门标题行仍然只有名字和箭头，菜单文案仍是
+  「部门设置」；内嵌布局仍然只有一张卡片；交互式回答仍是三档、默认「组件」，`omb-ui` 正文内联渲染，柱状图带数值和带数字的
+  Y 轴，8 行及以下的表格不显示排序箭头，沙盒焦点框样式还在。
+- **中文补齐**：0.7.2 报告里列出的、以及 0.1.156/0.1.157 新带来的 492 条 —— 图片生成、引擎、密钥各行与 ModelGo、皮肤标语、
+  1Password 登录选择、离开时的邮件提醒、应用设置卡片、云桌面重置、Burst、群聊里的指认、SOCKS5 代理行、Amazon Bedrock、
+  Ollama、已发布应用的各张卡片、团队侧与对话共享，以及 24 个吉祥物身体。`i18n:check` 在全部 16 种语言上通过，zh 与
+  pt-br 均为 100%，`source-hashes.json` 也重新按我方英文记录。
+
 ### OE037 · 0.7.2 — a quieter Advanced sidebar, inline answers finished, Settings fixed
 
 `0.7.2` trims the Advanced sidebar down to what a row has to say, finishes the parts of 0.7.1's components that read as
