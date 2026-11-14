@@ -10,6 +10,7 @@ import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { SidebarVersionRow } from "@/fork/SidebarVersionRow";
+import { MarkAmbiguityRow } from "@/fork/MarkAmbiguityRow";
 import { SIDEBAR_VERSION_SETTING_SHOWN } from "@/fork/sidebar-version";
 import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
 import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
@@ -133,6 +134,7 @@ export function GeneralPage() {
         <LanguageRow simple />
         <SendKeyRow simple />
         <FollowUpRow simple />
+        <MarkAmbiguityRow />
         {window.ogb?.talkShortcut ? <TalkShortcutRow /> : elsewhere(window.ogb?.talkShortcut, ctx) && ctx.cloud ? <InertRow title={t("settings.search.talk")} control={<span className="text-[13px] leading-5 text-ink-secondary">{t("settings.general.talkOff")}</span>} /> : null}
       </SettingsRows>
     </SettingsGroup>

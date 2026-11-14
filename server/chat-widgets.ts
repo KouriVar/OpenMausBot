@@ -142,14 +142,14 @@ export function createAgentCard(args: AgentCardArgs): AgentCardResult | Promise<
     if (!args.apps) return { ok: false, status: 400, error: "Pages are not available on this computer." };
     return args.apps.createAppCard({ bot, threadId, input, ...(args.authored ? { authored: args.authored } : {}), ...(args.folders ? { folders: args.folders } : {}) });
   }
-  if (input.tool !== "show_widget" && input.tool !== "update_widget") {
-    return { ok: false, status: 400, error: "tool: must be show_widget or update_widget." };
+  if (input.tool !== "show_widget" && input.tool !== "ask_fill" && input.tool !== "update_widget") {
+    return { ok: false, status: 400, error: "tool: must be show_widget, ask_fill or update_widget." };
   }
 
-  if (input.tool === "show_widget") {
+  if (input.tool === "show_widget" || input.tool === "ask_fill") {
     const widget = canonicalWidget(input);
     if (!widget.ok) return widget;
-    const message = store.appendMessage(threadId, { role: "bot", kind: "widget", text: widget.text, widget: { v: 1, root: widget.root }, ...speakerIn(store, threadId, bot), ...(args.serverCard ? { serverCard: true as const } : {}) });
+    const message = store.appendMessage(threadId, { role: "bot", kind: "widget", text: widget.text, widget: { v: 1, root: widget.root, ...(input.tool === "ask_fill" ? { fill: true as const } : {}) }, ...speakerIn(store, threadId, bot), ...(args.serverCard ? { serverCard: true as const } : {}) });
     args.authored?.(message.id);
     return { ok: true, messageId: message.id, ...(widget.masked ? { masked: true as const } : {}) };
   }
@@ -245,6 +245,21 @@ export function prepareWidgetPress(
       store.patchMessage(threadId, messageId, { widget: { ...current, settled } });
     },
   };
+}
+
+/** A fill card's values, checked exactly as a press would be: `ref: "fill"` is refused unless the stored widget is one. */
+export function prepareWidgetFill(
+  store: Pick<AgentCardStore, "messagesFor" | "patchMessage">,
+  threadId: string,
+  widgetFill: unknown,
+  sendId: string | undefined,
+): WidgetPress {
+  if (!isRecord(widgetFill)) return { ok: false, status: 400, error: "widgetFill must be {messageId, rev?, values?, other?}" };
+  const { messageId, values, other, rev } = widgetFill;
+  if (typeof messageId !== "string" || !/^[\w-]+$/.test(messageId) || !isValues(values) || !isOther(other) || !isRevision(rev)) {
+    return { ok: false, status: 400, error: "widgetFill must be {messageId, rev?, values?, other?}" };
+  }
+  return prepareWidgetPress(store, threadId, { messageId, ref: "fill", values, other, rev }, sendId);
 }
 
 /** A cancelled queued press never reached the bot, so the widget is live again. */

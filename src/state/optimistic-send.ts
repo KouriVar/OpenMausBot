@@ -1,5 +1,6 @@
 // A send shows at once as an optimistic user message; the server's copy, which carries the same sendId, replaces it.
 import { ApiError } from "./api";
+import type { Assumption } from "../../shared/assumptions";
 import type { Message } from "./store";
 
 export const optimisticMessageId = (sendId: string): string => `optimistic-${sendId}`;
@@ -10,6 +11,7 @@ export function optimisticUserMessage(
   replyToId?: string,
   parentId?: string | null,
   channelMode?: "chat" | "goal",
+  assumptions?: Assumption[],
 ): Message {
   return {
     id: optimisticMessageId(sendId),
@@ -21,6 +23,7 @@ export function optimisticUserMessage(
     replyToId,
     sendId,
     channelMode,
+    ...(assumptions?.length ? { assumptions } : {}),
   };
 }
 

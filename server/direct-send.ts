@@ -2,6 +2,7 @@
 import type { FollowUp } from "../shared/follow-up.ts";
 import type { ResolvedSender, SteerQueueReason } from "../shared/wire.ts";
 import type { DataContext } from "./data-context.ts";
+import type { Assumption } from "../shared/assumptions.ts";
 import type { Message } from "./store.ts";
 import type { UsageTrigger } from "./usage-ledger.ts";
 
@@ -22,6 +23,8 @@ export interface DirectSendInput {
   followUp?: FollowUp;
   /** Bot ids the person picked from the @ list. */
   mentions?: string[];
+  /** The words the person clarified before sending; model context, not part of the message bubble. */
+  assumptions?: Assumption[];
   /** The sender is the team's Owner or an Admin, so a typed stop may end someone else's run. */
   admin?: boolean;
 }

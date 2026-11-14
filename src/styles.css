@@ -72,6 +72,12 @@
   color: transparent;
   caret-color: var(--color-ink);
 }
+/* The composer's ambiguous words: a quiet dashed line under the text, using the muted ink token. */
+::highlight(omb-ambiguous) {
+  text-decoration: underline dashed;
+  text-decoration-color: var(--color-ink-tertiary);
+  text-underline-offset: 3px;
+}
 .mention-editor textarea::selection {
   color: var(--color-ink);
   background: var(--color-raised-hover);

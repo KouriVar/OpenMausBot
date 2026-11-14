@@ -281,6 +281,9 @@ export const WIDGET_PROMPT =
  * picks in it never comes back, so a question is still the tool's. */
 export const COMPONENT_FENCE_PROMPT =
   ` A component belongs in the reply at the point the person should see it: write a fenced code block tagged ${COMPONENT_FENCE_TAG} whose body is the same JSON widget tree show_widget takes. Open the block on a line of its own, never inside a sentence, and the chat draws the component there. The fence only draws: nothing the person touches in it comes back to you, so a question they answer is still show_widget.`;
+/** Ask_fill: blanks in the middle of an answer, available at every interactive-answer tier. */
+export const FILL_PROMPT =
+  " When the answer you are writing depends on values only the person has, write up to the missing part, then call ask_fill with one Card whose fields are those blanks, and end your turn. Use Select for one choice, MultiSelect for several, Input with inputType \"number\" for a number, Input for short text, and a Table of Select or RadioGroup fields for a two-dimensional grid; name every field and give it a short label. Do not press send for them: the values come back as a continuation of this answer. Do not repeat the values in your text, and never ask for passwords there.";
 /** The widest tier's page tool: a component is what a reply reaches for first. */
 export const HTML_PAGE_PROMPT =
   " A page is what a component cannot draw: prefer a component; write HTML only for animation, a simulation, a canvas or something else a component cannot do.";

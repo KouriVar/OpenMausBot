@@ -8,11 +8,12 @@ import { isPersistentQuestionCard } from "../../shared/ask-question.ts";
 import { normalizeReaction, reactionAnswer } from "../../shared/reactions.ts";
 import type { WidgetAction } from "../../shared/widget.ts";
 import { parseFollowUp } from "../../shared/follow-up.ts";
+import { parseAssumptions } from "../../shared/assumptions.ts";
 import type { ResolvedSender } from "../../shared/wire.ts";
 import { admit } from "../admission.ts";
 import { dismissQuestionCard } from "../card-dismissal.ts";
 import { AppMessageRate, appContextBlock, prepareAppMessage } from "../chat-apps.ts";
-import { prepareWidgetPress, reopenCancelledPress } from "../chat-widgets.ts";
+import { prepareWidgetFill, prepareWidgetPress, reopenCancelledPress } from "../chat-widgets.ts";
 import type { ModelSelection, RequestOutcome, SteerOutcome } from "../contracts.ts";
 import { parseDataContext, type DataContext } from "../data-context.ts";
 import { OPEN_PAGE_BAD, openPageBlock } from "../open-page.ts";
@@ -75,6 +76,7 @@ export interface BotMessageRouteDeps {
   startTurn(botId: string, text: string, opts?: {
     threadId?: string; replyTo?: Message; sendId?: string; sender?: ResolvedSender; trigger?: UsageTrigger; relayed?: boolean;
     dataContext?: DataContext; compactOnly?: boolean; cardContinuation?: boolean; editedMessageId?: string;
+    assumptions?: import("../../shared/assumptions.ts").Assumption[];
   }): Promise<Message>;
   usageTriggerFor(auth: RequestAuth): UsageTrigger;
   messageSender(auth: RequestAuth): ResolvedSender | undefined;
@@ -198,7 +200,12 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         return json(res, 400, { error: "body must be a JSON object" });
       }
       const pressed = body.widgetAction !== undefined && body.widgetAction !== null;
+      const filling = body.widgetFill !== undefined && body.widgetFill !== null;
       if (guarded && pressed) return json(res, 400, { error: "guarded sends cannot answer a widget" });
+      if (guarded && filling) return json(res, 400, { error: "guarded sends cannot fill a widget" });
+      if (filling && (pressed || body.appMessage !== undefined || body.pointed !== undefined || body.openPage !== undefined || body.followUp !== undefined)) {
+        return json(res, 400, { error: "a fill sends only widgetFill" });
+      }
       const fromAnApp = body.appMessage !== undefined && body.appMessage !== null;
       if (guarded && fromAnApp) return json(res, 400, { error: "guarded sends cannot speak for an app" });
       if (pressed && fromAnApp) return json(res, 400, { error: "send widgetAction or appMessage, not both" });
@@ -210,6 +217,10 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       if (followUp === null) return json(res, 400, { error: "followUp must be steer, queue or restart" });
       const mentions = parseMentionPicks(body.mentions);
       if (mentions === null) return json(res, 400, { error: "mentions must be a list of up to 20 bot ids" });
+      if (body.assumptions !== undefined && body.assumptions !== null && parseAssumptions(body.assumptions) === undefined) {
+        return json(res, 400, { error: "assumptions must be a list of up to 3 word/meaning pairs" });
+      }
+      const assumptions = parseAssumptions(body.assumptions);
       if (followUp && (guarded || pressed || fromAnApp)) return json(res, 400, { error: "only a typed message can choose how it meets the running turn" });
       // A distinct route, so an older server answers 404 instead of ignoring the safety preconditions.
       const guardedBody = guarded ? guardedSendSchema.safeParse(body) : null;
@@ -223,10 +234,10 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       if (guardedBody?.data?.reaction !== undefined && (!reactionAnswer(relayed) || !body.replyToId || !guardedBody.data.onBehalfOf)) {
         return json(res, 400, { error: "a relayed reaction is a 👍 or 👎 on the message in replyToId, made by the person in onBehalfOf" });
       }
-      const textRefused = pressed || fromAnApp ? null : messageTextRefusal(body.text);
+      const textRefused = pressed || fromAnApp || filling ? null : messageTextRefusal(body.text);
       if (textRefused) return json(res, 400, { error: textRefused });
-      const typed = pressed || fromAnApp ? "" : relayed ?? String(body.text ?? "").trim();
-      if (!pressed && !fromAnApp && !typed) return json(res, 400, { error: "text required" });
+      const typed = pressed || fromAnApp || filling ? "" : relayed ?? String(body.text ?? "").trim();
+      if (!pressed && !fromAnApp && !filling && !typed) return json(res, 400, { error: "text required" });
       const bot = store.bot(m[1]);
       if (!bot) return json(res, 404, { error: "no such bot" });
       requirePinnedClientThread(bot.id, body.threadId);
@@ -234,7 +245,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         return json(res, 400, { error: "threadId must be a task id" });
       }
       const threadId = body.threadId ?? bot.threadId;
-      if ((pressed || fromAnApp) && store.groupByThread(threadId)) return json(res, 409, { error: ROOM_VIEW_ONLY });
+      if ((pressed || fromAnApp || filling) && store.groupByThread(threadId)) return json(res, 409, { error: ROOM_VIEW_ONLY });
       const notYours = cloudGuestSendRefusal(auth, threadId);
       if (notYours) return json(res, 403, { error: notYours });
       if (body.mode !== undefined && body.mode !== "chat" && body.mode !== "goal") return json(res, 400, { error: "mode must be chat or goal" });
@@ -261,6 +272,21 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       const phone = fromPhone(auth);
       // A phone's send without an id gets one, so the turn it starts can be known as the phone's.
       const sendId = parseSendId(body.sendId) ?? (phone ? randomUUID() : undefined);
+      const fill = filling ? prepareWidgetFill(store, threadId, body.widgetFill, sendId) : null;
+      if (fill && !fill.ok) return json(res, fill.status, { error: fill.error });
+      if (fill) {
+        const requestMessageId = store.activePath(threadId).findLast((message) => message.role === "user" && message.kind === "text")?.id;
+        try {
+          const values = fill.text.split("\n").slice(1).join("\n");
+          await startTurn(bot.id, `The person filled in the blanks you asked for. Continue your answer from where it stopped, using these values:\n${values}`, {
+            threadId, cardContinuation: true, ...(requestMessageId ? { requestMessageId } : {}),
+          });
+        } catch (error) {
+          return json(res, 409, { error: error instanceof Error ? error.message : String(error) });
+        }
+        fill.settle();
+        return json(res, 202, { ok: true, threadId });
+      }
       const press = pressed ? prepareWidgetPress(store, threadId, body.widgetAction, sendId) : null;
       if (press && !press.ok) return json(res, press.status, { error: press.error });
       const answered = press ? serverPress(bot, threadId, press.messageId, press.action, auth) : null;
@@ -328,7 +354,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
               throw Object.assign(new Error("wait for a free thread slot before retrying this message"), { status: 409, code: "guarded_busy" });
             }
             // The relayed line is named after the person it is for; with no key it is nobody's own line and acts for nobody.
-            const message = await startTurn(bot.id, text, { threadId, replyTo, sendId, sender: onBehalfOf ? { name: onBehalfOf.name ?? onBehalfOf.email! } : sender, trigger, relayed: true, dataContext });
+            const message = await startTurn(bot.id, text, { threadId, replyTo, sendId, sender: onBehalfOf ? { name: onBehalfOf.name ?? onBehalfOf.email! } : sender, trigger, relayed: true, dataContext, assumptions });
             return { ok: true as const, threadId, message };
           }
         : undefined;
@@ -342,6 +368,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         const receipt = await acceptDirectSend({
           botId: bot.id, threadId, text, sendId, replyTo, sender, trigger, dataContext, ...(app ? { app } : {}),
           personPresent, admin: owners.admin(auth), ...(followUp ? { followUp } : {}),
+          ...(assumptions ? { assumptions } : {}),
           ...(mentions?.length && !press && !appSent ? { mentions } : {}),
         }, guardedStart);
         press?.settle("queueId" in receipt ? receipt.queueId : undefined);

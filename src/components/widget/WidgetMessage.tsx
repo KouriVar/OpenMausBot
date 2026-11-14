@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { CircleAlert, X } from "lucide-react";
+import { Check, CircleAlert, X } from "lucide-react";
 import { useStore, type Message } from "@/state/store";
 import { usePageOpener } from "@/lib/page-open";
 import { phonePairingSettingsAction } from "@/lib/phone-pairing";
@@ -19,7 +19,7 @@ import { plainBotBubble } from "../chat-bubble";
 import { WidgetBody } from "./WidgetBody";
 import { WIDGET_COMPACT_BELOW, widgetActionUrl, widgetThreadTarget, WidgetButton, WidgetFormProvider, WidgetGlyph, type WidgetForm } from "./WidgetControls";
 import { kids } from "./widget-style";
-import { newWidgetSendId, sendWidgetAction, type WidgetSendResult } from "./widget-send";
+import { newWidgetSendId, sendWidgetAction, sendWidgetFill, type WidgetSendResult } from "./widget-send";
 
 const WIDTH: Record<string, string> = { sm: "max-w-[360px]", md: "max-w-[440px]", lg: "max-w-[600px]", full: "max-w-[600px]" };
 const SURFACE = "w-full overflow-hidden rounded-2xl bg-composer ring-1 ring-composer-ring transition-opacity";
@@ -87,6 +87,8 @@ function WidgetCard({ botId, threadId, messageId, payload, viewOnly, inline }: {
   }, []);
   const [edits, setEdits] = useState<WidgetValues>({});
   const [otherEdits, setOtherEdits] = useState<WidgetOther>({});
+  const [fillTouched, setFillTouched] = useState(false);
+  const [fillFailed, setFillFailed] = useState(false);
   const [pending, setPending] = useState<string>();
   const [sent, setSent] = useState<string>();
   const [problem, setProblem] = useState<{ text: string; field?: string }>();
@@ -182,6 +184,37 @@ function WidgetCard({ botId, threadId, messageId, payload, viewOnly, inline }: {
     });
   };
 
+  const fillFields = useMemo(() => payload.fill === true ? widgetFields(root) : [], [payload.fill, root]);
+  const fillComplete = payload.fill === true && fillTouched && !isSettled && !viewOnly && pending === undefined
+    && fillFields.length > 0 && fillFields.every((field) => !isEmpty(field, values, other));
+  useEffect(() => {
+    if (!fillComplete || fillFailed || sendingNow.current) return;
+    const timer = window.setTimeout(() => {
+      if (!mounted.current || sendingNow.current) return;
+      const sending: WidgetValues = Object.fromEntries(fillFields.map((field) => [field.name, Object.hasOwn(other, field.name) ? "" : values[field.name] ?? (field.type === "Checkbox" ? false : "")]));
+      const typed = fillFields.filter((field) => Object.hasOwn(other, field.name) && other[field.name]!.trim());
+      const sendingOther = typed.length ? Object.fromEntries(typed.map((field) => [field.name, other[field.name]!])) : undefined;
+      const sendId = newWidgetSendId();
+      sendingNow.current = true;
+      setPending("fill");
+      void flushBotPatches(botId).then(
+        () => sendWidgetFill({ botId, threadId, messageId, rev: payload.rev ?? 0, values: sending, other: sendingOther, sendId }),
+        () => ({ ok: false, refused: false }) as WidgetSendResult,
+      ).then((result) => {
+        sendingNow.current = false;
+        if (!mounted.current) return;
+        if (!result.ok) {
+          setPending(undefined);
+          setFillFailed(true);
+          setProblem({ text: result.error ?? t("widget.sendFailed") });
+          return;
+        }
+        setSettledHere({ ref: "fill", label: t("widget.filled"), tone: "submit", at: Date.now(), sendId, values: sending, ...(sendingOther ? { other: sendingOther } : {}) });
+      });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [botId, fillComplete, fillFailed, fillFields, messageId, other, payload.rev, threadId, values]);
+
   const errorId = `${uid}-problem`;
   const title = widgetString(root, "title");
   const caption = widgetString(root, "caption");
@@ -194,17 +227,23 @@ function WidgetCard({ botId, threadId, messageId, payload, viewOnly, inline }: {
     uid,
     values,
     setValue: (name, value) => {
+      setFillTouched(true);
+      setFillFailed(false);
       setEdits((current) => ({ ...current, [name]: value }));
       setOtherEdits(({ [name]: _dropped, ...rest }) => rest);
       if (problem?.field === name) setProblem(undefined);
     },
     other,
     chooseOther: (name) => {
+      setFillTouched(true);
+      setFillFailed(false);
       setEdits((current) => ({ ...current, [name]: "" }));
       setOtherEdits((current) => ({ ...current, [name]: current[name] ?? "" }));
       if (problem?.field === name) setProblem(undefined);
     },
     setOther: (name, text) => {
+      setFillTouched(true);
+      setFillFailed(false);
       setOtherEdits((current) => ({ ...current, [name]: text }));
       if (problem?.field === name) setProblem(undefined);
     },
@@ -273,6 +312,17 @@ function WidgetCard({ botId, threadId, messageId, payload, viewOnly, inline }: {
   );
 
   if (!settled) return card;
+  if (payload.fill === true) {
+    return (
+      <div className="w-full">
+        {card}
+        <p data-widget-filled="" className="mt-2 flex items-center gap-1.5 text-[12px] leading-4 text-ink-tertiary">
+          <Check aria-hidden="true" size={13} />
+          {t("widget.filled")}
+        </p>
+      </div>
+    );
+  }
   const detailsId = `${uid}-details`;
   return (
     <AskSettledLine

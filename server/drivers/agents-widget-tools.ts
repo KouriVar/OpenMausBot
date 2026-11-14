@@ -15,4 +15,18 @@ export const WIDGET_TOOL_DEFINITIONS = [
       required: ["widget"],
     },
   },
+  {
+    name: "ask_fill",
+    description:
+      "Ask the person to fill blanks in the answer you are writing, when the rest of the answer depends on their values. Write the answer up to the missing part, then call ask_fill with one Card whose fields are the blanks, and end your turn: the card collects the values and sends them back, and you continue from where you stopped. Use Select for one choice, MultiSelect for several, Input with inputType \"number\" for a number, Input for a short text, and a Table of Select or RadioGroup fields for a two-dimensional grid. Every field needs a name and a short label. The person does not press send: the card goes on as soon as every field is filled. Do not repeat the values in text, and do not ask for passwords. In a room this is view-only.",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        widget: { type: "object", additionalProperties: true, description: "The fill card tree; fields are the blanks." },
+        fallback_text: { type: "string", description: "Optional plain-text version for clients that cannot draw widgets." },
+      },
+      required: ["widget"],
+    },
+  },
 ];

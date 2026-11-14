@@ -1,6 +1,7 @@
 /** The client-visible wire model for tasks, bots, messages and rooms. A field
  * here is one the server emits in every response and SSE frame that carries
  * the shape. */
+import type { Assumption } from "./assumptions.ts";
 import type { PresenceFrame } from "./team-presence.ts";
 import type { DataBroadcast } from "./data-surface.ts";
 import type { ApprovalMode } from "./approval-mode.ts";
@@ -458,6 +459,8 @@ export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCard
   /** widget rows (kind "widget"): a bot-authored UI tree. `text` is its
    * readable fallback for clients that do not know the kind. */
   widget?: WidgetPayload;
+  /** Words the person clarified before sending; the model reads them ahead of the message, and clients show a quiet note. */
+  assumptions?: Assumption[];
   /** widget rows the server built from records (mail, calendar, other
    * bots' work) rather than the bot: replayed to the bot only as labelled
    * data, never as its own words, and never edited by a bot. */

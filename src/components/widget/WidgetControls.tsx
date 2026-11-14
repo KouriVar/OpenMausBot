@@ -336,6 +336,51 @@ export function WidgetRadioGroup({ node, labelledBy }: { node: WidgetNode; label
   );
 }
 
+export function WidgetMultiSelect({ node, labelledBy }: { node: WidgetNode; labelledBy?: string }) {
+  const field = useWidgetField(node);
+  const { id, "aria-invalid": invalid, "aria-describedby": describedBy, "aria-label": ariaLabel } = field.control;
+  const picked = new Set(field.text.split(",").map((value) => value.trim()).filter(Boolean));
+  const toggle = (value: string) => {
+    const next = new Set(picked);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    field.set([...next].join(","));
+  };
+  return (
+    <div
+      role="group"
+      id={id}
+      aria-label={labelledBy ? undefined : ariaLabel}
+      aria-labelledby={labelledBy}
+      aria-required={field.control.required || undefined}
+      aria-invalid={invalid}
+      aria-describedby={describedBy}
+      className={cn("flex min-w-0", node.direction === "col" ? "flex-col gap-2.5" : "flex-wrap gap-x-[18px] gap-y-2", field.disabled && "opacity-60")}
+    >
+      {optionsOf(node).map((option, index) => {
+        const checked = picked.has(option.value);
+        return (
+          <label key={option.value} className={cn("relative inline-flex min-w-0 items-center gap-2 text-[14px] leading-5 text-ink", field.disabled ? "cursor-not-allowed" : "cursor-pointer")}>
+            <input
+              type="checkbox"
+              value={option.value}
+              checked={checked}
+              disabled={field.disabled}
+              onChange={() => toggle(option.value)}
+              data-widget-field={index === 0 ? field.name : undefined}
+              className="peer sr-only"
+            />
+            <span aria-hidden="true" className={cn("flex size-[18px] items-center justify-center rounded-[6px]", MARK, checked ? "bg-accent text-accent-ink" : field.invalid ? "shadow-[inset_0_0_0_1.5px_var(--color-danger)]" : MARK_IDLE)}>
+              {checked && <Check size={12} strokeWidth={2.6} />}
+            </span>
+            <span dir="auto" className="min-w-0">{option.label}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WidgetInput({ node, bare }: { node: WidgetNode; bare: boolean }) {
   const field = useWidgetField(node);
   return (

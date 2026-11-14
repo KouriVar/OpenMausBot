@@ -104,6 +104,8 @@ export interface WidgetSettled {
 export interface WidgetPayload {
   v: 1;
   root: WidgetRoot;
+  /** A card the note fills in: every field complete sends it on, and the reply goes on from where it stopped. */
+  fill?: true;
   /** How many times show_widget has replaced the tree (absent: never). An
    * update renumbers node ids, so a press names the revision it was made on
    * and one made on an older tree is refused instead of landing on whatever
@@ -121,7 +123,7 @@ export type WidgetOther = Record<string, string>;
 export type ParsedWidgetInput = { ok: true; value: WidgetRoot } | { ok: false; error: string };
 
 const ROOT_TYPES = new Set(["Card", "ListView"]);
-const FIELD_TYPES = new Set(["Select", "DatePicker", "TimePicker", "DayPicker", "Checkbox", "RadioGroup", "Input", "Textarea"]);
+const FIELD_TYPES = new Set(["Select", "DatePicker", "TimePicker", "DayPicker", "Checkbox", "RadioGroup", "MultiSelect", "Input", "Textarea"]);
 const TYPE_ALIASES: Record<string, string> = { TableRow: "Table.Row", TableCell: "Table.Cell" };
 const ACTION_TYPE = /^[A-Za-z0-9_.:-]{1,64}$/;
 const FIELD_NAME = /^[A-Za-z0-9_.-]{1,64}$/;
@@ -488,6 +490,8 @@ const SPECS: Record<string, NodeSpec> = {
   DayPicker: { props: { ...FIELD, defaultValue: weekdaysReader } },
   Checkbox: { props: { ...FIELD, defaultChecked: on } },
   RadioGroup: { props: { ...FIELD, options, defaultValue: text(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
+  // MausBot addition: one field holding several picked values, comma-separated like DayPicker.
+  MultiSelect: { props: { ...FIELD, options, defaultValue: line(200), direction: oneOf("row", "col"), ariaLabel: line(WIDGET_LIMITS.title) } },
   Input: { props: { ...FIELD, inputType, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), pattern: text(200) } },
   Textarea: { props: { ...FIELD, placeholder: PLACEHOLDER, defaultValue: text(WIDGET_LIMITS.fieldValue), rows: integer(1, 12), maxRows: integer(1, 20), autoResize: on } },
   Transition: { props: {}, children: "one" },
@@ -804,7 +808,11 @@ export type ResolvedWidgetAction =
  * holds answers in the person's own words (see `WidgetOther`). */
 export function resolveWidgetAction(payload: WidgetPayload, ref: string, values: unknown, other?: unknown): ResolvedWidgetAction {
   if (payload.settled) return { ok: false, status: 409, error: "This was already answered." };
-  const entry = widgetActions(payload.root).find((candidate) => candidate.ref === ref);
+  // A fill card has no button to press: every field complete sends it on.
+  const filling = ref === "fill" && payload.fill === true;
+  const entry: WidgetActionEntry | undefined = filling
+    ? { ref: "fill", label: "Filled", action: { type: "fill" }, kind: "confirm", tone: "submit" }
+    : widgetActions(payload.root).find((candidate) => candidate.ref === ref);
   if (!entry) return { ok: false, status: 404, error: "That button is no longer on this widget." };
   if (entry.client) return { ok: false, status: 400, error: "That action opens on the device and is not sent." };
   const done = (clean: WidgetValues, own: WidgetOther, lines: string[]): ResolvedWidgetAction => ({
@@ -847,7 +855,7 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
     }
     if (field.type === "Checkbox") {
       if (typeof raw !== "boolean") return { ok: false, status: 400, error: `${field.label} must be on or off.` };
-      if (mustFill && field.node.required === true && !raw) return { ok: false, status: 400, error: `${field.label} is required.` };
+      if (mustFill && (field.node.required === true || filling) && !raw) return { ok: false, status: 400, error: `${field.label} is required.` };
       clean[field.name] = raw;
       if (raw) lines.push(`${field.label}: yes`);
       continue;
@@ -855,13 +863,26 @@ export function resolveWidgetAction(payload: WidgetPayload, ref: string, values:
     if (typeof raw !== "string") return { ok: false, status: 400, error: `${field.label} must be text.` };
     const value = field.type === "Textarea" ? raw.trim() : raw.trim().replace(/\s+/g, " ");
     if (value.length > WIDGET_LIMITS.fieldValue) return { ok: false, status: 400, error: `${field.label} must be at most ${WIDGET_LIMITS.fieldValue} characters.` };
-    if (mustFill && field.node.required === true && !value) return { ok: false, status: 400, error: `${field.label} is required.` };
+    if (mustFill && (field.node.required === true || filling) && !value) return { ok: false, status: 400, error: `${field.label} is required.` };
     let shown = value;
     let kept = value;
     if (value && (field.type === "Select" || field.type === "RadioGroup" || field.type === "ListView")) {
       const option = widgetFieldOptions(field.node).find((candidate) => candidate.value === value);
       if (!option) return { ok: false, status: 400, error: `${field.label} must be one of the offered options.` };
       shown = option.label;
+    }
+    if (value && field.type === "MultiSelect") {
+      const picked = value.split(",").map((part) => part.trim()).filter(Boolean);
+      const offered = widgetFieldOptions(field.node);
+      const labels = picked.map((pickedValue) => {
+        const option = offered.find((candidate) => candidate.value === pickedValue);
+        return option?.label;
+      });
+      if (picked.length === 0 || labels.some((label) => label === undefined)) {
+        return { ok: false, status: 400, error: `${field.label} must be one or more of the offered options.` };
+      }
+      kept = picked.join(",");
+      shown = labels.join(", ");
     }
     if (value && field.type === "TimePicker") {
       const time = timeOfDay(value, "");

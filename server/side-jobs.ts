@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
 import { helperModelAllowed } from "../shared/wire.ts";
+import { AMBIGUITY_FAST_MODEL } from "../shared/composer-ambiguity.ts";
 import type { ProviderAdapter, ProviderInstance, SmallModelFallback, TextGenerationOptions } from "./contracts.ts";
 import { refusesModel } from "./quick-model-fallback.ts";
 import { fastModelFor } from "./turn-route.ts";
@@ -35,7 +36,7 @@ export function helperSelection(cfg: HelperConfig, env: Record<string, string | 
 }
 
 /** "representative": a person's assistant answering a teammate's question for them, which must never get tools. */
-export type SideJob = "compaction" | "memory" | "skill-review" | "setup-suggestions" | "representative" | "status-reply";
+export type SideJob = "compaction" | "memory" | "skill-review" | "setup-suggestions" | "composer-ambiguity" | "representative" | "status-reply";
 
 export type SideJobInstance = Pick<ProviderInstance, "instanceId" | "driverKind" | "enabled" | "generateText" | "generateMemoryText" | "models" | "quickModelsUsable"> & {
   adapter: { capabilities: Pick<ProviderAdapter["capabilities"], "agentsMcp"> };
@@ -197,6 +198,9 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
           const quick = quickModel(bot, own);
           const write = booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...quick }));
           return { via: "engine", generateText: quick.model ? rememberRefusal(write, own, quick.model) : write };
+        }
+        if (job === "composer-ambiguity") {
+          return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), model: AMBIGUITY_FAST_MODEL })) };
         }
         return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
       }

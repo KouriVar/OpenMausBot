@@ -13,12 +13,39 @@ export interface WidgetPress {
   sendId: string;
 }
 
+export interface WidgetFill {
+  botId: string;
+  threadId?: string;
+  messageId: string;
+  rev: number;
+  values: WidgetValues;
+  other?: WidgetOther;
+  sendId: string;
+}
+
 export type WidgetSendResult =
   | { ok: true }
   /** `refused`: the server said no, in `error`. Otherwise no answer came, and the same sendId may be sent again. */
   | { ok: false; refused: boolean; error?: string };
 
 export const newWidgetSendId = (): string => randomUuid();
+
+export async function sendWidgetFill(fill: WidgetFill): Promise<WidgetSendResult> {
+  try {
+    await api(`/api/bots/${fill.botId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({
+        threadId: fill.threadId,
+        sendId: fill.sendId,
+        widgetFill: { messageId: fill.messageId, rev: fill.rev, values: fill.values, ...(fill.other ? { other: fill.other } : {}) },
+      }),
+    });
+    return { ok: true };
+  } catch (error) {
+    const refused = typeof (error as { status?: unknown } | null)?.status === "number";
+    return { ok: false, refused, ...(refused && error instanceof Error && error.message ? { error: error.message } : {}) };
+  }
+}
 
 export async function sendWidgetAction(press: WidgetPress): Promise<WidgetSendResult> {
   try {

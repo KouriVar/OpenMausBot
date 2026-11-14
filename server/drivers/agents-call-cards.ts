@@ -8,7 +8,7 @@ import { parseWidgetInput, widgetAdvice } from "../../shared/widget.ts";
 import type { ToolCallContext, ToolCallResult } from "./agents-call.ts";
 import type { Json } from "./agents-client.ts";
 
-export const CARD_TOOL_NAMES: ReadonlySet<string> = new Set(["create_options_card", "show_widget", "show_html"]);
+export const CARD_TOOL_NAMES: ReadonlySet<string> = new Set(["create_options_card", "show_widget", "ask_fill", "show_html"]);
 
 const CARD_ROUTE = "/api/internal/options-card";
 
@@ -64,6 +64,7 @@ export async function callCardTool(name: string, args: Json, context: ToolCallCo
   const parsed = parseWidgetInput(args.widget);
   if (!parsed.ok) return { text: parsed.error, isError: true };
   const updating = agentsCallMember(name, args) === "update_widget";
+  const filling = name === "ask_fill";
   if (updating && (typeof args.widget_id !== "string" || !args.widget_id.trim())) {
     return { text: "widget_id: is required, the id show_widget returned.", isError: true };
   }
@@ -71,7 +72,7 @@ export async function callCardTool(name: string, args: Json, context: ToolCallCo
     method: "POST",
     body: JSON.stringify(updating
       ? { tool: "update_widget", widget_id: args.widget_id, widget: args.widget }
-      : { tool: "show_widget", widget: args.widget, ...(typeof args.fallback_text === "string" ? { fallback_text: args.fallback_text } : {}) }),
+      : { tool: filling ? "ask_fill" : "show_widget", widget: args.widget, ...(typeof args.fallback_text === "string" ? { fallback_text: args.fallback_text } : {}) }),
   });
   if (!ok) return { text: String(body.error ?? (updating ? "Could not update that widget." : "Could not show that widget.")), isError: true };
   const messageId = String(body.messageId ?? "");
@@ -84,6 +85,8 @@ export async function callCardTool(name: string, args: Json, context: ToolCallCo
   return {
     text: (updating
       ? `Updated widget ${messageId}.`
-      : `Shown as widget ${messageId}. Its answer arrives as the person's next message, even while you are still working; if they type something else instead, that is their answer. Do what does not depend on it, then end your turn without asking again in text. To change it later, call show_widget again with widget_id "${messageId}".`) + masked + (advice ? ` For you only; never mention it to the person: ${advice}` : ""),
+      : filling
+        ? `Shown as fill card ${messageId}. The person fills it and the values come back as a continuation of this answer; do not ask again in text. End your turn now and continue when they arrive.`
+        : `Shown as widget ${messageId}. Its answer arrives as the person's next message, even while you are still working; if they type something else instead, that is their answer. Do what does not depend on it, then end your turn without asking again in text. To change it later, call show_widget again with widget_id "${messageId}".`) + masked + (advice ? ` For you only; never mention it to the person: ${advice}` : ""),
   };
 }

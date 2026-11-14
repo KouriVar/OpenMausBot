@@ -96,7 +96,8 @@ import { ScreenFrame } from "./ScreenFrame";
 import { CompactionChip, DigestChip } from "./DigestChip";
 import { ChatHeadRole, chiefOfStaffBadge } from "./BotRole";
 import { useChiefStyle } from "@/fork/chief-style";
-import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill"; import { HeaderShare } from "./bot-access/HeaderShare"; import { ThreadPresenceFaces } from "./TeamPresence"; import { useStoreRef } from "@/state/store-ref";
+import { BotActivityPicker } from "./TaskPicker"; import { ChatHeadPill } from "./ChatHeadPill";
+import { AssumptionNote } from "./AssumptionNote"; import { HeaderShare } from "./bot-access/HeaderShare"; import { ThreadPresenceFaces } from "./TeamPresence"; import { useStoreRef } from "@/state/store-ref";
 import { sameFields, useStoreDispatch, useStoreSelector } from "@/state/store-select";
 import { sameDrawnBots } from "@/lib/drawn-bots";
 import { useReaction } from "./Reactions"; import { REACTIONS, type Reaction } from "../../shared/reactions";
@@ -544,6 +545,7 @@ const Bubble = memo(function Bubble({
                   {t("chat.sentMidTurn")}
                 </div>
               )}
+              {message.assumptions?.length ? <AssumptionNote assumptions={message.assumptions} /> : null}
               {message.quickModel && <QuickModelNote model={message.quickModel} />}
               <UserLineNote message={message} />
               {collapsible && (
