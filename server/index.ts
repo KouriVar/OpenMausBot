@@ -11763,6 +11763,7 @@ function configStatus() {
     },
     features: {
       skillAuthoring: skillAuthoringEnabled(cfg),
+      interactiveAnswers: interactiveAnswersMode(cfg),
       skillReview: cfg.features?.skillReview === true,
       skillReviewSteps: skillReviewSteps(cfg),
       skillsLibrary: skillsLibraryEnabled(cfg),
