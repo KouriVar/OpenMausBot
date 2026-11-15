@@ -3,7 +3,7 @@ import { useAdvancedMode } from "@/lib/interface-mode";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
 import { useShowThreads } from "@/lib/thread-preferences";
-import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, Square, Webhook } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, Webhook } from "lucide-react";
 import { RiDeviceLine } from "@remixicon/react";
 import { WorkingDots } from "@/components/WorkingIndicator";
 import { ChatBusyContext, CopyButton, MESSAGE_ROW, MessageActions, messageActionClass, ReplyAction } from "@/components/MessageActions";
@@ -113,7 +113,6 @@ import { LiveCallChip } from "./LiveCallPill";
 import { effectivePlace, toolPlace, type EffectivePlace } from "@/lib/place";
 import { cn } from "@/lib/cn";
 import { activeLocale, intlLocale, t } from "@/lib/i18n";
-import { COMPACT_BUBBLE } from "@/lib/compact-chip";
 import { groupTranscript, isStatusActivity, turnDurations, workedLabel } from "@/lib/activity-runs";
 import { autoAppliedKind, foldAutoAppliedChanges } from "@/lib/auto-applied";
 import { StatusActivityRow } from "@/components/StatusActivityRow";
@@ -1109,19 +1108,6 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
           data-chathead-controls
           className={cn("flex shrink-0 items-center gap-2", inset && "self-start", !phone && "@max-[30rem]/chathead:ml-auto @max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:justify-end", !phone && (centeredHead ? "@min-[30rem]/chathead:col-start-3" : "@min-[30rem]/chathead:col-start-2"), !phone && "@min-[30rem]/chathead:justify-self-end")}
         >{sharedChat && <ThreadPresenceFaces threadId={bot.threadId} />}
-          {!simpleHead && (bot.busy || bot.waitingForTeammates) && (
-            <button
-              onClick={() => dispatch({ type: "interrupt", botId: bot.id, threadId: bot.threadId })}
-              className={cn(
-                "flex items-center gap-1.5 rounded-full border border-hairline/40 bg-raised/60 px-2.5 py-1 text-[13px] text-ink-secondary hover:bg-raised hover:text-ink",
-                COMPACT_BUBBLE,
-              )}
-              title={t("chat.stopTurn")}
-            >
-              <Square size={12} className="fill-current" />
-              <span className="@max-4xl/chathead:hidden">{t("chat.stop")}</span>
-            </button>
-          )}
           <ThreadContextWarning bot={bot} messages={messages} />
           {phone && <UsageAlert engine={bot.modelSelection?.instanceId} />}
           {/* 模型切换器已隐藏：聊天头右侧不再显示，改由设置里选模型。 */}
