@@ -22,3 +22,8 @@ export const SIDEBAR_INLINE = "(min-width: 768px)";
 
 /** Below Tailwind's md breakpoint: the phone layout, where the sidebar is a full-screen bot list. */
 export const PHONE_LAYOUT = "(max-width: 767.98px)";
+
+/** The sidebar's stepped retreat on a desk window, before the phone layout: the rail of avatars, then nothing. The chat
+ * never gives up its width for it. */
+export const SIDEBAR_COMPACT = "(min-width: 768px) and (max-width: 1079.98px)";
+export const SIDEBAR_AUTO_HIDDEN = "(min-width: 768px) and (max-width: 899.98px)";

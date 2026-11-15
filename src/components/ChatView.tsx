@@ -1,6 +1,6 @@
 import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type ReactNode } from "react";
 import { useAdvancedMode } from "@/lib/interface-mode";
-import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
+import { PHONE_LAYOUT, SIDEBAR_AUTO_HIDDEN, SIDEBAR_COMPACT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, Webhook } from "lucide-react";
@@ -869,7 +869,9 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
   // Only the expanded sidebar puts the pill on the left.
   const [hiddenSidebar] = useHiddenSidebar();
   const sidebarDensity = useSidebarDensity();
-  const centeredHead = !inset || hiddenSidebar || sidebarDensity === "icons";
+  const compactSidebar = useMediaQuery(SIDEBAR_COMPACT);
+  const autoHiddenSidebar = useMediaQuery(SIDEBAR_AUTO_HIDDEN);
+  const centeredHead = !inset || hiddenSidebar || autoHiddenSidebar || compactSidebar || sidebarDensity === "icons";
   // The Chief's mark (crown, or a department lead's flag): subscribed here, so a change in Settings shows at once.
   const chiefStyle = useChiefStyle(bot.id);
   const phone = useMediaQuery(PHONE_LAYOUT);

@@ -24,7 +24,7 @@ import { setSidebarDensity, useSidebarDensity } from "@/lib/sidebar-preferences"
 import { ChatView } from "@/components/ChatView";
 import { GroupView } from "@/components/GroupView";
 import { ForkPanel } from "@/components/ForkPanel";
-import { SIDEBAR_AND_PANEL_FIT, SIDEBAR_INLINE, TWO_SIDE_PANELS_FIT, useMediaQuery } from "@/lib/use-media-query";
+import { SIDEBAR_AND_PANEL_FIT, SIDEBAR_AUTO_HIDDEN, SIDEBAR_COMPACT, SIDEBAR_INLINE, TWO_SIDE_PANELS_FIT, useMediaQuery } from "@/lib/use-media-query";
 import { preloadConnectedApps } from "@/lib/connected-apps";
 import {
   ActivityPanel, BotSettingsDialog, CloudAddDialog, ComputerPanel, FilesView, InspectorPanel, KeyboardShortcutsModal, LocalVmWorkspace,
@@ -181,8 +181,12 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const roomPanelOpen = useRoomPanelShown({ group, state, simple: !advanced && !remoteClient });
   const sidePanelOpen = (Boolean(bot) && (state.settingsOpen || state.computerOpen || state.inspectorOpen || state.activityOpen)) || Boolean(state.forkPanel) || roomPanelOpen || (notificationFeed && state.notificationsOpen) || inboxShown;
   const collapseSidebar = sidePanelOpen && !sidebarAndPanelFit;
+  // Fork: narrowing a desk window steps the sidebar down — expanded, the rail, then hidden — instead of squeezing the chat.
+  const compactSidebar = useMediaQuery(SIDEBAR_COMPACT);
+  const autoHiddenSidebar = useMediaQuery(SIDEBAR_AUTO_HIDDEN);
   const sidebarDensity = useSidebarDensity();
-  const sidebarCollapsed = collapseSidebar || sidebarDensity === "icons" || hiddenSidebar;
+  const sidebarHidden = hiddenSidebar || autoHiddenSidebar;
+  const sidebarCollapsed = collapseSidebar || compactSidebar || autoHiddenSidebar || sidebarDensity === "icons" || hiddenSidebar;
   const calendarFocus = state.activeView === "routines" && state.routinesFocus.view === "calendar";
   const notificationTray = notificationFeed && !calendarFocus;
 
@@ -389,9 +393,9 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
         className={framed && !inset ? "relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[12px] rounded-bl-[12px] bg-app" : "contents"}>
       {framed && !inset && strips}
       <div className={framed && !inset ? "relative flex min-h-0 flex-1" : inset ? "relative flex min-h-0 flex-1" : "contents"}>
-      {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && <HiddenSidebarEdge onReveal={revealHiddenSidebar} />}
-      {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && hiddenSidebar) && <Sidebar
-        collapseToIcons={collapseSidebar}
+      {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && !autoHiddenSidebar && <HiddenSidebarEdge onReveal={revealHiddenSidebar} />}
+      {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && sidebarHidden) && <Sidebar
+        collapseToIcons={collapseSidebar || compactSidebar}
         open={drawerOpen}
         reveal={revealSidebar}
         onClose={closeDrawer}
