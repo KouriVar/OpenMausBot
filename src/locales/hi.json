@@ -1844,6 +1844,7 @@
   "computer.watchFullScreenTitle": "पूरी स्क्रीन देखें; बॉट काम करता रहता है",
   "computer.watchingBotWorks": "देख रहे हैं · बॉट काम करता रहता है",
   "computer.open": "खोलें",
+  "computer.openDesktop": "डेस्कटॉप खोलें",
   "computer.watchOnly": "केवल देखने की प्रिव्यू",
   "computer.waitingFrame": "पहले फ़्रेम की प्रतीक्षा…",
   "computer.autoChooseCloudOpen": "ऑटो को एक मौजूदा क्लाउड डेस्कटॉप मिला। इसे खोलने के लिए क्लाउड डेस्कटॉप चुनें।",

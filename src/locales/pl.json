@@ -4630,6 +4630,7 @@
   "computer.openLiveDesktopAria": "Otwórz pulpit na żywo bota {name}",
   "computer.openLiveDesktop": "Otwórz pulpit na żywo",
   "computer.open": "Otwórz",
+  "computer.openDesktop": "Otwórz pulpit",
   "computer.watchOnly": "Podgląd tylko do obserwacji",
   "computer.waitingFrame": "Oczekiwanie na pierwszą klatkę…",
   "computer.autoChooseCloudOpen": "Tryb automatyczny znalazł istniejący pulpit w chmurze. Wybierz opcję Pulpit w chmurze, aby go otworzyć.",

@@ -4539,6 +4539,7 @@
   "computer.openLiveDesktopAria": "Apri il desktop live di {name}",
   "computer.openLiveDesktop": "Apri il desktop live",
   "computer.open": "Apri",
+  "computer.openDesktop": "Apri desktop",
   "computer.watchOnly": "Anteprima solo visione",
   "computer.waitingFrame": "In attesa del primo fotogramma…",
   "computer.autoChooseCloudOpen": "Auto ha trovato un desktop cloud esistente. Scegli desktop cloud per aprirlo.",

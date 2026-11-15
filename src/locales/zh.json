@@ -5500,6 +5500,7 @@
   "computer.openLiveDesktopAria": "打开 {name} 的实时桌面",
   "computer.openLiveDesktop": "打开实时桌面",
   "computer.open": "打开",
+  "computer.openDesktop": "打开桌面",
   "computer.watchOnly": "仅供观看的预览",
   "computer.waitingFrame": "正在等待第一帧…",
   "computer.autoChooseCloudOpen": "自动找到了一台已有的云端桌面。选择「云端桌面」即可打开。",

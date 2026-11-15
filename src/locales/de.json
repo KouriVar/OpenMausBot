@@ -1937,6 +1937,7 @@
   "computer.watchFullScreenTitle": "Den ganzen Bildschirm ansehen; der Bot arbeitet weiter",
   "computer.watchingBotWorks": "Zuschauen · der Bot arbeitet weiter",
   "computer.open": "Öffnen",
+  "computer.openDesktop": "Desktop öffnen",
   "computer.watchOnly": "Vorschau nur zum Zusehen",
   "computer.waitingFrame": "Warte auf das erste Bild…",
   "computer.autoChooseCloudOpen": "Auto hat einen vorhandenen Cloud-Desktop gefunden. Wähl Cloud-Desktop, um ihn zu öffnen.",

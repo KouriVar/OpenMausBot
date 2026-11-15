@@ -5251,6 +5251,7 @@
   "computer.openLiveDesktopAria": "{name} のライブデスクトップを開く",
   "computer.openLiveDesktop": "ライブデスクトップを開く",
   "computer.open": "開く",
+  "computer.openDesktop": "デスクトップを開く",
   "computer.watchOnly": "閲覧専用のプレビュー",
   "computer.waitingFrame": "最初のフレームを待っています…",
   "computer.autoChooseCloudOpen": "自動が既存のクラウドデスクトップを見つけました。クラウドデスクトップを選ぶと開けます。",

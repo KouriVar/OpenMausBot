@@ -5041,6 +5041,7 @@
   "computer.openLiveDesktopAria": "{name}의 실시간 데스크톱 열기",
   "computer.openLiveDesktop": "실시간 데스크톱 열기",
   "computer.open": "열기",
+  "computer.openDesktop": "데스크톱 열기",
   "computer.watchOnly": "보기 전용 미리보기",
   "computer.waitingFrame": "첫 화면을 기다리는 중…",
   "computer.autoChooseCloudOpen": "자동이 기존 클라우드 데스크톱을 찾았어요. 열려면 클라우드 데스크톱을 고르세요.",

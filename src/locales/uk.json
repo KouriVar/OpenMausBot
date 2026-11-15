@@ -2226,6 +2226,7 @@
   "computer.watchFullScreenTitle": "Дивитися на весь екран; бот продовжує працювати",
   "computer.watchingBotWorks": "Перегляд · бот продовжує працювати",
   "computer.open": "Відкрити",
+  "computer.openDesktop": "Відкрити робочий стіл",
   "computer.watchOnly": "Перегляд лише для спостереження",
   "computer.waitingFrame": "Чекаємо на перший кадр…",
   "computer.autoChooseCloudOpen": "Авто знайшло наявний хмарний робочий стіл. Оберіть «Хмарний робочий стіл», щоб відкрити його.",

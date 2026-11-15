@@ -4274,6 +4274,7 @@
   "computer.openLiveDesktopAria": "Abrir el escritorio en vivo de {name}",
   "computer.openLiveDesktop": "Abrir escritorio en vivo",
   "computer.open": "Abrir",
+  "computer.openDesktop": "Abrir escritorio",
   "computer.watchOnly": "Vista previa solo de observación",
   "computer.waitingFrame": "Esperando el primer fotograma…",
   "computer.autoChooseCloudOpen": "Automático encontró un escritorio en la nube ya existente. Elige Escritorio en la nube para abrirlo.",

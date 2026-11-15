@@ -1844,6 +1844,7 @@
   "computer.watchFullScreenTitle": "Regarder tout l'écran ; le bot continue de travailler",
   "computer.watchingBotWorks": "Vous regardez · le bot continue de travailler",
   "computer.open": "Ouvrir",
+  "computer.openDesktop": "Ouvrir le bureau",
   "computer.watchOnly": "Aperçu en lecture seule",
   "computer.waitingFrame": "En attente de la première image…",
   "computer.autoChooseCloudOpen": "Auto a trouvé un bureau cloud existant. Choisissez Bureau cloud pour l'ouvrir.",

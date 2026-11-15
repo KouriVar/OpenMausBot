@@ -3706,6 +3706,7 @@
   "computer.openLiveDesktopAria": "{name} adlı botun canlı masaüstünü aç",
   "computer.openLiveDesktop": "Canlı masaüstünü aç",
   "computer.open": "Aç",
+  "computer.openDesktop": "Masaüstünü aç",
   "computer.watchOnly": "Yalnızca izleme önizlemesi",
   "computer.waitingFrame": "İlk kare bekleniyor…",
   "computer.autoChooseCloudOpen": "Otomatik, mevcut bir bulut masaüstü buldu. Açmak için Bulut masaüstü seçeneğini belirleyin.",

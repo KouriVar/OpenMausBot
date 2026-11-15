@@ -1358,10 +1358,6 @@ export function ComputerPanel({
                 alt={t("computer.screenOf", { name: bot.name })}
                 className="h-full w-full object-contain transition group-hover:brightness-75 group-focus-visible:brightness-75"
               />
-              <span className="pointer-events-none absolute right-2 top-2 flex items-center gap-1 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white opacity-80 shadow-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
-                {pending === "join" ? <Loader2 size={12} className="animate-spin" /> : <Maximize2 size={12} />}
-                {t("computer.open")}
-              </span>
             </button>
           ) : frameSrc ? (
             <img
@@ -1573,15 +1569,15 @@ export function ComputerPanel({
           </div>
         )}
         {advanced && phase === "vm" && (control.held || !bannerTakesControl) && (
-          <button
-            onClick={() => void takeControl(control.held)}
-            disabled={controlPending || !liveTarget}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-control py-2 text-[13px] text-ink hover:bg-raised-hover disabled:opacity-50"
-            title={control.held ? t("computer.openLiveDesktop") : t("computer.takeControlTitle")}
-          >
-            {controlPending ? <Loader2 size={14} className="animate-spin" /> : control.held ? <Maximize2 size={14} /> : <Hand size={14} />}
-            {t(control.held ? "computer.fullScreen" : "computer.takeControl")}
-          </button>
+          <div className="mt-3 flex gap-2">
+            <button type="button" onClick={() => void takeControl()} disabled={controlPending || !liveTarget} className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-control py-2 text-[13px] text-ink hover:bg-raised-hover disabled:opacity-50" title={t("computer.openLiveDesktop")}>
+              <Maximize2 size={14} />{t("computer.openDesktop")}
+            </button>
+            <button type="button" onClick={() => void takeControl(control.held)} disabled={controlPending || !liveTarget} className="flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-control py-2 text-[13px] text-ink hover:bg-raised-hover disabled:opacity-50" title={control.held ? t("computer.openLiveDesktop") : t("computer.takeControlTitle")}>
+              {controlPending ? <Loader2 size={14} className="animate-spin" /> : control.held ? <Maximize2 size={14} /> : <Hand size={14} />}
+              {t(control.held ? "computer.fullScreen" : "computer.takeControl")}
+            </button>
+          </div>
         )}
         {advanced && canManageVm && phase === "vm" && vmStatus?.mode === "per-bot" && (
           <button

@@ -5470,6 +5470,7 @@
   "computer.openLiveDesktopAria": "開啟 {name} 的即時桌面",
   "computer.openLiveDesktop": "開啟即時桌面",
   "computer.open": "開啟",
+  "computer.openDesktop": "開啟桌面",
   "computer.watchOnly": "僅供觀看的預覽",
   "computer.waitingFrame": "正在等待第一個畫面…",
   "computer.autoChooseCloudOpen": "Auto 找到現有的雲端桌面。選擇「雲端桌面」即可開啟。",

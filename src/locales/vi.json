@@ -3706,6 +3706,7 @@
   "computer.openLiveDesktopAria": "Mở desktop trực tiếp của {name}",
   "computer.openLiveDesktop": "Mở desktop trực tiếp",
   "computer.open": "Mở",
+  "computer.openDesktop": "Mở màn hình nền",
   "computer.watchOnly": "Xem trước (chỉ xem)",
   "computer.waitingFrame": "Đang chờ khung hình đầu tiên…",
   "computer.autoChooseCloudOpen": "Đã tự động tìm thấy một desktop đám mây hiện có. Chọn Desktop đám mây để mở.",

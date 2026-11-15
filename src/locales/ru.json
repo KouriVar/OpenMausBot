@@ -4686,6 +4686,7 @@
   "computer.openLiveDesktopAria": "Открыть живой рабочий стол {name}",
   "computer.openLiveDesktop": "Открыть живой рабочий стол",
   "computer.open": "Открыть",
+  "computer.openDesktop": "Открыть рабочий стол",
   "computer.watchOnly": "Просмотр без управления",
   "computer.waitingFrame": "Ожидание первого кадра…",
   "computer.autoChooseCloudOpen": "Автоматически найден существующий облачный рабочий стол. Выберите «Облачный рабочий стол», чтобы открыть его.",
