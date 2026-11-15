@@ -2,7 +2,7 @@ import { boatCapableEngine, cloudEngineOf } from "@/lib/remote-desktop";
 import { canWorkOnCloud } from "../../shared/cloud-computer";
 import { viewerTargetId } from "../../shared/desktop-viewer";
 import { Switch } from "./SettingsPrimitives";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { waitForLocalVmReady } from "@/lib/local-vm-readiness";
 import { ChevronRight, Columns2, Globe, Hand, Loader2, Maximize2, Monitor, Moon, Power } from "lucide-react";
@@ -1152,14 +1152,37 @@ export function ComputerPanel({
   const heldPin = livePin && profileBot.computer !== "off" && livePin !== profileBot.computer ? livePin : undefined;
 
   const tabClass = (active: boolean) => cn(
-    "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[13px] transition-colors @max-[28rem]/paneltabs:[&>svg]:hidden @max-[22rem]/paneltabs:px-2",
-    active ? "bg-raised text-ink shadow-sm" : "text-ink-secondary hover:text-ink",
+    "relative z-[1] flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] transition-colors @max-[28rem]/paneltabs:[&>svg]:hidden @max-[22rem]/paneltabs:px-2",
+    active ? "text-ink" : "text-ink-secondary hover:text-ink",
   );
 
   const chooseTab = (view: ComputerPanelView) => {
     if (view === "browser") setError(null);
     selectPanelView(view);
   };
+  // Fork: the tabs' pill springs between them — its leading edge first, the tail catching up, so it stretches (the
+  // Tab Pill study). A resize snaps it rather than sliding from a stale place.
+  const tabBarRef = useRef<HTMLDivElement>(null), tabPillRef = useRef<HTMLSpanElement>(null), tabLeftRef = useRef(0), tabPlaced = useRef(false);
+  useLayoutEffect(() => {
+    const bar = tabBarRef.current, pill = tabPillRef.current;
+    if (!bar || !pill) return;
+    const place = (animate: boolean) => {
+      const active = bar.querySelector<HTMLElement>('[aria-selected="true"]');
+      if (!active) return;
+      const right = active.offsetLeft >= tabLeftRef.current;
+      pill.style.transition = !animate ? "none" : right
+        ? "left 320ms cubic-bezier(.34,1.1,.64,1), width 180ms cubic-bezier(.2,1.4,.3,1)"
+        : "left 180ms cubic-bezier(.2,1.4,.3,1), width 320ms cubic-bezier(.34,1.1,.64,1)";
+      pill.style.left = `${active.offsetLeft}px`;
+      pill.style.width = `${active.offsetWidth}px`;
+      tabLeftRef.current = active.offsetLeft;
+    };
+    place(tabPlaced.current);
+    tabPlaced.current = true;
+    const observer = new ResizeObserver(() => place(false));
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [panelView, panelTabs.length]);
 
   const emptyState = {
     checking: t("computer.phase.checking"),
@@ -1211,9 +1234,10 @@ export function ComputerPanel({
         className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize hover:bg-accent/40 focus-visible:bg-accent/60 max-md:hidden"
       />
       {/* ml-1.5 keeps the drag region clear of the resize handle: a later drag region in the DOM wins. */}
-      <div {...dragProps} className="@container/paneltabs ml-1.5 py-3 pl-2.5 pr-4">
+      <div {...dragProps} className="@container/paneltabs ml-1.5 pb-1 pl-2.5 pr-4 pt-1">
         <div className="relative flex min-h-7 items-center justify-center">
-          <div className="mx-9 flex min-w-0 touch-pan-x gap-0.5 overflow-x-auto whitespace-nowrap rounded-full bg-inset p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-tour="computer-tabs" data-testid="computer-tabs" role="tablist" aria-label={t("computer.tabsAria")} onWheel={scrollTabsWithWheel} onKeyDown={(event) => moveBetweenTabs(event, panelTabs, chooseTab)}>
+          <div ref={tabBarRef} className="relative mx-9 flex min-w-0 touch-pan-x gap-0.5 overflow-x-auto whitespace-nowrap rounded-full bg-inset/60 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-tour="computer-tabs" data-testid="computer-tabs" role="tablist" aria-label={t("computer.tabsAria")} onWheel={scrollTabsWithWheel} onKeyDown={(event) => moveBetweenTabs(event, panelTabs, chooseTab)}>
+            <span ref={tabPillRef} aria-hidden="true" className="pointer-events-none absolute inset-y-1 left-0 rounded-full bg-raised shadow-sm" />
             {panelTabs.map((view) => {
               const { Icon, label, tour } = PANEL_TABS[view];
               const live = !placeLive ? undefined
