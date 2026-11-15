@@ -25,8 +25,7 @@ import type { ConnectorCardData } from "./connector-card.ts"; import type { McpC
 import type { SkillRequestCardData } from "./skill-request.ts"; import type { OutsideWriteCardField } from "./outside-write.ts";
 import type { QuestionRequestCardData } from "./ask-question.ts";
 import type { AutomationLine, RoutineRunCardData } from "./routine-run.ts";
-import type { WidgetPayload } from "./widget.ts";
-import type { A2uiPayload } from "./a2ui.ts";
+import type { WidgetPayload } from "./widget.ts"; import type { A2uiPayload } from "./a2ui.ts";
 import type { AppFromRef, AppPayload, AppPointedRef } from "./app.ts";
 import type { GroupGoalRunCardData } from "./group-goal-run.ts"; import type { BurstCardData } from "./burst.ts";
 import type { RuntimeEvent } from "./runtime-events.ts";

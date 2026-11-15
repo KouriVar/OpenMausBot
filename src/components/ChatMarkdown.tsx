@@ -622,14 +622,8 @@ function useInteractiveAnswersMode(): InteractiveAnswerMode {
 
 const InteractiveAnswersContext = createContext<InteractiveAnswerMode>(DEFAULT_INTERACTIVE_ANSWER_MODE);
 
-/** The A2UI surfaces a bot row stores, and the bot whose thread draws them. */
-const A2uiContext = createContext<{
-  botId: string; threadId?: string; messageId: string;
-  surfaces: NonNullable<A2uiPayload["surfaces"]>; viewOnly?: boolean;
-  renderMarkdown: ComponentType<MarkdownComponentProps>;
-} | null>(null);
-
-/** Text inside a surface is drawn by this same transcript, so its Markdown reads as the message around it. */
+/** The surfaces a bot row stores, drawn with this transcript's own Markdown. */
+const A2uiContext = createContext<{ botId: string; threadId?: string; messageId: string; surfaces: NonNullable<A2uiPayload["surfaces"]>; viewOnly?: boolean; renderMarkdown: ComponentType<MarkdownComponentProps> } | null>(null);
 const A2uiMarkdown = ({ markdown }: MarkdownComponentProps) => <ChatMarkdown text={markdown} />;
 
 /** A component fence still being written: its body is not a tree yet, so none of it is drawn. */
@@ -872,7 +866,6 @@ function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, ever
   mentionPeers?: readonly MentionPeer[]; everyone?: boolean; mentionPerson?: MentionPerson;
   /** Delivered copies by file name, and the originals those copies came from (copy path -> original). */
   delivered?: DeliveredFiles; originals?: DeliveredFiles;
-  /** The A2UI surfaces this row stores, and the bot whose thread draws them. */
   a2ui?: A2uiPayload; a2uiBotId?: string; a2uiViewOnly?: boolean;
 }) {
   // use() may be called conditionally: only a message that can hold a thread link subscribes to the thread list.
@@ -943,7 +936,6 @@ type ChatMarkdownProps = {
   delivered?: DeliveredFiles; originals?: DeliveredFiles;
   /** A bot row whose `<blank>` tags this transcript draws; absent leaves the tags alone. */
   blank?: BlankMessageInfo;
-  /** The A2UI surfaces this row stores, and the bot whose thread draws them. */
   a2ui?: A2uiPayload; a2uiBotId?: string; a2uiViewOnly?: boolean;
 };
 
