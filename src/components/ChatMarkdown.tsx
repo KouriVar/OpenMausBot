@@ -918,7 +918,7 @@ function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, ever
     <MessageScopeContext.Provider value={scope}>
       <A2uiContext value={a2uiScope}>
       <InteractiveAnswersContext value={answerMode}>
-        <div className="chat-md min-w-0 [&>*+*]:mt-2.5">
+        <div data-look="bot-text" className="chat-md min-w-0 [&>*+*]:mt-2.5">
           {parts.map((part, index) => (
             // The whole text's tree puts a line break between its top-level blocks; the parts keep it.
             <Fragment key={index}>{index > 0 && "\n"}{part.fence ? fenceBlock(part.fence) : draw(part)}</Fragment>

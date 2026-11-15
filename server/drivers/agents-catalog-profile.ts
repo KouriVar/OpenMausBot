@@ -1,3 +1,5 @@
+import { toolsOffFromEnv, type ToolGroup } from "../../shared/tool-groups.ts";
+
 // The OMB_* switches the harness gives the agents proxy, read into the profile agents-catalog.ts lists tools for.
 import { interactiveAnswersFromEnv } from "../interactive-answers.ts";
 import type { InteractiveAnswerMode } from "../../shared/interactive-answers.ts";
@@ -37,6 +39,8 @@ export interface CatalogProfile {
   meetings?: boolean;
   /** The plan's included app hosting reaches this server: publish_app is mounted. */
   appHosting?: boolean;
+  /** The tool groups this bot's person turned off: none of their tools is mounted. */
+  toolsOff?: readonly ToolGroup[];
 }
 
 /** Everything is off unless the harness says "1". */
@@ -59,5 +63,6 @@ export function catalogProfileFromEnv(env: NodeJS.ProcessEnv): CatalogProfile {
     interactiveAnswers: interactiveAnswersFromEnv(env),
     meetings: env.OMB_MEETINGS === "1",
     appHosting: env.OMB_APP_HOSTING === "1",
+    toolsOff: toolsOffFromEnv(env.OMB_TOOLS_OFF),
   };
 }

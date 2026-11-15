@@ -25,6 +25,7 @@ import {
 } from "../../AppSettingsRows";
 import { ChromeRailRow } from "../../ChromeRailToggle";
 import { ConnectedWorkspacesSettings } from "../../ConnectedWorkspacesSettings";
+import { CustomThemesSettings } from "../../CustomThemesSettings";
 import { NotificationRows } from "../../NotificationSettingsRows";
 import { OpenAtLoginRow } from "../../OpenAtLoginRow";
 import { PinnedPanelsSettings } from "../../PinnedPanelsSettings";
@@ -183,6 +184,7 @@ export function AppearancePage() {
         <ForkAvatarStyleRow />
       </SettingsRows>
     </SettingsGroup>
+    <CustomThemesSettings />
     {!ctx.client && (
       <SettingsGroup label={t("settings.overview.sidebar")} block="sidebar">
         <SettingsRows><PlaceLookRows /><DefaultBotSidebarRow simple /></SettingsRows>

@@ -237,7 +237,7 @@ export function MessageActions({
         <div
           ref={menuRef}
           id={menuId}
-          role="menu"
+          role="menu" data-look="menu"
           aria-label={t("chat.messageActions")}
           onKeyDown={moveFocus}
           style={rightClick ? { left: point?.left, top: point?.top, visibility: point ? undefined : "hidden" } : undefined}

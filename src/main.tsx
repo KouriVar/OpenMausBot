@@ -13,6 +13,7 @@ import { applySidebarVibrancy, readSidebarVibrancy } from "./fork/sidebar-vibran
 import { applyInsetLayout, readInsetLayout } from "./fork/inset-layout";
 import { applyFont, readFont } from "./lib/fonts";
 import { applySoftwareRendering } from "./lib/software-rendering";
+import { loadTheme, startTheme } from "./lib/theme/runtime";
 import { settleInterfaceMode } from "./lib/new-look";
 import { BrowserSignInPage } from "./pair/BrowserSignInPage";
 import { PairPage, TeamLeftPage } from "./pair/PairPage";
@@ -31,6 +32,7 @@ applyChatWidth(readChatWidth());
 applyBoldText(readBoldText());
 applySidebarVibrancy(readSidebarVibrancy());
 applyInsetLayout(readInsetLayout());
+startTheme();
 const pageLanguage = loadPageLanguage();
 
 // The app is its own chunk, so these pages don't parse it. Everywhere else its fetch starts now, alongside the session
@@ -73,6 +75,7 @@ async function chooseRoot(): Promise<React.ReactNode> {
     return <DesktopViewer />;
   }
   const { default: App } = await (appPage ?? loadApp());
+  void loadTheme();
   return <App />;
 }
 

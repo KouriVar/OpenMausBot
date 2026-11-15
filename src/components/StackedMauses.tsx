@@ -18,6 +18,14 @@ function BloubMember({ bot, size }: { bot: Bot; size: number }) {
   return <BloubAvatar size={size} frameSize={size} fitBody shape={skin.shape} colorId={skin.color} expression={skin.expression} state="idle" animated={false} label={bot.name} />;
 }
 
+export function RoomMark({ density, large = false }: { density: SidebarDensity; large?: boolean }) {
+  return (
+    <div data-room-mark="" className={cn("flex shrink-0 items-center justify-center", density === "icons" ? "size-12" : large ? "size-9" : "size-8")}>
+      <Users aria-hidden="true" size={16} className="text-ink-secondary" />
+    </div>
+  );
+}
+
 export function StackedMauses({ members, density, large = false, surface = "var(--row, var(--color-panel))" }: {
   members: Bot[];
   density: SidebarDensity;

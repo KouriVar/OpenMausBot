@@ -8,9 +8,9 @@ export const WIDGET_TOOL_DEFINITIONS = [
       type: "object",
       additionalProperties: false,
       properties: {
-        widget: { type: "object", additionalProperties: true, description: "The widget tree." },
-        fallback_text: { type: "string", description: "Optional plain-text version for clients that cannot draw widgets. Written for you when omitted." },
-        widget_id: { type: "string", description: "Only to replace a widget you showed: the id it returned." },
+        widget: { type: "object", additionalProperties: true },
+        fallback_text: { type: "string", description: "Optional plain text for clients without widgets." },
+        widget_id: { type: "string", description: "Only to replace a widget you showed." },
       },
       required: ["widget"],
     },
