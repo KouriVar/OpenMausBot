@@ -1581,6 +1581,7 @@ export function createAcpDriver(support: AcpSupport): ProviderDriver<AcpConfig> 
         if (startupModelRefresh) await startupModelRefresh;
         const turnConfig: AcpConfig = { ...config, fullAuto: false };
         const env = childEnv(turnConfig);
+        const oneShotModel = options.model ? support.resolveTurnModel?.(options.model, env, catalog.models) ?? options.model : undefined;
         if (support.requireAuthenticationBeforeSpawn && !(await support.isAuthenticated(env, turnConfig, instanceId, instanceEnvNames(input.environment, env)))) {
           throw new Error(support.loginNote);
         }
@@ -1599,6 +1600,8 @@ export function createAcpDriver(support: AcpSupport): ProviderDriver<AcpConfig> 
             cwd,
             prompt,
             defaultModel: catalog.models.default,
+            ...(oneShotModel ? { model: oneShotModel } : {}),
+            ...(support.selectModel ? { modelConfigId: support.selectModel.configId } : {}),
             pickAuthMethod: (methods) => support.pickAuthMethod(methods, spawnEnv),
             authRequired: support.authFailure === "fail-request" ? "if-requested" : support.authFailure === "fail",
             loginNote: support.loginNote,

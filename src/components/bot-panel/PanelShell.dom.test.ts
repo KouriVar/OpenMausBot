@@ -234,7 +234,7 @@ describe("the chat header's pill", () => {
     document.body.append(header);
     const headerRoot = createRoot(header);
     const onToggle = vi.fn();
-    flushSync(() => headerRoot.render(createElement(ChatHeadPill, { bot: withTasks, privacy: null, onToggle, ...props })));
+    flushSync(() => headerRoot.render(createElement(ChatHeadPill, { bot: withTasks, avatar: { state: "idle", motion: "none", motionKey: 0, animated: false } as never, privacy: null, onToggle, ...props })));
     return { header, onToggle, done: () => { flushSync(() => headerRoot.unmount()); header.remove(); } };
   };
 

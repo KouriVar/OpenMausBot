@@ -77,7 +77,10 @@ export interface BotMessageRouteDeps {
     threadId?: string; replyTo?: Message; sendId?: string; sender?: ResolvedSender; trigger?: UsageTrigger; relayed?: boolean;
     dataContext?: DataContext; compactOnly?: boolean; cardContinuation?: boolean; editedMessageId?: string;
     assumptions?: import("../../shared/assumptions.ts").Assumption[];
+    modelSelection?: import("../../shared/wire.ts").ModelSelection;
   }): Promise<Message>;
+  /** Settings → General → Input: the model a card/blank continuation runs on, if the person chose one. */
+  analysisModel?(): import("../../shared/wire.ts").ModelSelection | undefined;
   /** A text answer's blank was filled: start the hidden continuation that rewrites it in place. */
   blankContinuation?(input: {
     botId: string; threadId: string; messageId: string; text: string;
@@ -297,7 +300,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         try {
           const values = fill.text.split("\n").slice(1).join("\n");
           await startTurn(bot.id, `The person filled in the blanks you asked for. Continue your answer from where it stopped, using these values:\n${values}`, {
-            threadId, cardContinuation: true, ...(requestMessageId ? { requestMessageId } : {}),
+            threadId, cardContinuation: true, ...(requestMessageId ? { requestMessageId } : {}), ...(deps.analysisModel?.() ? { modelSelection: deps.analysisModel!() } : {}),
           });
         } catch (error) {
           return json(res, 409, { error: error instanceof Error ? error.message : String(error) });

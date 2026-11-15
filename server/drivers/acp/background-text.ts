@@ -21,6 +21,9 @@ export interface AcpOneShotInput {
   prompt: string;
   /** The model usage is booked to when the session names none. */
   defaultModel: string;
+  /** A model to select over the wire after session/new, before the prompt. */
+  model?: string;
+  modelConfigId?: string;
   pickAuthMethod: (methods: Array<{ id?: string }>) => string | null;
   authRequired: boolean | "if-requested";
   loginNote: string;
@@ -169,6 +172,12 @@ export function runAcpOneShot(input: AcpOneShotInput): Promise<string> {
       sessionId = session.sessionId;
       model = typeof session?.models?.currentModelId === "string" ? session.models.currentModelId
         : typeof init?._meta?.modelState?.currentModelId === "string" ? init._meta.modelState.currentModelId : undefined;
+      if (input.model && input.modelConfigId) {
+        const switched = await request("session/set_config_option", { sessionId, configId: input.modelConfigId, value: input.model });
+        const confirmed = (Array.isArray(switched?.configOptions) ? switched.configOptions : [])
+          .find((entry: { id?: unknown }) => entry?.id === input.modelConfigId)?.currentValue;
+        model = typeof confirmed === "string" ? confirmed : typeof switched?.currentValue === "string" ? switched.currentValue : input.model;
+      }
       await input.configure?.({ request: (method, params) => request(method, params), sessionId: session.sessionId, session });
       const result = await request("session/prompt", { sessionId, prompt: [{ type: "text", text: input.prompt }] });
       const reported = result?.usage ?? result?._meta ?? {};

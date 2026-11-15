@@ -6,7 +6,9 @@ import { PASS, type RouteHandler } from "./table.ts";
 export interface ComposerAmbiguityDeps {
   bot(botId: string): BotRecord | null;
   task(botId: string, threadId: string): unknown;
-  writer(botId: string): ((prompt: string, options: { timeoutMs?: number }) => Promise<string>) | undefined;
+  writer(botId: string, analysisModel?: { instanceId: string; model: string }): ((prompt: string, options: { timeoutMs?: number }) => Promise<string>) | undefined;
+  /** Settings → General → Input: the same model the person chose for analysis, if any. */
+  analysisModel?(): { instanceId: string; model: string } | undefined;
 }
 
 /** The composer's background pass: the draft in, at most three marked words out. Failure is an empty answer, never a stall. */
@@ -21,7 +23,7 @@ export function createComposerAmbiguityRoutes(deps: ComposerAmbiguityDeps): Rout
     if (!deps.bot(botId)) return json(res, 404, { error: "no such bot" });
     if (threadId && !deps.task(botId, threadId)) return json(res, 404, { error: "no such conversation" });
     res.setHeader("cache-control", "no-store");
-    const writer = deps.writer(botId);
+    const writer = deps.writer(botId, deps.analysisModel?.());
     if (!writer) return json(res, 200, { marks: [] });
     try {
       const answer = await writer(ambiguityPrompt(text), { timeoutMs: AMBIGUITY_TIMEOUT_MS });

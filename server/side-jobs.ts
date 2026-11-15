@@ -71,8 +71,9 @@ export interface SideJobsDeps {
 }
 
 export interface SideJobs {
-  /** Null when nobody can write it and the job keeps its fallback. `at.instance`: the conversation's engine, for the summary. */
-  text(job: SideJob, botId: string, at?: { instance?: SideJobInstance }): SideJobText | null;
+  /** Null when nobody can write it and the job keeps its fallback. `at.instance`: the conversation's engine, for the
+   * summary. `at.analysisModel`: the Settings → General → Input choice for the composer's background pass. */
+  text(job: SideJob, botId: string, at?: { instance?: SideJobInstance; analysisModel?: { instanceId: string; model: string } }): SideJobText | null;
 }
 
 type TextCall = (prompt: string, options?: TextGenerationOptions) => Promise<string>;
@@ -186,8 +187,12 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
   return {
     text(job, botId, at = {}) {
       const bot = deps.bot(botId);
-      const own = at.instance ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
+      const analysis = at.instance ? undefined : at.analysisModel;
+      const requested = analysis ? deps.instance(analysis.instanceId) : null;
+      const usable = requested && (requested.models.options.some((option) => option.id === analysis!.model) || requested.driverKind === "opencodeGo") ? requested : null;
+      const own = at.instance ?? usable ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
       if (!bot || !own || deps.refusal(own)) return null;
+      const analysisModel = usable && analysis ? analysis.model : undefined;
       // The review's changes are written with the bot's own skill tools, whoever read the conversation.
       if (job === "skill-review" && own.adapter.capabilities.agentsMcp !== true) return null;
       const call = ownCall(job, own);
@@ -200,7 +205,9 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
           return { via: "engine", generateText: quick.model ? rememberRefusal(write, own, quick.model) : write };
         }
         if (job === "composer-ambiguity") {
-          return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), model: AMBIGUITY_FAST_MODEL })) };
+          const model = analysisModel ?? AMBIGUITY_FAST_MODEL;
+          deps.log?.(`[omb-analysis] instance=${own.instanceId} provider=${own.driverKind} model=${model}`);
+          return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), model })) };
         }
         return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
       }
