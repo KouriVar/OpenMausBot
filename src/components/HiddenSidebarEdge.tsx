@@ -33,7 +33,7 @@ export function HiddenSidebarEdge({ onReveal }: { onReveal: () => void }) {
         if (grab?.moved) onReveal();
       }}
       onClick={() => onReveal()}
-      className="group fixed left-[var(--rail-beside,0px)] top-1/2 z-30 flex h-24 w-3 -translate-y-1/2 items-center justify-start pl-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+      className="group fixed left-[var(--rail-beside,0px)] top-1/2 z-30 flex h-24 w-3 -translate-y-1/2 items-center justify-start pl-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
     >
       <span
         aria-hidden="true"
