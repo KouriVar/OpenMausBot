@@ -26,6 +26,7 @@ import type { SkillRequestCardData } from "./skill-request.ts"; import type { Ou
 import type { QuestionRequestCardData } from "./ask-question.ts";
 import type { AutomationLine, RoutineRunCardData } from "./routine-run.ts";
 import type { WidgetPayload } from "./widget.ts";
+import type { A2uiPayload } from "./a2ui.ts";
 import type { AppFromRef, AppPayload, AppPointedRef } from "./app.ts";
 import type { GroupGoalRunCardData } from "./group-goal-run.ts"; import type { BurstCardData } from "./burst.ts";
 import type { RuntimeEvent } from "./runtime-events.ts";
@@ -464,6 +465,9 @@ export interface WireMessage extends ServerTextLine, HelperIntroField, SetupCard
   /** Inline blanks in a bot answer, by their key: the values the person filled, kept
    * out of `text` so the same answer can be edited again. */
   blankValues?: Record<string, string>;
+  /** A2UI surfaces in a bot answer, with the data model as last saved; `text` fences
+   * name them by index. */
+  a2ui?: A2uiPayload;
   /** widget rows the server built from records (mail, calendar, other
    * bots' work) rather than the bot: replayed to the bot only as labelled
    * data, never as its own words, and never edited by a bot. */

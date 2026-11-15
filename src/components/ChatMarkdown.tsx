@@ -1,5 +1,5 @@
 // Security: model output never reaches the DOM as raw HTML (no rehype-raw); Shiki's output is generator-escaped.
-import { createContext, Fragment, memo, use, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ReactNode } from "react";
+import { createContext, Fragment, memo, use, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ComponentProps, type ComponentType, type ReactNode } from "react";
 import Markdown, { defaultUrlTransform, type Components, type ExtraProps, type Options as MarkdownOptions } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -18,6 +18,9 @@ import { StoreContext, StoreSourceContext } from "@/state/store-context";
 import { interactiveAnswersMode } from "@/lib/feature-flags";
 import { isOmbUiFence, parseOmbUiFence } from "@/lib/omb-ui-fence";
 import { DEFAULT_INTERACTIVE_ANSWER_MODE, showsComponentFences, type InteractiveAnswerMode } from "../../shared/interactive-answers";
+import { A2UI_FENCE_TAG, a2uiFenceIndex, type A2uiPayload } from "../../shared/a2ui";
+import { A2uiInline } from "@/fork/a2ui/A2uiMessage";
+import type { MarkdownComponentProps } from "@a2ui/react";
 import { InlineWidget } from "./widget/InlineWidget";
 import { BlankProvider, BlankSlotLink, BlankStatus, prepareBlankMarkdown, useBlankMessage, type BlankMessageInfo } from "./widget/BlankInline";
 
@@ -619,6 +622,16 @@ function useInteractiveAnswersMode(): InteractiveAnswerMode {
 
 const InteractiveAnswersContext = createContext<InteractiveAnswerMode>(DEFAULT_INTERACTIVE_ANSWER_MODE);
 
+/** The A2UI surfaces a bot row stores, and the bot whose thread draws them. */
+const A2uiContext = createContext<{
+  botId: string; threadId?: string; messageId: string;
+  surfaces: NonNullable<A2uiPayload["surfaces"]>; viewOnly?: boolean;
+  renderMarkdown: ComponentType<MarkdownComponentProps>;
+} | null>(null);
+
+/** Text inside a surface is drawn by this same transcript, so its Markdown reads as the message around it. */
+const A2uiMarkdown = ({ markdown }: MarkdownComponentProps) => <ChatMarkdown text={markdown} />;
+
 /** A component fence still being written: its body is not a tree yet, so none of it is drawn. */
 function PendingComponentFence() {
   return <div data-omb-ui-pending="" aria-busy="true" className="my-2.5 min-h-16 rounded-xl bg-ink/[0.04]" />;
@@ -627,6 +640,7 @@ function PendingComponentFence() {
 function MarkdownCode({ node, children }: BlockProps) {
   const streamSource = use(StreamSourceContext);
   const answerMode = use(InteractiveAnswersContext);
+  const a2ui = useContext(A2uiContext);
   const position = (node as { position?: { start: { offset?: number }; end: { offset?: number } } } | undefined)?.position;
   const open = streamSource !== null && !closedFence(streamSource, position?.start.offset, position?.end.offset);
   const child: any = Array.isArray(children) ? children[0] : children;
@@ -635,6 +649,12 @@ function MarkdownCode({ node, children }: BlockProps) {
   const flat = (n: any): string =>
     typeof n === "string" ? n : Array.isArray(n) ? n.map(flat).join("") : (n?.props?.children ? flat(n.props.children) : "");
   const code = flat(child?.props?.children).replace(/\n$/, "");
+  if (lang.trim().toLowerCase() === A2UI_FENCE_TAG && a2ui) {
+    if (open) return <PendingComponentFence />;
+    const index = a2uiFenceIndex(code);
+    const surface = index === undefined ? undefined : a2ui.surfaces[index];
+    if (surface) return <A2uiInline key={`${a2ui.messageId}:${surface.id}`} botId={a2ui.botId} threadId={a2ui.threadId} messageId={a2ui.messageId} surface={surface} index={index!} viewOnly={a2ui.viewOnly} renderMarkdown={a2ui.renderMarkdown} />;
+  }
   if (isOmbUiFence(lang) && showsComponentFences(answerMode)) {
     if (open) return <PendingComponentFence />;
     const fence = parseOmbUiFence(code);
@@ -847,11 +867,13 @@ function markdownParts(text: string, streaming: boolean): MarkdownPart[] {
   });
 }
 
-function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, everyone = false, mentionPerson, delivered, originals }: {
+function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, everyone = false, mentionPerson, delivered, originals, a2ui, a2uiBotId, a2uiViewOnly }: {
   text: string; message?: MessageAttachmentContext;
   mentionPeers?: readonly MentionPeer[]; everyone?: boolean; mentionPerson?: MentionPerson;
   /** Delivered copies by file name, and the originals those copies came from (copy path -> original). */
   delivered?: DeliveredFiles; originals?: DeliveredFiles;
+  /** The A2UI surfaces this row stores, and the bot whose thread draws them. */
+  a2ui?: A2uiPayload; a2uiBotId?: string; a2uiViewOnly?: boolean;
 }) {
   // use() may be called conditionally: only a message that can hold a thread link subscribes to the thread list.
   const { threads, currentBotId } = MAY_LINK_THREAD.test(text) ? use(ThreadRefsContext) : NO_THREAD_REFS;
@@ -896,8 +918,12 @@ function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, ever
   const fenceBlock = (fence: NonNullable<MarkdownPart["fence"]>) => componentFences && isOmbUiFence(fence.lang)
     ? <PendingComponentFence />
     : <CodeBlock code={fence.code} lang={fence.lang} initialWrap={fence.wrap} open />;
+  const a2uiScope = useMemo(() => a2ui && a2uiBotId && message?.messageId
+    ? { botId: a2uiBotId, ...(message.threadId ? { threadId: message.threadId } : {}), messageId: message.messageId, surfaces: a2ui.surfaces, renderMarkdown: A2uiMarkdown, ...(a2uiViewOnly ? { viewOnly: true } : {}) }
+    : null, [a2ui, a2uiBotId, a2uiViewOnly, message?.threadId, message?.messageId]);
   return (
     <MessageScopeContext.Provider value={scope}>
+      <A2uiContext value={a2uiScope}>
       <InteractiveAnswersContext value={answerMode}>
         <div className="chat-md min-w-0 [&>*+*]:mt-2.5">
           {parts.map((part, index) => (
@@ -906,6 +932,7 @@ function ChatMarkdownBody({ text, message, mentionPeers = NO_MENTION_PEERS, ever
           ))}
         </div>
       </InteractiveAnswersContext>
+      </A2uiContext>
     </MessageScopeContext.Provider>
   );
 }
@@ -916,6 +943,8 @@ type ChatMarkdownProps = {
   delivered?: DeliveredFiles; originals?: DeliveredFiles;
   /** A bot row whose `<blank>` tags this transcript draws; absent leaves the tags alone. */
   blank?: BlankMessageInfo;
+  /** The A2UI surfaces this row stores, and the bot whose thread draws them. */
+  a2ui?: A2uiPayload; a2uiBotId?: string; a2uiViewOnly?: boolean;
 };
 
 const sameBlank = (a: BlankMessageInfo | undefined, b: BlankMessageInfo | undefined): boolean =>
@@ -966,6 +995,7 @@ export const ChatMarkdown = memo(ChatMarkdownComponent, (previous, next) => (
   && previous.everyone === next.everyone && sameMentionPerson(previous.mentionPerson, next.mentionPerson)
   && previous.message?.threadId === next.message?.threadId
   && previous.message?.messageId === next.message?.messageId
+  && previous.a2ui === next.a2ui && previous.a2uiBotId === next.a2uiBotId && previous.a2uiViewOnly === next.a2uiViewOnly
   && sameBlank(previous.blank, next.blank)
   && sameDelivered(previous.delivered, next.delivered) && sameDelivered(previous.originals, next.originals)
 ));

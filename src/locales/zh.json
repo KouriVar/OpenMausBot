@@ -10975,5 +10975,7 @@
   "settings.brandMark.title": "显示品牌标识",
   "settings.brandMark.subtitle": "侧栏顶部的 Sully Coe 字标。保存在这台设备上，默认显示。",
   "settings.sidebarVersion.title": "在侧栏显示版本号",
-  "settings.sidebarVersion.subtitle": "账号菜单顶部的版本号。保存在这台设备上，默认显示。"
+  "settings.sidebarVersion.subtitle": "账号菜单顶部的版本号。保存在这台设备上，默认显示。",
+  "a2ui.unsupported": "暂不支持",
+  "a2ui.failed": "这个组件暂时无法显示。"
 }
