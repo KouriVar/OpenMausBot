@@ -1,5 +1,6 @@
 import { useMemo, useState, type JSX } from "react";
 import { Bug, Copy, Cpu, Download, Gauge, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserPlus, UserRound, Users } from "lucide-react";
+import { RiMenuSearchLine } from "@remixicon/react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -263,7 +264,7 @@ export function ChatHeaderMenu({ bot }: { bot: Bot }): JSX.Element {
           )}
           title={t("chat.more")}
         >
-          <MoreHorizontal size={16} />
+          <RiMenuSearchLine size={16} />
         </span>
       )}
     />

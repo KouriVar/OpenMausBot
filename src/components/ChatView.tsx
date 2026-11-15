@@ -3,7 +3,8 @@ import { useAdvancedMode } from "@/lib/interface-mode";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
 import { useShowThreads } from "@/lib/thread-preferences";
-import { AlertTriangle, ChevronLeft, ChevronRight, Monitor, RefreshCw, Square, Webhook } from "lucide-react";
+import { AlertTriangle, ChevronLeft, ChevronRight, RefreshCw, Square, Webhook } from "lucide-react";
+import { RiDeviceLine } from "@remixicon/react";
 import { WorkingDots } from "@/components/WorkingIndicator";
 import { ChatBusyContext, CopyButton, MESSAGE_ROW, MessageActions, messageActionClass, ReplyAction } from "@/components/MessageActions";
 import { FORK_MESSAGE_TIME_IN_MENU } from "@/fork/ui-batch-1111";
@@ -128,6 +129,7 @@ import { GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
 import { CHAT_PANE_CLIP, CHAT_CARD_INSET, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { useInsetLayout } from "@/fork/inset-layout";
 import { useHiddenSidebar } from "@/fork/hidden-sidebar";
+import { useSidebarDensity } from "@/lib/sidebar-preferences";
 import { PagePaneContext } from "./app/PageTools";
 import { useTranscriptViewport } from "@/hooks/use-transcript-viewport";
 import { useUnreadDivider } from "@/hooks/use-unread-divider";
@@ -865,10 +867,12 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
   const [pagePane, setPagePane] = useState<HTMLDivElement | null>(null);
   const advanced = useAdvancedMode();
   const { inset } = useInsetLayout();
-  // Fork: with the sidebar hidden the card runs to the window's left edge, where a left-aligned pill would sit on the
-  // traffic lights; the head centres again, as it does in Classic.
+  // Fork: with the sidebar hidden, or narrowed to its column of avatars, the card runs close to the window's left
+  // edge, where a left-aligned pill would sit on the traffic lights; the head centres again, as it does in Classic.
+  // Only the expanded sidebar puts the pill on the left.
   const [hiddenSidebar] = useHiddenSidebar();
-  const centeredHead = !inset || hiddenSidebar;
+  const sidebarDensity = useSidebarDensity();
+  const centeredHead = !inset || hiddenSidebar || sidebarDensity === "icons";
   // The Chief's mark (crown, or a department lead's flag): subscribed here, so a change in Settings shows at once.
   const chiefStyle = useChiefStyle(bot.id);
   const phone = useMediaQuery(PHONE_LAYOUT);
@@ -1132,7 +1136,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
             )}
             title={t("chat.computer")} aria-label={busy && place === "browser" ? `${t("chat.computer")}, ${t("place.live")}` : t("chat.computer")}
           >
-            <Monitor size={16} />{busy && place === "browser" && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 animate-pulse rounded-full bg-success" data-testid="computer-button-live" />}
+            <RiDeviceLine size={16} />{busy && place === "browser" && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 animate-pulse rounded-full bg-success" data-testid="computer-button-live" />}
           </button>}
           <HeaderShare bot={bot} />{phoneMenu ? <ChatMoreMenu bot={bot} phoneHeader /> : (advanced || remoteClient) && <ChatHeaderMenu key={`menu:${bot.threadId}`} bot={bot} />}
         </div>

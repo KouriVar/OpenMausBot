@@ -122,8 +122,7 @@ export function Composer({
   onClearReply,
   onConsumeReply,
   onRestoreReply,
-  locked: setupLocked = false,
-  inset = false,
+  locked: setupLocked = false, inset = false,
 }: {
   bot?: Bot;
   group?: Group;
@@ -133,9 +132,7 @@ export function Composer({
   onClearReply?: () => void;
   onConsumeReply?: () => void;
   onRestoreReply?: (message: Message, threadId: string) => void;
-  locked?: boolean;
-  /** The Inset layout's card: the composer keeps the card's 8px inset instead of the wider gutter. */
-  inset?: boolean;
+  locked?: boolean; inset?: boolean; /** The Inset layout's card: the composer keeps the card's 8px inset, not the wider gutter. */
 }) {
   const bot = profile ? currentTaskBot(profile) : undefined;
   const locked = setupLocked || Boolean(bot?.awaitingThreadSnapshot);
