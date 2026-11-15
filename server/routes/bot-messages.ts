@@ -14,6 +14,7 @@ import { admit } from "../admission.ts";
 import { dismissQuestionCard } from "../card-dismissal.ts";
 import { AppMessageRate, appContextBlock, prepareAppMessage } from "../chat-apps.ts";
 import { prepareBlankFill, prepareWidgetFill, prepareWidgetPress, reopenCancelledPress, type BlankFillResult } from "../chat-widgets.ts";
+import { prepareA2uiAction, prepareA2uiModel } from "../a2ui/store.ts";
 import type { ModelSelection, RequestOutcome, SteerOutcome } from "../contracts.ts";
 import { parseDataContext, type DataContext } from "../data-context.ts";
 import { OPEN_PAGE_BAD, openPageBlock } from "../open-page.ts";
@@ -209,7 +210,9 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       }
       const pressed = body.widgetAction !== undefined && body.widgetAction !== null;
       const filling = body.widgetFill !== undefined && body.widgetFill !== null;
-      if (guarded && pressed) return json(res, 400, { error: "guarded sends cannot answer a widget" });
+      const a2uiAction = body.a2uiAction !== undefined && body.a2uiAction !== null;
+      const a2uiModel = body.a2uiModel !== undefined && body.a2uiModel !== null;
+      if (guarded && (pressed || a2uiAction || a2uiModel)) return json(res, 400, { error: "guarded sends cannot answer a widget" });
       if (guarded && filling) return json(res, 400, { error: "guarded sends cannot fill a widget" });
       if (filling && (pressed || body.appMessage !== undefined || body.pointed !== undefined || body.openPage !== undefined || body.followUp !== undefined)) {
         return json(res, 400, { error: "a fill sends only widgetFill" });
@@ -217,10 +220,13 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       const fromAnApp = body.appMessage !== undefined && body.appMessage !== null;
       if (guarded && fromAnApp) return json(res, 400, { error: "guarded sends cannot speak for an app" });
       if (pressed && fromAnApp) return json(res, 400, { error: "send widgetAction or appMessage, not both" });
+      if ((a2uiAction || a2uiModel) && (pressed || filling || fromAnApp || a2uiAction === a2uiModel)) {
+        return json(res, 400, { error: a2uiAction === a2uiModel ? "send a2uiAction or a2uiModel, not both" : "a component message sends only a2uiAction or a2uiModel" });
+      }
       const pointing = body.pointed !== undefined && body.pointed !== null;
-      if (pointing && (guarded || pressed || fromAnApp)) return json(res, 400, { error: "only a typed message can carry what the person pointed at" });
+      if (pointing && (guarded || pressed || fromAnApp || a2uiAction || a2uiModel)) return json(res, 400, { error: "only a typed message can carry what the person pointed at" });
       const pageOpen = body.openPage !== undefined && body.openPage !== null;
-      if (pageOpen && (guarded || pressed || fromAnApp)) return json(res, 400, { error: "only a typed message can carry the page the person has open" });
+      if (pageOpen && (guarded || pressed || fromAnApp || a2uiAction || a2uiModel)) return json(res, 400, { error: "only a typed message can carry the page the person has open" });
       const followUp = parseFollowUp(body.followUp);
       if (followUp === null) return json(res, 400, { error: "followUp must be steer, queue or restart" });
       const mentions = parseMentionPicks(body.mentions);
@@ -229,7 +235,7 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         return json(res, 400, { error: "assumptions must be a list of up to 3 word/meaning pairs" });
       }
       const assumptions = parseAssumptions(body.assumptions);
-      if (followUp && (guarded || pressed || fromAnApp)) return json(res, 400, { error: "only a typed message can choose how it meets the running turn" });
+      if (followUp && (guarded || pressed || fromAnApp || a2uiAction || a2uiModel)) return json(res, 400, { error: "only a typed message can choose how it meets the running turn" });
       // A distinct route, so an older server answers 404 instead of ignoring the safety preconditions.
       const guardedBody = guarded ? guardedSendSchema.safeParse(body) : null;
       if (guardedBody && !guardedBody.success) {
@@ -242,10 +248,11 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
       if (guardedBody?.data?.reaction !== undefined && (!reactionAnswer(relayed) || !body.replyToId || !guardedBody.data.onBehalfOf)) {
         return json(res, 400, { error: "a relayed reaction is a 👍 or 👎 on the message in replyToId, made by the person in onBehalfOf" });
       }
-      const textRefused = pressed || fromAnApp || filling ? null : messageTextRefusal(body.text);
+      const silent = pressed || fromAnApp || filling || a2uiAction || a2uiModel;
+      const textRefused = silent ? null : messageTextRefusal(body.text);
       if (textRefused) return json(res, 400, { error: textRefused });
-      const typed = pressed || fromAnApp || filling ? "" : relayed ?? String(body.text ?? "").trim();
-      if (!pressed && !fromAnApp && !filling && !typed) return json(res, 400, { error: "text required" });
+      const typed = silent ? "" : relayed ?? String(body.text ?? "").trim();
+      if (!silent && !typed) return json(res, 400, { error: "text required" });
       const bot = store.bot(m[1]);
       if (!bot) return json(res, 404, { error: "no such bot" });
       requirePinnedClientThread(bot.id, body.threadId);
@@ -253,12 +260,33 @@ export function createBotMessageRoutes(deps: BotMessageRouteDeps): RouteHandler 
         return json(res, 400, { error: "threadId must be a task id" });
       }
       const threadId = body.threadId ?? bot.threadId;
-      if ((pressed || fromAnApp || filling) && store.groupByThread(threadId)) return json(res, 409, { error: ROOM_VIEW_ONLY });
+      if ((pressed || fromAnApp || filling || a2uiAction || a2uiModel) && store.groupByThread(threadId)) return json(res, 409, { error: ROOM_VIEW_ONLY });
       const notYours = cloudGuestSendRefusal(auth, threadId);
       if (notYours) return json(res, 403, { error: notYours });
+      // A component's values are saved without a turn; a button press continues the bot's answer, like a fill card.
+      if (a2uiModel) {
+        const saved = prepareA2uiModel(store, threadId, body.a2uiModel);
+        if (!saved.ok) return json(res, saved.status, { error: saved.error });
+        store.patchMessage(threadId, saved.messageId, { a2ui: saved.payload });
+        return json(res, 202, { ok: true, threadId });
+      }
+      if (a2uiAction) {
+        const action = prepareA2uiAction(store, threadId, body.a2uiAction);
+        if (!action.ok) return json(res, action.status, { error: action.error });
+        if (!store.taskByThread(bot.id, threadId)) return json(res, 409, { error: "the bot switched tasks before it could receive the message" });
+        const requestMessageId = store.activePath(threadId).findLast((message) => message.role === "user" && message.kind === "text")?.id;
+        try {
+          await startTurn(bot.id, `The person pressed "${action.name}" on the component you showed. Continue from there, treating this press as their answer; its context is:\n${JSON.stringify(action.context)}`, {
+            threadId, cardContinuation: true, ...(requestMessageId ? { requestMessageId } : {}), ...(deps.analysisModel?.() ? { modelSelection: deps.analysisModel!() } : {}),
+          });
+        } catch (error) {
+          return json(res, 409, { error: error instanceof Error ? error.message : String(error) });
+        }
+        return json(res, 202, { ok: true, threadId });
+      }
       if (body.mode !== undefined && body.mode !== "chat" && body.mode !== "goal") return json(res, 400, { error: "mode must be chat or goal" });
       if (body.mode === "goal") {
-        if (guarded || pressed || fromAnApp || pointing) return json(res, 400, { error: "a goal is a plain typed message" });
+        if (guarded || pressed || fromAnApp || pointing || a2uiAction || a2uiModel) return json(res, 400, { error: "a goal is a plain typed message" });
         if (!store.taskByThread(bot.id, threadId)) return json(res, 404, userError("serverError.chat.missingConversation"));
         const goalRefused = directSendRefusal(bot.id, threadId);
         if (goalRefused) return json(res, goalRefused.status, goalRefused.body);
