@@ -402,6 +402,8 @@ const Bubble = memo(function Bubble({
   // sides. The gap between the words and the picture is the gallery's own margin and stays as it was.
   const hasImages = Boolean((user ? attachments?.images.length : generatedPaths.length) ?? 0);
   const mixedImages = hasImages && Boolean(visibleText.trim()) && !attachmentsOnly;
+  // A surface that ends the reply is the bubble's last row: give it the sides' 12px, not the text rows' 7px.
+  const a2uiAtEnd = !user && Boolean(message.a2ui?.surfaces?.length) && /```a2ui\s*\n\d{1,3}\n```\s*$/.test(text);
   const collapsible =
     user && !webhookView && !expanded && (visibleText.length > USER_COLLAPSE_CHARS || visibleText.split("\n").length > USER_COLLAPSE_LINES);
   useEffect(() => {
@@ -489,6 +491,7 @@ const Bubble = memo(function Bubble({
             // instead of the 7px the text rows use.
             replyTarget && !split && !tabled && !attachmentsOnly && "pt-3",
             mixedImages && !split && !tabled && "pb-3",
+            a2uiAtEnd && !split && !tabled && !attachmentsOnly && "pb-3",
             join && !split && !attachmentsOnly && !tabled && joinedCorners(user ? "end" : "start", join),
           )}
           style={user && !webhookView && !attachmentsOnly ? ownBubbleStyle : undefined}

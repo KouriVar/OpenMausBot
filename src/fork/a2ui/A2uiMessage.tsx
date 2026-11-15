@@ -13,16 +13,14 @@ import { t } from "@/lib/i18n";
 import type { A2uiSurfaceRecord } from "../../../shared/a2ui";
 import { ombA2uiCatalog } from "./catalog";
 
-function sendAction(input: { botId: string; threadId?: string; messageId: string; surfaceId: string; action: ActionPayload }): void {
-  void api(`/api/bots/${input.botId}/messages`, {
+async function sendAction(input: { botId: string; threadId?: string; messageId: string; surfaceId: string; action: ActionPayload }): Promise<void> {
+  await api(`/api/bots/${input.botId}/messages`, {
     method: "POST",
     body: JSON.stringify({
       threadId: input.threadId,
       sendId: randomUuid(),
       a2uiAction: { messageId: input.messageId, surfaceId: input.surfaceId, name: input.action.name, context: input.action.context },
     }),
-  }).catch((error: unknown) => {
-    console.warn(`[a2ui] action not sent: ${error instanceof Error ? error.message : String(error)}`);
   });
 }
 
@@ -48,10 +46,15 @@ export function A2uiInline({ botId, threadId, messageId, surface, index, viewOnl
   const [stored] = useState(surface);
   const [model, setModel] = useState<SurfaceModel | null>(null);
   const [failed, setFailed] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     const processor = new MessageProcessor([ombA2uiCatalog], (action) => {
-      if (!viewOnly) sendAction({ botId, threadId, messageId, surfaceId: stored.id, action });
+      if (viewOnly) return;
+      setActionError("");
+      void sendAction({ botId, threadId, messageId, surfaceId: stored.id, action }).catch((error: unknown) => {
+        setActionError(error instanceof Error && error.message ? error.message : t("a2ui.actionFailed"));
+      });
     });
     try {
       processor.processMessages(stored.messages as never);
@@ -92,6 +95,7 @@ export function A2uiInline({ botId, threadId, messageId, surface, index, viewOnl
       <MarkdownComponentContext.Provider value={renderMarkdown}>
         <A2uiSurface surface={model as never} />
       </MarkdownComponentContext.Provider>
+      {actionError && <div role="alert" className="mt-1 text-[12px] leading-4 text-danger">{actionError}</div>}
     </div>
   );
 }
