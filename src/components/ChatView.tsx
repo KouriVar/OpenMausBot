@@ -127,6 +127,7 @@ import { useComposerDockPad } from "@/lib/composer-dock";
 import { GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
 import { CHAT_PANE_CLIP, CHAT_CARD_INSET, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { useInsetLayout } from "@/fork/inset-layout";
+import { useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { PagePaneContext } from "./app/PageTools";
 import { useTranscriptViewport } from "@/hooks/use-transcript-viewport";
 import { useUnreadDivider } from "@/hooks/use-unread-divider";
@@ -864,6 +865,10 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
   const [pagePane, setPagePane] = useState<HTMLDivElement | null>(null);
   const advanced = useAdvancedMode();
   const { inset } = useInsetLayout();
+  // Fork: with the sidebar hidden the card runs to the window's left edge, where a left-aligned pill would sit on the
+  // traffic lights; the head centres again, as it does in Classic.
+  const [hiddenSidebar] = useHiddenSidebar();
+  const centeredHead = !inset || hiddenSidebar;
   // The Chief's mark (crown, or a department lead's flag): subscribed here, so a change in Settings shows at once.
   const chiefStyle = useChiefStyle(bot.id);
   const phone = useMediaQuery(PHONE_LAYOUT);
@@ -1055,8 +1060,8 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
             : simpleHead ? "px-5 pt-2.5 pb-2.5 max-md:pl-14 max-md:pr-3" : "px-5 py-3 pl-11 md:pl-5 max-md:pl-14 max-md:pr-3",
         )}
       >
-        <div data-chathead-row className={cn("flex items-center justify-between", phone ? "gap-2" : cn("@max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:gap-y-1 @min-[30rem]/chathead:grid", inset ? "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_max-content]" : "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(max-content,1fr)]"))}>
-        <div data-chathead-identity className={cn("flex min-w-0 items-center gap-2", phone ? "flex-1" : cn("@max-[30rem]/chathead:basis-full", inset ? "@min-[30rem]/chathead:col-start-1 @min-[30rem]/chathead:justify-self-start" : "@min-[30rem]/chathead:col-start-2 @min-[30rem]/chathead:justify-self-center"), simpleHead && phone && "justify-center")} style={headerNoDragStyle}>
+        <div data-chathead-row className={cn("flex items-center justify-between", phone ? "gap-2" : cn("@max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:gap-y-1 @min-[30rem]/chathead:grid", centeredHead ? "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(max-content,1fr)]" : "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_max-content]"))}>
+        <div data-chathead-identity className={cn("flex min-w-0 items-center gap-2", phone ? "flex-1" : cn("@max-[30rem]/chathead:basis-full", centeredHead ? "@min-[30rem]/chathead:col-start-2 @min-[30rem]/chathead:justify-self-center" : "@min-[30rem]/chathead:col-start-1 @min-[30rem]/chathead:justify-self-start"), simpleHead && phone && "justify-center")} style={headerNoDragStyle}>
           {simpleHead || advanced ? (
             // Fork: one pill for both modes — no rename pencil, no chief tag; the avatar, the name and the chevron state
             // alone.
@@ -1098,7 +1103,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
         </div>
         <div
           data-chathead-controls
-          className={cn("flex shrink-0 items-center gap-2", !phone && "@max-[30rem]/chathead:ml-auto @max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:justify-end", !phone && (inset ? "@min-[30rem]/chathead:col-start-2" : "@min-[30rem]/chathead:col-start-3"), !phone && "@min-[30rem]/chathead:justify-self-end")}
+          className={cn("flex shrink-0 items-center gap-2", inset && "self-start", !phone && "@max-[30rem]/chathead:ml-auto @max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:justify-end", !phone && (centeredHead ? "@min-[30rem]/chathead:col-start-3" : "@min-[30rem]/chathead:col-start-2"), !phone && "@min-[30rem]/chathead:justify-self-end")}
         >{sharedChat && <ThreadPresenceFaces threadId={bot.threadId} />}
           {!simpleHead && (bot.busy || bot.waitingForTeammates) && (
             <button
