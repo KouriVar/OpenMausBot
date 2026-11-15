@@ -212,9 +212,19 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
         }
         if (job === "composer-ambiguity") {
           const model = analysisModel ?? AMBIGUITY_FAST_MODEL;
-          const provider = analysisModel?.includes("/") ? analysisModel.slice(0, analysisModel.indexOf("/")) : own.driverKind;
+          const provider = model.includes("/") ? model.slice(0, model.indexOf("/")) : own.driverKind;
           deps.log?.(`[omb-analysis] instance=${own.instanceId} driver=${own.driverKind} provider=${provider} model=${model}`);
-          return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), model })) };
+          const write = (named?: string) => booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...(named ? { model: named } : {}) }));
+          const primary = write(model);
+          return { via: "engine", generateText: async (prompt, options) => {
+            try {
+              return await primary(prompt, options);
+            } catch (error) {
+              if (!analysisModel && !directUsable) throw error;
+              deps.log?.(`[omb-analysis] fallback=${own.instanceId} the named model failed; retrying the engine's own default`);
+              return write(undefined)(prompt, options);
+            }
+          } };
         }
         return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
       }

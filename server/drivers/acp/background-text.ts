@@ -173,10 +173,14 @@ export function runAcpOneShot(input: AcpOneShotInput): Promise<string> {
       model = typeof session?.models?.currentModelId === "string" ? session.models.currentModelId
         : typeof init?._meta?.modelState?.currentModelId === "string" ? init._meta.modelState.currentModelId : undefined;
       if (input.model && input.modelConfigId) {
-        const switched = await request("session/set_config_option", { sessionId, configId: input.modelConfigId, value: input.model });
-        const confirmed = (Array.isArray(switched?.configOptions) ? switched.configOptions : [])
-          .find((entry: { id?: unknown }) => entry?.id === input.modelConfigId)?.currentValue;
-        model = typeof confirmed === "string" ? confirmed : typeof switched?.currentValue === "string" ? switched.currentValue : input.model;
+        try {
+          const switched = await request("session/set_config_option", { sessionId, configId: input.modelConfigId, value: input.model });
+          const confirmed = (Array.isArray(switched?.configOptions) ? switched.configOptions : [])
+            .find((entry: { id?: unknown }) => entry?.id === input.modelConfigId)?.currentValue;
+          model = typeof confirmed === "string" ? confirmed : typeof switched?.currentValue === "string" ? switched.currentValue : input.model;
+        } catch {
+          console.warn(`${name} background model selection failed; using the session default`);
+        }
       }
       await input.configure?.({ request: (method, params) => request(method, params), sessionId: session.sessionId, session });
       const result = await request("session/prompt", { sessionId, prompt: [{ type: "text", text: input.prompt }] });
