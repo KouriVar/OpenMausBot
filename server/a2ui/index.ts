@@ -5,6 +5,7 @@ import { A2uiGenerator, CatalogConfig, DirectJsonFormatFactory, FunctionPruningT
 // the Table component this fork adds.
 import catalogDocument from "./basic-catalog.json" with { type: "json" };
 import { showsComponentFences, type InteractiveAnswerMode } from "../../shared/interactive-answers.ts";
+import type { A2uiOutputMode } from "../../shared/a2ui.ts";
 import {
   A2UI_CATALOG_ID, a2uiFence, a2uiRawFence, a2uiSurfaceId,
   type A2uiSurfaceRecord, type A2uiWireMessage,
@@ -43,9 +44,12 @@ function replyProcessor(kind: "express" | "json" = "express"): A2uiRequestProces
 
 let snippet: string | undefined;
 
-/** The Express/Direct JSON prompt for the mode, or nothing when replies carry no components. */
-export function a2uiPromptSnippet(mode: InteractiveAnswerMode): string {
-  if (!showsComponentFences(mode)) return "";
+/** Explicit output style: a plan, a comparison or a choice is a surface, never a Markdown table. */
+const CARDS_ROUTING = "\n\nOutput style: cards. A plan, itinerary, comparison, checklist, form, or anything the person chooses from is always an A2UI block, not a Markdown table. This replaces any earlier instruction to put such data in a Markdown table; use a table only when the person asked to read plain text. When a request leaves days, dates, budget, pace or interests open, put those choices in the surface (Slider, ChoicePicker, Tabs, CheckBox) instead of asking in prose. Keep the prose around the block to one short sentence.";
+
+/** The Express/Direct JSON prompt for the mode, or nothing when replies carry no components or must stay Markdown. */
+export function a2uiPromptSnippet(mode: InteractiveAnswerMode, output: A2uiOutputMode = "auto"): string {
+  if (!showsComponentFences(mode) || output === "markdown") return "";
   if (snippet === undefined) {
     try {
       snippet = replyProcessor().promptSnippet;
@@ -54,7 +58,7 @@ export function a2uiPromptSnippet(mode: InteractiveAnswerMode): string {
       snippet = "";
     }
   }
-  return snippet;
+  return snippet ? snippet + (output === "cards" ? CARDS_ROUTING : "") : "";
 }
 
 export interface A2uiParsedReply {

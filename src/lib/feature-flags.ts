@@ -1,8 +1,9 @@
 import { interactiveAnswerMode, type InteractiveAnswerMode } from "../../shared/interactive-answers";
+import { a2uiOutputMode as readA2uiOutputMode, type A2uiOutputMode } from "../../shared/a2ui";
 import { t } from "./i18n";
 
 export interface FeatureFlagConfig {
-  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; savedSteps?: boolean; savedStepsHere?: boolean; usbPhoneTakeover?: boolean; interactiveAnswers?: InteractiveAnswerMode };
+  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; savedSteps?: boolean; savedStepsHere?: boolean; usbPhoneTakeover?: boolean; interactiveAnswers?: InteractiveAnswerMode; a2uiOutput?: A2uiOutputMode };
   browserEngine?: { kind: "engine" | "unavailable"; reason?: string; installable?: boolean; installing?: boolean; installError?: string };
 }
 
@@ -93,6 +94,11 @@ export function roomMemoryCaptureEnabled(config: FeatureFlagConfig | null | unde
 /** How replies may use components: off, widgets, or widgets+html. Settings → Chat → Interactive answers. */
 export function interactiveAnswersMode(config: FeatureFlagConfig | null | undefined): InteractiveAnswerMode {
   return interactiveAnswerMode(config?.features?.interactiveAnswers);
+}
+
+/** How A2UI answers are laid out: auto, cards, or Markdown. Settings → Chat → Output style. */
+export function a2uiOutputMode(config: FeatureFlagConfig | null | undefined): A2uiOutputMode {
+  return readA2uiOutputMode(config?.features?.a2uiOutput);
 }
 
 export function savedStepsEnabled(config: FeatureFlagConfig | null | undefined): boolean {

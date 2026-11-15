@@ -17,6 +17,7 @@ import { newBotDefaultsSchema, type NewBotDefaults } from "./new-bot-defaults.ts
 import { replaySettings } from "./replay-settings.ts";
 import { EFFORT_LEVELS, type EffortLevel } from "../shared/wire.ts";
 import { INTERACTIVE_ANSWER_MODES, interactiveAnswerMode, type InteractiveAnswerMode } from "../shared/interactive-answers.ts";
+import { A2UI_OUTPUT_MODES, type A2uiOutputMode } from "../shared/a2ui.ts";
 import { isModelVariant, type InstanceConfigMap, type McpServerSpec, type ModelSelection } from "./contracts.ts";
 import { API_KEY_FLEET, DEFAULT_FLEET, OPENAI_API_INSTANCE, OPENROUTER_API_INSTANCE, CLAUDE_API_INSTANCE, PRODUCT_FLEET_ADDITIONS } from "./instance-fleets.ts";
 export { CLAUDE_API_INSTANCE, OPENAI_API_INSTANCE, OPENROUTER_API_INSTANCE, XAI_API_INSTANCE } from "./instance-fleets.ts";
@@ -242,6 +243,8 @@ const featureConfigSchema = z.object({
   shareLearnedSkills: z.enum(["off", "ask", "auto"]).optional(),
   /** off: no component tools and no component teaching; widgets: components only; widgets+html: the show_html page too. */
   interactiveAnswers: z.enum(INTERACTIVE_ANSWER_MODES).optional(),
+  /** auto: the model chooses; cards: plans and choices are always A2UI surfaces; markdown: never a surface. */
+  a2uiOutput: z.enum(A2UI_OUTPUT_MODES).optional(),
   /** The model the composer's ambiguity pass and a blank continuation use, when it is not the bot's own. */
   analysisModel: z.object({ instanceId: z.string().trim().min(1).max(200), model: z.string().trim().min(1).max(500) }).nullable().optional(),
   /** Memory upkeep also reads a member bot's room turns. Off unless true. */
@@ -489,7 +492,7 @@ export interface AppConfig extends HelperConfig {
   context?: { rebuildBytes?: number; compactAt?: number; autoCompact?: boolean; roomCompactAt?: number; roomSessions?: boolean; replayToolHistory?: boolean };
   memory?: { captureQuietMs?: number; tidyHour?: number };
   localVm?: { mode?: "shared" | "per-bot" | "pool"; maxInstances?: number; idleTimeoutMinutes?: number; preserveInstalledApps?: boolean; memoryGb?: number; cpus?: number };
-  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; smartSetupChoices?: boolean; autoRecall?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; savedSteps?: boolean; usbPhoneTakeover?: boolean; cloudComputerAutoReplace?: boolean; interactiveAnswers?: InteractiveAnswerMode; analysisModel?: { instanceId: string; model: string } | null };
+  features?: { skillAuthoring?: boolean; skillReview?: boolean; skillReviewSteps?: number; showToolCalls?: boolean; browser?: boolean; sharedComputers?: boolean; claudeUserMcp?: boolean; claudeUserSkills?: boolean; llmThreadTitles?: boolean; smartSetupChoices?: boolean; autoRecall?: boolean; skillsLibrary?: boolean; shareLearnedSkills?: "off" | "ask" | "auto"; roomMemoryCapture?: boolean; parallelRoomJobs?: boolean; acpPlanLines?: boolean; agentsToolBridge?: boolean; savedSteps?: boolean; usbPhoneTakeover?: boolean; cloudComputerAutoReplace?: boolean; interactiveAnswers?: InteractiveAnswerMode; a2uiOutput?: A2uiOutputMode; analysisModel?: { instanceId: string; model: string } | null };
   onboarding?: { completedAt?: string; version?: number; reelSeen?: boolean; hintsSeen?: string[]; firstTurnAt?: string };
   browserProfiles?: BrowserProfile[];
   browserEngine?: BrowserEngineConfig;

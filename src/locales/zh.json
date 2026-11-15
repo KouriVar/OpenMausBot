@@ -10480,6 +10480,12 @@
   "settings.interactiveAnswers.components": "组件",
   "settings.interactiveAnswers.html": "组件 + HTML 沙盒",
   "settings.interactiveAnswers.error": "无法保存交互式回答设置。",
+  "settings.a2uiOutput.title": "输出方式",
+  "settings.a2uiOutput.subtitle": "用可选卡片呈现计划和选项、只用 Markdown，或让模型自己决定。需开启「交互式回答」。",
+  "settings.a2uiOutput.cards": "可选卡片",
+  "settings.a2uiOutput.markdown": "Markdown",
+  "settings.a2uiOutput.auto": "自动",
+  "settings.a2uiOutput.error": "没能保存输出方式。",
   "hostedMcp.keyLabel": "{service} API 密钥",
   "hostedMcp.keyPlaceholder": "粘贴你的 {service} 密钥",
   "hostedMcp.getKey": "获取 {service} 密钥",
@@ -10977,5 +10983,6 @@
   "settings.sidebarVersion.title": "在侧栏显示版本号",
   "settings.sidebarVersion.subtitle": "账号菜单顶部的版本号。保存在这台设备上，默认显示。",
   "a2ui.unsupported": "暂不支持",
-  "a2ui.failed": "这个组件暂时无法显示。"
+  "a2ui.failed": "这个组件暂时无法显示。",
+  "a2ui.actionFailed": "这个选择没能发送，请重试。"
 }

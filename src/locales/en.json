@@ -10882,6 +10882,12 @@
   "settings.interactiveAnswers.components": "Components",
   "settings.interactiveAnswers.html": "Components + HTML sandbox",
   "settings.interactiveAnswers.error": "Could not save the interactive answers setting.",
+  "settings.a2uiOutput.title": "Output style",
+  "settings.a2uiOutput.subtitle": "Cards for plans and choices, plain Markdown, or the model's own choice. Applies when Interactive answers is on.",
+  "settings.a2uiOutput.cards": "Cards",
+  "settings.a2uiOutput.markdown": "Markdown",
+  "settings.a2uiOutput.auto": "Auto",
+  "settings.a2uiOutput.error": "Could not save the output style.",
   "settings.browser.proxy": "SOCKS5 proxy",
   "settings.browser.proxyDetail": "Optional, unauthenticated SOCKS5 proxy for public websites in the built-in browser. My Chrome keeps its own settings; private and local destinations keep existing protections.",
   "settings.browser.proxyConfigured": "New built-in browser connections use this SOCKS5 proxy. My Chrome keeps its own settings; private and local destinations stay protected.",
@@ -10893,5 +10899,6 @@
   "settings.sidebarVersion.title": "Show version in sidebar",
   "settings.sidebarVersion.subtitle": "The build number at the top of the account menu. Saved on this device; on by default.",
   "a2ui.unsupported": "Not supported yet",
-  "a2ui.failed": "This component could not be shown."
+  "a2ui.failed": "This component could not be shown.",
+  "a2ui.actionFailed": "That choice could not be sent. Try again."
 }
