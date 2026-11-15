@@ -5,7 +5,7 @@ import { Switch } from "./SettingsPrimitives";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { waitForLocalVmReady } from "@/lib/local-vm-readiness";
-import { CalendarClock, ChevronRight, Columns2, Globe, Hand, Loader2, Maximize2, Monitor, Moon, Power, Settings, X } from "lucide-react";
+import { ChevronRight, Columns2, Globe, Hand, Loader2, Maximize2, Monitor, Moon, Power } from "lucide-react";
 import { api, ApiError, currentTaskBot, useStore, type Bot, type ConfigStatus } from "@/state/store";
 import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
@@ -28,7 +28,6 @@ import { SimpleVpsChoices } from "./SimpleVpsChoices";
 import { placeManagedBy, worksOnChoices, WorksOnGrid, worksOnSelected } from "./WorksOnGrid";
 import { useDesktopCapabilities } from "./DesktopCapabilities";
 import { RoutinesSection } from "./bot-settings/RoutinesSection";
-import { routineRunLabel, routineRunTone } from "@/lib/routine-display";
 import { AndroidDevicePanel, useAndroidUsbDevices } from "./AndroidDevicePanel";
 import { BrowserPanel } from "./BrowserPanel";
 import { usePanelPage, type PanelPage } from "@/lib/page-open";
@@ -47,7 +46,7 @@ import { MacLocalControl } from "./MacLocalControl"; import { WindowsLocalContro
 import { LocalComputerAutoWarning } from "./LocalComputerAutoWarning";
 import { busyBoatView, instanceSupportsLocalComputer, localComputerDisabledReason, localComputerSelectable, pageOnRemoteServer, persistedComputerSelectionMatches, isReadyBoatState, resolveBoatPanelAction, shouldPollCloudPreview } from "@/lib/local-computer";
 import { moveBetweenTabs, PANEL_TABS, panelTabProps, scrollTabsWithWheel, TAB_PANEL_FOCUS, tabPanelProps, useAndroidTabFallback } from "./computer-panel-tabs";
-import { releaseComputerPanelFocus, useComputerPanelEntry } from "@/lib/computer-panel-focus";
+import { useComputerPanelEntry } from "@/lib/computer-panel-focus";
 import { PANEL_MAX_WIDTH, PANEL_MIN_WIDTH, useComputerPanelResize } from "./computer-panel-resize";
 import {
   computerPanelTabs,
@@ -226,6 +225,8 @@ export function ComputerPanel({
   const [localFrame, setLocalFrame] = useState<string | null>(null);
   // Fork: the preview box takes the frame's own ratio, so a 4:3 or 16:9 desktop is not letterboxed; 16:10 until one arrives.
   const [frameAspect, setFrameAspect] = useState<number | null>(null);
+  // Fork: 工作位置 folds away, with the chosen place kept beside its title.
+  const [worksOnOpen, setWorksOnOpen] = useState(true);
   const [pending, setPending] = useState<
     "join" | "sleep" | "provision" | "vps-replace" | "vm-start" | "vm-create" | "vm-recreate" | "vm-delete" | null
   >(null);
@@ -356,9 +357,6 @@ export function ComputerPanel({
   const cloudRoutineReady = Boolean(
     state.config?.box.configured &&
       boatCapableEngine(state.instances, bot.modelSelection.instanceId)?.snapshot.state === "available",
-  );
-  const activeRoutineRun = state.routineRuns.find(
-    (run) => run.botId === bot.id && ["queued", "running", "waiting"].includes(run.status),
   );
   useSimularBoxPhase({
     enabled: simularBox, path: threadPath("computer"), bot, cloudBackend, retry,
@@ -1122,6 +1120,8 @@ export function ComputerPanel({
     return { mode, labelKey, descriptionKey, Icon, simpleLabel: worksOnSimpleLabel(mode ?? undefined, capabilities.host.platform), selected, managedBy, disabled, unavailableTitle, view, issue };
   });
   const worksOnView = placeOptions.find(({ selected }) => selected)?.view ?? autoView;
+  // Fork: the place the card's header names — the chosen destination, or Auto when nothing else is picked.
+  const selectedPlaceLabelKey = (placeOptions.find(({ selected, mode }) => selected && mode) ?? placeOptions.find(({ selected }) => selected))?.labelKey ?? "vm.dest.auto";
   const runPlaceAction = (id: PlaceActionId) => {
     if (id === "start" || id === "wake") return startCloudComputer();
     if (id === "try-again") return setRetry((n) => n + 1);
@@ -1213,19 +1213,6 @@ export function ComputerPanel({
       {/* ml-1.5 keeps the drag region clear of the resize handle: a later drag region in the DOM wins. */}
       <div {...dragProps} className="@container/paneltabs ml-1.5 py-3 pl-2.5 pr-4">
         <div className="relative flex min-h-7 items-center justify-center">
-          {advanced && (
-            <button
-              onClick={() => {
-                releaseComputerPanelFocus(panelRef.current, bot.id);
-                dispatch({ type: "toggleComputer", open: false });
-                dispatch({ type: "toggleSettings", open: true, section: "access" });
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink-secondary hover:bg-control hover:text-ink"
-              title={t("computer.botSettings")}
-            >
-              <Settings size={18} />
-            </button>
-          )}
           <div className="mx-9 flex min-w-0 touch-pan-x gap-0.5 overflow-x-auto whitespace-nowrap rounded-full bg-inset p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-tour="computer-tabs" data-testid="computer-tabs" role="tablist" aria-label={t("computer.tabsAria")} onWheel={scrollTabsWithWheel} onKeyDown={(event) => moveBetweenTabs(event, panelTabs, chooseTab)}>
             {panelTabs.map((view) => {
               const { Icon, label, tour } = PANEL_TABS[view];
@@ -1240,18 +1227,6 @@ export function ComputerPanel({
               );
             })}
           </div>
-          <button
-            data-computer-panel-close
-            onClick={() => {
-              releaseComputerPanelFocus(panelRef.current, bot.id);
-              dispatch({ type: "toggleComputer", open: false });
-            }}
-            className="absolute right-0 top-1/2 -translate-y-1/2 rounded-md p-1 text-ink-secondary hover:bg-control hover:text-ink"
-            aria-label={t("computer.close")}
-            title={t("computer.close")}
-          >
-            <X size={18} />
-          </button>
         </div>
       </div>
 
@@ -1667,7 +1642,12 @@ export function ComputerPanel({
 
         {advanced ? <>
           <div className="mt-4 rounded-xl bg-card p-4">
-            <div className="text-[15px] font-medium text-ink">{t("computer.worksOn")}</div>
+            <button type="button" onClick={() => setWorksOnOpen(!worksOnOpen)} aria-expanded={worksOnOpen} className="flex w-full items-center gap-2 text-left">
+              <span className="text-[15px] font-medium text-ink">{t("computer.worksOn")}</span>
+              <span className="ml-auto min-w-0 truncate text-[13px] text-ink-secondary">{t(selectedPlaceLabelKey)}</span>
+              <ChevronRight size={14} aria-hidden="true" className={cn("shrink-0 text-ink-secondary transition-transform rtl:-scale-x-100", worksOnOpen && "rotate-90")} />
+            </button>
+          {worksOnOpen && <>
           <WorksOnGrid options={placeOptions} onSelect={selectPlace} />
           {livePin && (
             <p className="mt-2 text-[12px] leading-5 text-ink-secondary" data-testid="place-pinned-note">
@@ -1682,18 +1662,9 @@ export function ComputerPanel({
               onChange={(backend) => updateComputerSelection({ cloudBackend: backend })}
             />
           )}
+          </>}
         </div>
 
-        <button type="button" onClick={() => selectPanelView("routines")} className="mt-4 flex w-full items-start gap-3 rounded-xl bg-card p-4 text-left hover:bg-raised">
-          <CalendarClock size={17} className="mt-0.5 shrink-0 text-accent" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[14px] font-medium text-ink">{t("computer.tab.routines")} <span className="ml-1 text-[11px] text-ink-secondary">{botRoutines.length}</span></span>
-            {activeRoutineRun && (
-              <span className={cn("mt-1 block truncate text-[12px]", routineRunTone(activeRoutineRun))}>{`${activeRoutineRun.routineName} · ${routineRunLabel(activeRoutineRun)}`}</span>
-            )}
-          </span>
-          <ChevronRight size={14} className="shrink-0 text-ink-secondary rtl:-scale-x-100" aria-hidden="true" />
-        </button>
         </> : (
           <div className="mt-4 rounded-xl bg-card p-4" data-testid="where-works">
             <div className="text-[15px] font-medium text-ink">{t("computer.simple.whereWorks", { name: bot.name })}</div>
