@@ -35,7 +35,8 @@ writeFileSync(`${root}/public/app-icon.svg`, svg({ margin: 0, radius: 224, shado
 
 const render = (source, out, size) => execFileSync("rsvg-convert", ["-w", String(size), "-h", String(size), "-o", out, source]);
 render(`${root}/build/icon.svg`, `${root}/build/icon-1024.png`, 1024);
-render(`${root}/public/app-icon.svg`, `${root}/electron/resources/app-icon.png`, 1024);
+// The Dock draws this PNG itself, so it keeps the same margin as the .icns.
+render(`${root}/build/icon.svg`, `${root}/electron/resources/app-icon.png`, 1024);
 for (const [name, size] of Object.entries({ "16x16": 16, "16x16@2x": 32, "32x32": 32, "32x32@2x": 64, "64x64": 64, "64x64@2x": 128, "128x128": 128, "128x128@2x": 256, "256x256": 256, "256x256@2x": 512, "512x512": 512, "512x512@2x": 1024 })) {
   render(`${root}/build/icon.svg`, `${root}/build/icon.iconset/icon_${name}.png`, size);
 }
