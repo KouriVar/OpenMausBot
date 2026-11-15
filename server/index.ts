@@ -7613,7 +7613,7 @@ async function beginTurn(
   const analysisSelection = analysisInstance && opts?.modelSelection
     && (analysisInstance.models.options.some((option) => option.id === opts.modelSelection!.model) || analysisInstance.driverKind === "opencodeGo")
     ? opts.modelSelection : undefined;
-  if (analysisSelection) console.log(`[omb-analysis] kind=continuation instance=${analysisSelection.instanceId} provider=${analysisInstance!.driverKind} model=${analysisSelection.model}`);
+  if (analysisSelection) console.log(`[omb-analysis] kind=continuation instance=${analysisSelection.instanceId} driver=${analysisInstance!.driverKind} provider=${analysisSelection.model.includes("/") ? analysisSelection.model.slice(0, analysisSelection.model.indexOf("/")) : analysisInstance!.driverKind} model=${analysisSelection.model}`);
   const bot = analysisSelection ? { ...profileBot, modelSelection: analysisSelection } : profileBot;
   if (bot.approvalGrant) {
     throw Object.assign(new Error("this bot's approval level is still being confirmed — try again"), { status: 409, code: "settling" });

@@ -206,7 +206,8 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
         }
         if (job === "composer-ambiguity") {
           const model = analysisModel ?? AMBIGUITY_FAST_MODEL;
-          deps.log?.(`[omb-analysis] instance=${own.instanceId} provider=${own.driverKind} model=${model}`);
+          const provider = analysisModel?.includes("/") ? analysisModel.slice(0, analysisModel.indexOf("/")) : own.driverKind;
+          deps.log?.(`[omb-analysis] instance=${own.instanceId} driver=${own.driverKind} provider=${provider} model=${model}`);
           return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), model })) };
         }
         return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
