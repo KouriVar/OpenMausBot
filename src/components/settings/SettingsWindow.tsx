@@ -21,7 +21,6 @@ import { useSettingsContext, useSettingsPlace } from "./settings-context";
 import { needsAdvanced, pageById, resolveSettingsTarget, searchSettings, visiblePages, type SearchHit, type SettingsPageId } from "./settings-index";
 import { SettingsShellContext, type SettingsShell } from "./settings-shell";
 import { SettingsNav, hitLabel, pageLabel } from "./SettingsNav";
-import { SettingsPageHeader } from "./SettingsPageHeader";
 import { SettingsSkeletonCard, SettingsUnreachable } from "./SettingsStates";
 
 const NARROW = "(max-width: 767.98px)";
@@ -60,7 +59,6 @@ export function SettingsWindow() {
   const [anchor, setAnchor] = useState<string | null>(target.anchor ?? null);
   const [narrowPage, setNarrowPage] = useState(state.appSettingsSection !== "overview");
   const [query, setQuery] = useState("");
-  const [scrolled, setScrolled] = useState(false);
   const pages = visiblePages(ctx);
   // A link can land on a page this mode keeps out of the menu (Spending, from the panel's Usage row). The menu still
   // marks where the window is, so the page is listed while it is open.
@@ -146,7 +144,6 @@ export function SettingsWindow() {
   }, [dispatch, isTop]);
 
   const shell: SettingsShell = { ctx, place, page: target.page, anchor, go };
-  const missing = target.missing ? pageLabel(pageById(target.missing), place, ctx.desktop) : undefined;
   const showList = narrow && !narrowPage;
   // Narrow header: the back label and the centred page title share 48 px of height; when the pair can't fit (half the
   // width each side of the centre), the back button keeps only its chevron.
@@ -195,11 +192,10 @@ export function SettingsWindow() {
               {(!narrow || !showList) && (
                 <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
                   {!narrow && closeButton}
-                  <div ref={scrollRef} data-settings-scroll data-settings-content="" onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
+                  <div ref={scrollRef} data-settings-scroll data-settings-content=""
                     className={cn("settings-scroll min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]", !narrow && "px-8")}>
                     <div className={cn("flex max-w-[640px] flex-col", narrow && "max-w-none")}>
-                      <SettingsPageHeader page={page} ctx={ctx} place={place} scrolled={scrolled} narrow={narrow} missing={missing} />
-                      <div key={target.page} data-settings-page-body={target.page} className={cn("flex flex-col gap-6", narrow && "px-4")}>
+                      <div key={target.page} data-settings-page-body={target.page} className={cn("flex flex-col gap-6 pt-4", narrow && "px-4")}>
                         <LicenseExpiryBanner config={state.config} />
                         {page.owner === "place" && state.config === null
                           ? state.error ? <SettingsUnreachable place={place.name} onRetry={() => void api<ConfigStatus>("/api/config").then((config) => dispatch({ type: "configStatus", config })).catch(() => {})} />
