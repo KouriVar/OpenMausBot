@@ -224,6 +224,8 @@ export function ComputerPanel({
   const [vmStatus, setVmStatus] = useState<LocalVmStatus | null>(null);
   const [vpsStatus, setVpsStatus] = useState<VpsComputerStatus | null>(null);
   const [localFrame, setLocalFrame] = useState<string | null>(null);
+  // Fork: the preview box takes the frame's own ratio, so a 4:3 or 16:9 desktop is not letterboxed; 16:10 until one arrives.
+  const [frameAspect, setFrameAspect] = useState<number | null>(null);
   const [pending, setPending] = useState<
     "join" | "sleep" | "provision" | "vps-replace" | "vm-start" | "vm-create" | "vm-recreate" | "vm-delete" | null
   >(null);
@@ -790,6 +792,11 @@ export function ComputerPanel({
         ? polledFrame && `data:${polledFrame.mime};base64,${polledFrame.png}`
         : null;
   const previewOpensDesktop = Boolean(frameSrc && (liveTarget || cloudPreviewReady));
+  useEffect(() => {
+    if (!frameSrc) return; let alive = true; const image = new Image();
+    image.onload = () => { if (alive && image.naturalWidth > 0 && image.naturalHeight > 0) setFrameAspect(image.naturalWidth / image.naturalHeight); };
+    image.src = frameSrc; return () => { alive = false; };
+  }, [frameSrc]);
 
   const signInHelp = control.help ?? null;
   const signInAsker = signInHelp ? state.bots.find((candidate) => candidate.id === signInHelp.botId)?.name ?? bot.name : bot.name;
@@ -1306,7 +1313,7 @@ export function ComputerPanel({
             )}
             {computerStatusCurrent && bot.computer === "cloud" && cloudBackend === "vps" && (phase === "ready" || phase === "starting") && !liveHere && <span className="text-[11px]">{t("computer.badge.vps")}</span>}
         </div>
-        <div className={cn("relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-xl bg-card", liveHere && "ring-2 ring-accent")}>
+        <div className={cn("relative flex w-full items-center justify-center overflow-hidden rounded-xl bg-card", liveHere && "ring-2 ring-accent")} style={{ aspectRatio: frameAspect ?? 16 / 10 }}>
           {liveHere && liveTarget ? (
             <Suspense fallback={<Loader2 size={18} className="animate-spin text-ink-secondary" />}>
               <LiveDesktop
