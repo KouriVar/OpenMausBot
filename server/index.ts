@@ -422,6 +422,8 @@ import {
   savedLoginsPrompt, savedSecretsPrompt, heavyPrompt,
   teamAvailabilityPart, FILL_PROMPT, interactiveAnswersPrompt,
 } from "./system-prompt.ts";
+import { a2uiPromptSnippet, a2uiSurfacesForMessage, parseA2uiReply } from "./a2ui/index.ts";
+import { showsComponentFences } from "../shared/interactive-answers.ts";
 import { shellTimeoutHookResult } from "./shell-timeout-hint.ts";
 import { spillToolResult } from "./tool-result-spill.ts";
 import { gatedLocalComputer } from "./local-computer.ts";
@@ -6434,8 +6436,14 @@ bus.subscribe((event: RuntimeEvent) => {
       blankTurn!.parts.push(spoken.text);
       return;
     }
-    pushMessage({ role: "bot", kind: "text", text: spoken.text, turnId, ...(event.type === "item.completed" && event.itemId ? { itemId: event.itemId } : {}) });
-    lastReply.set(event.threadId, spoken.text);
+    // A2UI blocks are checked here, once, so the row carries the surfaces the chat draws and a restart replays them.
+    const mode = interactiveAnswersMode(cfg);
+    const a2ui = showsComponentFences(mode) ? parseA2uiReply(spoken.text) : null;
+    const message = pushMessage({ role: "bot", kind: "text", text: a2ui?.text ?? spoken.text, turnId, ...(event.type === "item.completed" && event.itemId ? { itemId: event.itemId } : {}) });
+    if (a2ui?.surfaces.length) {
+      store.patchMessage(event.threadId, message.id, { a2ui: { v: 1, surfaces: a2uiSurfacesForMessage(a2ui.surfaces, message.id) } });
+    }
+    lastReply.set(event.threadId, a2ui?.text ?? spoken.text);
   };
   const landParkedFiles = () => {
     const { files, strays } = takeParkedFiles(turnAttachmentsByTurn, event.threadId, event.turnId);
@@ -8336,7 +8344,7 @@ async function beginTurn(
         : integrations.agents && sectionPeers.length > 0
           ? peerRosterSystemPrompt(sectionPeers, bot)
           : "") + (integrations.agents ? personalReach.prompt(bot, threadId, sectionPeers) : "");
-      const credentialPrompt = integrations.agents ? CREDENTIAL_PROMPT + savedSecretsPrompt(botLogins.secretNamesFor(bot.id, vaultReaders.turn(threadId))) + THREADS_PROMPT + FILL_PROMPT + interactiveAnswersPrompt(interactiveAnswersMode(cfg)) : "";
+      const credentialPrompt = integrations.agents ? CREDENTIAL_PROMPT + savedSecretsPrompt(botLogins.secretNamesFor(bot.id, vaultReaders.turn(threadId))) + THREADS_PROMPT + FILL_PROMPT + interactiveAnswersPrompt(interactiveAnswersMode(cfg)) + a2uiPromptSnippet(interactiveAnswersMode(cfg)) : "";
       const routinePrompt = integrations.agents ? TRIGGER_PROMPT : "";
       const profilePrompt = integrations.agents ? PROFILE_PROMPT : "";
       const recallPrompt = integrations.agents && bot.memoryEnabled !== false ? SESSION_SEARCH_SYSTEM_PROMPT : "";
