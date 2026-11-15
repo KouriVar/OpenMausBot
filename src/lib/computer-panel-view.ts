@@ -41,3 +41,14 @@ export function writeComputerPanelView(
   } catch {
   }
 }
+
+/** Fork: a request, from the chat's menu, for the panel to show one of its pages. */
+export const COMPUTER_PANEL_VIEW_EVENT = "omb:computer-panel-view";
+
+export function requestComputerPanelView(botId: string, view: ComputerPanelView): void {
+  writeComputerPanelView(botId, view);
+  try {
+    window.dispatchEvent(new CustomEvent(COMPUTER_PANEL_VIEW_EVENT, { detail: { botId, view } }));
+  } catch {
+  }
+}

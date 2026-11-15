@@ -2,7 +2,7 @@ import { boatCapableEngine, cloudEngineOf } from "@/lib/remote-desktop";
 import { canWorkOnCloud } from "../../shared/cloud-computer";
 import { viewerTargetId } from "../../shared/desktop-viewer";
 import { Switch } from "./SettingsPrimitives";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { waitForLocalVmReady } from "@/lib/local-vm-readiness";
 import { ChevronRight, Columns2, Globe, Hand, Loader2, Maximize2, Monitor, Moon, Power } from "lucide-react";
@@ -10,7 +10,7 @@ import { api, ApiError, currentTaskBot, useStore, type Bot, type ConfigStatus } 
 import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
 import { ComputerFilesPane } from "./ComputerFilesPane";
-import { effectivePlace, isComputerPlace, personPin, placeLabelKey, placeOffered } from "@/lib/place";
+import { effectivePlace, personPin, placeLabelKey, placeOffered } from "@/lib/place";
 import type { CloudBackend } from "../../shared/wire";
 import { KeyRow } from "./keys/KeyRow"; import { openKeySettings } from "./keys/key-focus";
 import { cn } from "@/lib/cn";
@@ -45,11 +45,11 @@ import { LinuxLocalControl } from "./LinuxLocalControl";
 import { MacLocalControl } from "./MacLocalControl"; import { WindowsLocalControl } from "./WindowsLocalControl";
 import { LocalComputerAutoWarning } from "./LocalComputerAutoWarning";
 import { busyBoatView, instanceSupportsLocalComputer, localComputerDisabledReason, localComputerSelectable, pageOnRemoteServer, persistedComputerSelectionMatches, isReadyBoatState, resolveBoatPanelAction, shouldPollCloudPreview } from "@/lib/local-computer";
-import { moveBetweenTabs, PANEL_TABS, panelTabProps, scrollTabsWithWheel, TAB_PANEL_FOCUS, tabPanelProps, useAndroidTabFallback } from "./computer-panel-tabs";
+import { TAB_PANEL_FOCUS, tabPanelProps, useAndroidTabFallback } from "./computer-panel-tabs";
 import { useComputerPanelEntry } from "@/lib/computer-panel-focus";
 import { PANEL_MAX_WIDTH, PANEL_MIN_WIDTH, useComputerPanelResize } from "./computer-panel-resize";
 import {
-  computerPanelTabs,
+  COMPUTER_PANEL_VIEW_EVENT,
   readComputerPanelView,
   resolveComputerPanelView,
   writeComputerPanelView,
@@ -122,7 +122,6 @@ export function ComputerPanel({
   viewerConnection.current = viewerConnectionKey;
   const desktopJoin = useRef<AbortController | null>(null);
   useEffect(() => () => desktopJoin.current?.abort(), [viewerConnectionKey]);
-  const placeLive = Boolean(bot.busy);
   const threadPath = useCallback((suffix: string) =>
     `/api/bots/${profileBot.id}/${suffix}?threadId=${encodeURIComponent(profileBot.threadId)}`,
   [profileBot.id, profileBot.threadId]);
@@ -240,8 +239,16 @@ export function ComputerPanel({
   const [dataRequest, setDataRequest] = useState<{ id: string; requestId: number }>();
   const androidStatus = useAndroidUsbDevices(usbPhoneTakeoverEnabled(state.config));
   const androidConnected = androidStatus.devices.length > 0;
-  const panelTabs = computerPanelTabs({ advanced, androidConnected });
   const panelView = resolveComputerPanelView(storedPanelView, { advanced, androidConnected });
+  // Fork: the chat's ⋯ menu picks the panel's page; the tabs above the panel are gone.
+  useEffect(() => {
+    const onView = (event: Event) => {
+      const detail = (event as CustomEvent<{ botId: string; view: ComputerPanelView }>).detail;
+      if (detail?.botId === bot.id) setPanelView(detail.view);
+    };
+    window.addEventListener(COMPUTER_PANEL_VIEW_EVENT, onView);
+    return () => window.removeEventListener(COMPUTER_PANEL_VIEW_EVENT, onView);
+  }, [bot.id]);
   const panelRef = useComputerPanelEntry(profileBot.id, panelView);
   const browserAvailableHere = browserAvailable(state.config);
   const browserEnabled = builtInBrowserEnabled(state.config) && bot.browser !== false
@@ -1151,39 +1158,6 @@ export function ComputerPanel({
   };
   const heldPin = livePin && profileBot.computer !== "off" && livePin !== profileBot.computer ? livePin : undefined;
 
-  const tabClass = (active: boolean) => cn(
-    "relative z-[1] flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] transition-colors @max-[28rem]/paneltabs:[&>svg]:hidden @max-[22rem]/paneltabs:px-2",
-    active ? "text-ink" : "text-ink-secondary hover:text-ink",
-  );
-
-  const chooseTab = (view: ComputerPanelView) => {
-    if (view === "browser") setError(null);
-    selectPanelView(view);
-  };
-  // Fork: the tabs' pill springs between them — its leading edge first, the tail catching up, so it stretches (the
-  // Tab Pill study). A resize snaps it rather than sliding from a stale place.
-  const tabBarRef = useRef<HTMLDivElement>(null), tabPillRef = useRef<HTMLSpanElement>(null), tabLeftRef = useRef(0), tabPlaced = useRef(false);
-  useLayoutEffect(() => {
-    const bar = tabBarRef.current, pill = tabPillRef.current;
-    if (!bar || !pill) return;
-    const place = (animate: boolean) => {
-      const active = bar.querySelector<HTMLElement>('[aria-selected="true"]');
-      if (!active) return;
-      const right = active.offsetLeft >= tabLeftRef.current;
-      pill.style.transition = !animate ? "none" : right
-        ? "left 320ms cubic-bezier(.34,1.1,.64,1), width 180ms cubic-bezier(.2,1.4,.3,1)"
-        : "left 180ms cubic-bezier(.2,1.4,.3,1), width 320ms cubic-bezier(.34,1.1,.64,1)";
-      pill.style.left = `${active.offsetLeft}px`;
-      pill.style.width = `${active.offsetWidth}px`;
-      tabLeftRef.current = active.offsetLeft;
-    };
-    place(tabPlaced.current);
-    tabPlaced.current = true;
-    const observer = new ResizeObserver(() => place(false));
-    observer.observe(bar);
-    return () => observer.disconnect();
-  }, [panelView, panelTabs.length]);
-
   const emptyState = {
     checking: t("computer.phase.checking"),
     starting: cloudBackend === "vps" ? t("computer.phase.starting") : cloudView.line,
@@ -1234,25 +1208,7 @@ export function ComputerPanel({
         className="absolute inset-y-0 left-0 z-10 w-1.5 cursor-col-resize hover:bg-accent/40 focus-visible:bg-accent/60 max-md:hidden"
       />
       {/* ml-1.5 keeps the drag region clear of the resize handle: a later drag region in the DOM wins. */}
-      <div {...dragProps} className="@container/paneltabs ml-1.5 pb-1 pl-2.5 pr-4 pt-1">
-        <div className="relative flex min-h-7 items-center justify-center">
-          <div ref={tabBarRef} className="relative mx-9 flex min-w-0 touch-pan-x gap-0.5 overflow-x-auto whitespace-nowrap rounded-full bg-inset/60 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-tour="computer-tabs" data-testid="computer-tabs" role="tablist" aria-label={t("computer.tabsAria")} onWheel={scrollTabsWithWheel} onKeyDown={(event) => moveBetweenTabs(event, panelTabs, chooseTab)}>
-            <span ref={tabPillRef} aria-hidden="true" className="pointer-events-none absolute inset-y-1 left-0 rounded-full bg-raised shadow-sm" />
-            {panelTabs.map((view) => {
-              const { Icon, label, tour } = PANEL_TABS[view];
-              const live = !placeLive ? undefined
-                : view === "computer" && isComputerPlace(livePlace) ? "computer-tab-live"
-                : view === "browser" && livePlace === "browser" ? "browser-tab-live" : undefined;
-              return (
-                <button key={view} type="button" data-tour={tour} {...panelTabProps(view, view === panelView)} title={t(label)} onClick={() => chooseTab(view)} className={tabClass(view === panelView)}>
-                  <Icon size={13} /> {t(label)}
-                  {live && <span className="size-1.5 animate-pulse rounded-full bg-success" role="img" aria-label={t("place.live")} data-testid={live} />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <div {...dragProps} className="ml-1.5 h-3" />
 
       {panelView === "routines" ? (
         <div {...tabPanelProps("routines")} className={cn("min-h-0 flex-1 overflow-y-auto px-4 pb-4", TAB_PANEL_FOCUS)}>

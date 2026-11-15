@@ -1,5 +1,5 @@
 import { useMemo, useState, type JSX } from "react";
-import { Bug, Copy, Cpu, Download, Gauge, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserPlus, UserRound, Users } from "lucide-react";
+import { Bug, CalendarClock, Copy, Cpu, Database, Download, Gauge, Globe, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserPlus, UserRound, Users } from "lucide-react";
 import { RiMenuSearchLine } from "@remixicon/react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
@@ -26,6 +26,7 @@ import { UsageBars } from "./EngineUsage";
 import { useConversationSide } from "./TeamSideSwitch";
 import { tasksOfSide } from "@/state/team-side";
 import { openConversationDialog, shareChoices } from "./conversation-share/conversation-share";
+import { readComputerPanelView, requestComputerPanelView, type ComputerPanelView } from "@/lib/computer-panel-view";
 
 /** One item list for the chat's ⋯ menu wherever it sits; it lists the threads whenever the sidebar hides them. The
  * Simple bot panel draws the same items as rows, and its Share button holds the two that export. */
@@ -82,6 +83,14 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       onSelect: () => dispatch({ type: "toggleComputer" }),
     },
   ] : [];
+  // Fork: the browser, routines and data pages live behind this menu now, one page at a time in the side panel.
+  const panelOpen = state.computerOpen;
+  const panelViewNow = readComputerPanelView(profile.id);
+  const openPanel = (view: ComputerPanelView) => {
+    if (panelOpen && panelViewNow === view) { dispatch({ type: "toggleComputer", open: false }); return; }
+    requestComputerPanelView(profile.id, view);
+    if (!panelOpen) dispatch({ type: "toggleComputer" });
+  };
   const items: SidebarMenuItem[] = [
     ...phoneItems,
     {
@@ -123,6 +132,36 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       disabled: bot.busy || contextAction.pending || !hasMessages || atFreshStart,
       title: t(bot.busy ? "contextWarning.busy" : "chat.startFresh.hint"),
       onSelect: () => contextAction.run(`/api/bots/${profile.id}/start-fresh`, { threadId: bot.threadId }),
+    },
+    {
+      key: "panel-vm",
+      heading: t("settings.group.computers"),
+      separatorBefore: true,
+      label: t("chat.pages.vm"),
+      icon: <Monitor size={16} />,
+      active: panelOpen && panelViewNow === "computer",
+      onSelect: () => openPanel("computer"),
+    },
+    {
+      key: "panel-browser",
+      label: t("computer.tab.browser"),
+      icon: <Globe size={16} />,
+      active: panelOpen && panelViewNow === "browser",
+      onSelect: () => openPanel("browser"),
+    },
+    {
+      key: "panel-routines",
+      label: t("task.list"),
+      icon: <CalendarClock size={16} />,
+      active: panelOpen && panelViewNow === "routines",
+      onSelect: () => openPanel("routines"),
+    },
+    {
+      key: "panel-data",
+      label: t("computer.tab.data"),
+      icon: <Database size={16} />,
+      active: panelOpen && panelViewNow === "data",
+      onSelect: () => openPanel("data"),
     },
     ...shareItems,
     {
