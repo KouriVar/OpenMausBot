@@ -117,3 +117,8 @@ Teams' display-name rule. Copyright 2025-2026 Vexa.ai Inc. and the Vexa
 contributors, used under the Apache License, Version 2.0
 (third_party/vexa/LICENSE). The adapted parts were rewritten in our own code;
 no Vexa file is included unmodified.
+
+Google A2UI's basic v1.0 catalog document (server/a2ui/basic-catalog.json)
+comes from google/a2ui, Copyright 2024 Google LLC, used under the Apache
+License, Version 2.0 (third_party/a2ui/LICENSE). The Table component in it and
+the renderer in src/fork/a2ui are OpenMausBot's own.
