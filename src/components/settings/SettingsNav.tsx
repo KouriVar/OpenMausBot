@@ -4,6 +4,7 @@ import { cloudColor } from "@/lib/cloud-look";
 import { placeInitials } from "@/lib/places";
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
+import type { LocaleKey } from "@/locales";
 import { productName } from "@/lib/brand";
 import { setAdvancedMode, useAdvancedMode } from "@/lib/interface-mode";
 import { SIMPLE_ONLY } from "@/lib/simple-only";
@@ -22,11 +23,11 @@ import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
 
 /** The fork's nav order: who you are, then the models and machines, then what they keep, then the bill, then this
  * computer. Pages this build adds on top (a plan, people, installations) follow the last named group. */
-const FORK_NAV_ORDER: readonly { key: string; ids: readonly SettingsPageId[] }[] = [
-  { key: "you", ids: ["bots", "general", "appearance"] },
-  { key: "models", ids: ["ai", "desktops", "phone"] },
-  { key: "library", ids: ["vault", "data", "transfer"] },
-  { key: "spending", ids: ["usage"] },
+const FORK_NAV_ORDER: readonly { key: string; labelKey: LocaleKey; ids: readonly SettingsPageId[] }[] = [
+  { key: "you", labelKey: "settings.nav.you", ids: ["bots", "appearance", "general"] },
+  { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops", "phone"] },
+  { key: "library", labelKey: "settings.nav.library", ids: ["vault", "data", "transfer"] },
+  { key: "account", labelKey: "settings.nav.account", ids: ["usage", "plan", "people", "installations"] },
 ];
 
 export const NAV_ITEM = "relative flex h-8 w-full shrink-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[13px] leading-5 text-ink transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
@@ -229,6 +230,7 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
               if (rows.length === 0) return null;
               return (
                 <div key={group.key} data-settings-group={group.key} className={cn("flex flex-col gap-0.5", index > 0 && "mt-3")}>
+                  <div data-settings-group-label="" className="px-2 pb-1 text-[11px] font-medium leading-4 text-ink-tertiary">{t(group.labelKey)}</div>
                   {rows.map((page) => narrow ? (
                     <button key={page.id} type="button" data-settings-page={page.id} data-settings-section={page.id} onClick={() => onOpen(page.id)}
                       className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[14px] leading-5 text-ink hover:bg-menu-hover">

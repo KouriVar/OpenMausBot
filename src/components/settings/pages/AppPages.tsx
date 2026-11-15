@@ -11,9 +11,10 @@ import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { SidebarVersionRow } from "@/fork/SidebarVersionRow";
 import { MarkAmbiguityRow } from "@/fork/MarkAmbiguityRow";
-import { AnalysisModelRow } from "@/fork/AnalysisModelRow";
 import { SIDEBAR_VERSION_SETTING_SHOWN } from "@/fork/sidebar-version";
 import { InsetLayoutRow } from "@/fork/InsetLayoutRow";
+import { PlaceLookRows } from "../../PlaceLookCard";
+import { DefaultBotSidebarRow } from "../../DefaultBotControls";
 import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
 import { A2uiOutputRow } from "@/fork/A2uiOutputRow";
 import { AnalyticsRow } from "../../AnalyticsRow";
@@ -137,7 +138,6 @@ export function GeneralPage() {
         <SendKeyRow simple />
         <FollowUpRow simple />
         <MarkAmbiguityRow />
-        <AnalysisModelRow />
         {window.ogb?.talkShortcut ? <TalkShortcutRow /> : elsewhere(window.ogb?.talkShortcut, ctx) && ctx.cloud ? <InertRow title={t("settings.search.talk")} control={<span className="text-[13px] leading-5 text-ink-secondary">{t("settings.general.talkOff")}</span>} /> : null}
       </SettingsRows>
     </SettingsGroup>
@@ -167,7 +167,7 @@ function ThemePickerRow({ open, onToggle }: { open: boolean; onToggle: () => voi
 }
 
 export function AppearancePage() {
-  const { ctx, place, go, anchor } = useSettingsShell();
+  const { ctx, anchor } = useSettingsShell();
   const [themes, setThemes] = useState(anchor === "themes");
   return <>
     <SettingsGroup label={t("settings.appearance.look")} block="look">
@@ -181,9 +181,13 @@ export function AppearancePage() {
         <ColorUserBubblesRow simple />
         <ForkBoldTextRow />
         <ForkAvatarStyleRow />
-        {!ctx.client && <SettingsLinkRow title={t("placeLook.sidebarColor")} value={place.name} badge={<PlaceBadge place={place} size={14} />} onClick={() => go("overview", "sidebar")} data={{ "data-settings-door": "sidebar-color" }} />}
       </SettingsRows>
     </SettingsGroup>
+    {!ctx.client && (
+      <SettingsGroup label={t("settings.overview.sidebar")} block="sidebar">
+        <SettingsRows><PlaceLookRows /><DefaultBotSidebarRow simple /></SettingsRows>
+      </SettingsGroup>
+    )}
     <SettingsGroup label={t("settings.appearance.chat")} block="chat">
       <SettingsRows>
         <InteractiveAnswersRow />

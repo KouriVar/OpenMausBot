@@ -195,7 +195,7 @@ export function SettingsWindow() {
                   <div ref={scrollRef} data-settings-scroll data-settings-content=""
                     className={cn("settings-scroll min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]", !narrow && "px-8")}>
                     <div className={cn("flex max-w-[640px] flex-col", narrow && "max-w-none")}>
-                      <div key={target.page} data-settings-page-body={target.page} className={cn("flex flex-col gap-6 pt-4", narrow && "px-4")}>
+                      <div key={target.page} data-settings-page-body={target.page} className={cn("flex flex-col gap-6 pt-3", narrow && "px-4")}>
                         <LicenseExpiryBanner config={state.config} />
                         {page.owner === "place" && state.config === null
                           ? state.error ? <SettingsUnreachable place={place.name} onRetry={() => void api<ConfigStatus>("/api/config").then((config) => dispatch({ type: "configStatus", config })).catch(() => {})} />
