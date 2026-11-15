@@ -2345,6 +2345,7 @@
   "sidebar.nav.teamMap": "團隊地圖",
   "sidebar.nav.automations": "自動化",
   "sidebar.nav.connectedApps": "已連線的應用程式",
+  "sidebar.nav.connectors": "連接器",
   "sidebar.connectApps": "連線應用程式",
   "sidebar.appSettings": "應用程式設定",
   "sidebar.tools": "工具",

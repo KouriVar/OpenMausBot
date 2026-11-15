@@ -2445,6 +2445,7 @@
   "sidebar.nav.teamMap": "团队地图",
   "sidebar.nav.automations": "自动化",
   "sidebar.nav.connectedApps": "已连接应用",
+  "sidebar.nav.connectors": "连接器",
   "sidebar.connectApps": "连接应用",
   "sidebar.appSettings": "应用设置",
   "sidebar.tools": "工具",

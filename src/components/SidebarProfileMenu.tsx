@@ -559,18 +559,24 @@ export function profileMenuItems({
   const settings: SidebarMenuItem = { key: "settings", label: t("sidebar.menu.settings"), icon: <SettingsIcon size={18} />, onSelect: onSettings };
   const accountItem: SidebarMenuItem | null = account ? { key: "account", label: account, icon: <CircleUserRound size={18} />, onSelect: onAccount } : null;
   const present = (...items: Array<SidebarMenuItem | null | false>) => items.filter((item): item is SidebarMenuItem => Boolean(item));
+  // Fork: the person's tools in one order — automations, connectors, inbox, team map, published apps, then every other
+  // tool this build has (files, panels, archived), so a menu never loses a row.
+  const toolsGroup = (list: SidebarMenuItem[], connectors: SidebarMenuItem | null, inboxRow: SidebarMenuItem | null) => {
+    const pick = (key: string) => list.filter((item) => item.key === key);
+    const rest = list.filter((item) => !["automations", "team-map", "published-apps"].includes(item.key));
+    return [...pick("automations"), ...present(connectors), ...present(inboxRow), ...pick("team-map"), ...pick("published-apps"), ...rest];
+  };
   if (menu === "advanced") {
     // Fork: Advanced's menu is Simple's rows plus everything else this build can still reach — its tools and Apps,
     // the phone rows, help and updates — one group per kind of thing. Simple's own menu below stays as it is.
-    const apps: SidebarMenuItem | null = onApps ? { key: "apps", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: onApps } : null;
+    const apps: SidebarMenuItem | null = onApps ? { key: "apps", label: t("sidebar.nav.connectors"), icon: <Puzzle size={16} />, onSelect: onApps } : null;
     const usageRow: SidebarMenuItem | null = usageItem ? { ...usageItem, chevron: true } : null;
     const groups: SidebarMenuItem[][] = [
       present(advancedToggle ?? null),
-      present(...tools, apps, inbox),
-      present(usageRow, settings),
+      toolsGroup(tools, apps, inbox),
+      present(usageRow, settings, version),
       phone,
       ...(ACCOUNT_MENU_SUPPORT ? [[support]] : []),
-      present(version),
       [...present(accountItem), ...accounts],
     ].filter((group) => group.length > 0);
     const rows = groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
@@ -588,14 +594,14 @@ export function profileMenuItems({
     attention: false,
     trailing: <span className="flex h-6 shrink-0 items-center rounded-full bg-ink px-2.5 text-[12px] font-medium text-app">{updateTop.action}</span>,
   } : null;
+  const connectors: SidebarMenuItem | null = onApps ? { key: "apps", label: t("sidebar.nav.connectors"), icon: <Puzzle size={16} />, onSelect: onApps } : null;
   const groups = [
     move,
     present(raised),
     present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
-    [...(simple.tools ?? tools), ...present(inbox)],
-    [...present(usageItem), settings],
-    present(version),
+    toolsGroup(simple.tools ?? tools, connectors, inbox),
+    present(usageItem, settings, version),
     // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
     FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
     FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],
@@ -722,7 +728,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   ] : [];
   const [, setHiddenSidebar] = useHiddenSidebar();
   const hideItems: SidebarMenuItem[] = FORK_HIDDEN_SIDEBAR
-    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <SideBarLine size={16} />, onSelect: () => setHiddenSidebar(true) }]
+    ? [{ key: "hide-sidebar", label: t("sidebar.hideSidebar"), icon: <SideBarLine size={16} />, separatorBefore: true, onSelect: () => setHiddenSidebar(true) }]
     : [];
   const phoneItems = simple
     ? simplePhoneItems({ connected: phone.kind === "connected", onGetApp: () => setPhoneAppOpen(true) })
@@ -751,7 +757,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       update?.item.onSelect();
     },
   };
-  const items = [...hideItems, ...(bar ? menuActions : railItems), ...profileMenuItems({
+  const items = [...(bar ? menuActions : railItems), ...profileMenuItems({
     phone: phoneRows,
     version: versionItem,
     usage: !remote,
@@ -793,7 +799,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onHelp: () => void openExternalLink(HELP_CENTER_URL),
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
-  })];
+  }), ...hideItems];
   const noteworthy = update && updateNoteworthy(update.phase, update.pending) && !updateHasButton(update.phase);
   const needsYou = account?.automationsNeedYou === true;
   const initials = profileInitials(profile);
@@ -808,6 +814,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       <SidebarPopoverMenu
         items={items}
         ariaLabel={name}
+        sidebarFit={bar}
         onOpenChange={simple ? setMenuOpen : undefined}
         triggerClassName={bar ? "w-full" : iconOnly || simple ? cn("shrink-0", circle || simple ? "rounded-full" : "rounded-xl") : "w-full"}
         triggerTitle={bar || iconOnly || simple ? label : undefined}

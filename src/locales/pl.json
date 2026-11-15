@@ -1933,6 +1933,7 @@
   "sidebar.nav.teamMap": "Mapa zespołu",
   "sidebar.nav.automations": "Automatyzacje",
   "sidebar.nav.connectedApps": "Połączone aplikacje",
+  "sidebar.nav.connectors": "Konektory",
   "sidebar.appSettings": "Ustawienia aplikacji",
   "sidebar.tools": "Narzędzia",
   "sidebar.section.expand": "Rozwiń: {name}",

@@ -927,6 +927,7 @@
   "sidebar.nav.teamMap": "Teamkarte",
   "sidebar.nav.automations": "Automatisierungen",
   "sidebar.nav.connectedApps": "Verbundene Apps",
+  "sidebar.nav.connectors": "Konnektoren",
   "sidebar.appSettings": "App-Einstellungen",
   "sidebar.tools": "Werkzeuge",
   "sidebar.section.expand": "{name} ausklappen",

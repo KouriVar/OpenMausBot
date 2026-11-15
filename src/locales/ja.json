@@ -2175,6 +2175,7 @@
   "sidebar.nav.teamMap": "チームマップ",
   "sidebar.nav.automations": "自動化",
   "sidebar.nav.connectedApps": "連携アプリ",
+  "sidebar.nav.connectors": "コネクタ",
   "sidebar.connectApps": "アプリを接続",
   "sidebar.appSettings": "アプリの設定",
   "sidebar.tools": "ツール",

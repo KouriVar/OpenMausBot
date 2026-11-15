@@ -1986,6 +1986,7 @@
   "sidebar.nav.teamMap": "Карта команды",
   "sidebar.nav.automations": "Автоматизации",
   "sidebar.nav.connectedApps": "Подключённые приложения",
+  "sidebar.nav.connectors": "Коннекторы",
   "sidebar.appSettings": "Настройки приложения",
   "sidebar.tools": "Инструменты",
   "sidebar.section.expand": "Развернуть {name}",

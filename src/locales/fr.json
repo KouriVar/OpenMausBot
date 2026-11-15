@@ -760,6 +760,7 @@
   "sidebar.nav.teamMap": "Carte de l'équipe",
   "sidebar.nav.automations": "Automatisations",
   "sidebar.nav.connectedApps": "Applications connectées",
+  "sidebar.nav.connectors": "Connecteurs",
   "sidebar.appSettings": "Paramètres de l'application",
   "sidebar.tools": "Outils",
   "sidebar.section.expand": "Déplier {name}",

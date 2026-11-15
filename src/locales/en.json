@@ -2423,6 +2423,7 @@
   "sidebar.nav.teamMap": "Team map",
   "sidebar.nav.automations": "Automations",
   "sidebar.nav.connectedApps": "Connected apps",
+  "sidebar.nav.connectors": "Connectors",
   "sidebar.connectApps": "Connect apps",
   "sidebar.appSettings": "App settings",
   "sidebar.tools": "Tools",

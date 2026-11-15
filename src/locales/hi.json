@@ -760,6 +760,7 @@
   "sidebar.nav.teamMap": "टीम मैप",
   "sidebar.nav.automations": "स्वचालन",
   "sidebar.nav.connectedApps": "जुड़े हुए ऐप",
+  "sidebar.nav.connectors": "कनेक्टर",
   "sidebar.appSettings": "ऐप सेटिंग्स",
   "sidebar.tools": "टूल",
   "sidebar.section.expand": "{name} खोलें",

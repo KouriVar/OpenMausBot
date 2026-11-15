@@ -879,6 +879,7 @@
   "sidebar.nav.teamMap": "Мапа команди",
   "sidebar.nav.automations": "Автоматизації",
   "sidebar.nav.connectedApps": "Підключені застосунки",
+  "sidebar.nav.connectors": "Конектори",
   "sidebar.appSettings": "Налаштування застосунку",
   "sidebar.tools": "Інструменти",
   "sidebar.section.expand": "Розгорнути {name}",

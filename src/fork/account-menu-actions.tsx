@@ -39,7 +39,7 @@ export function sidebarAccountMenuActions({
     { key: "account-search", label: t("sidebar.search"), icon: <Search size={16} />, onSelect: onSearch },
     {
       key: "account-new",
-      label: remote ? t("sidebar.new") : t("sidebar.newOrShare"),
+      label: t("sidebar.new"),
       icon: <Plus size={16} />,
       submenu: [
         ...(advanced

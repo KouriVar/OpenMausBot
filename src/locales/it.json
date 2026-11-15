@@ -1915,6 +1915,7 @@
   "sidebar.nav.teamMap": "Mappa del team",
   "sidebar.nav.automations": "Automazioni",
   "sidebar.nav.connectedApps": "App collegate",
+  "sidebar.nav.connectors": "Connettori",
   "sidebar.appSettings": "Impostazioni app",
   "sidebar.tools": "Strumenti",
   "sidebar.section.expand": "Espandi {name}",

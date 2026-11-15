@@ -195,9 +195,12 @@ export function SidebarPopoverMenu({
   header,
   renderTrigger,
   width,
+  sidebarFit = false,
 }: {
   /** a fixed width (the account menu's 272) in place of the content's */
   width?: number;
+  /** the footer's menu: 16px of sidebar on each side, so at the 240 minimum the list is 208 wide */
+  sidebarFit?: boolean;
   placement?: "above" | "below";
   align?: "start" | "end";
   items: SidebarMenuItem[];
@@ -302,6 +305,14 @@ export function SidebarPopoverMenu({
             if (left + width > edge) fit = Math.max(240, edge - left);
           }
         }
+        if (sidebarFit && !isRtl(trigger)) {
+          const beside = trigger.closest("[data-sidebar-root]")?.getBoundingClientRect();
+          if (beside) {
+            // The footer's menu stays inside the sidebar it opens from: 16px on each side, so 208 at the 240 minimum.
+            fit = Math.max(160, Math.floor(beside.width - 32));
+            left = Math.max(rail + EDGE_MARGIN, beside.left + 16);
+          }
+        }
         setPosition({ ...at, left, fit });
       }
       const sub = subRef.current, row = subRowRef.current;
@@ -396,7 +407,7 @@ export function SidebarPopoverMenu({
       onKeyDown={(event) => onMenuKey(event, false)}
       onPointerMove={(event) => intent.move({ x: event.clientX, y: event.clientY }, Boolean(submenu && subRowRef.current?.contains(event.target as Node)))}
       onPointerLeave={() => intent.leaveMenu()}
-      style={anchored ? { position: "fixed", left: position?.left ?? 0, top: position?.top ?? 0, minWidth: width ? undefined : MENU_MIN_WIDTH, width: width ? `min(${position?.fit ?? width}px, calc(100vw - var(--rail-beside, 0px) - ${EDGE_MARGIN * 2}px))` : "max-content", maxWidth: width ? undefined : `min(${MENU_MAX_WIDTH}px, calc(100vw - ${EDGE_MARGIN * 2}px))`, maxHeight: `calc(100vh - ${EDGE_MARGIN * 2}px)`, visibility: position ? undefined : "hidden" } : undefined}
+      style={anchored ? { position: "fixed", left: position?.left ?? 0, top: position?.top ?? 0, minWidth: width || sidebarFit ? undefined : MENU_MIN_WIDTH, width: width ? `min(${position?.fit ?? width}px, calc(100vw - var(--rail-beside, 0px) - ${EDGE_MARGIN * 2}px))` : sidebarFit && position?.fit ? `${position.fit}px` : "max-content", maxWidth: width ? undefined : `min(${MENU_MAX_WIDTH}px, calc(100vw - ${EDGE_MARGIN * 2}px))`, maxHeight: `calc(100vh - ${EDGE_MARGIN * 2}px)`, visibility: position ? undefined : "hidden" } : undefined}
       className={cn(
         sheetClass,
         anchored ? "z-[60] overflow-y-auto" : "absolute z-40",
