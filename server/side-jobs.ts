@@ -61,6 +61,8 @@ export interface SideJobsDeps {
   instance: (instanceId: string) => SideJobInstance | null | undefined;
   refusal: (instance: SideJobInstance) => string | undefined;
   helper: () => { instanceId: string; model?: string } | null;
+  /** A direct provider for the composer's pass, when the bot's auto route would wait behind magpie. */
+  analysisDirect?: () => { instanceId: string; model: string } | undefined;
   /** Small models each engine instance refused, kept across restarts. */
   smallModels: { refused(instanceId: string): ReadonlySet<string>; remember(instanceId: string, model: string): void };
   /** Hosted workspaces only. */
@@ -190,9 +192,13 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
       const analysis = at.instance ? undefined : at.analysisModel;
       const requested = analysis ? deps.instance(analysis.instanceId) : null;
       const usable = requested && (requested.models.options.some((option) => option.id === analysis!.model) || requested.driverKind === "opencodeGo") ? requested : null;
-      const own = at.instance ?? usable ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
+      const routed = !usable && job === "composer-ambiguity" && Boolean(bot && (bot.modelSelection.model?.startsWith("auto/") || bot.modelSelection.instanceId === "magpie"));
+      const direct = routed ? deps.analysisDirect?.() : undefined;
+      const directInstance = direct ? deps.instance(direct.instanceId) : null;
+      const directUsable = direct && directInstance && (directInstance.models.options.some((option) => option.id === direct.model) || directInstance.driverKind === "opencodeGo") ? direct : undefined;
+      const own = at.instance ?? usable ?? (directUsable ? deps.instance(directUsable.instanceId) : null) ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
       if (!bot || !own || deps.refusal(own)) return null;
-      const analysisModel = usable && analysis ? analysis.model : undefined;
+      const analysisModel = usable && analysis ? analysis.model : directUsable?.model;
       // The review's changes are written with the bot's own skill tools, whoever read the conversation.
       if (job === "skill-review" && own.adapter.capabilities.agentsMcp !== true) return null;
       const call = ownCall(job, own);

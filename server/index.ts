@@ -5128,6 +5128,15 @@ const sideJobs = createSideJobs({
   ...(hostedModels ? { modelAllowed: (selection: ModelSelection) => hostedModels.allows(selection) } : {}),
   assertWithinBudget: () => assertWithinBudget(cfg, DATA_DIR),
   book: bookTurnUsage,
+  analysisDirect: () => {
+    for (const instance of registry.instances()) {
+      if (instance.driverKind !== "deepseekAgent") continue;
+      const flash = instance.models.options.filter((option) => /deepseek.*flash/i.test(option.id));
+      const model = flash.find((option) => option.id.endsWith("deepseek-flash"))?.id ?? flash[0]?.id;
+      if (model) return { instanceId: instance.instanceId, model };
+    }
+    return undefined;
+  },
   log: (line) => console.log(line),
 });
 
@@ -11804,6 +11813,7 @@ function configStatus() {
       roomMemoryCapture: roomMemoryCaptureEnabled(cfg),
       parallelRoomJobs: parallelRoomJobsEnabled(cfg),
       llmThreadTitles: llmThreadTitlesEnabled(cfg), savedSteps: savedStepsEnabled(cfg), savedStepsHere: savedSteps.here(),
+      analysisModel: cfg.features?.analysisModel ?? undefined,
       usbPhoneTakeover: HAS_USB_PORT ? usbPhoneTakeoverEnabled(cfg) : undefined,
     },
     onboarding: {

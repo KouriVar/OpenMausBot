@@ -1,4 +1,5 @@
 import { AMBIGUITY_MAX_TEXT, AMBIGUITY_TIMEOUT_MS } from "../../shared/composer-ambiguity.ts";
+import { redactSecretsInText } from "../../shared/redact.ts";
 import { ambiguityPrompt, parseAmbiguityAnswer } from "../composer-ambiguity.ts";
 import type { BotRecord } from "../store.ts";
 import { PASS, type RouteHandler } from "./table.ts";
@@ -27,9 +28,14 @@ export function createComposerAmbiguityRoutes(deps: ComposerAmbiguityDeps): Rout
     if (!writer) return json(res, 200, { marks: [] });
     try {
       const answer = await writer(ambiguityPrompt(text), { timeoutMs: AMBIGUITY_TIMEOUT_MS });
-      return json(res, 200, { marks: parseAmbiguityAnswer(answer, text) });
-    } catch {
-      return json(res, 200, { marks: [] });
+      const marks = parseAmbiguityAnswer(answer, text);
+      console.log(`[omb-analysis] ok marks=${marks.length} chars=${answer.length}`);
+      return json(res, 200, { marks });
+    } catch (error) {
+      const message = redactSecretsInText(error instanceof Error ? error.message : String(error)).slice(0, 300);
+      const failed = /timed? ?out|timeout|aborted|signal/i.test(message) ? "timeout" : "error";
+      console.warn(`[omb-analysis] failed=${failed} ${message}`);
+      return json(res, 200, { marks: [], failed });
     }
   };
 }

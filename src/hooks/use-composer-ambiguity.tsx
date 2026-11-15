@@ -13,7 +13,7 @@ export function useComposerAmbiguity({ botId, threadId, text }: { botId: string 
   const [composing, setComposing] = useState(false);
   const [assumptions, setAssumptions] = useState<Assumption[]>([]);
   const [active, setActive] = useState<{ mark: AmbiguityMark; rect: DOMRect } | null>(null);
-  const { marks: detected, status } = useAmbiguityMarks(enabled, botId, threadId, text, composing);
+  const { marks: detected, status, failure } = useAmbiguityMarks(enabled, botId, threadId, text, composing);
   const marks = detected.filter((mark) => !assumptions.some((assumption) => assumption.word.toLocaleLowerCase() === mark.word.toLocaleLowerCase()));
   const clarified = assumptions.flatMap((assumption) => {
     const at = text.toLocaleLowerCase().indexOf(assumption.word.toLocaleLowerCase());
@@ -38,7 +38,7 @@ export function useComposerAmbiguity({ botId, threadId, text }: { botId: string 
   return {
     marks,
     status,
-    statusNode: <ComposerAnalysisStatus status={status} />,
+    statusNode: <ComposerAnalysisStatus status={status} failure={failure} />,
     clarified,
     activeMark: active?.mark ?? null,
     panel,
