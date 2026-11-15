@@ -123,6 +123,7 @@ export function Composer({
   onConsumeReply,
   onRestoreReply,
   locked: setupLocked = false,
+  inset = false,
 }: {
   bot?: Bot;
   group?: Group;
@@ -133,6 +134,8 @@ export function Composer({
   onConsumeReply?: () => void;
   onRestoreReply?: (message: Message, threadId: string) => void;
   locked?: boolean;
+  /** The Inset layout's card: the composer keeps the card's 8px inset instead of the wider gutter. */
+  inset?: boolean;
 }) {
   const bot = profile ? currentTaskBot(profile) : undefined;
   const locked = setupLocked || Boolean(bot?.awaitingThreadSnapshot);
@@ -699,7 +702,7 @@ export function Composer({
   const goal = !group?.dm ? { on: effectiveChannelMode === "goal", onToggle: toggleGoal, solo: !group } : undefined;
 
   return (
-    <div className={cn("pointer-events-none relative px-5", simpleDock ? "pb-4" : "pb-3")}>
+    <div className={cn("pointer-events-none relative", inset ? "px-[var(--chat-inset)] pb-[var(--chat-inset)]" : cn("px-5", simpleDock ? "pb-4" : "pb-3"))}>
       {speechError && (
         <div className="pointer-events-auto mb-2 w-full rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[12px] text-warning">
           {speechError}

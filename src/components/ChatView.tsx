@@ -125,7 +125,8 @@ import { webhookMessageView } from "@/lib/webhook-message";
 import { splitTranscriptAttachments } from "@/lib/composer-attachments";
 import { useComposerDockPad } from "@/lib/composer-dock";
 import { GlassBar, GlassScrollFrame } from "./GlassScrollFrame";
-import { CHAT_PANE_CLIP, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
+import { CHAT_PANE_CLIP, CHAT_CARD_INSET, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
+import { useInsetLayout } from "@/fork/inset-layout";
 import { PagePaneContext } from "./app/PageTools";
 import { useTranscriptViewport } from "@/hooks/use-transcript-viewport";
 import { useUnreadDivider } from "@/hooks/use-unread-divider";
@@ -862,6 +863,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
   // An opened page fills the messages area, between the header and the message box, which stays usable.
   const [pagePane, setPagePane] = useState<HTMLDivElement | null>(null);
   const advanced = useAdvancedMode();
+  const { inset } = useInsetLayout();
   // The Chief's mark (crown, or a department lead's flag): subscribed here, so a change in Settings shows at once.
   const chiefStyle = useChiefStyle(bot.id);
   const phone = useMediaQuery(PHONE_LAYOUT);
@@ -1036,7 +1038,8 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
 
   return (
     <ThreadLinkContext value={threadLink}>
-    <main className={cn("relative flex h-full min-w-0 flex-1 flex-col bg-app", FORK_CHAT_PANE_CLIP && CHAT_PANE_CLIP)}>
+    <main style={inset ? ({ "--chat-inset": `${CHAT_CARD_INSET}px` } as CSSProperties) : undefined}
+      className={cn("relative flex h-full min-w-0 flex-1 flex-col bg-app", FORK_CHAT_PANE_CLIP && CHAT_PANE_CLIP)}>
       <CallOverlay bot={bot} />
       <GlassScrollFrame className="flex-1 [--glass-tint:var(--color-app)]">
       {/* z-[25]: above the room set-up card (z-20), below the CallOverlay (z-30). */}
@@ -1046,11 +1049,14 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
         className={cn(
           // A container query never matches the container itself, so the row that wraps is the child below.
           "@container/chathead",
-          simpleHead ? "px-5 pt-2.5 pb-2.5 max-md:pl-14 max-md:pr-3" : "px-5 py-3 pl-11 md:pl-5 max-md:pl-14 max-md:pr-3",
+          // Inset: the chat head keeps the card's 8px inset on all sides; Classic keeps its wider gutters.
+          inset
+            ? "px-[var(--chat-inset)] pt-[var(--chat-inset)] pb-[var(--chat-inset)] max-md:pl-14 max-md:pr-3"
+            : simpleHead ? "px-5 pt-2.5 pb-2.5 max-md:pl-14 max-md:pr-3" : "px-5 py-3 pl-11 md:pl-5 max-md:pl-14 max-md:pr-3",
         )}
       >
-        <div data-chathead-row className={cn("flex items-center justify-between", phone ? "gap-2" : "@max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:gap-y-1 @min-[30rem]/chathead:grid @min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(max-content,1fr)]")}>
-        <div data-chathead-identity className={cn("flex min-w-0 items-center gap-2", phone ? "flex-1" : "@max-[30rem]/chathead:basis-full @min-[30rem]/chathead:col-start-2 @min-[30rem]/chathead:justify-self-center", simpleHead && phone && "justify-center")} style={headerNoDragStyle}>
+        <div data-chathead-row className={cn("flex items-center justify-between", phone ? "gap-2" : cn("@max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:gap-y-1 @min-[30rem]/chathead:grid", inset ? "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_max-content]" : "@min-[30rem]/chathead:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(max-content,1fr)]"))}>
+        <div data-chathead-identity className={cn("flex min-w-0 items-center gap-2", phone ? "flex-1" : cn("@max-[30rem]/chathead:basis-full", inset ? "@min-[30rem]/chathead:col-start-1 @min-[30rem]/chathead:justify-self-start" : "@min-[30rem]/chathead:col-start-2 @min-[30rem]/chathead:justify-self-center"), simpleHead && phone && "justify-center")} style={headerNoDragStyle}>
           {simpleHead || advanced ? (
             // Fork: one pill for both modes — no rename pencil, no chief tag; the avatar, the name and the chevron state
             // alone.
@@ -1092,7 +1098,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
         </div>
         <div
           data-chathead-controls
-          className={cn("flex shrink-0 items-center gap-2", !phone && "@max-[30rem]/chathead:ml-auto @max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:justify-end @min-[30rem]/chathead:col-start-3 @min-[30rem]/chathead:justify-self-end")}
+          className={cn("flex shrink-0 items-center gap-2", !phone && "@max-[30rem]/chathead:ml-auto @max-[30rem]/chathead:flex-wrap @max-[30rem]/chathead:justify-end", !phone && (inset ? "@min-[30rem]/chathead:col-start-2" : "@min-[30rem]/chathead:col-start-3"), !phone && "@min-[30rem]/chathead:justify-self-end")}
         >{sharedChat && <ThreadPresenceFaces threadId={bot.threadId} />}
           {!simpleHead && (bot.busy || bot.waitingForTeammates) && (
             <button
@@ -1155,7 +1161,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
 
       <div
         ref={scrollRef}
-        className="glass-scroller h-full overflow-x-hidden overflow-y-auto overscroll-y-contain px-5 [overflow-anchor:none]"
+        className={cn("glass-scroller h-full overflow-x-hidden overflow-y-auto overscroll-y-contain [overflow-anchor:none]", inset ? "px-[var(--chat-inset)]" : "px-5")}
         // Simple mode's composer sits on plain canvas, so a row scrolled into view stops clear of it.
         style={advanced ? undefined : { scrollPaddingBottom: composerDock.pad }}
         {...scrollHandlers}
@@ -1250,7 +1256,8 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
       <TranscriptAnnouncer threadKey={transcriptKey} snapshot={announcement} />
       <div ref={setPagePane} data-page-pane-slot className="contents" style={{ "--page-pane-bottom": `${composerDock.height}px` } as CSSProperties} />
 
-      <div ref={composerDockRef} className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] chat-column-dock">
+      <div ref={composerDockRef} className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] chat-column-dock"
+        style={inset ? { maxWidth: `calc(var(--chat-column-max) + ${CHAT_CARD_INSET * 2}px)` } : undefined}>
       {advanced && lastRunStep && showRun(recordedRun) && showRunCard && runDismissed.get(transcriptKey) !== lastRunStep.id && (
         <div className="flex justify-end px-5 pb-2">
           <VerifyCard
@@ -1278,6 +1285,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
       <Composer
         key={bot.threadId}
         bot={profile}
+        inset={inset}
         replyTo={replyTo}
         onClearReply={clearReply}
         onConsumeReply={consumeReply}

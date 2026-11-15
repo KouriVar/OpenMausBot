@@ -116,7 +116,7 @@ import { ArchivedBotsPanel, botConfirmProps, type BotConfirmKind } from "./Archi
 import { NewRoomPanel } from "./SidebarNewRoomPanel";
 import { SectionPicker } from "./SidebarSectionPicker";
 import { FORK_HIDE_BOT_BADGES, SIDEBAR_AVATAR_ADVANCED, SIDEBAR_AVATAR_RAIL, SIDEBAR_ICON_BUTTON, SIDEBAR_ICON_COLUMN_EDGE, SIDEBAR_ICON_COLUMN_WIDTH, SIDEBAR_ICON_COLUMN_WIDTH_CLASS, SIDEBAR_ICON_SIZE, SIDEBAR_ICON_STROKE } from "./sidebar-icon-column";
-import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_SIMPLE, ROW_RADIUS, ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
+import { FORK_UI_1110, HERO_AVATAR_BUMP, ROW_PREVIEW, ROW_PREVIEW_ADVANCED, ROW_PREVIEW_SIMPLE, ROW_RADIUS, ROW_RADIUS_SIMPLE } from "@/fork/ui-batch-1110";
 import { useChiefStyle } from "@/fork/chief-style";
 import { useSidebarVibrancy } from "@/fork/sidebar-vibrancy";
 import { chiefMark } from "@/fork/chief-mark";
@@ -856,7 +856,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               {t("sidebar.bot.deletingRow")}
             </span>
           ) : (
-            <span className={cn("flex min-w-0 items-center gap-1.5 truncate", FORK_UI_1110 ? ROW_PREVIEW : "text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-secondary")}>
+            <span className={cn("flex min-w-0 items-center gap-1.5 truncate", FORK_UI_1110 ? (simpleRow ? ROW_PREVIEW : ROW_PREVIEW_ADVANCED) : "text-[13px] leading-[18px]", waiting ? simpleRow ? "text-warning" : "font-semibold text-warning" : "text-ink-tertiary")}>
               {working ? (
                 <SidebarWorkingStep bot={bot} last={last} />
               ) : (

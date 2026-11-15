@@ -2028,7 +2028,8 @@ body {
 }
 /* The transcript and its composer share one centered column with a fixed cap. The transcript sits
    inside the scroller's px-5; the dock spans the pane and holds the composer's own px-5, so it adds
-   that padding to the same cap and the composer's edges meet the transcript's. */
+   that padding to the same cap and the composer's edges meet the transcript's. The Inset card narrows
+   both to its own 8px inset; the dock's cap then adds that inset twice (see ChatView). */
 .chat-column {
   margin-inline: auto;
   max-width: var(--chat-column-max);

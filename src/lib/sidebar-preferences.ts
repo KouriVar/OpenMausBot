@@ -169,8 +169,10 @@ export function useSidebarToolsLayout(): SidebarToolsLayout {
 
 /** The narrowest the open sidebar gets. */
 export const SIDEBAR_MIN_WIDTH = 240;
+/** The widest the open sidebar gets, in every layout: its edge is dragged no further than this. */
+export const SIDEBAR_MAX_WIDTH = 300;
 
-export function clampSidebarWidth(width: number, viewportWidth: number, max = 480): number {
+export function clampSidebarWidth(width: number, viewportWidth: number, max = SIDEBAR_MAX_WIDTH): number {
   return Math.max(SIDEBAR_MIN_WIDTH, Math.min(max, viewportWidth - 320, Math.round(width)));
 }
 
@@ -180,7 +182,7 @@ export function loadSidebarWidth(storage?: Pick<Storage, "getItem"> | null, key 
     const raw = target?.getItem(key);
     if (raw === null || raw === undefined || !/^\d+$/.test(raw)) return null;
     const width = Number(raw);
-    return width >= SIDEBAR_MIN_WIDTH && width <= 480 ? width : null;
+    return width >= SIDEBAR_MIN_WIDTH && width <= SIDEBAR_MAX_WIDTH ? width : null;
   } catch {
     return null;
   }

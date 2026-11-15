@@ -13,6 +13,8 @@ export const ROW_RADIUS_SIMPLE = "rounded-[8px]";
  * row's title stays the heavier line. */
 export const ROW_PREVIEW = "text-[13px] font-medium leading-[18px]";
 export const ROW_PREVIEW_SIMPLE = "text-[13px] font-medium leading-[18px]";
+/** Advanced names a bot at 15, so its preview takes the next step down, 14: the title stays one size above it. */
+export const ROW_PREVIEW_ADVANCED = "text-[14px] font-medium leading-[18px]";
 
 /** The chief's card in Simple's expanded sidebar: one size step bigger and squared to the row radius. */
 export const HERO_AVATAR_BUMP = 4;

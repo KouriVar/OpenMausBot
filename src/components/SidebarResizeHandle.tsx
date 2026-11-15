@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
 import {
+  SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
   SIDEBAR_WIDTH_KEY,
   SIMPLE_SIDEBAR_WIDTH_KEY,
@@ -38,8 +39,8 @@ export function useSidebarWidth({ simple, sidePanelOpen, sidebarRef }: {
 }) {
   const key = simple ? SIMPLE_SIDEBAR_WIDTH_KEY : SIDEBAR_WIDTH_KEY;
   const defaultWidth = sidebarDefaultWidth(simple);
-  const cap = simple ? 400 : 480;
-  const maxWidth = sidePanelOpen ? defaultWidth : Math.min(cap, window.innerWidth - 320);
+  const cap = SIDEBAR_MAX_WIDTH;
+  const maxWidth = Math.min(cap, sidePanelOpen ? defaultWidth : window.innerWidth - 320);
   const [savedWidth, setSavedWidth] = useState<number | null>(() => loadSidebarWidth(undefined, key));
   const widthRef = useRef(savedWidth);
   const [resizing, setResizing] = useState(false);
