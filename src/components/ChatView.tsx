@@ -758,7 +758,7 @@ const MessagesList = memo(function MessagesList({
         if (autoAppliedChanges.consumed.has(m.id)) return divider && <div key={m.id} className="contents">{divider}</div>;
         const currentGroup = bubbleGroup(m, botId);
         const previousGroup = prev ? bubbleGroup(prev, botId) : null;
-        const groupGap = simple && currentGroup !== null && previousGroup !== null && currentGroup !== previousGroup;
+        const groupGap = currentGroup !== null && previousGroup !== null && currentGroup !== previousGroup;
         const row = (() => {
           if (isCancelledTranscriptRow(m)) {
             return (
