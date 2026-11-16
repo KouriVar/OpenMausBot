@@ -46,6 +46,7 @@ import { MacLocalControl } from "./MacLocalControl"; import { WindowsLocalContro
 import { LocalComputerAutoWarning } from "./LocalComputerAutoWarning";
 import { busyBoatView, instanceSupportsLocalComputer, localComputerDisabledReason, localComputerSelectable, pageOnRemoteServer, persistedComputerSelectionMatches, isReadyBoatState, resolveBoatPanelAction, shouldPollCloudPreview } from "@/lib/local-computer";
 import { TAB_PANEL_FOCUS, tabPanelProps, useAndroidTabFallback } from "./computer-panel-tabs";
+import { CompactionSummaryPanel } from "./CompactionSummaryPanel";
 import { useComputerPanelEntry } from "@/lib/computer-panel-focus";
 import { PANEL_MAX_WIDTH, PANEL_MIN_WIDTH, useComputerPanelResize } from "./computer-panel-resize";
 import {
@@ -1240,6 +1241,10 @@ export function ComputerPanel({
               </div>
             )}
           </div>
+        </div>
+      ) : panelView === "summary" ? (
+        <div {...tabPanelProps("summary")} className={cn("min-h-0 flex-1 overflow-y-auto px-4 pb-4", TAB_PANEL_FOCUS)}>
+          <CompactionSummaryPanel bot={bot} />
         </div>
       ) : panelView === "data" ? (
         <div {...tabPanelProps("data")} className={cn("flex min-h-0 flex-1 flex-col overflow-hidden", TAB_PANEL_FOCUS)}>

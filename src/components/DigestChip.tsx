@@ -6,7 +6,6 @@ import type { LocaleKey } from "@/locales";
 import { formatDuration } from "@/lib/usage-trace";
 import type { Message } from "@/state/store";
 import { traceRootId } from "../../shared/usage-trace";
-import { EXCERPT_SUMMARY_HEADER } from "../../shared/wire";
 import { TraceDialog } from "./usage/TraceView";
 
 const WORK_KEY: Record<"noFiles" | "oneFile" | "files", Record<"oneTool" | "tools", LocaleKey>> = {
@@ -63,12 +62,6 @@ export function CompactionChip({ message }: { message: Message }) {
       </div>
     );
   }
-  const excerpts = message.compaction.summary.startsWith(EXCERPT_SUMMARY_HEADER);
-  return (
-    <details className={COMPACTION_CHIP} data-testid="compaction-chip">
-      <summary className="cursor-pointer font-medium">{t(excerpts ? "chat.compactionExcerptTitle" : "chat.compactionTitle")}</summary>
-      <p className="mt-2">{t(excerpts ? "chat.compactionExcerptHint" : "chat.compactionHint")}</p>
-      <p className="mt-2 whitespace-pre-wrap break-words">{message.compaction.summary}</p>
-    </details>
-  );
+  // Fork: the summary itself reads in the side panel (the chat's ⋯ → 上下文摘要).
+  return null;
 }
