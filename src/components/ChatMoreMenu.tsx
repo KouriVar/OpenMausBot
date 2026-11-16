@@ -3,6 +3,7 @@ import { Bug, CalendarClock, Copy, Cpu, Database, Download, Gauge, Globe, ListCh
 import { RiMenuSearchLine } from "@remixicon/react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { useGlassPill } from "@/fork/glass/GlassSurface";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { requestChatFind, useChatFindOpen } from "@/lib/chat-find";
 import { usageSummary } from "@/lib/chat-usage-summary";
@@ -287,6 +288,7 @@ function ShareMenu({ bot, className }: { bot: Bot; className: string }) {
 /** The same menu as the chat header's plain ⋯ in Advanced mode, opening on hover below the header. */
 export function ChatHeaderMenu({ bot }: { bot: Bot }): JSX.Element {
   const { items, on } = useChatMoreItems(bot);
+  const glass = useGlassPill();
   return (
     <SidebarPopoverMenu
       items={items}
@@ -298,7 +300,7 @@ export function ChatHeaderMenu({ bot }: { bot: Bot }): JSX.Element {
           data-testid="chat-more"
           className={cn(
             // Fork: the header's more button wears the same round surface as the computer button beside it.
-            "flex size-8 items-center justify-center rounded-full", ELEVATED_FLOAT, ELEVATED_HOVER,
+            "flex size-8 items-center justify-center rounded-full", glass ? "glass-more" : ELEVATED_FLOAT, ELEVATED_HOVER,
             open || on ? "text-accent" : "text-ink-secondary hover:text-ink",
           )}
           title={t("chat.more")}

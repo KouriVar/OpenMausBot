@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type SetStateAction 
 import { Mic, Paperclip, Square, X } from "lucide-react";
 import { sameFields, useStoreDispatch, useStoreSelector } from "@/state/store-select"; import { useStoreRef } from "@/state/store-ref"; import { sameDrawnBots } from "@/lib/drawn-bots";
 import { visibleMessages, currentTaskBot, type Bot, type Group, type InstanceInfo, type Message } from "@/state/store";
-import { cn } from "@/lib/cn";
+import { cn } from "@/lib/cn"; import { useGlassPill } from "@/fork/glass/GlassSurface";
 import { PHONE_LAYOUT, useMediaQuery } from "@/lib/use-media-query";
 import { useMenuMotion } from "./MenuMotion";
 import { ELEVATED_CARD, ELEVATED_FLOAT } from "./elevated";
@@ -513,7 +513,7 @@ export function Composer({
     refocusInput();
   };
   const hasContent = Boolean(effectiveText.trim()) || attachments.length > 0;
-  const onCall = useOnCall();
+  const onCall = useOnCall(); const glass = useGlassPill();
   const media = useLiveMedia();
   const callTarget = group?.id ?? bot?.id;
   const calling = callTarget !== undefined && (onCall === callTarget || (isLiveCallRunning(media.phase) && media.botId === callTarget));
@@ -802,7 +802,7 @@ export function Composer({
               className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
             />
           )}
-        <div ref={shellRef} data-tour="composer" data-look="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(SIMPLE_COMPOSER, multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
+        <div ref={shellRef} data-tour="composer" data-look="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(glass ? "glass-composer" : SIMPLE_COMPOSER, "p-2", multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
         {singleRow && !locked && (
           <div className="flex shrink-0 items-center">
             <PhonePlus
