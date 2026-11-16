@@ -11,7 +11,6 @@ import { BrowserProfilesManager } from "./BrowserProfilesManager";
 import { setAdvancedUnlocked, useAdvancedUnlocked } from "@/fork/advanced-unlock";
 import { setForkAvatarStyle, useForkAvatarStyle } from "@/fork/avatar-style";
 import { setKeepAdvanced, useKeepAdvanced } from "@/fork/keep-advanced";
-import { BloubStudioButton } from "./BloubStudio";
 import { UsbPhoneTakeoverSettings } from "./UsbPhoneTakeoverSettings";
 import { MoreText, SettingRow, SettingsGroup, SettingsRows, Switch } from "./SettingsPrimitives";
 import { LearnedSkillsSettings } from "./ShareLearnedSkillsSettings";
@@ -365,7 +364,6 @@ export function ForkAvatarStyleRow() {
           onClick={() => setForkAvatarStyle(bloub ? "maus" : "bloub")}
         />
       </SettingRow>
-      {bloub && <BloubStudioButton />}
     </>
   );
 }

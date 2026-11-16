@@ -60,8 +60,9 @@ export function applySidebarVibrancy(on: boolean): void {
   const root = document.documentElement;
   if (on && vibrancyAvailable()) root.setAttribute("data-sidebar-vibrancy", "on");
   else root.removeAttribute("data-sidebar-vibrancy");
-  root.setAttribute("data-sidebar-glass", String(readGlassTransparency()));
-  root.setAttribute("data-sidebar-overlay", readGlassOverlay());
+  // One look only: the pure system material, no colour laid over it, and the theme's own words.
+  root.setAttribute("data-sidebar-glass", "100");
+  root.setAttribute("data-sidebar-overlay", "auto");
 }
 
 export function setGlassTransparency(value: GlassTransparency): void {
