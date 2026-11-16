@@ -75,13 +75,15 @@ export interface GlassSurfaceProps {
 }
 
 /** A liquid-glass surface with a CSS fallback: reduced transparency/motion, a failed shader, or the setting off. */
+const USE_LIQUID_LIBRARY = false;
+
 export function GlassSurface({ children, className, style, cornerRadius = 999 }: GlassSurfaceProps) {
   const enabled = useGlassPill();
   const lessTransparency = useMediaQuery("(prefers-reduced-transparency: reduce)");
   const lessMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const reduced = lessTransparency || lessMotion;
   const [failed, setFailed] = useState(false);
-  const fallback = !enabled || reduced || failed;
+  const fallback = !USE_LIQUID_LIBRARY || !enabled || reduced || failed;
   if (fallback) {
     return <div data-glass-fallback="" className={cn("glass-pill-surface", className)} style={style}>{children}</div>;
   }
