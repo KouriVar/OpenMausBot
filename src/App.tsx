@@ -186,6 +186,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const autoHiddenSidebar = useMediaQuery(SIDEBAR_AUTO_HIDDEN);
   const sidebarHidden = hiddenSidebar || autoHiddenSidebar;
   const sidebarDensity = useSidebarDensity();
+  const sidebarCollapsed = collapseSidebar || compactSidebar || autoHiddenSidebar || sidebarDensity === "icons" || hiddenSidebar;
   // Settings centres on the conversation, not on the whole window: this is the column it leaves beside it.
   useEffect(() => {
     const width = sidebarHidden ? 0 : sidebarDensity === "icons" ? 64 : advanced ? 320 : 280;
@@ -407,7 +408,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       {/* Fork: Inset's one card. The sidebar stays the window's ground; the content and every panel beside it are this
           single rounded card, clipped once here, so no child ever draws a second frame. */}
       <div data-inset-card={inset ? "" : undefined}
-        style={inset ? { "--inset-gap-left": "4px" } as React.CSSProperties : undefined}
+        style={inset ? { "--inset-gap-left": sidebarCollapsed ? "4px" : "0px" } as React.CSSProperties : undefined}
         className={inset ? "relative flex min-h-0 min-w-0 flex-1 overflow-hidden rounded-[var(--inset-radius)] bg-[var(--inset-card)] shadow-[0_0_0_1px_var(--inset-edge)] mt-[var(--inset-gap-top)] mr-[var(--inset-gap-right)] mb-[var(--inset-gap-bottom)] ml-[var(--inset-gap-left)]" : "contents"}>
       {state.activeView === "team-map" ? (
         <TeamMapPage />
