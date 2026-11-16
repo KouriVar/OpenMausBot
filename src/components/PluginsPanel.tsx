@@ -110,7 +110,7 @@ export function botsUsingService(bots: Bot[], instances: InstanceInfo[], slug: s
   return botsForApps(bots, instances).filter((bot) => botAppScope(bot, slug) !== null);
 }
 
-export function PluginsPanel() {
+export function PluginsPanel({ embedded = false }: { embedded?: boolean } = {}) {
   const { state, dispatch } = useStore();
   const remoteClient = window.ogb?.remoteClient?.active === true;
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -263,6 +263,7 @@ export function PluginsPanel() {
   }, [loadConnectionInventory]);
 
   useEffect(() => {
+    if (embedded) return;
     const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const dialog = dialogRef.current;
     const focusable = () =>
@@ -307,7 +308,7 @@ export function PluginsPanel() {
       window.removeEventListener("keydown", onKeyDown);
       returnFocus?.focus();
     };
-  }, [dispatch]);
+  }, [dispatch, embedded]);
 
   const { suggestions, picking, pick } = useSuggestedApps(cards !== null && configured && inventoryPhase === "ready", `${cardsRefresh}:${Object.keys(status).filter((slug) => status[slug]?.connected).sort().join()}`);
   const [disconnecting, setDisconnecting] = useState<{ slug: string; label: string; account: ConnectorAccount } | null>(null); disconnectingRef.current = disconnecting;
@@ -461,22 +462,22 @@ export function PluginsPanel() {
 
   return (
     <div
-      className="glass-popup-frame"
-      style={glassPopupFrameStyle()}
-      onMouseDown={(event) => event.target === event.currentTarget && close()}
+      className={embedded ? "flex flex-col" : "glass-popup-frame"}
+      style={embedded ? undefined : glassPopupFrameStyle()}
+      onMouseDown={embedded ? undefined : (event) => event.target === event.currentTarget && close()}
     >
       {/* A sibling, not the parent: a backdrop-filter on an ancestor would stop the pop-up's own glass from seeing the app behind it. */}
-      <div aria-hidden="true" className="glass-scrim pointer-events-none absolute inset-0" />
+      {!embedded && <div aria-hidden="true" className="glass-scrim pointer-events-none absolute inset-0" />}
       <div
         ref={dialogRef}
         data-tour="apps-panel"
-        role="dialog" data-look="dialog"
-        aria-modal="true"
+        role={embedded ? undefined : "dialog"} data-look={embedded ? undefined : "dialog"}
+        aria-modal={embedded ? undefined : true}
         aria-labelledby="plugins-title"
         tabIndex={-1}
-        className="glass-surface glass-popup animate-pop-in relative flex max-w-[780px] flex-col overflow-hidden rounded-2xl"
+        className={embedded ? "relative flex flex-col" : "glass-surface glass-popup animate-pop-in relative flex max-w-[780px] flex-col overflow-hidden rounded-2xl"}
       >
-        <header className="flex flex-col gap-4 px-5 pb-4 pt-5 sm:px-7 sm:pt-6">
+        <header className={cn("flex flex-col gap-4", embedded ? "pb-4" : "px-5 pb-4 pt-5 sm:px-7 sm:pt-6")}>
           <div>
           <div className="flex items-center justify-between gap-3">
             <h2 id="plugins-title" className="min-w-0 truncate text-[20px] font-semibold leading-7 tracking-[-0.01em] text-ink">{t("apps.title")}</h2>
@@ -514,13 +515,13 @@ export function PluginsPanel() {
               >
                 <RefreshCw size={16} className={cn(refreshing && "animate-spin")} />
               </button>
-              <button data-tour="apps-close"
+              {!embedded && <button data-tour="apps-close"
                 onClick={close}
                 aria-label={t("connectors.closeAria")}
                 className="flex size-8 items-center justify-center rounded-full text-ink-secondary hover:bg-raised hover:text-ink"
               >
                 <X size={18} />
-              </button>
+              </button>}
             </div>
           </div>
           <p className="mt-0.5 text-[13px] leading-5 text-ink-secondary">{t("apps.subtitle")}</p>
@@ -585,7 +586,7 @@ export function PluginsPanel() {
           </div>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-7 sm:px-7">
+        <div className={embedded ? "min-h-0 pb-2" : "min-h-0 flex-1 overflow-y-auto px-5 pb-7 sm:px-7"}>
           {stale ? (
             <div className="mb-3 flex items-start gap-2 rounded-xl bg-warning/10 px-3 py-2 text-[13px] text-warning">
               <TriangleAlert size={14} className="mt-px shrink-0" />

@@ -61,7 +61,7 @@ function useGroupedNote(): [boolean, () => void] {
 
 export function OverviewPage() {
   const { ctx, place, go } = useSettingsShell();
-  const { state, dispatch } = useStore();
+  const { state } = useStore();
   const [note, dismiss] = useGroupedNote();
   const team = state.config?.team;
   const engines = state.instances.filter((instance) => instance.snapshot.state === "available").length;
@@ -83,7 +83,7 @@ export function OverviewPage() {
         {/* Simple's sidebar footer has Connect apps right beside the avatar, so Simple's Overview leaves the jump out and
             stays one window tall at 900 px even while the grouped note shows. */}
         {ctx.advanced && <SettingsLinkRow title={t("settings.glance.apps")} external value={apps === null ? undefined : apps > 0 ? t("settings.glance.appsConnected", { count: apps }) : t("settings.glance.appsNone")}
-          onClick={() => { dispatch({ type: "toggleAppSettings", open: false }); dispatch({ type: "togglePlugins", open: true }); }} data={{ "data-glance": "apps" }} />}
+          onClick={() => go("connectors")} data={{ "data-glance": "apps" }} />}
       </SettingsRows>
     </SettingsGroup>
     {ctx.desktop && ctx.cloud && team && team.cloudPage && <div data-settings-block="people-and-plan"><TeamPeopleCard team={team} /></div>}

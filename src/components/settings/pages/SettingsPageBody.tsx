@@ -3,6 +3,7 @@ import { AccountPage, PlanPage } from "./AccountPages";
 import { AppPage, AppearancePage, GeneralPage } from "./AppPages";
 import { DataPage, InstallationsPage, PeoplePage, SpendingPage, VaultPage } from "./DataPages";
 import { AiPage, BotsPage, DesktopsPage, OverviewPage } from "./PlacePages";
+import { ConnectorsPage } from "./ConnectorsPage";
 
 const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
   overview: OverviewPage,
@@ -21,6 +22,7 @@ const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
   app: AppPage,
   general: GeneralPage,
   appearance: AppearancePage,
+  connectors: ConnectorsPage,
 };
 
 export function SettingsPageBody({ page }: { page: SettingsPageId }) {

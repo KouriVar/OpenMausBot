@@ -25,7 +25,7 @@ import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
  * computer. Pages this build adds on top (a plan, people, installations) follow the last named group. */
 const FORK_NAV_ORDER: readonly { key: string; labelKey: LocaleKey; ids: readonly SettingsPageId[] }[] = [
   { key: "you", labelKey: "settings.nav.you", ids: ["bots", "appearance", "general"] },
-  { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops"] },
+  { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops", "connectors"] },
   { key: "library", labelKey: "settings.nav.library", ids: ["vault", "data"] },
   { key: "account", labelKey: "settings.nav.account", ids: ["usage", "plan", "people", "installations"] },
 ];
@@ -369,12 +369,14 @@ function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place
 const PAGE_OWNER: Record<SettingsPageId, SettingsOwner> = {
   overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", transfer: "place", data: "place",
   people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app",
+  connectors: "app",
 };
 
 const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
   phone: "settings.section.phoneDevices", ai: "settings.group.ai", bots: "settings.page.bots", desktops: "settings.page.desktops",
   vault: "settings.section.vault", usage: "settings.page.spending", transfer: "settings.page.importExport", data: "settings.page.data", people: "settings.section.people",
   installations: "settings.section.workspaces", plan: "settings.page.plan", general: "settings.section.general", appearance: "settings.section.appearance",
+  connectors: "sidebar.nav.connectors",
 };
 
 /** A result's second line: its owner and its page ("This computer › Phone & devices"), or what a jump opens. */

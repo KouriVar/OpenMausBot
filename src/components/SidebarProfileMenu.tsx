@@ -785,7 +785,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     // Fork: Advanced draws its own menu, one group per kind of thing; Simple's stays as it is. The rail's own rows
     // already carry Apps, so it is not offered twice there.
     menu: advancedNow ? "advanced" : undefined,
-    onApps: rail ? undefined : () => dispatch({ type: "togglePlugins", open: true }),
+    onApps: rail ? undefined : () => dispatch({ type: "toggleAppSettings", open: true, section: "connectors" }),
     ...(account ? { simple: {
       places: placeMenuItems(account.place, { owner: account.owner, name: state.config?.team?.name, besideRail, onCloudSettings: openCloudAccount }),
     } } : {}),

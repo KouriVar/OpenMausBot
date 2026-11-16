@@ -1,5 +1,5 @@
 import {
-  Archive, ArrowLeftRight, Bot, Coins, CreditCard, LockKeyhole, Monitor, Palette, Server, SlidersHorizontal, Smartphone,
+  Archive, ArrowLeftRight, Bot, Coins, CreditCard, LockKeyhole, Monitor, Palette, Puzzle, Server, SlidersHorizontal, Smartphone,
   Sparkles, Users, type LucideIcon,
 } from "lucide-react";
 import type { LocaleKey } from "@/locales";
@@ -88,6 +88,8 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["general", "language", "typing", "send", "enter", "notifications", "sounds", "startup", "login", "analytics", "privacy", "talk"] },
   { id: "appearance", owner: "app", labelKey: "settings.section.appearance", icon: Palette, when: () => true,
     synonyms: ["appearance", "theme", "skin", "looks", "dark mode", "light mode", "font", "chat width", "layout", "threads", "pins"] },
+  { id: "connectors", owner: "app", labelKey: "sidebar.nav.connectors", icon: Puzzle, when: () => true,
+    synonyms: ["connectors", "apps", "mcp", "composio", "integrations", "连接器", "应用"] },
 ];
 
 export const OWNERS: readonly SettingsOwner[] = ["place", "account", "app"];

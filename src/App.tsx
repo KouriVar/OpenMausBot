@@ -187,6 +187,11 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
   const sidebarDensity = useSidebarDensity();
   const sidebarHidden = hiddenSidebar || autoHiddenSidebar;
   const sidebarCollapsed = collapseSidebar || compactSidebar || autoHiddenSidebar || sidebarDensity === "icons" || hiddenSidebar;
+  // Settings centres on the conversation, not on the whole window: this is the column it leaves beside it.
+  useEffect(() => {
+    const width = sidebarHidden ? 0 : sidebarDensity === "icons" ? 64 : advanced ? 320 : 280;
+    document.documentElement.style.setProperty("--sidebar-live-width", `${width}px`);
+  }, [advanced, sidebarDensity, sidebarHidden]);
   const calendarFocus = state.activeView === "routines" && state.routinesFocus.view === "calendar";
   const notificationTray = notificationFeed && !calendarFocus;
 

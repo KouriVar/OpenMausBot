@@ -72,7 +72,7 @@ export function SidebarAppsButton() {
       type="button"
       data-tour="nav-apps"
       data-sidebar-nav="apps"
-      onClick={() => dispatch({ type: "togglePlugins", open: true })}
+      onClick={() => dispatch({ type: "toggleAppSettings", open: true, section: "connectors" })}
       aria-label={label}
       title={label}
       aria-pressed={state.pluginsOpen}
@@ -155,7 +155,7 @@ export function SidebarFooterNav({
     rail={rail}
     active={state.pluginsOpen}
     icon={(active) => <Puzzle size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
-    onClick={() => dispatch({ type: "togglePlugins", open: true })}
+    onClick={() => dispatch({ type: "toggleAppSettings", open: true, section: "connectors" })}
   />;
   if (rail) return <nav data-tour="tools" aria-label={t("sidebar.tools")} className="flex flex-col items-center gap-0.5">{appsRow}</nav>;
 
