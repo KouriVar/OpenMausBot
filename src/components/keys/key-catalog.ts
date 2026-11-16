@@ -263,6 +263,8 @@ export function savedState(entry: KeyEntry, config: ConfigStatus | null | undefi
 /** With Azure, Fish Audio, Gemini or ElevenLabs chosen, Live calls do not use the OpenAI key the Live calls row points at, so that row is
  * hidden. */
 export function keyHidden(id: KeyId, config: ConfigStatus | null | undefined): boolean {
+  // This build reads replies with ElevenLabs or MiMo; the other two rows are gone from the page.
+  if (id === "fishAudio" || id === "geminiTts") return true;
   const provider = config?.live?.provider;
   return id === "liveCalls" && (provider === "azure" || provider === "fish" || provider === "gemini" || provider === "elevenlabs");
 }

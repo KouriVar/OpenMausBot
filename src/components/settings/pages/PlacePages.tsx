@@ -16,7 +16,6 @@ import { CustomDomainSettings } from "../../CustomDomainSettings";
 import { preloadConnectedApps } from "@/lib/connected-apps";
 import { DecisionModelSettings } from "../../DecisionModelSettings";
 import { EnginesSettings } from "../../EnginesSettings";
-import { ImageGenerationSettings } from "../../ImageGenerationSettings";
 import { LocalComputerSection } from "../../LocalComputerSection";
 import { McpCallTimeoutSettings } from "../../McpCallTimeoutSettings";
 import { DefaultBotSettings } from "../../NewBotDialog";
@@ -140,7 +139,6 @@ export function AiPage() {
       )}
       <AdvancedSection anchor="backup-model"><SettingsGroup label={t("settings.ai.backupModel")} block="backup-model"><AutomaticRecoverySettings /></SettingsGroup></AdvancedSection>
       <AdvancedSection anchor="routing"><DecisionModelSettings /></AdvancedSection>
-      <AdvancedSection anchor="images"><ImageGenerationSettings /></AdvancedSection>
     </AdminOnly>
   </>;
 }
