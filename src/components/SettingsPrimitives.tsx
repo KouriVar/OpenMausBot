@@ -175,7 +175,7 @@ export function SettingsGroup({ label, block, actions, footnote, description, ch
       className="flex scroll-mt-4 flex-col gap-2 has-[>[data-settings-rows]:empty]:hidden"
     >
       {(label || actions) && (
-        <div className="sticky top-0 z-10 -mb-2 flex flex-col gap-1 bg-(--settings-sheet) px-4 pb-2">
+        <div className="sticky top-3 z-10 -mb-2 flex flex-col gap-1 bg-(--settings-sheet) px-4 pb-2">
           {/* The title and its one action share a 28 px line; the description runs 4 under them, the full width, and the
               card follows 8 below (§6.4's section description: the one place a section says more than its title). */}
           <div className="flex min-h-7 items-center justify-between gap-3">
