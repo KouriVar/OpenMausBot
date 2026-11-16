@@ -802,7 +802,7 @@ export function Composer({
               className={cn("pointer-events-none absolute -left-5 -right-5 bg-app", advanced ? "-bottom-3 top-1/2" : cn("top-0", simpleDock ? "-bottom-4" : "-bottom-3"))}
             />
           )}
-        <div ref={shellRef} data-tour="composer" data-look="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(glass ? "glass-composer" : SIMPLE_COMPOSER, "p-2", multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", ELEVATED_FLOAT))}>
+        <div ref={shellRef} data-tour="composer" data-look="composer" data-multiline={multiline ? "" : undefined} className={cn("@container/composer relative z-[1]", singleRow ? "flex items-end gap-2" : simpleDock ? cn(glass ? "glass-composer" : SIMPLE_COMPOSER, "p-2", multiline ? "rounded-[18px]" : "rounded-[22px]") : cn("rounded-2xl px-2 py-1.5", glass ? "glass-composer" : ELEVATED_FLOAT))}>
         {singleRow && !locked && (
           <div className="flex shrink-0 items-center">
             <PhonePlus
@@ -820,7 +820,7 @@ export function Composer({
             />
           </div>
         )}
-        <div className={singleRow ? cn("min-w-0 flex-1 rounded-[26px] px-3 py-1.5", ELEVATED_FLOAT) : "contents"}>
+        <div className={singleRow ? cn("min-w-0 flex-1 rounded-[26px] px-3 py-1.5", glass ? "glass-composer" : ELEVATED_FLOAT) : "contents"}>
         {replyTo && <ComposerReplyStrip message={replyTo} fallbackName={bot?.name} onClear={onClearReply} />}
         <div data-composer-row className={cn("flex items-end", simpleDock ? "gap-1.5" : "gap-1", !singleRow && !simpleDock && "@max-[30rem]/composer:flex-wrap", stacked && "flex-wrap")}>
           <input
