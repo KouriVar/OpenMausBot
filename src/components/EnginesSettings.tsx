@@ -466,6 +466,8 @@ function ProviderRow({ instance, ready, open, onToggle, compact, children }: {
   </>;
 }
 
+const DEFAULT_PROVIDERS = new Set(["deepseek", "deepseekAgent", "opencodeGo", "grok", "grokAgent"]);
+
 function SimpleEngines({ rows, isReady, renderEngine, more }: {
   rows: InstanceInfo[];
   isReady: (instance: InstanceInfo) => boolean;
@@ -475,7 +477,8 @@ function SimpleEngines({ rows, isReady, renderEngine, more }: {
   const [opened, setOpened] = useState<string | null>(null);
   // A hidden provider is gone from the instance list, so without these rows nothing in Settings brings it back.
   const hidden = useHiddenProviders();
-  const featured = rows.filter((instance) => isReady(instance) || instance.authentication !== undefined);
+  // The three providers this build keeps on the page; every other engine waits under More providers.
+  const featured = rows.filter((instance) => DEFAULT_PROVIDERS.has(instance.driverKind));
   const others = rows.filter((instance) => !featured.includes(instance));
   const row = (instance: InstanceInfo, compact: boolean) => {
     const open = opened === instance.instanceId;
