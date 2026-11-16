@@ -110,7 +110,7 @@ export function SidebarPeek({ onReveal }: { onReveal: () => void }) {
           data-sidebar-peek-panel=""
           onPointerEnter={() => clearTimer(leaveTimer)}
           className={cn(
-            "pointer-events-auto absolute bottom-2 left-2 top-2 overflow-hidden rounded-[var(--inset-radius)] bg-panel ring-[0.5px] ring-ink/10 shadow-(--shadow-float)",
+            "pointer-events-auto absolute bottom-2 left-2 top-2 overflow-hidden rounded-[var(--inset-radius)] bg-panel/60 ring-[0.5px] ring-ink/10 shadow-(--shadow-float) backdrop-blur-2xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-[var(--inset-radius)] before:bg-white/[0.055] before:content-['']",
             open
               ? "motion-safe:animate-[sidebar-peek-in_180ms_ease-out]"
               : "motion-safe:animate-[sidebar-peek-out_180ms_ease-out_forwards]",

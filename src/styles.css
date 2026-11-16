@@ -3684,6 +3684,11 @@ button:disabled.bg-danger {
   from { opacity: 1; transform: translateX(0); }
   to { opacity: 0; transform: translateX(-12px); }
 }
+/* Fork: the preview's card holds the glass, so the bar inside it paints no ground and no edge of its own. */
+[data-sidebar-peek-panel] > [data-sidebar] {
+  background-color: transparent;
+  border-right-color: transparent;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-hidden-sidebar-edge] span { transition: none; }
 }
