@@ -1,19 +1,18 @@
 import type { SettingsPageId } from "../settings-index";
 import { AccountPage, PlanPage } from "./AccountPages";
 import { AppPage, AppearancePage, GeneralPage } from "./AppPages";
-import { DataPage, ImportExportPage, InstallationsPage, PeoplePage, SpendingPage, VaultPage } from "./DataPages";
-import { PhonePage } from "./PhonePage";
+import { DataPage, InstallationsPage, PeoplePage, SpendingPage, VaultPage } from "./DataPages";
 import { AiPage, BotsPage, DesktopsPage, OverviewPage } from "./PlacePages";
 
 const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
   overview: OverviewPage,
-  phone: PhonePage,
+  phone: () => null,
   ai: AiPage,
   bots: BotsPage,
   desktops: DesktopsPage,
   vault: VaultPage,
   usage: SpendingPage,
-  transfer: ImportExportPage,
+  transfer: () => null,
   data: DataPage,
   people: PeoplePage,
   installations: InstallationsPage,

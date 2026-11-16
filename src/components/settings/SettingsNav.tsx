@@ -25,8 +25,8 @@ import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
  * computer. Pages this build adds on top (a plan, people, installations) follow the last named group. */
 const FORK_NAV_ORDER: readonly { key: string; labelKey: LocaleKey; ids: readonly SettingsPageId[] }[] = [
   { key: "you", labelKey: "settings.nav.you", ids: ["bots", "appearance", "general"] },
-  { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops", "phone"] },
-  { key: "library", labelKey: "settings.nav.library", ids: ["vault", "data", "transfer"] },
+  { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops"] },
+  { key: "library", labelKey: "settings.nav.library", ids: ["vault", "data"] },
   { key: "account", labelKey: "settings.nav.account", ids: ["usage", "plan", "people", "installations"] },
 ];
 

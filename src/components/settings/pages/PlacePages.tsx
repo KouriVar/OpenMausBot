@@ -28,7 +28,6 @@ import { DesktopKinds } from "../DesktopKinds";
 import { AnalysisModelRow } from "@/fork/AnalysisModelRow";
 import { SkillsSection } from "../../SkillsSection";
 import { ThreadConcurrencySettings } from "../../ThreadConcurrencySettings";
-import { usePhonePlaceState } from "../phone-status";
 import { KeysPage } from "../../keys/KeysPage";
 import { BrowserProfilesRow, ExperimentalFeaturesRow, NewBotEffortRow } from "../../AppSettingsRows";
 import { ServerUpdateRow } from "../../ServerUpdateRow";
@@ -64,10 +63,7 @@ export function OverviewPage() {
   const { ctx, place, go } = useSettingsShell();
   const { state, dispatch } = useStore();
   const [note, dismiss] = useGroupedNote();
-  const phone = usePhonePlaceState(!ctx.client);
   const team = state.config?.team;
-  const phoneValue = phone.kind === "paired" || phone.kind === "attention" ? t("settings.glance.phonePaired", { count: phone.count })
-    : phone.kind === "none" ? t("settings.glance.notSetUp") : undefined;
   const engines = state.instances.filter((instance) => instance.snapshot.state === "available").length;
   const apps = useConnectedAppCount();
   return <>
@@ -82,7 +78,6 @@ export function OverviewPage() {
     {place.kind === "server" && !ctx.client && !window.ogb?.updater && <SettingsGroup label={t("settings.updates.title")} block="version"><SettingsRows><ServerUpdateRow title={versionLine()} /></SettingsRows></SettingsGroup>}
     <SettingsGroup label={t("settings.overview.glance")} block="glance">
       <SettingsRows>
-        {!ctx.client && <SettingsLinkRow title={t("settings.section.phoneDevices")} value={phoneValue} onClick={() => go("phone")} data={{ "data-glance": "phone" }} />}
         {!ctx.client && <SettingsLinkRow title={t("settings.group.ai")} onClick={() => go("ai", "providers")} data={{ "data-glance": "ai" }}
           value={ctx.admin ? engines > 0 ? t("settings.glance.aiReady", { count: engines }) : t("settings.glance.aiStart") : t("settings.glance.aiAdmin")} />}
         {/* Simple's sidebar footer has Connect apps right beside the avatar, so Simple's Overview leaves the jump out and

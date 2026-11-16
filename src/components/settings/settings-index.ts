@@ -57,7 +57,7 @@ export const ADVANCED_PAGES: readonly SettingsPageId[] = ["bots", "desktops", "u
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
   { id: "overview", owner: "place", labelKey: "settings.page.overview", synonyms: ["overview", "place", "status", "version", "domain", "address", "sidebar"], when: () => true },
-  { id: "phone", owner: "place", labelKey: "settings.section.phoneDevices", icon: Smartphone, when: notClient,
+  { id: "phone", owner: "place", labelKey: "settings.section.phoneDevices", icon: Smartphone, nav: false, when: () => false,
     synonyms: ["phone", "pair", "pairing", "qr", "code", "iphone", "android", "mobile", "tablet", "device", "devices", "wifi", "wi-fi", "anywhere", "relay", "remote", "companion", "tailscale", "connect your phone", "get the phone app", "pair a device", "this server", "remote access"] },
   { id: "ai", owner: "place", labelKey: "settings.group.ai", icon: Sparkles, when: adminPage,
     synonyms: ["ai", "models", "model providers", "providers", "engines", "api keys", "keys", "key", "claude", "codex", "openai", "anthropic", "ollama", "lm studio", "local model"] },
@@ -69,7 +69,7 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["vault", "password", "passwords", "login", "logins", "secrets", "1password", "2fa"] },
   { id: "usage", owner: "place", labelKey: "settings.page.spending", icon: Coins, when: advancedOnly(adminPage),
     synonyms: ["spending", "usage", "cost", "costs", "tokens", "money", "runs", "export csv"] },
-  { id: "transfer", owner: "place", labelKey: "settings.page.importExport", icon: ArrowLeftRight, when: adminPage,
+  { id: "transfer", owner: "place", labelKey: "settings.page.importExport", icon: ArrowLeftRight, nav: false, when: () => false,
     synonyms: ["import", "export", "backup", "backups", "restore", "grok", "grok bot", "move from", "bring"] },
   { id: "data", owner: "place", labelKey: "settings.page.data", icon: Archive, when: advancedOnly(adminPage),
     synonyms: ["data", "storage", "attachments", "activity", "audit"] },
@@ -113,16 +113,16 @@ export const LEGACY_SETTINGS: Record<Exclude<AppSettingsSection, SettingsPageId>
   decisionModel: () => ({ page: "ai", anchor: "routing" }),
   imageGeneration: () => ({ page: "ai" }),
   engines: () => ({ page: "ai", anchor: "providers" }),
-  companion: () => ({ page: "phone" }),
-  remote: (ctx) => (ctx.client ? { page: "app", anchor: "your-computers" } : { page: "phone" }),
+  companion: () => ({ page: "overview" }),
+  remote: (ctx) => (ctx.client ? { page: "app", anchor: "your-computers" } : { page: "overview" }),
   computer: () => ({ page: "desktops" }),
   logins: () => ({ page: "vault" }),
   botAccess: () => ({ page: "people", anchor: "bot-access" }),
   activity: () => ({ page: "data", anchor: "activity" }),
-  backups: () => ({ page: "transfer", anchor: "take-out" }),
+  backups: () => ({ page: "overview" }),
   workspaces: () => ({ page: "installations" }),
   skills: () => ({ page: "bots", anchor: "skills" }),
-  import: () => ({ page: "transfer", anchor: "bring-in" }),
+  import: () => ({ page: "overview" }),
   updates: (ctx) => (ctx.desktop ? { page: "app", anchor: "updates" } : { page: "overview" }),
 };
 
