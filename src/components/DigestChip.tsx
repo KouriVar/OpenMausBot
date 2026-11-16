@@ -45,7 +45,7 @@ export function DigestChip({ message }: { message: Message }) {
   );
 }
 
-const COMPACTION_CHIP = "max-w-[600px] rounded-xl border border-hairline/40 bg-panel px-3 py-2 text-[12px] text-ink-secondary";
+const COMPACTION_CHIP = "max-w-[min(var(--chat-bubble-max),var(--chat-bubble-pct))] rounded-xl border border-hairline/40 bg-panel px-3 py-2 text-[12px] text-ink-secondary";
 
 export function CompactionChip({ message }: { message: Message }) {
   if (!message.compaction) return message.engineCompaction ? (
