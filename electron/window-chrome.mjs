@@ -14,7 +14,11 @@ export function sidebarVibrancyStyle(env = process.env) {
 /** The window's own material options: nothing outside macOS, where the sidebar keeps its solid ground. */
 export function windowVibrancyOptions(platform, env = process.env) {
   if (platform !== "darwin") return {};
-  return { vibrancy: sidebarVibrancyStyle(env), visualEffectState: "followWindow", backgroundColor: "#00000000" };
+  const style = env.OMB_VIBRANCY_STYLE;
+  if (style === "sidebar" || style === "under-window" || style === "fullscreen-ui") {
+    return { vibrancy: style, visualEffectState: "followWindow", backgroundColor: "#00000000" };
+  }
+  return { transparent: true, backgroundColor: "#00000000" };
 }
 
 /** macOS: where the traffic lights (14px) sit. In the frame's 28px top bar, 12px in, while the page beside the rail draws
