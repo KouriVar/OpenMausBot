@@ -211,11 +211,35 @@ export function BotContextMenu({
   );
   const divider = (key: string) => <div key={key} role="separator" className={MENU_ITEM_SEPARATOR} />;
 
+  const showFlyout = (key: Flyout, focus: boolean) => {
+    more.openNow(key);
+    if (focus) requestAnimationFrame(() => flyoutRef.current?.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus());
+  };
+  const flyoutButton = (key: Flyout, ref: React.RefObject<HTMLButtonElement | null>, icon: React.ReactNode, label: string) => (
+    <button
+      key={key}
+      ref={ref}
+      type="button"
+      role="menuitem"
+      data-bot-menu-more={key === "more" ? "" : undefined}
+      data-bot-menu-move={key === "move" ? "" : undefined}
+      aria-haspopup="menu"
+      aria-expanded={flyout === key}
+      onClick={(event) => (flyout === key ? more.closeNow() : showFlyout(key, event.detail === 0))}
+      onKeyDown={(event) => {
+        if (event.key !== "ArrowRight") return;
+        event.preventDefault();
+        showFlyout(key, true);
+      }}
+      className={cn(MENU_ITEM, "text-ink hover:bg-menu-hover", flyout === key && moreEngaged && "bg-menu-active")}
+    >
+      {icon}
+      <span className="flex-1">{label}</span>
+      <ChevronRight size={15} aria-hidden="true" className="text-ink-secondary rtl:-scale-x-100" />
+    </button>
+  );
+
   if (simpleMenu) {
-    const showFlyout = (key: Flyout, focus: boolean) => {
-      more.openNow(key);
-      if (focus) requestAnimationFrame(() => flyoutRef.current?.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus());
-    };
     const copyId = item(<ClipboardCopy size={16} className="text-ink-secondary" />, t("sidebar.copyConversationId"), () => { void copyText(bot.threadId); });
     const current = bot.section?.trim() ?? "";
     const departments = departmentNames(state);
@@ -228,29 +252,6 @@ export function BotContextMenu({
       ...(onNewSection ? [item(<FolderPlus size={16} className="text-ink-secondary" />, t("sidebar.section.newContext"), () => onNewSection(bot.id))] : []),
       ...(current ? [item(<FolderMinus size={16} className="text-ink-secondary" />, t("sidebar.section.removeFromDepartment"), () => moveBotsToSection(dispatch, [bot.id], ""))] : []),
     ];
-    const flyoutButton = (key: Flyout, ref: React.RefObject<HTMLButtonElement | null>, icon: React.ReactNode, label: string) => (
-      <button
-        key={key}
-        ref={ref}
-        type="button"
-        role="menuitem"
-        data-bot-menu-more={key === "more" ? "" : undefined}
-        data-bot-menu-move={key === "move" ? "" : undefined}
-        aria-haspopup="menu"
-        aria-expanded={flyout === key}
-        onClick={(event) => (flyout === key ? more.closeNow() : showFlyout(key, event.detail === 0))}
-        onKeyDown={(event) => {
-          if (event.key !== "ArrowRight") return;
-          event.preventDefault();
-          showFlyout(key, true);
-        }}
-        className={cn(MENU_ITEM, "text-ink hover:bg-menu-hover", flyout === key && moreEngaged && "bg-menu-active")}
-      >
-        {icon}
-        <span className="flex-1">{label}</span>
-        <ChevronRight size={15} aria-hidden="true" className="text-ink-secondary rtl:-scale-x-100" />
-      </button>
-    );
     const moveToSection = mayMove ? flyoutButton("move", moveRef, <FolderPlus size={16} className="text-ink-secondary" />, t("sidebar.bot.moveToSection")) : null;
     const rename = onRename && (team ? mayRename(bot, team) : !state.config?.team) && item(<SquarePen size={16} className="text-ink-secondary" />, t("sidebar.bot.rename"), () => onRename(bot.id));
     const editProfile = item(<Pencil size={16} className="text-ink-secondary" />, t("sidebar.bot.simple.editProfile"), () => {
@@ -282,6 +283,7 @@ export function BotContextMenu({
       ...moveToTeam.items(bot, item),
       ...moveToCloud.items(bot, item),
       ...deleteAll,
+      ...(bot.defaultBot ? [] : ownDelete()),
     ];
     // Simple view hides the thread list: start one, see them all (the panel's Conversations), and choose the one it opens.
     const newThread = bot.yourAccess === "view" ? null : item(<SquarePen size={16} className="text-ink-secondary" />, t("task.newShort"), () => dispatch({ type: "newTask", botId: bot.id }));
@@ -297,9 +299,8 @@ export function BotContextMenu({
     );
     const threads = [divider("threads"), newThread, viewThreads, setMain];
     const moreRow = flyoutButton("more", moreRef, <MoreHorizontal size={16} className="text-ink-secondary" />, t("sidebar.bot.more"));
-    const leave = bot.defaultBot ? [<HideDefaultBotItem key="hide" bot={bot} onDone={onClose} className={MENU_ITEM} />, ...(member ? [] : [<DemoteDefaultBotItem key="demote" bot={bot} onDone={onClose} className={MENU_ITEM} />])] : member ? ownDelete() : [
+    const leave = bot.defaultBot ? [<HideDefaultBotItem key="hide" bot={bot} onDone={onClose} className={MENU_ITEM} />, ...(member ? [] : [<DemoteDefaultBotItem key="demote" bot={bot} onDone={onClose} className={MENU_ITEM} />])] : member ? [] : [
       item(<Archive size={16} className="text-ink-secondary" />, t("sidebar.bot.archive"), () => onArchive(bot), { disabled: archiveBlocked, hint: archiveHint }),
-      <BotDeleteMenuItem key="delete" deleting={deleting} className={MENU_ITEM} onClick={() => { onClose(); onDelete(bot); }} />,
     ];
     return <>{clearThreads.dialog}{moveToTeam.dialog}{moveToCloud.dialog}{createPortal(
       <div
@@ -340,8 +341,8 @@ export function BotContextMenu({
           ...(rename ? [divider("rename"), rename] : []),
           divider("copy"),
           copyId,
-          moreRow,
           ...(leave.length ? [divider("leave"), ...leave] : []),
+          moreRow,
         ]}
         {readError?.botId === bot.id && <p role="alert" className="px-2 py-1.5 text-[12px] text-danger">{readError.message}</p>}
       </div>,
@@ -378,6 +379,15 @@ export function BotContextMenu({
     )}</>;
   }
 
+  const deleteAllItem = !member && allThreadRows(bot).length >= 2
+    ? item(<Trash2 size={16} />, t("task.deleteAll"), () => clearThreads.ask(bot.id), { danger: true })
+    : null;
+  const deleteBotItems = bot.defaultBot ? [] : member ? ownDelete() : [
+    <BotDeleteMenuItem key="delete" deleting={deleting} className={MENU_ITEM} onClick={() => { onClose(); onDelete(bot); }} />,
+  ];
+  const moreDangerItems = [deleteAllItem, ...deleteBotItems].filter(Boolean);
+  const moreDangerRow = moreDangerItems.length > 0 ? flyoutButton("more", moreRef, <MoreHorizontal size={16} className="text-ink-secondary" />, t("sidebar.bot.more")) : null;
+
   return <>{clearThreads.dialog}{moveToTeam.dialog}{moveToCloud.dialog}{createPortal(
     <div
       ref={menuRef}
@@ -386,6 +396,22 @@ export function BotContextMenu({
       role="menu" data-look="menu"
       aria-label={t("sidebar.bot.actions", { name: bot.name })}
       onKeyDown={navigateThreadMenu}
+      onPointerOver={(event) => {
+        const row = event.target instanceof Element ? event.target.closest('[role="menuitem"]') : null;
+        if (!row || row === hoveredRow.current) return;
+        const left = rowFlyout(hoveredRow.current);
+        if (left) more.leaveRow(left);
+        hoveredRow.current = row;
+        const key = rowFlyout(row);
+        more.enterRow(key ?? "row", key !== null, { x: event.clientX, y: event.clientY });
+      }}
+      onPointerMove={(event) => more.move({ x: event.clientX, y: event.clientY }, flyoutRow(flyout)?.contains(event.target as Node) === true)}
+      onPointerLeave={() => {
+        const left = rowFlyout(hoveredRow.current);
+        if (left) more.leaveRow(left);
+        hoveredRow.current = null;
+        more.leaveMenu();
+      }}
       style={{ top: shown.y, left: shown.x }}
       className={cn("fixed z-40 max-h-[calc(100dvh-16px)] w-max min-w-[198px] max-w-[calc(100vw-16px)] overflow-y-auto overscroll-contain", MENU_SHEET, motion.className)} {...motion.exitProps}
     >
@@ -394,7 +420,6 @@ export function BotContextMenu({
         {admin && item(<FolderOpen size={16} className="shrink-0 text-ink-secondary" />, t("task.folder.new"), () => onNewTaskFolder(bot.id))}
         {item(<FolderPlus size={16} className="text-ink-secondary" />, t("folder.new"), () => onNewFolder(bot.id))}
       </>}
-      {!member && item(<Trash2 size={16} />, t("task.deleteAll"), () => clearThreads.ask(bot.id), { danger: true })}
       {divider("threads")}
       {team && mayChangeOwner(bot, team) && item(<Users size={16} className="text-ink-secondary" />, ownerMenuLabel(bot, team), () => pickOwnerOf(bot, team, shown))}
       {remoteClient ? [
@@ -442,12 +467,41 @@ export function BotContextMenu({
           void copyText(bot.threadId);
         }),
         divider("d3"), ...moveToTeam.items(bot, item), ...moveToCloud.items(bot, item),
-        ...(bot.defaultBot ? [<HideDefaultBotItem key="hide" bot={bot} onDone={onClose} className={MENU_ITEM} />, ...(member ? [] : [<DemoteDefaultBotItem key="demote" bot={bot} onDone={onClose} className={MENU_ITEM} />])] : member ? ownDelete() : [
+        ...(bot.defaultBot ? [<HideDefaultBotItem key="hide" bot={bot} onDone={onClose} className={MENU_ITEM} />, ...(member ? [] : [<DemoteDefaultBotItem key="demote" bot={bot} onDone={onClose} className={MENU_ITEM} />])] : member ? [] : [
           item(<Archive size={16} className="text-ink-secondary" />, t("sidebar.bot.archive"), () => onArchive(bot), { disabled: archiveBlocked, hint: archiveHint }),
-          <BotDeleteMenuItem key="delete" deleting={deleting} className={MENU_ITEM} onClick={() => { onClose(); onDelete(bot); }} />,
         ]),
+        moreDangerRow,
       ]}
       {readError?.botId === bot.id && <p role="alert" className="px-2 py-1.5 text-[12px] text-danger">{readError.message}</p>}
+    </div>,
+    document.body,
+  )}{flyout === "more" && createPortal(
+    <div
+      ref={flyoutRef}
+      data-bot-menu
+      data-bot-menu-flyout="more"
+      data-sidebar
+      role="menu" data-look="menu"
+      aria-label={t("sidebar.bot.more")}
+      onPointerEnter={() => { more.enterSubmenu(); setMoreEngaged(true); }}
+      onPointerLeave={() => setMoreEngaged(false)}
+      onFocus={() => setMoreEngaged(true)}
+      onBlur={(event) => { if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) setMoreEngaged(false); }}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowLeft" || event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          const row = flyoutRow(flyout);
+          more.closeNow();
+          row?.focus();
+          return;
+        }
+        navigateThreadMenu(event);
+      }}
+      style={{ top: shown.y, left: shown.x }}
+      className={cn("fixed z-40 max-h-[calc(100dvh-16px)] w-max min-w-[180px] max-w-[calc(100vw-16px)] animate-pop-in overflow-y-auto overscroll-contain", MENU_SHEET)}
+    >
+      {moreDangerItems}
     </div>,
     document.body,
   )}</>;
