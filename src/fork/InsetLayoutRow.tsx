@@ -30,7 +30,7 @@ export function InsetLayoutRow() {
           ))}
         </div>
       </SettingRow>
-      <div data-settings-hint className="px-4 py-2 text-[12px] leading-4 text-ink-secondary">{t("settings.insetLayout.note")}</div>
+      <div data-settings-hint data-settings-subtitle className="px-4 py-2 text-[12px] leading-4 text-ink-secondary">{t("settings.insetLayout.note")}</div>
     </>
   );
 }
