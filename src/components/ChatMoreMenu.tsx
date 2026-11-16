@@ -1,5 +1,5 @@
 import { useMemo, useState, type JSX } from "react";
-import { Bug, CalendarClock, Copy, Cpu, Database, Download, Gauge, Globe, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, Search, Share, SquarePen, UserPlus, UserRound, Users } from "lucide-react";
+import { Bug, CalendarClock, Copy, Cpu, Database, Download, Gauge, Globe, ListChecks, MessagesSquare, Monitor, MoreHorizontal, RotateCcw, ScrollText, Search, Share, SquarePen, UserPlus, UserRound, Users } from "lucide-react";
 import { RiMenuSearchLine } from "@remixicon/react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
@@ -133,6 +133,13 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       disabled: bot.busy || contextAction.pending || !hasMessages || atFreshStart,
       title: t(bot.busy ? "contextWarning.busy" : "chat.startFresh.hint"),
       onSelect: () => contextAction.run(`/api/bots/${profile.id}/start-fresh`, { threadId: bot.threadId }),
+    },
+    {
+      key: "panel-summary",
+      label: t("chat.summaryMenu"),
+      icon: <ScrollText size={16} />,
+      active: panelOpen && panelViewNow === "summary",
+      onSelect: () => openPanel("summary"),
     },
     {
       key: "panel-vm",

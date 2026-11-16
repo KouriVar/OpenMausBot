@@ -2679,6 +2679,8 @@
   "chat.digestChipNoFiles": "已调用 {tools} 个工具",
   "chat.digestTitle": "本回合的工作摘要",
   "chat.compactionTitle": "较早的上下文摘要",
+  "chat.summaryMenu": "\u4e0a\u4e0b\u6587\u6458\u8981",
+  "chat.compactionEmpty": "\u8fd9\u6bb5\u5bf9\u8bdd\u8fd8\u6ca1\u6709\u4e0a\u4e0b\u6587\u6458\u8981\u3002",
   "chat.compactionHint": "完整对话仍然保留。智能体在继续时会使用这份摘要和最近的消息。",
   "chat.compactionExcerptTitle": "较早的上下文已缩减为近期摘录",
   "chat.compactionExcerptHint": "没有可用的书面摘要，因此智能体会根据这些摘录和最近的消息继续。较早的细节可能不在其上下文中。完整对话仍会保留。",
