@@ -7362,5 +7362,7 @@
   "remote.tailscale.needsApproval": "Ten komputer czeka na zatwierdzenie w Twojej sieci Tailscale. Zatwierdź go w konsoli administracyjnej Tailscale, a potem spróbuj ponownie.",
   "together.switch.title": "Ten komputer i My Cloud razem",
   "together.switch.line": "Domyślnie wyłączone. Boty z Cloud i boty z tego komputera są na jednej liście, a każdy otwiera się tam, gdzie działa.",
-  "together.switch.failed": "Nie udało się zapisać. Spróbuj ponownie."
+  "together.switch.failed": "Nie udało się zapisać. Spróbuj ponownie.",
+  "settings.glassPill.title": "Glass effect (experimental)",
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
 }

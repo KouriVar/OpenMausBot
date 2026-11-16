@@ -6101,5 +6101,7 @@
   "remote.tailscale.needsApproval": "Bu bilgisayar Tailscale ağınızda onay bekliyor. Tailscale yönetici konsolunda onaylayın, ardından tekrar deneyin.",
   "together.switch.title": "Bu bilgisayar ve Cloud'um birlikte",
   "together.switch.line": "Varsayılan olarak kapalı. Cloud'daki botlar ile bu bilgisayardaki botlar tek listede görünür ve her biri bulunduğu yerde açılır.",
-  "together.switch.failed": "Kaydedilemedi. Yeniden deneyin."
+  "together.switch.failed": "Kaydedilemedi. Yeniden deneyin.",
+  "settings.glassPill.title": "Glass effect (experimental)",
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
 }

@@ -4071,5 +4071,7 @@
   "remote.tailscale.needsApproval": "Dieser Computer wartet auf die Genehmigung in Ihrem Tailscale-Netzwerk. Genehmigen Sie ihn in der Tailscale-Admin-Konsole und versuchen Sie es dann erneut.",
   "together.switch.title": "Dieser Computer und Meine Cloud zusammen",
   "together.switch.line": "Standardmäßig aus. Die Bots der Cloud und die Bots dieses Computers stehen in einer Liste, und jeder öffnet sich dort, wo er läuft.",
-  "together.switch.failed": "Das konnte nicht gespeichert werden. Versuch es noch einmal."
+  "together.switch.failed": "Das konnte nicht gespeichert werden. Versuch es noch einmal.",
+  "settings.glassPill.title": "Glass effect (experimental)",
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
 }
