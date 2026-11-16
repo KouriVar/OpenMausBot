@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { productName } from "@/lib/brand";
 import { skillsLibraryEnabled } from "@/lib/feature-flags";
@@ -10,10 +9,7 @@ import { AwayEmailsSetting } from "../../AwayEmailsSetting";
 import { PausedBotsButton } from "../../AwakeBotsPicker";
 import { BrowserProxyRow, BuiltInBrowserRow, NewBrowserSettings, ServerSitesRow } from "../../BrowserSettingsRows";
 import { CacheKeepWarmSettings } from "../../CacheKeepWarmSettings";
-import { TeamPeopleCard } from "../../CloudAccountSettings";
 import { CloudKeepHere } from "../../CloudKeepHere";
-import { CustomDomainSettings } from "../../CustomDomainSettings";
-import { preloadConnectedApps } from "@/lib/connected-apps";
 import { DecisionModelSettings } from "../../DecisionModelSettings";
 import { EnginesSettings } from "../../EnginesSettings";
 import { LocalComputerSection } from "../../LocalComputerSection";
@@ -22,7 +18,7 @@ import { DefaultBotSettings } from "../../NewBotDialog";
 import { ProfileFields } from "../../ProfileSettings";
 import { RoomTurnTimeoutSettings } from "../../RoomTurnTimeoutSettings";
 import { SavedStepsRow } from "../../SavedStepsRow";
-import { Card, SettingRow, SettingsDisclosureRow, SettingsFoldRow, SettingsGroup, SettingsLinkRow, SettingsRows } from "../../SettingsPrimitives";
+import { Card, SettingRow, SettingsDisclosureRow, SettingsFoldRow, SettingsGroup, SettingsRows } from "../../SettingsPrimitives";
 import { KEY_SECTIONS } from "../../keys/key-catalog";
 import { DesktopKinds } from "../DesktopKinds";
 import { AnalysisModelRow } from "@/fork/AnalysisModelRow";
@@ -30,79 +26,8 @@ import { SkillsSection } from "../../SkillsSection";
 import { ThreadConcurrencySettings } from "../../ThreadConcurrencySettings";
 import { KeysPage } from "../../keys/KeysPage";
 import { BrowserProfilesRow, ExperimentalFeaturesRow, NewBotEffortRow } from "../../AppSettingsRows";
-import { ServerUpdateRow } from "../../ServerUpdateRow";
-import { versionLine } from "../settings-context";
 import { useSettingsShell } from "../settings-shell";
 import { AdvancedSection } from "../AdvancedSection";
-
-const GROUPED_NOTE = "omb-settings-grouped-note";
-const GROUPED_DAYS = 30;
-
-/** Shown for 30 days to a device that used Settings before it was grouped; never on a new install. */
-function useGroupedNote(): [boolean, () => void] {
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(GROUPED_NOTE);
-      if (raw === "dismissed") return;
-      const first = raw ? Number(raw) : null;
-      if (first === null) {
-        const before = ["omb-skin", "omb-advanced-mode", "omb-send-key"].some((key) => localStorage.getItem(key) !== null);
-        if (!before) { localStorage.setItem(GROUPED_NOTE, "dismissed"); return; }
-        localStorage.setItem(GROUPED_NOTE, String(Date.now()));
-        setShown(true);
-        return;
-      }
-      setShown(Date.now() - first < GROUPED_DAYS * 86_400_000);
-    } catch { /* storage may be blocked */ }
-  }, []);
-  return [shown, () => { setShown(false); try { localStorage.setItem(GROUPED_NOTE, "dismissed"); } catch { /* storage may be blocked */ } }];
-}
-
-export function OverviewPage() {
-  const { ctx, place, go } = useSettingsShell();
-  const { state } = useStore();
-  const [note, dismiss] = useGroupedNote();
-  const team = state.config?.team;
-  const engines = state.instances.filter((instance) => instance.snapshot.state === "available").length;
-  const apps = useConnectedAppCount();
-  return <>
-    {note && (
-      <SettingsRows>
-        <div className="flex min-h-11 items-center gap-6 py-2 pl-4 pr-2" data-settings-grouped-note="">
-          <p className="min-w-0 flex-1 text-[14px] leading-5 text-ink">{t(ctx.desktop ? "settings.overview.grouped" : "settings.overview.groupedBrowser", { place: place.name })}</p>
-          <button type="button" aria-label={t("settings.dismiss")} onClick={dismiss} className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-ink-secondary hover:bg-menu-hover hover:text-ink focus-visible:outline-2 focus-visible:outline-focus"><X size={14} aria-hidden="true" /></button>
-        </div>
-      </SettingsRows>
-    )}
-    {place.kind === "server" && !ctx.client && !window.ogb?.updater && <SettingsGroup label={t("settings.updates.title")} block="version"><SettingsRows><ServerUpdateRow title={versionLine()} /></SettingsRows></SettingsGroup>}
-    <SettingsGroup label={t("settings.overview.glance")} block="glance">
-      <SettingsRows>
-        {!ctx.client && <SettingsLinkRow title={t("settings.group.ai")} onClick={() => go("ai", "providers")} data={{ "data-glance": "ai" }}
-          value={ctx.admin ? engines > 0 ? t("settings.glance.aiReady", { count: engines }) : t("settings.glance.aiStart") : t("settings.glance.aiAdmin")} />}
-        {/* Simple's sidebar footer has Connect apps right beside the avatar, so Simple's Overview leaves the jump out and
-            stays one window tall at 900 px even while the grouped note shows. */}
-        {ctx.advanced && <SettingsLinkRow title={t("settings.glance.apps")} external value={apps === null ? undefined : apps > 0 ? t("settings.glance.appsConnected", { count: apps }) : t("settings.glance.appsNone")}
-          onClick={() => go("connectors")} data={{ "data-glance": "apps" }} />}
-      </SettingsRows>
-    </SettingsGroup>
-    {ctx.desktop && ctx.cloud && team && team.cloudPage && <div data-settings-block="people-and-plan"><TeamPeopleCard team={team} /></div>}
-    {/* Address: a self-hosted server's own web address, Advanced only. A Cloud's address is MausBot's to manage, so it
-        has none here (no administrator or proxy steps for a person who has no server to set up). */}
-    {place.kind === "server" && !ctx.client && ctx.advanced && <CustomDomainSettings />}
-  </>;
-}
-
-/** How many apps this place has connected, for At a glance; null until it is known. */
-function useConnectedAppCount(): number | null {
-  const [count, setCount] = useState<number | null>(null);
-  useEffect(() => {
-    let alive = true;
-    void preloadConnectedApps().then((inventory) => { if (alive) setCount(Object.values(inventory.services).filter((status) => status.connected).length); }).catch(() => {});
-    return () => { alive = false; };
-  }, []);
-  return count;
-}
 
 export function AiPage() {
   const { ctx, anchor } = useSettingsShell();

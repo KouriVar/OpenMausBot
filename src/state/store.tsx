@@ -466,8 +466,8 @@ export interface InstanceInfo extends InstanceEndpointInfo {
 export type AppSettingsSection = SettingsPageId
   | "desktopWorkspaces" | "organization" | "cloudAccount" | "experimental" | "connections" | "decisionModel" | "imageGeneration"
   | "engines" | "companion" | "remote" | "computer" | "logins" | "botAccess" | "activity" | "backups" | "workspaces"
-  | "skills" | "import" | "updates" | "account";
-export type SettingsPageId = "overview" | "phone" | "ai" | "bots" | "desktops" | "vault" | "usage" | "transfer" | "data" | "people"
+  | "skills" | "import" | "updates" | "account" | "overview";
+export type SettingsPageId = "phone" | "ai" | "bots" | "desktops" | "vault" | "usage" | "transfer" | "data" | "people"
   | "installations" | "account" | "plan" | "app" | "general" | "appearance" | "connectors";
 
 export type BotSettingsSection =

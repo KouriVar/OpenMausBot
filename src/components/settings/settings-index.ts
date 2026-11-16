@@ -56,7 +56,6 @@ const advancedOnly = (when: (ctx: SettingsContext) => boolean) => (ctx: Settings
 export const ADVANCED_PAGES: readonly SettingsPageId[] = ["bots", "desktops", "usage", "data", "general"];
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
-  { id: "overview", owner: "place", labelKey: "settings.page.overview", synonyms: ["overview", "place", "status", "version", "domain", "address", "sidebar"], when: () => true },
   { id: "phone", owner: "place", labelKey: "settings.section.phoneDevices", icon: Smartphone, nav: false, when: () => false,
     synonyms: ["phone", "pair", "pairing", "qr", "code", "iphone", "android", "mobile", "tablet", "device", "devices", "wifi", "wi-fi", "anywhere", "relay", "remote", "companion", "tailscale", "connect your phone", "get the phone app", "pair a device", "this server", "remote access"] },
   { id: "ai", owner: "place", labelKey: "settings.group.ai", icon: Sparkles, when: adminPage,
@@ -115,17 +114,18 @@ export const LEGACY_SETTINGS: Record<Exclude<AppSettingsSection, SettingsPageId>
   decisionModel: () => ({ page: "ai", anchor: "routing" }),
   imageGeneration: () => ({ page: "ai" }),
   engines: () => ({ page: "ai", anchor: "providers" }),
-  companion: () => ({ page: "overview" }),
-  remote: (ctx) => (ctx.client ? { page: "app", anchor: "your-computers" } : { page: "overview" }),
+  companion: () => ({ page: "app", anchor: "your-computers" }),
+  remote: () => ({ page: "app", anchor: "your-computers" }),
   computer: () => ({ page: "desktops" }),
   logins: () => ({ page: "vault" }),
   botAccess: () => ({ page: "people", anchor: "bot-access" }),
   activity: () => ({ page: "data", anchor: "activity" }),
-  backups: () => ({ page: "overview" }),
+  backups: () => ({ page: "data" }),
   workspaces: () => ({ page: "installations" }),
   skills: () => ({ page: "bots", anchor: "skills" }),
-  import: () => ({ page: "overview" }),
-  updates: (ctx) => (ctx.desktop ? { page: "app", anchor: "updates" } : { page: "overview" }),
+  import: () => ({ page: "data" }),
+  updates: () => ({ page: "app", anchor: "updates" }),
+  overview: () => ({ page: "bots" }),
 };
 
 export const isSettingsPage = (id: string | null | undefined): id is SettingsPageId => SETTINGS_PAGES.some((page) => page.id === id);
@@ -143,7 +143,7 @@ export function resolveSettingsTarget(requested: AppSettingsSection, ctx: Settin
   const target = isSettingsPage(requested) ? { page: requested } : LEGACY_SETTINGS[requested](ctx);
   if (needsAdvanced(target, ctx)) return { ...target, advanced: true };
   if (pageById(target.page).when(ctx)) return target;
-  return { page: "overview", missing: target.page };
+  return { page: "app", missing: target.page };
 }
 
 /** A context with every page showing (Advanced mode), for tests and previews to narrow down. */
@@ -186,7 +186,6 @@ export const SETTINGS_INDEX: readonly SettingsIndexEntry[] = [
   { id: "other-computers", page: "phone", anchor: "computers", labelKey: "devices.computers.title", when: hereOnly, topFor: ["tailscale", "other computers", "another computer", "other computer", "my other computer"],
     synonyms: ["computer", "computers", "laptop", "desktop", "mac", "pc", "share", "tailnet", "connect to a server"] },
   { id: "tailscale", page: "phone", anchor: "reach", labelKey: "devices.moreWays", sectionKey: "phone.reach.title", when: hereOnly, advanced: true, synonyms: ["tailscale", "https", "tailnet"] },
-  { id: "domain", page: "overview", anchor: "address", labelKey: "settings.overview.address", advanced: true, when: (ctx) => !ctx.here && !ctx.client, synonyms: ["domain", "dns", "https", "custom domain"] },
   { id: "sidebar-color", page: "appearance", anchor: "sidebar", labelKey: "placeLook.sidebarColor", sectionKey: "settings.overview.sidebar", synonyms: ["color", "colour", "tint", "cloud color"] },
   { id: "sidebar-picture", page: "appearance", anchor: "sidebar", labelKey: "placeLook.sidebarPicture", sectionKey: "settings.overview.sidebar", topFor: ["wallpaper", "background", "sidebar image"], synonyms: ["picture", "banner", "image"] },
   { id: "show-helper", page: "appearance", anchor: "sidebar", labelKey: "settings.search.showHelper", sectionKey: "settings.overview.sidebar", synonyms: ["helper", "starter", "default bot"] },
@@ -239,8 +238,8 @@ export const SETTINGS_INDEX: readonly SettingsIndexEntry[] = [
   { id: "bubbles", page: "appearance", anchor: "look", labelKey: "settings.userBubbles.simpleTitle", synonyms: ["message color", "my messages", "bubbles"] },
   { id: "tool-calls", page: "appearance", anchor: "chat", labelKey: "settings.appearance.chat", synonyms: ["tool calls", "this run", "chat width", "font", "typeface", "interactive answers", "interactive", "components", "widgets", "html"] },
   { id: "layout", page: "appearance", anchor: "appearance", labelKey: "settings.appearance.layout", advanced: true, synonyms: ["show your computers", "rail", "window frame", "title bar", "threads", "tools layout", "pinned", "circles", "universal pins", "pinned panels"] },
-  { id: "apps", page: "overview", labelKey: "settings.search.apps", jump: "apps", synonyms: ["apps", "gmail", "slack", "calendar", "notion", "connect app", "integrations"] },
-  { id: "bot-settings", page: "overview", labelKey: "settings.search.bot", jump: "bot", synonyms: ["approvals", "safety", "routines", "memory", "bot's notifications"] },
+  { id: "apps", page: "connectors", labelKey: "settings.search.apps", jump: "apps", synonyms: ["apps", "gmail", "slack", "calendar", "notion", "connect app", "integrations"] },
+  { id: "bot-settings", page: "bots", labelKey: "settings.search.bot", jump: "bot", synonyms: ["approvals", "safety", "routines", "memory", "bot's notifications"] },
   { id: "shortcuts", page: "app", labelKey: "sidebar.menu.shortcuts", jump: "shortcuts", synonyms: ["keyboard shortcuts", "hotkeys", "cheat sheet"] },
 ];
 
