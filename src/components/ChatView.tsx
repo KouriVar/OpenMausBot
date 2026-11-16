@@ -434,7 +434,7 @@ const Bubble = memo(function Bubble({
     dispatch({ type: "updateTask", botId, threadId, patch: { pinnedMessageId: pinned ? "" : message.id } });
   const blanks = !user && !message.id.startsWith("live:") && text.includes("<blank>") ? { botId, threadId, messageId: message.id, values: message.blankValues ?? {} } : undefined;
   const botActions = !user && (
-    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={[...replyAndCopy(() => onReply(message), text), ...botMenu, ...forkAction]}
+    <MessageActions side="bot" forceOpen={viewRaw || speaking} time={formatTime(message.at)} menu={simple ? [...replyAndCopy(() => onReply(message), text), ...botMenu, ...forkAction] : [...botMenu, ...forkAction]} contextItems={simple ? undefined : replyAndCopy(() => onReply(message), text)}
       reactions={canReact && !peer ? { emojis: REACTIONS, mine: reaction.mine, onPick: (emoji) => reaction.react(emoji as Reaction) } : null}>
       {!simple && <ReplyAction onReply={() => onReply(message)} />}
       {canReact && !peer && <ReactAction threadId={threadId} message={message} />}
@@ -453,6 +453,7 @@ const Bubble = memo(function Bubble({
           <MessageActions
             side="user"
             time={formatTime(message.at)}
+            contextItems={simple ? undefined : replyAndCopy(() => onReply(message), visibleText)}
             menu={[
               ...replyAndCopy(() => onReply(message), visibleText),
               ...userMessageMenu({
@@ -654,13 +655,13 @@ const ActivityChip = memo(function ActivityChip({ message, place = "auto" }: { m
   const { bots, dispatch, threadId } = useChatRows(), liveTools = use(LiveToolsContext);
   const tool = message.tool;
   if (!tool) return null;
-  if (message.threadRef) return <ThreadChip message={message} />; if (message.relay) return <TeammateChip message={message} />;
+  if (message.threadRef) return <ThreadChip message={message} threadId={threadId} />; if (message.relay) return <TeammateChip message={message} />;
   const comm = message.comm;
-  if (comm) return <RoomHandoffChip message={message} comm={comm} bots={bots} dispatch={dispatch} />;
+  if (comm) return <RoomHandoffChip message={message} comm={comm} bots={bots} dispatch={dispatch} threadId={threadId} />;
   return <ToolActivity tool={tool} live={liveTools.has(message.id)} place={toolPlace(tool.name, place)} source={{ threadId, messageId: message.id }} />;
 });
 
-const RoomHandoffChip = ({ message, comm, bots, dispatch }: { message: Message; comm: NonNullable<Message["comm"]>; bots: readonly Bot[]; dispatch: Dispatch<Action> }) => { const store = useStoreRef(); return <HandoffChip message={message} bots={bots} title={t("chat.openConversationWith", { name: comm.withName })} onClick={() => openRoomThread(dispatch, comm, store.state().groups)} />; };
+const RoomHandoffChip = ({ message, comm, bots, dispatch, threadId }: { message: Message; comm: NonNullable<Message["comm"]>; bots: readonly Bot[]; dispatch: Dispatch<Action>; threadId: string }) => { const store = useStoreRef(); return <HandoffChip message={message} bots={bots} threadId={threadId} title={t("chat.openConversationWith", { name: comm.withName })} onClick={() => openRoomThread(dispatch, comm, store.state().groups)} />; };
 const MessagesList = memo(function MessagesList({
   messages: saved,
   transcript,
@@ -1228,7 +1229,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
             simple={!advanced}
             className={cn(!advanced && presenceUnderBubble && SIMPLE_STACKED)}
             label={teammatesWorking ? t("chat.teammatesWorking") : sharedRun.label}
-            visible={presenceVisible}
+            visible={presenceVisible} threadId={bot.threadId}
             {...now}
             phrases={teammatesWorking ? undefined : now.phrases}
             seed={`${bot.id}:${bot.threadId ?? ""}:${busySince ?? ""}`}

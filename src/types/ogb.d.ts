@@ -135,6 +135,8 @@ const __FORK_RELEASES_URL__: string;
         dismiss(key: string): Promise<{ suggest: import("../lib/two-places").TwoPlacesSuggestion | null }>;
         onChanged(callback: () => void): () => void;
       };
+      /** This computer's page and My Cloud's own page: the other one's bots in this sidebar (electron/places-together.mjs). */
+      placesTogether?: import("../../electron/places-together.mjs").PlacesTogetherBridge;
       /** Settings on the person's own Cloud: the plan, read only. */
       cloudPlan?: import("../../electron/cloud-account.mjs").CloudPlanBridge;
       /** This computer's page, and My Cloud's own page once it is the person's home: the window onto My Cloud. */

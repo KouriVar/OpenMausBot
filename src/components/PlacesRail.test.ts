@@ -264,7 +264,7 @@ it("Connect to a server never sits grey without saying why: it says it is lookin
   expect(form.querySelector("[data-connect-problem]")?.textContent).toBe("Can't reach 192.168.1.21:8799. Check the server is running and reachable from this computer.");
 });
 
-it("Connect to a server says plainly that another computer's desktop app can't be connected to, and points to My Cloud", async () => {
+it("Connect to a server says how another computer's desktop app is opened from here: its Your other computers link, or My Cloud", async () => {
   const probe = vi.fn(async (address: string): Promise<unknown> => (address === "123456"
     ? { outcome: "problem", problem: "oldCode" }
     : { outcome: "problem", problem: "desktopApp", host: "192.168.1.30:8799" }));
@@ -273,12 +273,13 @@ it("Connect to a server says plainly that another computer's desktop app can't b
   await click(host.querySelector("[data-rail-add]"));
   await click(document.querySelector('[data-place-add-choice="server"]'));
   const form = document.querySelector('[data-place-add="own-server"]')!;
+  expect(form.querySelector("[data-connect-other-computer]")?.textContent).toBe("For another computer running the MausBot app: on that computer, open Settings → Phone & devices → Your other computers.");
   await type(form.querySelector("[data-own-server-link]"), "192.168.1.30:8799");
   await settle();
   const line = form.querySelector("[data-connect-problem]")?.textContent ?? "";
-  expect(line).toContain("192.168.1.30:8799 is a MausBot desktop app, and one desktop app can't connect to another");
+  expect(line).toContain("192.168.1.30:8799 is a MausBot desktop app. To open it from here, turn on Tailscale and Your other computers in its Settings → Phone & devices, then use the link shown there.");
   expect(line).toContain("My Cloud");
-  expect(line).not.toContain("isn't a MausBot server");
+  expect(line).not.toMatch(/can't connect to another|isn't a MausBot server/);
   expect((form.querySelector("[data-own-server-connect]") as HTMLButtonElement).disabled).toBe(true);
   // The 6-digit code a desktop app shows for pairing a phone gets the same pointer, not "a code from an older MausBot".
   // The fork keeps the older, Cloud-free wording for that one line (see src/locales/en.json native.connect.oldCode).

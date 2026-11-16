@@ -16,6 +16,7 @@ import { DefaultResponderSelect } from "./RoomHeader";
 import { PillSelectMenu } from "@/fork/PillSelectMenu";
 import type { SidebarMenuItem } from "./SidebarPopoverMenu";
 import { RoutedByLine } from "./RoomQueueList";
+import { loadLocale, setLocale } from "@/lib/i18n";
 
 const members = [
   { id: "maya", name: "Maya" },
@@ -41,23 +42,37 @@ beforeEach(() => {
 });
 
 describe("room responder selector", () => {
-  it("offers Auto (Jev) and shows it selected on an Auto room", () => {
+  it("offers Auto and shows it selected on an Auto room", () => {
     const tree = DefaultResponderSelect({ group: room({ kind: "auto" }), members });
     const markup = renderToStaticMarkup(tree);
     // Fork: the trigger pill reads the chosen option...
-    expect(markup).toContain(">Auto (Jev)<");
-    expect(markup).toContain("Jev picks who answers each plain message");
+    expect(markup).toContain(">Auto<");
+    expect(markup).toContain("The decision model picks who answers each plain message");
     // ...and the menu marks that same option as the chosen one.
     expect(itemsOf(tree).filter((item) => item.checked).map((item) => item.key)).toEqual(["auto"]);
   });
 
-  it("reads plain Auto, and names who answers, while Jev is off", () => {
+  it("reads plain Auto, and names who answers, while the decision model is off", () => {
     fixture.config = jev(false);
     const tree = DefaultResponderSelect({ group: room({ kind: "auto", fallbackBotId: "theo" }), members });
     const markup = renderToStaticMarkup(tree);
     expect(markup).toContain(">Auto<");
-    expect(markup).toContain("Jev is off, so plain messages go to Theo");
+    expect(markup).toContain("The decision model is off, so plain messages go to Theo");
     expect(itemsOf(tree).find((item) => item.key === "auto")!.label).toBe("Auto");
+  });
+
+  it("uses the neutral wording in the Chinese selector with Workers AI", async () => {
+    fixture.config = { ...jev(true), decider: { ...jev(true).decider, provider: "workersai" } } as ConfigStatus;
+    await loadLocale("zh");
+    try {
+      const tree = DefaultResponderSelect({ group: room({ kind: "auto" }), members });
+      const markup = renderToStaticMarkup(tree);
+      expect(markup).toContain("自动");
+      expect(markup).toContain("由决策模型挑选谁回复每一条普通消息");
+      expect(markup).not.toContain("Jev");
+    } finally {
+      setLocale("en");
+    }
   });
 
   it("switching a lead room to Auto keeps the lead as its fallback", () => {

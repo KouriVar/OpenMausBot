@@ -48,6 +48,7 @@ export function MessageActions({
   menu: items = [],
   time,
   reactions = null,
+  contextItems = [],
   children,
 }: {
   side: "user" | "bot";
@@ -58,6 +59,8 @@ export function MessageActions({
   time?: string;
   /** The quick reactions the right-click menu offers on its first row. */
   reactions?: { emojis: readonly string[]; mine: string | null; onPick: (emoji: string) => void } | null;
+  /** Added before `menu` when a right-click on the bubble opens it, for the actions that are inline buttons otherwise. */
+  contextItems?: MessageMenuItem[];
   children?: ReactNode;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -66,15 +69,16 @@ export function MessageActions({
   const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Fork: the right-click menu sits where the pointer was, so it needs the click's own coordinates.
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const offered = anchor ? [...contextItems, ...items] : items;
   // use() may run conditionally: a closed menu has no reason to follow the turn.
-  const busy = menuOpen && items.some((item) => item.idleOnly) ? use(ChatBusyContext) : false;
-  const menu = busy ? items.filter((item) => !item.idleOnly) : items;
+  const busy = menuOpen && offered.some((item) => item.idleOnly) ? use(ChatBusyContext) : false;
+  const menu = busy ? offered.filter((item) => !item.idleOnly) : offered;
   const [hovered, setHovered] = useState(false);
   const [keyboardFocus, setKeyboardFocus] = useState(false);
   const [tapped, setTapped] = useState(false);
   const [menuAbove, setMenuAbove] = useState(false);
-  // Fork: the right-click menu sits where the pointer was, so it needs the click's own coordinates.
-  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   // Where the right-click menu lands: the pointer, clamped, flipping above it when it would run under the composer.
   const [point, setPoint] = useState<{ left: number; top: number } | null>(null);
   const [menuFlipped, setMenuFlipped] = useState(false);
@@ -82,6 +86,8 @@ export function MessageActions({
   const streaming = use(StreamingReplyContext);
   const shown = !streaming && (forceOpen || menuOpen || hovered || keyboardFocus || tapped);
   const rightClick = FORK_MESSAGE_MENU_ON_RIGHT_CLICK;
+  const canPointRef = useRef(false);
+  canPointRef.current = !streaming && items.length + contextItems.length > 0;
 
   useEffect(() => {
     const row = rootRef.current?.closest<HTMLElement>(`[${MESSAGE_ROW}]`) ?? rootRef.current;
@@ -122,14 +128,14 @@ export function MessageActions({
       setTapped((value) => !value);
     };
     const context = (event: MouseEvent) => {
-      if (!FORK_MESSAGE_MENU_ON_RIGHT_CLICK) return;
-      // A link or a text field keeps its own menu: copying a URL and editing are not this menu's business.
-      if (event.target instanceof Element && event.target.closest("a, input, textarea, [contenteditable=true]")) return;
+      if (!rightClick || !canPointRef.current || (event as Partial<PointerEvent>).pointerType === "touch") return;
+      const target = event.target;
+      if (!(target instanceof Element) || !target.closest("[data-chat-bubble]") || target.closest(INTERACTIVE)) return;
+      if (window.getSelection()?.toString().trim()) return;
       event.preventDefault();
       setAnchor({ x: event.clientX, y: event.clientY });
       setMenuOpen(true);
     };
-    row.addEventListener("contextmenu", context);
     row.addEventListener("pointerenter", enter);
     row.addEventListener("pointerleave", leave);
     row.addEventListener("focusin", focusIn);
@@ -138,6 +144,7 @@ export function MessageActions({
     row.addEventListener("pointermove", move);
     row.addEventListener("pointerup", up);
     row.addEventListener("pointercancel", cancel);
+    row.addEventListener("contextmenu", context);
     return () => {
       if (press) clearTimeout(press.timer);
       row.removeEventListener("contextmenu", context);
@@ -149,6 +156,7 @@ export function MessageActions({
       row.removeEventListener("pointermove", move);
       row.removeEventListener("pointerup", up);
       row.removeEventListener("pointercancel", cancel);
+      row.removeEventListener("contextmenu", context);
     };
   }, []);
 
@@ -184,7 +192,7 @@ export function MessageActions({
       setMenuFlipped(mirrored ? !fitsEnd && fitsStart : !fitsStart && fitsEnd);
     }
     menuRef.current?.querySelector<HTMLButtonElement>("[role=menuitem]:not(:disabled)")?.focus();
-  }, [menuOpen]);
+  }, [menuOpen, anchor]);
 
   const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
     const items = [...(menuRef.current?.querySelectorAll<HTMLButtonElement>("[role=menuitem]:not(:disabled)") ?? [])];
@@ -222,7 +230,11 @@ export function MessageActions({
         <button
           ref={moreRef}
           type="button"
-          onClick={() => setMenuOpen((value) => !value)}
+          onClick={() => {
+            setAnchor(null);
+            setPoint(null);
+            setMenuOpen((value) => !value);
+          }}
           aria-label={t("chat.messageActions")}
           title={t("chat.messageActions")}
           aria-haspopup="menu"

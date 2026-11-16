@@ -61,6 +61,7 @@ export function deriveTailscalePairingStatus(
   if (state.tailscaleProblem === "no-cli") return { kind: "signed-out", title: t("remote.tailscale.noCli"), detail: "" };
   if (state.tailscaleProblem === "not-running") return { kind: "signed-out", title: t("remote.tailscale.notRunning"), detail: "" };
   if (state.tailscaleProblem === "needs-permission") return { kind: "signed-out", title: t("remote.tailscale.needsPermission", { app: productName() }), detail: "" };
+  if (state.tailscaleProblem === "needs-approval") return { kind: "signed-out", title: t("remote.tailscale.needsApproval"), detail: "" };
   if (state.tailscaleProblem === "signed-out") return { kind: "signed-out", title: t("remote.tailscale.signIn"), detail: "" };
   if (state.error) return { kind: "error", title: t("remote.status.attention"), detail: state.error };
   const route = state.routes?.tailscale;
@@ -70,6 +71,12 @@ export function deriveTailscalePairingStatus(
   return state.enabled
     ? { kind: "ready", title, detail: t("remote.tailscale.readyDetail") }
     : { kind: "waiting", title, detail: t("remote.tailscale.linkOff") };
+}
+
+/** The control plane gives a build with the encrypted connection no free web address (`relay_capable`): there the row
+ * shows only while the route is on or the account still holds an address. `renewPairing` is what such a build's bridge adds. */
+export function showHttpsAddressRow(state: Pick<CompanionState, "routes">, account: Pick<CompanionAccountState, "endpoint"> | null, bridge: Pick<CompanionBridge, "renewPairing"> | null): boolean {
+  return state.routes?.https?.on === true || Boolean(account?.endpoint) || typeof bridge?.renewPairing !== "function";
 }
 
 /** Older app builds have no switch: on falls back to the check that turns it on, and off cannot be asked of them. */
@@ -514,9 +521,9 @@ export function PhoneDevicesSection({ profileEmail = "", focusRequest = 0, simpl
               </SettingsFoldRow>
             )}
           </SettingsRows>
-          {moreOpen && tailscaleOn && state.routes?.tailscale?.name && <TailnetComputers c={c} state={state} blocked={managedBy} simple={simple} />}
         </SettingsGroup>
       )}
+      <TailnetComputers c={c} state={state} blocked={managedBy} simple={simple} status={tailscaleStatus} />
       <PhonesList />
       {(c.error || state.error) && <div className="px-4 text-[12px] leading-4 text-danger">{c.error ?? state.error}</div>}
     </div>
