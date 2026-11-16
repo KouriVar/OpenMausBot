@@ -1,3 +1,5 @@
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/cn";
 import { FIELD_EDGE } from "./SettingsPrimitives";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { api, useStore, type ConfigStatus } from "@/state/store";
@@ -61,6 +63,7 @@ function LearnedFacts({ onChanged }: { onChanged: (aboutMe: string) => void }) {
   const [facts, setFacts] = useState<LearnedFact[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,9 +90,15 @@ function LearnedFacts({ onChanged }: { onChanged: (aboutMe: string) => void }) {
   if (!facts.length) return null;
   return (
     <div className="mt-1 rounded-lg border border-hairline/40 bg-inset p-3">
-      <div className="text-[13px] font-medium text-ink">{t("settings.profile.learned.title")}</div>
-      <p className="mt-0.5 text-[12px] text-ink-secondary">{t("settings.profile.learned.hint")}</p>
-      <ul className="mt-2 flex flex-col gap-2">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((shown) => !shown)}
+        className="flex w-full items-start gap-2 text-start">
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-medium text-ink">{t("settings.profile.learned.title")}</span>
+          <span className="mt-0.5 block text-[12px] text-ink-secondary">{t("settings.profile.learned.hint")}</span>
+        </span>
+        <ChevronDown size={14} aria-hidden="true" className={cn("mt-0.5 shrink-0 text-ink-secondary transition-transform motion-reduce:transition-none", open && "rotate-180")} />
+      </button>
+      {open && <ul className="mt-2 flex flex-col gap-2">
         {facts.map((fact) => (
           <li key={fact.id} className="flex flex-wrap items-center gap-2 text-[13px] text-ink">
             <span className="min-w-0 flex-1">
@@ -102,7 +111,7 @@ function LearnedFacts({ onChanged }: { onChanged: (aboutMe: string) => void }) {
             </button>
           </li>
         ))}
-      </ul>
+      </ul>}
       {error && <div className="mt-2 text-[12px] text-danger">{t("settings.profile.learned.error")}</div>}
     </div>
   );

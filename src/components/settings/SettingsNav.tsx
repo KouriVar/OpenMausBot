@@ -1,5 +1,5 @@
 import { useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { ArrowUpRight, ChevronRight, Cloud, Laptop, Search, Server, X } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Laptop, Search, X } from "lucide-react";
 import { cloudColor } from "@/lib/cloud-look";
 import { placeInitials } from "@/lib/places";
 import { cn } from "@/lib/cn";
@@ -94,7 +94,6 @@ export function placeName(place: SettingsPlace): string {
 }
 
 export function pageLabel(page: SettingsPage, place: SettingsPlace, desktop: boolean): string {
-  if (page.id === "overview") return placeName(place);
   if (page.id === "app") return ownerLabel(page.owner, place, desktop);
   return t(page.labelKey);
 }
@@ -112,18 +111,6 @@ function IdentityRow({ page, current, badge, name, line, onOpen, narrow }: {
         <span className="truncate text-[12px] leading-4 text-ink-secondary">{line}</span>
       </span>
       {narrow && <ChevronRight size={14} aria-hidden="true" className="shrink-0 text-ink-tertiary rtl:-scale-x-100" />}
-    </button>
-  );
-}
-
-/** The place, as one more nav row: a bare icon in the same 24px slot the page rows use, its name on one line. */
-function PlaceRow({ page, name, kind, current, onOpen }: { page: SettingsPageId; name: string; kind: SettingsPlace["kind"]; current: boolean; onOpen: () => void }) {
-  const Icon = kind === "computer" ? Laptop : kind === "server" ? Server : Cloud;
-  return (
-    <button type="button" data-settings-page={page} data-settings-section={page} data-settings-identity="" aria-current={current ? "page" : undefined} onClick={onOpen}
-      className={cn(NAV_ITEM, current ? "bg-menu-active font-medium" : "hover:bg-menu-hover")}>
-      <span className="flex w-6 shrink-0 justify-center"><Icon size={16} strokeWidth={1.75} aria-hidden="true" className={current ? "text-ink" : "text-ink-secondary"} /></span>
-      <span className="min-w-0 flex-1 truncate" title={name}>{name}</span>
     </button>
   );
 }
@@ -208,14 +195,14 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
   const phone = usePhonePlaceState(!ctx.client);
   const listRef = useRef<HTMLDivElement>(null);
   const lines: Record<Exclude<SettingsOwner, "account">, { badge: ReactNode; name: string; line: string; page: SettingsPageId }> = {
-    place: { badge: <PlaceBadge place={place} size={24} />, name: placeName(place), line: placeLine, page: "overview" },
+    place: { badge: <PlaceBadge place={place} size={24} />, name: placeName(place), line: placeLine, page: "bots" },
     app: { badge: <AppIcon size={24} />, name: ctx.desktop ? t("settings.page.app") : t("settings.page.browser"), line: appLine, page: "app" },
   };
   const dot = (page: SettingsPageId) => page === "phone" && phone.kind === "paired" && phone.connected ? "success" as const
     : page === "phone" && phone.kind === "attention" ? "warning" as const : null;
   const searching = query.trim() !== "";
   const listed = new Set(FORK_NAV_ORDER.flatMap((group) => group.ids));
-  const rest = pages.filter((page) => page.nav !== false && page.id !== "app" && page.id !== "overview" && !listed.has(page.id));
+  const rest = pages.filter((page) => page.nav !== false && page.id !== "app" && !listed.has(page.id));
   return (
     <nav aria-label={t("settings.title")} className={cn("flex min-h-0 flex-col", narrow ? "flex-1" : "w-[220px] shrink-0 shadow-[inset_-0.5px_0_0_var(--settings-edge)]")}>
       <div className={cn("shrink-0", narrow ? "px-4 pb-2" : "p-3 pb-0")}>
@@ -260,9 +247,6 @@ export function SettingsNav({ ctx, place, pages, current, query, hits, keyHits, 
                 ))}
               </div>
             )}
-            <div data-settings-group="about" className="mt-3 flex flex-col gap-0.5">
-              <PlaceRow page="overview" name={placeName(place)} kind={place.kind} current={current === "overview"} onOpen={() => onOpen("overview")} />
-            </div>
           </>
         )}
       </div>
@@ -326,8 +310,7 @@ function highlight(label: string, query: string): ReactNode {
   return <>{label.slice(0, at)}<span className="font-medium">{label.slice(at, end)}</span>{label.slice(end)}</>;
 }
 
-export function hitLabel(hit: SearchHit, place: SettingsPlace, desktop: boolean): string {
-  if (hit.entry.id === "page:overview") return place.name;
+export function hitLabel(hit: SearchHit, _place: SettingsPlace, desktop: boolean): string {
   if (hit.entry.id === "page:account") return t("settings.page.account");
   if (hit.entry.id === "page:app") return desktop ? t("settings.page.app") : t("settings.page.browser");
   return t(hit.entry.labelKey, { app: productName(), helper: "" });
@@ -367,7 +350,7 @@ function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place
 }
 
 const PAGE_OWNER: Record<SettingsPageId, SettingsOwner> = {
-  overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", transfer: "place", data: "place",
+  phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", transfer: "place", data: "place",
   people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app",
   connectors: "app",
 };
@@ -383,7 +366,7 @@ const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
 export function searchWhere(hit: SearchHit, place: SettingsPlace, ctx: SettingsContext): { owner: string; page?: string } | null {
   const entry = hit.entry;
   if (entry.jump) return { owner: searchLocation(hit, place, ctx) };
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return null;
+  if (entry.id.startsWith("page:") && (entry.page === "account" || entry.page === "app")) return null;
   const owner = PAGE_OWNER[entry.page];
   const ownerName = hit.elsewhere ? t("rail.thisComputer") : owner === "place" ? place.name : ownerLabel(owner, place, ctx.desktop);
   const pageKey = PAGE_KEY[entry.page];
@@ -405,7 +388,7 @@ export function searchLocation(hit: SearchHit, place: SettingsPlace, ctx: Settin
   if (pageKey && !entry.id.startsWith("page:")) parts.push(t(pageKey));
   const label = hitLabel(hit, place, ctx.desktop);
   if (entry.sectionKey && t(entry.sectionKey) !== label) parts.push(t(entry.sectionKey));
-  if (entry.id.startsWith("page:") && (entry.page === "overview" || entry.page === "account" || entry.page === "app")) return "";
+  if (entry.id.startsWith("page:") && (entry.page === "account" || entry.page === "app")) return "";
   return parts.join(" › ");
 }
 

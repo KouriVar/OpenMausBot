@@ -2,11 +2,10 @@ import type { SettingsPageId } from "../settings-index";
 import { AccountPage, PlanPage } from "./AccountPages";
 import { AppPage, AppearancePage, GeneralPage } from "./AppPages";
 import { DataPage, InstallationsPage, PeoplePage, SpendingPage, VaultPage } from "./DataPages";
-import { AiPage, BotsPage, DesktopsPage, OverviewPage } from "./PlacePages";
+import { AiPage, BotsPage, DesktopsPage } from "./PlacePages";
 import { ConnectorsPage } from "./ConnectorsPage";
 
 const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
-  overview: OverviewPage,
   phone: () => null,
   ai: AiPage,
   bots: BotsPage,
