@@ -18,7 +18,7 @@ import { initAnalytics } from "@/lib/analytics";
 import { parseComputerHelp } from "@/lib/computer-control";
 import { viewerClosedRelease } from "@/components/computer-takeover";
 import { Sidebar } from "@/components/Sidebar";
-import { HiddenSidebarEdge } from "@/components/HiddenSidebarEdge";
+import { SidebarPeek } from "@/fork/SidebarPeek";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { setSidebarDensity, useSidebarDensity } from "@/lib/sidebar-preferences";
 import { ChatView } from "@/components/ChatView";
@@ -398,7 +398,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
         className={framed && !inset ? "relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[12px] rounded-bl-[12px] bg-app" : "contents"}>
       {framed && !inset && strips}
       <div className={framed && !inset ? "relative flex min-h-0 flex-1" : inset ? "relative flex min-h-0 flex-1" : "contents"}>
-      {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && !autoHiddenSidebar && <HiddenSidebarEdge onReveal={revealHiddenSidebar} />}
+      {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && !autoHiddenSidebar && <SidebarPeek onReveal={revealHiddenSidebar} />}
       {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && sidebarHidden) && <Sidebar
         collapseToIcons={collapseSidebar || compactSidebar}
         open={drawerOpen}

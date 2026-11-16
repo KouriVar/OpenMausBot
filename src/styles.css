@@ -3675,6 +3675,15 @@ button:disabled.bg-danger {
   from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
+/* Fork: the hidden sidebar's hover preview slides in from the edge and back out again. */
+@keyframes sidebar-peek-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes sidebar-peek-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(-12px); }
+}
 @media (prefers-reduced-motion: reduce) {
   [data-hidden-sidebar-edge] span { transition: none; }
 }
