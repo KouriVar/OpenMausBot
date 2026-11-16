@@ -7,6 +7,7 @@ import { useStore } from "@/state/store";
 import { AboutDialog } from "../../AboutDialog";
 import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
+import { GlassPillRow } from "../../GlassPillRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { SidebarVersionRow } from "@/fork/SidebarVersionRow";
@@ -182,6 +183,7 @@ export function AppearancePage() {
         <ColorUserBubblesRow simple />
         <ForkBoldTextRow />
         <ForkAvatarStyleRow />
+        <GlassPillRow />
       </SettingsRows>
     </SettingsGroup>
     <CustomThemesSettings />

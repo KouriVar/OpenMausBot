@@ -10766,5 +10766,7 @@
   "together.state.offlineCloud": "現在無法連線 My Cloud。",
   "together.state.offlineComputer": "現在無法讀取這台電腦上的機器人。",
   "together.state.signin": "打開一次 My Cloud 以登錄。",
-  "together.state.waking": "My Cloud 正在喚醒…"
+  "together.state.waking": "My Cloud 正在喚醒…",
+  "settings.glassPill.title": "\u73bb\u7483\u6548\u679c\uff08\u8bd5\u9a8c\uff09",
+  "settings.glassPill.subtitle": "\u8d44\u6599\u80f6\u56ca\u7528\u6db2\u6001\u73bb\u7483\uff1b\u5173\u6389\u56de\u5230\u5e73\u9762\u6837\u5f0f\u3002"
 }

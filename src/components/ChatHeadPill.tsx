@@ -13,6 +13,7 @@ import { ELEVATED_FLOAT, ELEVATED_HOVER } from "./elevated";
 import { sidebarBotActivityTasks } from "./SidebarBotActivity";
 import { BOT_PANEL_ID } from "./bot-panel/side-panel";
 import { sharedChatAudience } from "./TeamPrivateChatsLine";
+import { GlassSurface, useGlassPill } from "@/fork/glass/GlassSurface";
 
 /** The factory title a new conversation starts with. */
 const UNTITLED = "New thread";
@@ -49,7 +50,8 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
     : !title || title === UNTITLED ? t("task.untitledChat") : localizedTaskTitle(title);
   const label = t("chat.openProfileAria", { name: bot.name });
   const pillRef = useRef<HTMLButtonElement>(null);
-  return (
+  const glass = useGlassPill();
+  const pill = (
     <button
       ref={pillRef}
       type="button"
@@ -60,7 +62,7 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
       aria-label={conversation ? `${label}, ${conversation}` : label}
       aria-expanded={open}
       aria-controls={open ? BOT_PANEL_ID : undefined}
-      className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full text-ink", FORK_UI_1111 ? CHATHEAD_PILL_PAD : CHATHEAD_PILL_PAD_BEFORE, ELEVATED_FLOAT, ELEVATED_HOVER)}
+      className={cn("group flex min-w-0 max-w-full items-center gap-2 rounded-full text-ink", FORK_UI_1111 ? CHATHEAD_PILL_PAD : CHATHEAD_PILL_PAD_BEFORE, glass ? "relative z-[1] bg-transparent" : ELEVATED_FLOAT, ELEVATED_HOVER)}
     >
       <BotAvatar bot={bot} size={24} {...avatar} hitRef={pillRef} sessionAnimation={FORK_BLOUB_SESSION_ANIMATION.chatHeader} />
       <span dir="auto" className="min-w-0 truncate text-[14px] font-medium leading-5">{bot.name}</span>
@@ -81,4 +83,5 @@ export function ChatHeadPill({ bot, avatar, privacy, onToggle }: {
       )}
     </button>
   );
+  return glass ? <GlassSurface className="inline-flex min-w-0 max-w-full rounded-full">{pill}</GlassSurface> : pill;
 }

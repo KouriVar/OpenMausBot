@@ -3887,5 +3887,7 @@
   "remote.tailscale.needsApproval": "Cet ordinateur attend d'être approuvé sur votre réseau Tailscale. Approuvez-le dans la console d'administration Tailscale, puis réessayez.",
   "together.switch.title": "Cet ordinateur et Mon Cloud ensemble",
   "together.switch.line": "Désactivé par défaut. Les bots du Cloud et ceux de cet ordinateur s'affichent dans une seule liste, et chacun s'ouvre là où il se trouve.",
-  "together.switch.failed": "Impossible d'enregistrer. Réessayez."
+  "together.switch.failed": "Impossible d'enregistrer. Réessayez.",
+  "settings.glassPill.title": "Glass effect (experimental)",
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
 }

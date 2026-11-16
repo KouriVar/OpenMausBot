@@ -3853,3 +3853,27 @@ button:disabled.bg-danger {
   -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
   mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent);
 }
+
+/* The chat head's liquid glass: the CSS fallback, with tokens that follow the skin. The library path draws its own
+   shader; these are what a reduced-transparency Mac, a failed shader or the switch turned off shows. */
+.glass-pill-surface {
+  --glass-pill-bg: color-mix(in srgb, var(--color-composer) 62%, transparent);
+  --glass-pill-edge: color-mix(in srgb, var(--color-ink) 13%, transparent);
+  --glass-pill-highlight: color-mix(in srgb, white 55%, transparent);
+  --glass-pill-shadow: 0 1px 2px rgb(0 0 0 / 0.10);
+  background: var(--glass-pill-bg);
+  box-shadow: inset 0 0 0 1px var(--glass-pill-edge), inset 0 1px 0 var(--glass-pill-highlight), var(--glass-pill-shadow);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+:root[data-skin="midnight"] .glass-pill-surface {
+  --glass-pill-bg: color-mix(in srgb, var(--color-composer) 52%, transparent);
+  --glass-pill-edge: color-mix(in srgb, white 13%, transparent);
+  --glass-pill-highlight: color-mix(in srgb, white 20%, transparent);
+  --glass-pill-shadow: 0 1px 2px rgb(0 0 0 / 0.28);
+}
+
+/* The library's own box is only a frame: keep the pill's shadow and typography rather than its demo card's. */
+.glass-pill-liquid { --glass-pill-shadow: 0 2px 10px rgb(0 0 0 / 0.14); }
+.glass-pill-liquid .glass { gap: 0; box-shadow: var(--glass-pill-shadow); }
+.glass-pill-liquid .glass > div:last-child { font: inherit; line-height: inherit; text-shadow: none; }

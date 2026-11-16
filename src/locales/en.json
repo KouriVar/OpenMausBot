@@ -11168,5 +11168,7 @@
   "together.switch.title": "This computer and My Cloud together",
   "together.switch.line": "Off by default. The Cloud's bots and this computer's bots show in one list, and each opens where it lives.",
   "together.switch.failed": "That couldn't be saved. Try again.",
-  "together.state.signin": "Open My Cloud once to sign in."
+  "together.state.signin": "Open My Cloud once to sign in.",
+  "settings.glassPill.title": "Glass effect (experimental)",
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
 }

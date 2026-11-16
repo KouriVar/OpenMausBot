@@ -125,6 +125,7 @@
     "jmespath": "0.16.0",
     "jose": "6.2.10",
     "katex": "^0.16.47",
+    "liquid-glass-react": "1.1.1",
     "lucide-react": "^0.539.0",
     "mailparser": "3.14.1",
     "mdast-util-from-markdown": "^2.0.3",
