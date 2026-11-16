@@ -41,19 +41,31 @@ export function foldAutoAppliedChanges(items: readonly TranscriptItem[]): { host
   const hosts = new Map<string, Message[]>();
   const consumed = new Set<string>();
   let host: Message | null = null;
+  // A change a turn applies before it says anything waits for that turn's own reply.
+  let early: Message[] = [];
+  const fold = (into: Message, message: Message) => {
+    consumed.add(message.id);
+    hosts.set(into.id, [...(hosts.get(into.id) ?? []), message]);
+  };
   for (const item of items) {
     // A run of tool chips or a digest between the reply and its change card does not move the card to another bubble.
     if (item.kind !== "message") continue;
     const message = item.message;
     if (isAutoAppliedChange(message)) {
-      if (host) {
-        consumed.add(message.id);
-        hosts.set(host.id, [...(hosts.get(host.id) ?? []), message]);
-      }
+      if (host) fold(host, message);
+      else early.push(message);
       continue;
     }
-    if (message.role === "user") host = null;
-    else if (message.role === "bot" && message.kind === "text") host = message;
+    if (message.role === "user") {
+      host = null;
+      early = [];
+      continue;
+    }
+    if (message.role === "bot" && message.kind === "text") {
+      for (const pending of early) fold(message, pending);
+      early = [];
+      host = message;
+    }
   }
   return { hosts, consumed };
 }

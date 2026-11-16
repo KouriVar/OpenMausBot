@@ -92,10 +92,10 @@ describe("folding a run into its reply", () => {
       line("r2", "bot", "Second."),
       skill("s2"),
     ));
-    // a1 came after a user message and before any reply: it has no bubble to fold into.
-    expect([...folded.consumed]).toEqual(["s1", "s2"]);
+    // a1 came after a user message and before that turn's reply: it folds into the reply that follows it.
+    expect([...folded.consumed]).toEqual(["s1", "a1", "s2"]);
     expect(folded.hosts.get("r1")!.map((message) => message.id)).toEqual(["s1"]);
-    expect(folded.hosts.get("r2")!.map((message) => message.id)).toEqual(["s2"]);
+    expect(folded.hosts.get("r2")!.map((message) => message.id)).toEqual(["a1", "s2"]);
   });
 
   it("keeps a run on the reply above a turn's tool rows", () => {
