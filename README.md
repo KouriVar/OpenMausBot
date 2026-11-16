@@ -8,8 +8,8 @@
 这是我自用的 OpenMausBot 个人 fork：在官方代码之上按自己的使用习惯改界面、加汉化、关掉不需要的东西。
 
 - **只保留 Simple 模式**（`SIMPLE_ONLY = true`），不提供 Advanced 模式开关。
-- **版本号自己一套**：V0.1、V0.2……跟官方版本号无关；每个版本基于官方哪个 tag（例如 `v0.1.151`）写在 [CHANGELOG.md](CHANGELOG.md) 的对应小节里。
-- 发布走本仓库的 GitHub Releases，一律标为 pre-release；不发布 npm 包、Docker 镜像或其它渠道。
+- **版本号自己一套**：从 `2026.1116.1` 起改用日期版本号，跟官方版本号无关；每个版本基于官方哪个 tag（例如 `v0.1.151`）写在 [CHANGELOG.md](CHANGELOG.md) 的对应小节里。
+- 发布走本仓库的 GitHub Releases，正式版；只发 Mac 包，不发布 npm 包、Docker 镜像或其它渠道。
 
 ## 和官方的主要区别
 
@@ -32,7 +32,7 @@
 
 ## 下载安装
 
-到本仓库的 **Releases** 页面下载（个人构建均为 pre-release，选择最新 `v0.x.y`）：
+到本仓库的 **Releases** 页面下载（选择最新正式版，例如 `v2026.1116.1`）：
 
 - **macOS arm64**：`.dmg` 或 `.zip`
 - **Windows x64**：`OpenMausBot-<版本>-setup.exe`
@@ -90,9 +90,11 @@ bash apply-ui-patch.sh
 
 ## 版本号规则
 
-- `package.json` 用 semver：`0.2.0` 这样。
-- 界面里显示成 `V0.3`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
-- git tag 用 `v0.x.y`，Release 标 pre-release。
+从 `2026.1116.1` 起改用日期版本号，格式「年.月日.当天第几次」，月日不补零（例如 1 月 5 日是 `2026.105.1`），tag 写 `v2026.1116.1`；有改动才发，没改动不发；纯自用，只发 Mac 包。
+
+- `package.json` 用日期版本：`2026.1116.1` 这样。
+- 界面里显示成 `V2026.1116.1`（`src/fork/version-label.ts`，macOS 原生 About 面板同步显示），两者靠同一常量对应。
+- git tag 用 `v2026.1116.1`，Release 标正式版（不是 pre-release）。
 - [CHANGELOG.md](CHANGELOG.md) 每个版本新增一节：写清「基于官方 vX.Y.Z」和本版全部改动；历史 A 编号条目保留、不复用。
 
 ## 合并上游的流程
