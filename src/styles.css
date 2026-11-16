@@ -3882,7 +3882,9 @@ button:disabled.bg-danger {
 
 /* The chat head's liquid glass: the CSS fallback, with tokens that follow the skin. The library path draws its own
    shader; these are what a reduced-transparency Mac, a failed shader or the switch turned off shows. */
-.glass-pill-surface {
+.glass-pill-surface,
+.glass-composer,
+.glass-more {
   --glass-pill-bg: color-mix(in srgb, var(--color-composer) 62%, transparent);
   --glass-pill-edge: color-mix(in srgb, var(--color-ink) 13%, transparent);
   --glass-pill-highlight: color-mix(in srgb, white 55%, transparent);
@@ -3892,7 +3894,9 @@ button:disabled.bg-danger {
   -webkit-backdrop-filter: blur(14px) saturate(150%);
   backdrop-filter: blur(14px) saturate(150%);
 }
-:root[data-skin="midnight"] .glass-pill-surface {
+:root[data-skin="midnight"] .glass-pill-surface,
+:root[data-skin="midnight"] .glass-composer,
+:root[data-skin="midnight"] .glass-more {
   --glass-pill-bg: color-mix(in srgb, var(--color-composer) 52%, transparent);
   --glass-pill-edge: color-mix(in srgb, white 13%, transparent);
   --glass-pill-highlight: color-mix(in srgb, white 20%, transparent);
