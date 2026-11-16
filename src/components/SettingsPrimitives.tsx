@@ -123,7 +123,7 @@ export function SettingRow({
     return (
       <div role="group" aria-labelledby={titleId} aria-disabled={quiet || undefined} data-setting-row="" data-settings-inert={quiet ? "" : undefined}
         title={quiet && typeof inertText === "string" ? inertText : undefined}
-        className={cn("flex min-h-11 items-center gap-3 px-4 py-3", className)}>
+        className={cn("flex min-h-12 items-center gap-3 px-4 py-4", className)}>
         {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
         {/* The text column holds the title, its description, and the status or reason line; the control sits centred
             on the whole block, so an inert row's 40% control lines up with the row, not its first line. */}
@@ -222,7 +222,7 @@ export function SettingsLinkRow({ title, subtitle, value, badge, leading, extern
 }) {
   return (
     <button type="button" onClick={onClick} {...data}
-      className="group flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
+      className="group flex min-h-12 w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
       {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[14px] leading-5 text-ink">{title}</span>
@@ -253,7 +253,7 @@ export function SettingsFoldRow({ id, title, subtitle, value, leading, open, onT
   return <>
     <div data-settings-disclosure={id} data-settings-fold="">
       <button type="button" aria-expanded={open} onClick={onToggle}
-        className="group flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
+        className="group flex min-h-12 w-full cursor-pointer items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
         {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[14px] leading-5 text-ink">{title}</span>
@@ -303,7 +303,7 @@ export function StatusDot({ tone }: { tone: "success" | "warning" | null }) {
 
 /** One line of plain rows' text when a list has nothing in it yet. */
 export function SettingsEmptyRow({ children }: { children: ReactNode }) {
-  return <div data-settings-empty="" className="flex min-h-11 items-center px-4 py-3 text-[13px] leading-[18px] text-ink-secondary">{children}</div>;
+  return <div data-settings-empty="" className="flex min-h-12 items-center px-4 py-4 text-[13px] leading-[18px] text-ink-secondary">{children}</div>;
 }
 
 /** A stacked field: a 13/18 500 label 6 above a 32 px field (the label holds the field, so it names it). */
