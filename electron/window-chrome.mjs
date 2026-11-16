@@ -5,10 +5,10 @@ export function windowBackground(prefersDark) {
   return prefersDark ? "#121212" : "#fcfcfc";
 }
 
-/** macOS: the system material behind the sidebar. `under-window` is the clearer one this build uses; `sidebar` is the
- * denser Finder/Aide-style material. OMB_VIBRANCY_STYLE=sidebar picks that one for comparing them by hand. */
+/** macOS: the system material behind the sidebar. `fullscreen-ui` is the light, nearly clear one this build uses; 
+ * OMB_VIBRANCY_STYLE=under-window or sidebar picks a denser one for comparing them by hand. */
 export function sidebarVibrancyStyle(env = process.env) {
-  return env.OMB_VIBRANCY_STYLE === "sidebar" ? "sidebar" : "under-window";
+  return env.OMB_VIBRANCY_STYLE === "sidebar" ? "sidebar" : env.OMB_VIBRANCY_STYLE === "under-window" ? "under-window" : "fullscreen-ui";
 }
 
 /** The window's own material options: nothing outside macOS, where the sidebar keeps its solid ground. */
