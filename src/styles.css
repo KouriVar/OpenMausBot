@@ -3903,3 +3903,13 @@ button:disabled.bg-danger {
 .glass-pill-liquid { --glass-pill-shadow: 0 2px 10px rgb(0 0 0 / 0.14); }
 .glass-pill-liquid .glass { gap: 0; box-shadow: var(--glass-pill-shadow); }
 .glass-pill-liquid .glass > div:last-child { font: inherit; line-height: inherit; text-shadow: none; }
+
+/* The library floats itself with translate(-50%, -50%) and top/left 50%; in the chat head's flex row that is a
+   visible shift. Keep the shader, drop the float. */
+.glass-pill-liquid {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  transition: none !important;
+}

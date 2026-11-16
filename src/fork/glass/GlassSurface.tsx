@@ -96,7 +96,7 @@ export function GlassSurface({ children, className, style, cornerRadius = 999 }:
         blurAmount={0.08}
         saturation={145}
         aberrationIntensity={1.4}
-        elasticity={0.06}
+        elasticity={0}
         mode="standard"
       >
         {children}
