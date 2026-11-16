@@ -1730,6 +1730,18 @@ body {
   --switch-on: var(--color-ink);
   --switch-knob-on: var(--color-app);
 }
+
+/* A settings group is a frame: a long card scrolls inside itself, and the page
+   moves on only once that card has nothing left to show. */
+[data-settings-scroll] [data-settings-block] > [data-settings-rows],
+[data-settings-scroll] [data-settings-block] > .settings-card,
+[data-settings-scroll] [data-settings-block] > div .settings-card:only-child {
+  max-height: min(40rem, calc(100dvh - 15rem));
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
 /* One switch in Settings: 32 by 20. Off is a light fill and a white knob, with no outline of its own. */
 [data-settings-look] [data-switch] {
   width: 32px;
