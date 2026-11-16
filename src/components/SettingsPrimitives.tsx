@@ -130,7 +130,7 @@ export function SettingRow({
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex min-w-[min(100%,7rem)] flex-1 flex-col">
             <div id={titleId} className={cn("flex min-w-0 items-center gap-1.5 text-[14px] leading-5", quiet ? "text-ink-secondary" : "text-ink")}>{title}{tag && <SettingsTag>{tag}</SettingsTag>}</div>
-            {subtitle && <div className="mt-0.5 text-[13px] leading-[18px] text-ink-secondary">{subtitle}</div>}
+            {subtitle && <div data-settings-subtitle="" className="mt-0.5 text-[13px] leading-[18px] text-ink-secondary">{subtitle}</div>}
             {message && <div className="mt-1 text-[12px] leading-4 text-ink-secondary">{message}</div>}
             {quiet && <div data-settings-reason="" className="mt-1 text-[12px] leading-4 text-ink-secondary">{inert}</div>}
           </div>
@@ -146,7 +146,7 @@ export function SettingRow({
       <div className="grid min-w-0 grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6">
         <div className="min-w-0">
           <div id={titleId} className="text-[14px] font-medium text-ink">{title}</div>
-          {subtitle && <div className="mt-1 text-[12px] leading-relaxed text-pretty text-ink-secondary">{subtitle}</div>}
+          {subtitle && <div data-settings-subtitle="" className="mt-1 text-[12px] leading-relaxed text-pretty text-ink-secondary">{subtitle}</div>}
         </div>
         <div className="min-w-0 sm:max-w-[240px]">{children}</div>
       </div>
@@ -182,7 +182,7 @@ export function SettingsGroup({ label, block, actions, footnote, description, ch
             {label && <h3 id={labelId} className="min-w-0 text-[13px] font-medium leading-[18px] text-ink">{label}</h3>}
             {actions && <div data-settings-actions="" className="ml-auto flex shrink-0 items-center gap-2">{actions}</div>}
           </div>
-          {description && <p className="text-[13px] leading-[18px] text-ink-secondary">{description}</p>}
+          {description && <p data-settings-description="" className="text-[13px] leading-[18px] text-ink-secondary">{description}</p>}
         </div>
       )}
       {children}
@@ -226,7 +226,7 @@ export function SettingsLinkRow({ title, subtitle, value, badge, leading, extern
       {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-[14px] leading-5 text-ink">{title}</span>
-        {subtitle && <span className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
+        {subtitle && <span data-settings-subtitle="" className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
       </span>
       <span className="ml-3 flex shrink-0 items-center gap-1.5 text-[13px] leading-5 text-ink-secondary">
         {badge}
@@ -257,7 +257,7 @@ export function SettingsFoldRow({ id, title, subtitle, value, leading, open, onT
         {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[14px] leading-5 text-ink">{title}</span>
-          {subtitle && <span className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
+          {subtitle && <span data-settings-subtitle="" className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
         </span>
         <span className="ml-3 flex shrink-0 items-center gap-1.5 text-[13px] leading-5 text-ink-secondary">
           {value}

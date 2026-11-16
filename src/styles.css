@@ -1731,6 +1731,10 @@ body {
   --switch-knob-on: var(--color-app);
 }
 
+/* Appearance keeps the row names: its one-line explanations are noise there. */
+[data-settings-page-body="appearance"] [data-settings-subtitle],
+[data-settings-page-body="appearance"] [data-settings-description] { display: none; }
+
 /* A settings group is a frame: a long card scrolls inside itself, and the page
    moves on only once that card has nothing left to show. */
 [data-settings-scroll] [data-settings-block] > [data-settings-rows],
