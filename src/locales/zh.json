@@ -2960,6 +2960,8 @@
   "composer.attach": "附加文件",
   "composer.attachFiles": "附加文件",
   "composer.teachTask": "教它一项任务",
+  "composer.tools": "\u8f93\u5165\u6846\u5de5\u5177",
+  "composer.approval": "\u6279\u51c6\u65b9\u5f0f",
   "composer.goal.aria": "一起完成",
   "composer.goal.title": "一起完成——团队会一直工作到目标完成",
   "composer.goal.soloAria": "做到完成",
@@ -11170,5 +11172,7 @@
   "devices.computers.address": "地址",
   "devices.computers.pairLine": "生成一个让你另一台电脑打开的一次性链接。",
   "settings.glassPill.title": "\u73bb\u7483\u6548\u679c\uff08\u8bd5\u9a8c\uff09",
-  "settings.glassPill.subtitle": "\u8d44\u6599\u80f6\u56ca\u7528\u6db2\u6001\u73bb\u7483\uff1b\u5173\u6389\u56de\u5230\u5e73\u9762\u6837\u5f0f\u3002"
+  "settings.glassPill.subtitle": "\u8d44\u6599\u80f6\u56ca\u7528\u6db2\u6001\u73bb\u7483\uff1b\u5173\u6389\u56de\u5230\u5e73\u9762\u6837\u5f0f\u3002",
+  "settings.mergedComposer.title": "\u5408\u5e76\u8f93\u5165\u6846\u6309\u94ae",
+  "settings.mergedComposer.subtitle": "\u9644\u4ef6\u3001\u6559\u5b66\u3001\u76ee\u6807\u3001\u6279\u51c6\u548c\u4f4d\u7f6e\u6536\u8fdb\u4e00\u4e2a + \u83dc\u5355\uff1b\u5173\u6389\u6062\u590d\u6210\u4e00\u6392\u6309\u94ae\u3002"
 }

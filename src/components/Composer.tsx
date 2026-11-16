@@ -76,6 +76,8 @@ import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } f
 import { useBloubAccent } from "@/fork/use-user-bubble-style";
 import { COMPOSER_BOTTOM_FADE } from "@/fork/ui-batch-1110b";
 import { useComposerWidth } from "@/fork/composer-width";
+import { useMergedComposer } from "@/fork/composer-merge";
+import { ComposerToolTray } from "@/fork/ComposerToolTray";
 import { COMPOSER_FADE_BOTTOM, COMPOSER_FADE_BOTTOM_SIMPLE, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { PendingApprovalActions, PendingApprovalPanel, pendingApprovals } from "./PendingApproval";
 import { CallButton } from "./CallView";
@@ -142,6 +144,7 @@ export function Composer({
   const state = useStoreSelector((s) => ({ instances: s.instances, config: s.config, queued: s.pendingQueued[group?.threadId ?? bot?.threadId ?? ""] }), sameFields), dispatch = useStoreDispatch(), store = useStoreRef(), bots = useStoreSelector((s) => s.bots, sameDrawnBots);
   const { threads, currentBotId } = useThreadRefs();
   const advanced = useAdvancedMode();
+  const mergedTools = useMergedComposer();
   // On a phone the composer is a dock: a round + (attach and every other tool), then one pill with the field, the mic and the voice button.
   const singleRow = useMediaQuery(PHONE_LAYOUT);
   // Simple mode on a wider screen: one pill holding a round +, the field, the mic and one round button in the bot's colour.
@@ -839,7 +842,21 @@ export function Composer({
           {!locked && !singleRow && (
             <div className={cn("flex items-center gap-1", simpleDock ? "shrink-0" : "flex-wrap")}>
               {simpleDock && <ComposerPlusMenu onAttach={() => fileInput.current?.click()} goal={goal} teach={canLearn ? teachTask : undefined} />}
-              {advanced && <button
+              {advanced && mergedTools && (
+                <ComposerToolTray
+                  onAttach={() => fileInput.current?.click()}
+                  teachTask={canLearn ? teachTask : undefined}
+                  goal={goal ? { on: goal.on, onToggle: goal.onToggle } : undefined}
+                  approval={approvalChoice}
+                  place={modeBot && !remoteClient ? {
+                    bot: modeBot,
+                    task: composerTask,
+                    disabled: Boolean(modeBot.busy),
+                    onPin: (surface) => dispatch({ type: "updateTask", botId: modeBot.id, threadId: modeBot.threadId, patch: { surface } }),
+                  } : undefined}
+                />
+              )}
+              {advanced && !mergedTools && <button
                 type="button"
                 onClick={() => fileInput.current?.click()}
                 aria-label={t("composer.attach")}
@@ -848,12 +865,12 @@ export function Composer({
               >
                 <Paperclip size={16} strokeWidth={1.75} absoluteStrokeWidth />
               </button>}
-              {advanced && canLearn && <TeachTaskButton onClick={teachTask} />}
+              {advanced && !mergedTools && canLearn && <TeachTaskButton onClick={teachTask} />}
               {/* Simple mode shows a mode's chip only while it is on, so a choice made in the + menu or the bot panel stays in view. */}
-              {goal && (advanced || goal.on) && <GoalToggle {...goal} compact={simpleDock} />}
-              {advanced && approvalChoice && <ApprovalModeSelector {...approvalChoice} />}
+              {goal && ((advanced && !mergedTools) || (!advanced && goal.on)) && <GoalToggle {...goal} compact={simpleDock} />}
+              {advanced && !mergedTools && approvalChoice && <ApprovalModeSelector {...approvalChoice} />}
               {simpleDock && approvalChoice && profile && bot && approvalModeFor(bot) !== approvalModeFor(profile) && <ApprovalChip choice={approvalChoice} />}
-              {modeBot && !remoteClient && advanced && (
+              {modeBot && !remoteClient && advanced && !mergedTools && (
                 <PlaceChip
                   bot={modeBot}
                   task={composerTask}
@@ -1001,7 +1018,7 @@ export function Composer({
             <Mic size={16} strokeWidth={1.75} absoluteStrokeWidth className="[&_rect]:fill-current" />
           </button>
         )}
-        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={whiteVoice ? WHITE_BUBBLE_BG : advanced || singleRow ? undefined : slot.fill} ink={whiteVoice ? WHITE_BUBBLE_INK : slot.ink} inverse={singleRow} />}
+        {callShown && bot && !group && <CallButton bot={bot} placement="composer" fill={advanced ? undefined : whiteVoice ? WHITE_BUBBLE_BG : singleRow ? undefined : slot.fill} ink={whiteVoice ? WHITE_BUBBLE_INK : slot.ink} inverse={singleRow} />}
         {callShown && group && !advanced && <GroupCallButton group={group} members={members ?? []} placement="composer" fill={slot.fill} ink={slot.ink} />}
         {hasContent && !locked && (
           <ComposerSendButton compact={simpleDock} waits={busy && !steersNow} label={sendNames.label} title={sendNames.title} look={slot.button}

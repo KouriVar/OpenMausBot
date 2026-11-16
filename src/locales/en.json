@@ -2962,6 +2962,8 @@
   "composer.attach": "Attach a file",
   "composer.attachFiles": "Attach files",
   "composer.teachTask": "Teach a task",
+  "composer.tools": "Composer tools",
+  "composer.approval": "Approval level",
   "composer.goal.aria": "Finish together",
   "composer.goal.title": "Finish together: the team keeps working until the goal is complete",
   "composer.goal.soloAria": "Work until done",
@@ -11170,5 +11172,7 @@
   "together.switch.failed": "That couldn't be saved. Try again.",
   "together.state.signin": "Open My Cloud once to sign in.",
   "settings.glassPill.title": "Glass effect (experimental)",
-  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style."
+  "settings.glassPill.subtitle": "The profile pill uses liquid glass; off restores the flat style.",
+  "settings.mergedComposer.title": "Merged composer tools",
+  "settings.mergedComposer.subtitle": "Attach, teach, goal, approval and place sit in one + menu; off shows them in a row again."
 }

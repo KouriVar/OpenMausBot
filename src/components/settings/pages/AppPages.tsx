@@ -8,6 +8,7 @@ import { AboutDialog } from "../../AboutDialog";
 import { ForkAdvancedUnlockRow } from "@/fork/ForkAdvancedUnlock";
 import { ForkBoldTextRow } from "@/fork/ForkBoldTextRow";
 import { GlassPillRow } from "../../GlassPillRow";
+import { MergedComposerRow } from "../../MergedComposerRow";
 import { SidebarVibrancyRow } from "@/fork/SidebarVibrancyRow";
 import { BrandMarkRow } from "@/fork/BrandMarkRow";
 import { SidebarVersionRow } from "@/fork/SidebarVersionRow";
@@ -184,6 +185,7 @@ export function AppearancePage() {
         <ForkBoldTextRow />
         <ForkAvatarStyleRow />
         <GlassPillRow />
+        <MergedComposerRow />
       </SettingsRows>
     </SettingsGroup>
     <CustomThemesSettings />

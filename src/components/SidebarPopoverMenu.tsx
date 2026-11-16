@@ -50,11 +50,11 @@ type Box = { left: number; right: number; top: number; bottom: number };
 type Size = { width: number; height: number };
 
 /** `start`: above the trigger on its start edge. `end`: below it on its end edge, for a choice at the end of a row. */
-export function anchoredMenuPosition(anchor: Box, menu: Size, viewport: Size, rtl = false, align: "start" | "end" = "start"): { left: number; top: number } {
+export function anchoredMenuPosition(anchor: Box, menu: Size, viewport: Size, rtl = false, align: "start" | "end" = "start", anchorGap = ANCHOR_GAP): { left: number; top: number } {
   const maxLeft = Math.max(EDGE_MARGIN, viewport.width - menu.width - EDGE_MARGIN);
   const startsOnRight = align === "end" ? !rtl : rtl;
   const left = Math.min(Math.max(startsOnRight ? anchor.right - menu.width : anchor.left, EDGE_MARGIN), maxLeft);
-  const above = anchor.top - ANCHOR_GAP - menu.height;
+  const above = anchor.top - anchorGap - menu.height;
   const below = anchor.bottom + ANCHOR_GAP;
   const fitsBelow = below + menu.height <= viewport.height - EDGE_MARGIN;
   const top = align === "end" ? (fitsBelow || above < EDGE_MARGIN ? below : above) : above >= EDGE_MARGIN ? above : below;
@@ -196,11 +196,14 @@ export function SidebarPopoverMenu({
   renderTrigger,
   width,
   sidebarFit = false,
+  anchorGap = ANCHOR_GAP,
 }: {
   /** a fixed width (the account menu's 272) in place of the content's */
   width?: number;
   /** the footer's menu: 16px of sidebar on each side, so at the 240 minimum the list is 208 wide */
   sidebarFit?: boolean;
+  /** How far the sheet sits from its trigger; a trigger inset in a rounded field asks for more. */
+  anchorGap?: number;
   placement?: "above" | "below";
   align?: "start" | "end";
   items: SidebarMenuItem[];
@@ -292,7 +295,7 @@ export function SidebarPopoverMenu({
       // The window's rail of places is drawn over the page's left edge: a menu never opens under it.
       const rail = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rail-beside")) || 0;
       if (anchored) {
-        const at = anchoredMenuPosition(trigger.getBoundingClientRect(), { width: menu.offsetWidth, height: menu.offsetHeight }, viewport, isRtl(trigger), align);
+        const at = anchoredMenuPosition(trigger.getBoundingClientRect(), { width: menu.offsetWidth, height: menu.offsetHeight }, viewport, isRtl(trigger), align, anchorGap);
         let left = Math.max(at.left, rail + EDGE_MARGIN);
         let fit: number | undefined;
         // The account menu stays inside the sidebar it opens from: its right edge 8 in from the sidebar's edge, and a
@@ -327,7 +330,7 @@ export function SidebarPopoverMenu({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [anchored, align, motion.shown, submenu, items.length, width]);
+  }, [anchored, align, anchorGap, motion.shown, submenu, items.length, width]);
 
   // Focus waits until the anchored sheet is placed: a hidden sheet cannot take focus.
   useEffect(() => {

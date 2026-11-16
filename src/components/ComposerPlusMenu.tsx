@@ -69,7 +69,7 @@ const check = <Check size={15} className="shrink-0 text-accent" aria-hidden="tru
 
 /** The thread's approval level, the same choices the Advanced composer's shield offers: the level shown and its menu.
  * Simple mode names the levels as the bot panel does. */
-function approvalMenu(choice: ApprovalChoice, simple: boolean) {
+export function approvalMenu(choice: ApprovalChoice, simple: boolean) {
   const trusted = choice.trustedModesAvailable ?? true;
   const mode = shownApprovalMode(choice.driverKind, approvalModeFor({ approvalMode: choice.approvalMode, autoApprove: choice.autoApprove }));
   const all = approvalModeOptions();
