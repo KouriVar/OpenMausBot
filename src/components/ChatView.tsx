@@ -1155,7 +1155,7 @@ export const ChatView = memo(function ChatView({ bot: profile, inForkPanel = fal
         <div
           ref={transcriptRef}
           data-simple-rows={advanced ? undefined : ""}
-          className="glass-scroller-content chat-column relative flex w-full flex-col gap-4"
+          className="glass-scroller-content chat-column relative flex w-full flex-col gap-2"
           style={{ paddingBottom: composerDock.pad }}
           role="log"
           // off: a polite log re-reads every tick and chip while the bot works; TranscriptAnnouncer speaks once when

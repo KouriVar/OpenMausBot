@@ -30,8 +30,8 @@ export function plainBotBubble(simple: boolean): string {
     : "chat-text w-fit max-w-[min(var(--chat-bubble-max),var(--chat-bubble-pct),calc(100%-82px))] rounded-[18px] bg-card px-3 py-[7px] text-[15px] leading-relaxed whitespace-pre-wrap text-ink";
 }
 
-/** Simple mode's transcript spaces rows 16px apart (ChatView's data-simple-rows); a row in the same group pulls up 12px, to 4px. */
-export const SIMPLE_STACKED = "-mt-3";
+/** Simple mode's transcript spaces rows 8px apart (ChatView's data-simple-rows); a row in the same group pulls up 4px, to 4px. */
+export const SIMPLE_STACKED = "-mt-1";
 
 /** Where a Simple bubble meets its group's neighbours: those corners tighten to 6px on the bubble's own side. */
 export interface BubbleJoin {
