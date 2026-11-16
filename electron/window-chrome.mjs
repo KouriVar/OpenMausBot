@@ -15,10 +15,8 @@ export function sidebarVibrancyStyle(env = process.env) {
 export function windowVibrancyOptions(platform, env = process.env) {
   if (platform !== "darwin") return {};
   const style = env.OMB_VIBRANCY_STYLE;
-  if (style === "sidebar" || style === "under-window" || style === "fullscreen-ui") {
-    return { vibrancy: style, visualEffectState: "followWindow", backgroundColor: "#00000000" };
-  }
-  return { transparent: true, backgroundColor: "#00000000" };
+  const chosen = style === "sidebar" || style === "fullscreen-ui" ? style : "under-window";
+  return { vibrancy: chosen, visualEffectState: "followWindow", backgroundColor: "#00000000" };
 }
 
 /** macOS: where the traffic lights (14px) sit. In the frame's 28px top bar, 12px in, while the page beside the rail draws
