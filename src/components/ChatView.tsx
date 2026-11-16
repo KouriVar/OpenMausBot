@@ -147,7 +147,7 @@ import { latestFailure, latestReply, type TranscriptSnapshot } from "@/lib/trans
 import { pendingApprovals } from "./PendingApproval";
 import { TranscriptAnnouncer } from "./TranscriptAnnouncer";
 import { JumpToLatestButton } from "./JumpToLatestButton";
-import { isBotTextRow, joinedCorners, needsStamp, quietRow, simpleRowLayout, SIMPLE_BOT_BUBBLE, SIMPLE_BUBBLE_MAX, SIMPLE_BUBBLE_TEXT, SIMPLE_STACKED, SIMPLE_USER_BUBBLE, type BubbleJoin } from "./chat-bubble";
+import { bubbleGroup, isBotTextRow, joinedCorners, needsStamp, quietRow, simpleRowLayout, SIMPLE_BOT_BUBBLE, SIMPLE_BUBBLE_MAX, SIMPLE_BUBBLE_TEXT, SIMPLE_STACKED, SIMPLE_USER_BUBBLE, type BubbleJoin } from "./chat-bubble";
 
 const USER_COLLAPSE_CHARS = 600;
 const USER_COLLAPSE_LINES = 8;
@@ -306,6 +306,7 @@ const Bubble = memo(function Bubble({
   eagerAttachments = false,
   joinAbove = false,
   joinBelow = false,
+  groupGap = false,
   workedFor,
   editing,
   pinned,
@@ -324,6 +325,8 @@ const Bubble = memo(function Bubble({
   /** Simple mode: this bubble meets the one above (or below) in its sender's group. */
   joinAbove?: boolean;
   joinBelow?: boolean;
+  /** Simple mode: the first bubble after the other side spoke, set off from the group above. */
+  groupGap?: boolean;
   /** Simple mode: how long the turn this answer ends took, for its tooltip. */
   workedFor?: number;
   editing: boolean;
@@ -445,7 +448,7 @@ const Bubble = memo(function Bubble({
   );
 
   return (
-    <div {...{ [MESSAGE_ROW]: "" }} data-look={user ? "message-user" : "message-bot"} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", simple && join?.above && SIMPLE_STACKED)}>
+    <div {...{ [MESSAGE_ROW]: "" }} data-look={user ? "message-user" : "message-bot"} className={cn("group flex w-full flex-col", user ? "animate-msg-in items-end" : "items-start", simple && join?.above && SIMPLE_STACKED, groupGap && "mt-2")}>
       {message.relay ? <RelayLabel message={message} /> : peer && <PeerLabel peer={peer} />}
       {speaker && <div className="mb-0.5 px-1 text-right text-[13px] [overflow-wrap:anywhere] font-semibold text-ink-secondary">{speaker}</div>}
       <div className={cn("flex w-full items-center gap-1.5", user ? "justify-end" : "justify-start")}>
@@ -753,6 +756,9 @@ const MessagesList = memo(function MessagesList({
         }
         const m = item.message;
         if (autoAppliedChanges.consumed.has(m.id)) return divider && <div key={m.id} className="contents">{divider}</div>;
+        const currentGroup = bubbleGroup(m, botId);
+        const previousGroup = prev ? bubbleGroup(prev, botId) : null;
+        const groupGap = simple && currentGroup !== null && previousGroup !== null && currentGroup !== previousGroup;
         const row = (() => {
           if (isCancelledTranscriptRow(m)) {
             return (
@@ -819,6 +825,7 @@ const MessagesList = memo(function MessagesList({
                   eagerAttachments={m.id === newestMessageId || m.id === newestUserMessageId}
                   joinAbove={joins?.[i]?.above}
                   joinBelow={joins?.[i]?.below}
+                  groupGap={groupGap}
                   workedFor={durations?.get(m.id)}
                   editing={editingId === m.id}
                   pinned={m.id === pinnedMessageId}
