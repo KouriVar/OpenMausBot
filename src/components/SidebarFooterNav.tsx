@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { useCloudFilesReady } from "@/lib/cloud-files";
 import { t } from "@/lib/i18n";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { useWebPanels } from "@/lib/web-panel-preferences";
 import { useSidebarToolsLayout, type SidebarDensity } from "@/lib/sidebar-preferences";
 import { useStore } from "@/state/store";
@@ -147,6 +148,8 @@ export function SidebarFooterNav({
     onClick={() => dispatch({ type: "showFiles" })}
   />;
   if (!advanced && !iconsOnly) return null;
+  const teamMapShown = usePendingHideOn("sidebarTeamMap");
+  const publishedShown = usePendingHideOn("sidebarPublishedApps");
   const appsRow = iconsOnly && <NavRow
     id="apps"
     label={t("sidebar.nav.apps")}
@@ -163,7 +166,7 @@ export function SidebarFooterNav({
     <>
       {automationsRow}
       {appsRow}
-      {(advanced || iconsOnly) && (
+      {teamMapShown && (advanced || iconsOnly) && (
         <NavRow
           id="team-map"
           label={t("sidebar.nav.teamMap")}
@@ -175,14 +178,14 @@ export function SidebarFooterNav({
         />
       )}
       {filesRow}
-      <NavRow
+      {publishedShown && <NavRow
         id="published-apps"
         label={t("sidebar.nav.publishedApps")}
         iconsOnly={iconsOnly || toolbar}
         active={state.activeView === "published-apps"}
         icon={(active) => <Rocket size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
         onClick={() => dispatch({ type: "showPublishedApps" })}
-      />
+      />}
       {advanced && webPanels.map((panel) => (
         <NavRow
           key={panel.id}

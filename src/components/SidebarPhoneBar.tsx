@@ -1,6 +1,7 @@
 import { FolderOpen, LayoutGrid, Puzzle, Rocket, Search, UsersRound, X, Zap } from "lucide-react";
 
 import { useCloudFilesReady } from "@/lib/cloud-files";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { t } from "@/lib/i18n";
 import { useStore } from "@/state/store";
 
@@ -13,6 +14,7 @@ import { UpdateIndicator } from "./UpdateIndicator";
 /** The phone's bottom bar: a round button for the tools that are rows in the desktop sidebar, and a search pill. */
 export function SidebarPhoneBar({ query, onQuery }: { query: string; onQuery: (query: string) => void }) {
   const { state, dispatch } = useStore();
+  const teamMapShown = usePendingHideOn("sidebarTeamMap");
   const automationsNeedYou = useAutomationsNeedYou();
   const filesReady = useCloudFilesReady();
   const items: SidebarMenuItem[] = [
@@ -24,13 +26,13 @@ export function SidebarPhoneBar({ query, onQuery }: { query: string; onQuery: (q
       attention: automationsNeedYou,
       onSelect: () => dispatch({ type: "showRoutines", view: "list" }),
     },
-    {
+    ...(teamMapShown ? [{
       key: "team-map",
       label: t("sidebar.nav.teamMap"),
       icon: <UsersRound size={18} />,
       active: state.activeView === "team-map",
       onSelect: () => dispatch({ type: "showTeamMap" }),
-    },
+    }] : []),
     ...(filesReady ? [{
       key: "files",
       label: t("sidebar.nav.files"),

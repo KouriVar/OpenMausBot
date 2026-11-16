@@ -468,7 +468,7 @@ export type AppSettingsSection = SettingsPageId
   | "engines" | "companion" | "remote" | "computer" | "logins" | "botAccess" | "activity" | "backups" | "workspaces"
   | "skills" | "import" | "updates" | "account";
 export type SettingsPageId = "overview" | "phone" | "ai" | "bots" | "desktops" | "vault" | "usage" | "transfer" | "data" | "people"
-  | "installations" | "account" | "plan" | "app" | "general" | "appearance";
+  | "installations" | "account" | "plan" | "app" | "general" | "appearance" | "pending";
 
 export type BotSettingsSection =
   | "overview"

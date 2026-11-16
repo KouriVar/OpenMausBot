@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n";
 import { imeComposing } from "@/lib/send-key";
 import { useStore, type Bot } from "@/state/store";
 import { Select } from "../Select";
+import { usePendingHideOn } from "@/fork/pending-hide";
 
 export type SetUpKind = "schedule" | "webhook" | "app";
 
@@ -26,6 +27,8 @@ export function NewAutomation({ initialText = "", onClose, onSetUpYourself }: {
   onSetUpYourself: (kind: SetUpKind, botId: string) => void;
 }) {
   const { state, dispatch } = useStore();
+  const webhookChoiceShown = usePendingHideOn("automationsWebhooks");
+  const appChoiceShown = usePendingHideOn("automationsAppTriggers");
   const bots = state.bots.filter((bot) => !bot.hidden);
   const [text, setText] = useState(initialText);
   const [botId, setBotId] = useState(() => defaultBot(bots, state.selectedId)?.id ?? "");
@@ -61,8 +64,8 @@ export function NewAutomation({ initialText = "", onClose, onSetUpYourself }: {
           <>
             <div role="radiogroup" aria-label={t("automations.newBox.when")} className="mt-4 space-y-2">
               {choice("schedule", t("automations.newBox.onSchedule"), CalendarClock)}
-              {choice("app", t("automations.newBox.whenAppEvent"), AppWindow)}
-              {choice("webhook", t("automations.newBox.whenApp"), Share2)}
+              {appChoiceShown && choice("app", t("automations.newBox.whenAppEvent"), AppWindow)}
+              {webhookChoiceShown && choice("webhook", t("automations.newBox.whenApp"), Share2)}
             </div>
             <div className="mt-5 flex items-center justify-between gap-2">
               <button type="button" onClick={() => setYourself(false)} className="rounded-lg px-2 py-1.5 text-[13px] text-ink-secondary hover:bg-raised hover:text-ink">{t("automations.newBox.back")}</button>

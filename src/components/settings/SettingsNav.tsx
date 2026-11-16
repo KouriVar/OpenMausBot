@@ -28,6 +28,7 @@ const FORK_NAV_ORDER: readonly { key: string; labelKey: LocaleKey; ids: readonly
   { key: "models", labelKey: "settings.nav.models", ids: ["ai", "desktops", "phone"] },
   { key: "library", labelKey: "settings.nav.library", ids: ["vault", "data", "transfer"] },
   { key: "account", labelKey: "settings.nav.account", ids: ["usage", "plan", "people", "installations"] },
+  { key: "check", labelKey: "settings.nav.check", ids: ["pending"] },
 ];
 
 export const NAV_ITEM = "relative flex h-8 w-full shrink-0 cursor-pointer items-center gap-2 rounded-lg px-2 text-left text-[13px] leading-5 text-ink transition-colors motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus";
@@ -368,13 +369,14 @@ function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place
 
 const PAGE_OWNER: Record<SettingsPageId, SettingsOwner> = {
   overview: "place", phone: "place", ai: "place", bots: "place", desktops: "place", vault: "place", usage: "place", transfer: "place", data: "place",
-  people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app",
+  people: "place", installations: "place", account: "account", plan: "account", app: "app", general: "app", appearance: "app", pending: "app",
 };
 
 const PAGE_KEY: Partial<Record<SettingsPageId, Parameters<typeof t>[0]>> = {
   phone: "settings.section.phoneDevices", ai: "settings.group.ai", bots: "settings.page.bots", desktops: "settings.page.desktops",
   vault: "settings.section.vault", usage: "settings.page.spending", transfer: "settings.page.importExport", data: "settings.page.data", people: "settings.section.people",
   installations: "settings.section.workspaces", plan: "settings.page.plan", general: "settings.section.general", appearance: "settings.section.appearance",
+  pending: "settings.page.pending",
 };
 
 /** A result's second line: its owner and its page ("This computer › Phone & devices"), or what a jump opens. */

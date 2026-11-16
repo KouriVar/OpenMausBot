@@ -10,6 +10,7 @@ import { api, useStore, type Bot } from "@/state/store";
 import { BOT_API_KEY_PLACEHOLDER, BOT_API_UPGRADE, botApiCurl } from "../../../shared/bot-api";
 import { NoteLine, useCloudUsage, useUpgrade } from "../CloudUsageMeter";
 import { Switch } from "../SettingsPrimitives";
+import { usePendingHideOn } from "@/fork/pending-hide";
 
 export interface BotApiCall {
   id: string;
@@ -89,6 +90,7 @@ export function BotApiCard(props: { bot: Bot; webhooksLink?: boolean; className?
 
 function BotApiSection({ bot, webhooksLink = false, className }: { bot: Bot; webhooksLink?: boolean; className?: string }) {
   const { state, dispatch } = useStore();
+  const webhooksShown = usePendingHideOn("panelWebhooks");
   const [view, setView] = useState<BotApiView | null>(null);
   const [freshKey, setFreshKey] = useState<string | null>(null);
   const [confirmingNewKey, setConfirmingNewKey] = useState(false);
@@ -188,7 +190,7 @@ function BotApiSection({ bot, webhooksLink = false, className }: { bot: Bot; web
         </div>
       )}
       {error && <div className="mt-2 text-[12px] text-danger">{error}</div>}
-      {webhooksLink && (
+      {webhooksLink && webhooksShown && (
         <button
           type="button"
           onClick={() => dispatch({ type: "showRoutines", view: "list" })}

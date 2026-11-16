@@ -32,6 +32,7 @@ import { BoatOfferCard, reportBoatOffer, type BoatOfferAction } from "./BoatOffe
 import { engineReady } from "./EngineLibrary";
 import { ModelgoOfferCard, type ModelgoCardAction } from "./ModelgoOffer";
 import { CLOUD_NOTICE_CARD, cloudNoticeStep, CloudNoticeCard } from "./CloudNotice";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { CloudTrialIntroCard } from "./CloudTrialIntro";
 import { useMoveQuiet } from "./CloudSendStrip";
 import { CloudTrialNoticeCard, useCloudPlanSnapshot } from "./CloudTrialNotice";
@@ -73,6 +74,7 @@ const FIRST_MESSAGES_MS = 6_000;
 
 export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { quiet?: boolean; viewer?: WelcomeViewer | null; now?: () => number }) {
   const { state, dispatch } = useStore();
+  const announcementsShown = usePendingHideOn("chatAnnouncements");
   const remote = window.ogb?.remoteClient?.active === true;
   const local = localDesktopPage();
   const bridge = !remote && local ? window.ogb?.cloudAccount : undefined;
@@ -296,6 +298,7 @@ export function AppNotices({ quiet = false, viewer = null, now = Date.now }: { q
   if (grokOpen) return <GrokMoveDialog onClose={() => setGrokOpen(false)} />;
   if (toast) return <NoticeToast text={toast} onDone={() => setToast(null)} />;
   if (!notice) return null;
+  if (!announcementsShown && (notice === WHATS_NEW_NOTICE || notice === ANNOUNCEMENT_NOTICE)) return null;
 
   if (notice === GROK_MOVE_NOTICE) {
     const done = (action: GrokMovePopupAction) => {

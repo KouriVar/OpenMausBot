@@ -12,10 +12,8 @@ import { AppCopyNotice } from "./EngineAppCopy";
 import { forgetAppCopySwitches } from "@/state/engine-install";
 import { AccountsCard, AddAccount, accountGroupOf, accountsReady, type AccountGroup } from "./EngineAccounts";
 import { ClaudeEndpoints, CodexEndpoints } from "./ClaudeEndpoints";
-import { ClaudeBedrockEndpoints } from "./ClaudeBedrock";
 import { DEVICE_SIGN_IN_COPY, deviceSignInProvider } from "./DeviceSignIn";
 import { AntigravityFreeSpace } from "./AntigravityFreeSpace";
-import { CacheKeepWarmSettings } from "./CacheKeepWarmSettings";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { Select } from "./Select";
 import { SettingsFoldRow, SettingsGroup, SettingsMark, SettingsRows, StatusDot } from "./SettingsPrimitives";
@@ -524,13 +522,13 @@ export function EnginesSettings({ simple = false, more }: { simple?: boolean; mo
     const group = groupOf(instance);
     return group
       ? <AccountsCard group={group} accounts={groups.get(group)!} bare={bare}
-        advanced={<>{group === "claude" ? <><ClaudeEndpoints /><ClaudeBedrockEndpoints /></> : <CodexEndpoints />}<EngineAdvanced instance={instance} /></>} />
+        advanced={<>{group === "claude" ? <ClaudeEndpoints /> : <CodexEndpoints />}<EngineAdvanced instance={instance} /></>} />
       : <EngineRow instance={instance} bare={bare} />;
   };
 
   if (simple && more) return <>
     <SimpleEngines rows={rows} isReady={isReady} renderEngine={renderEngine} more={more} />
-    {orphanEndpoints && <div className="px-4"><ClaudeEndpoints /><ClaudeBedrockEndpoints /></div>}
+    {orphanEndpoints && <div className="px-4"><ClaudeEndpoints /></div>}
     {orphanCodexEndpoints && <div className="px-4"><CodexEndpoints /></div>}
   </>;
 
@@ -544,10 +542,9 @@ export function EnginesSettings({ simple = false, more }: { simple?: boolean; mo
         <RefreshEngines />
       </div>
       <EngineSections instances={rows} isReady={isReady} renderEngine={renderEngine} />
-      {orphanEndpoints && <div className="px-4"><ClaudeEndpoints /><ClaudeBedrockEndpoints /></div>}
+      {orphanEndpoints && <div className="px-4"><ClaudeEndpoints /></div>}
       {orphanCodexEndpoints && <div className="px-4"><CodexEndpoints /></div>}
       <HiddenEngines />
-      <CacheKeepWarmSettings />
     </div>
   );
 }

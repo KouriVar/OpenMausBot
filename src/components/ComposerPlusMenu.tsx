@@ -9,6 +9,7 @@ import {
   simpleApprovalName,
 } from "@/lib/approval-mode-options";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { CALL_MODES, effectiveCallMode, useCallMode } from "@/lib/call-mode";
 import { callCapabilityHelp } from "@/lib/call-capability";
 import { fishListeningReady, listensHere, speechBridge } from "@/lib/speech";
@@ -193,9 +194,12 @@ export function ComposerPlusMenu({ onAttach, goal, teach, approval, callBotId, e
   const lineHeldElsewhere = callMode === "live" && liveLineHeldElsewhere(media, state.liveCall);
   const calling = callBotId !== undefined && (onCall === callBotId || isLiveCallRunning(media.phase) || lineHeldElsewhere);
   const simple = !useAdvancedMode();
+  const goalShown = usePendingHideOn("composerGoal");
+  const teachShown = usePendingHideOn("composerTeach");
+  const callShown = usePendingHideOn("composerCall");
   const items: SidebarMenuItem[] = [
     { key: "attach", label: t("composer.attachFiles"), icon: <Paperclip size={16} />, onSelect: onAttach },
-    ...(goal ? [{
+    ...(goal && goalShown ? [{
       key: "goal",
       label: t(goal.solo ? "composer.goal.soloAria" : "composer.goal.aria"),
       icon: <Target size={16} />,
@@ -203,10 +207,10 @@ export function ComposerPlusMenu({ onAttach, goal, teach, approval, callBotId, e
       trailing: goal.on ? check : undefined,
       onSelect: goal.onToggle,
     } satisfies SidebarMenuItem] : []),
-    ...(teach ? [{ key: "teach", label: t("composer.teachTask"), icon: <GraduationCap size={16} />, onSelect: teach } satisfies SidebarMenuItem] : []),
+    ...(teach && teachShown ? [{ key: "teach", label: t("composer.teachTask"), icon: <GraduationCap size={16} />, onSelect: teach } satisfies SidebarMenuItem] : []),
     ...extraItems,
     ...(approval ? [approvalItem(approval.name, approval.choice, simple)] : []),
-    ...(callBotId === undefined ? [] : CALL_MODES.map((entry, index): SidebarMenuItem => {
+    ...(callBotId === undefined || !callShown ? [] : CALL_MODES.map((entry, index): SidebarMenuItem => {
       const unavailable = entry.id === "turns" ? turnsHelp : null;
       return {
         key: `call:${entry.id}`,

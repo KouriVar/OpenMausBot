@@ -58,6 +58,7 @@ import { updaterMessage, useUpdaterState, type UpdaterState } from "@/lib/update
 import { productName } from "../lib/brand";
 import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { displayAppVersion } from "@/fork/version-label";
@@ -610,6 +611,13 @@ export function profileMenuItems({
   return groups.flatMap((group, at) => group.map((item, index) => (at > 0 && index === 0 ? { ...item, separatorBefore: true } : item)));
 }
 
+/** Rows this device asked to stop drawing, including the ones inside a submenu. */
+function withoutPending(items: SidebarMenuItem[], hidden: ReadonlySet<string>): SidebarMenuItem[] {
+  return items
+    .filter((item) => !hidden.has(item.key))
+    .map((item) => item.submenu ? { ...item, submenu: withoutPending(item.submenu, hidden) } : item);
+}
+
 /** The Inbox row's unread mark: nothing while nothing waits, else a green dot at the row's far end, its edge level with
  * the chevrons the rows above it draw (`-me-0.5` is the chevron's own). */
 export function inboxDot(count: number) {
@@ -638,6 +646,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   iconOnly?: boolean; rail?: boolean; circle?: boolean; bar?: boolean; menuActions?: SidebarMenuItem[]; simple?: SimpleAccount;
 } = {}) {
   const { state, dispatch } = useStore();
+  const inboxShown = usePendingHideOn("menuInbox");
+  const teamShown = usePendingHideOn("menuTeam");
+  const publishedShown = usePendingHideOn("menuPublishedApps");
+  const teamLibraryShown = usePendingHideOn("appsTeamLibrary");
   const simple = account !== undefined;
   const [menuOpen, setMenuOpen] = useState(false);
   const cloudUsage = cloudUsageSummary(useCloudPlanSnapshot(simple ? usageBridge(state.config?.cloudHome === true) : undefined));
@@ -702,7 +714,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   };
   // Fork: the Inbox is a row of this menu in both modes, drawn like the tools rows around it. What waits on the person
   // raises a green dot at the row's far end, level with the chevrons of the rows above it, and only while it waits.
-  const inboxRow: SidebarMenuItem | null = inboxSupport === "no" ? null : {
+  const inboxRow: SidebarMenuItem | null = inboxSupport === "no" || !inboxShown ? null : {
     key: "inbox",
     label: t("inbox.panel.title"),
     icon: <Inbox size={16} />,
@@ -800,6 +812,13 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     onFeedback: () => void openExternalLink(FEEDBACK_URL),
     onAccount: openCloudAccount,
   }), ...hideItems];
+  const hiddenKeys = new Set<string>([
+    ...(inboxShown ? [] : ["rail-inbox"]),
+    ...(teamShown ? [] : ["team-map", "account-new-team"]),
+    ...(publishedShown ? [] : ["published-apps"]),
+    ...(teamLibraryShown ? [] : ["account-team-library"]),
+  ]);
+  const shownItems = hiddenKeys.size ? withoutPending(items, hiddenKeys) : items;
   const noteworthy = update && updateNoteworthy(update.phase, update.pending) && !updateHasButton(update.phase);
   const needsYou = account?.automationsNeedYou === true;
   const initials = profileInitials(profile);
@@ -812,7 +831,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   return (
     <>
       <SidebarPopoverMenu
-        items={items}
+        items={shownItems}
         ariaLabel={name}
         sidebarFit={bar}
         onOpenChange={simple ? setMenuOpen : undefined}

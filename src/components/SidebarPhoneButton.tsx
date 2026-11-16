@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Plus, TabletSmartphone } from "lucide-react";
+import { usePendingHideOn } from "@/fork/pending-hide";
 
 import { cn } from "@/lib/cn";
 import { t } from "@/lib/i18n";
@@ -202,5 +203,7 @@ export function SidebarPhoneButton({
   onOpen: () => void;
 }) {
   const status = useSidebarPhoneStatus();
+  const shown = usePendingHideOn("sidebarPhone");
+  if (!shown) return null;
   return <SidebarPhoneStatusButton density={density} status={status} onOpen={onOpen} />;
 }

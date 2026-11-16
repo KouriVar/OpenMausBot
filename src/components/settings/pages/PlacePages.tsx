@@ -5,18 +5,13 @@ import { productName } from "@/lib/brand";
 import { skillsLibraryEnabled } from "@/lib/feature-flags";
 import { useStore } from "@/state/store";
 import { AdminOnly } from "../../AdminOnly";
-import { AutomaticRecoverySettings } from "../../AutomaticRecoverySettings";
-import { AwayEmailsSetting } from "../../AwayEmailsSetting";
 import { PausedBotsButton } from "../../AwakeBotsPicker";
-import { BrowserProxyRow, BuiltInBrowserRow, NewBrowserSettings, ServerSitesRow } from "../../BrowserSettingsRows";
-import { CacheKeepWarmSettings } from "../../CacheKeepWarmSettings";
+import { BuiltInBrowserRow, NewBrowserSettings, ServerSitesRow } from "../../BrowserSettingsRows";
 import { TeamPeopleCard } from "../../CloudAccountSettings";
 import { CloudKeepHere } from "../../CloudKeepHere";
 import { CustomDomainSettings } from "../../CustomDomainSettings";
 import { preloadConnectedApps } from "@/lib/connected-apps";
-import { DecisionModelSettings } from "../../DecisionModelSettings";
 import { EnginesSettings } from "../../EnginesSettings";
-import { ImageGenerationSettings } from "../../ImageGenerationSettings";
 import { LocalComputerSection } from "../../LocalComputerSection";
 import { McpCallTimeoutSettings } from "../../McpCallTimeoutSettings";
 import { DefaultBotSettings } from "../../NewBotDialog";
@@ -26,14 +21,11 @@ import { SavedStepsRow } from "../../SavedStepsRow";
 import { Card, SettingRow, SettingsDisclosureRow, SettingsFoldRow, SettingsGroup, SettingsLinkRow, SettingsRows } from "../../SettingsPrimitives";
 import { KEY_SECTIONS } from "../../keys/key-catalog";
 import { DesktopKinds } from "../DesktopKinds";
+import { ExperimentalFeaturesRow, NewBotEffortRow } from "../../AppSettingsRows";
 import { AnalysisModelRow } from "@/fork/AnalysisModelRow";
 import { SkillsSection } from "../../SkillsSection";
-import { ThreadConcurrencySettings } from "../../ThreadConcurrencySettings";
 import { usePhonePlaceState } from "../phone-status";
 import { KeysPage } from "../../keys/KeysPage";
-import { BrowserProfilesRow, ExperimentalFeaturesRow, NewBotEffortRow } from "../../AppSettingsRows";
-import { ServerUpdateRow } from "../../ServerUpdateRow";
-import { versionLine } from "../settings-context";
 import { useSettingsShell } from "../settings-shell";
 import { AdvancedSection } from "../AdvancedSection";
 
@@ -80,7 +72,6 @@ export function OverviewPage() {
         </div>
       </SettingsRows>
     )}
-    {place.kind === "server" && !ctx.client && !window.ogb?.updater && <SettingsGroup label={t("settings.updates.title")} block="version"><SettingsRows><ServerUpdateRow title={versionLine()} /></SettingsRows></SettingsGroup>}
     <SettingsGroup label={t("settings.overview.glance")} block="glance">
       <SettingsRows>
         {!ctx.client && <SettingsLinkRow title={t("settings.section.phoneDevices")} value={phoneValue} onClick={() => go("phone")} data={{ "data-glance": "phone" }} />}
@@ -138,9 +129,6 @@ export function AiPage() {
           <KeysPage bare exclude={anchor === "ai-keys" ? [] : ["ai"]} />
         </SettingsGroup>
       )}
-      <AdvancedSection anchor="backup-model"><SettingsGroup label={t("settings.ai.backupModel")} block="backup-model"><AutomaticRecoverySettings /></SettingsGroup></AdvancedSection>
-      <AdvancedSection anchor="routing"><DecisionModelSettings /></AdvancedSection>
-      <AdvancedSection anchor="images"><ImageGenerationSettings /></AdvancedSection>
     </AdminOnly>
   </>;
 }
@@ -155,7 +143,6 @@ export function BotsPage() {
       footnote={ctx.here || !ctx.desktop ? t("settings.bots.aboutYouHome", { app: productName() }) : undefined}>
       <div className="flex flex-col gap-2">
         <Card><ProfileFields /></Card>
-        <SettingsRows><AwayEmailsSetting row /></SettingsRows>
       </div>
     </SettingsGroup>
     <SettingsGroup label={t("settings.bots.newBots")} block="new-bots">
@@ -165,8 +152,6 @@ export function BotsPage() {
       <SettingsRows selectWidth={160}>
         <div data-settings-block="group-turns" className="contents"><RoomTurnTimeoutSettings /></div>
         <div data-settings-block="tool-time" className="contents"><McpCallTimeoutSettings /></div>
-        <ThreadConcurrencySettings />
-        <div data-settings-block="keep-warm" className="contents"><CacheKeepWarmSettings /></div>
       </SettingsRows>
     </SettingsGroup></AdvancedSection>}
     {skillsLibraryEnabled(state.config) && <div data-settings-block="skills"><SkillsSection /></div>}
@@ -175,24 +160,27 @@ export function BotsPage() {
 }
 
 export function DesktopsPage() {
-  const { ctx, anchor } = useSettingsShell();
-  const [details, setDetails] = useState(anchor === "desktop-details");
+  const { ctx } = useSettingsShell();
   return <>
     <SettingsGroup label={t("settings.desktops.browserSection")} block="browser">
-      <SettingsRows><BuiltInBrowserRow /><ServerSitesRow /><BrowserProxyRow />{ctx.advanced && <div data-settings-block="new-browser" className="contents"><NewBrowserSettings /></div>}</SettingsRows>
+      <SettingsRows><BuiltInBrowserRow /><ServerSitesRow />{ctx.advanced && <div data-settings-block="new-browser" className="contents"><NewBrowserSettings /></div>}</SettingsRows>
     </SettingsGroup>
-    <AdminOnly><DesktopKinds /></AdminOnly>
-    <BrowserProfilesRow />
-    {ctx.advanced && (
-      <AdminOnly>
-        <SettingsDisclosureRow id="desktop-details" block="desktop-details" title={t("settings.desktops.detailsTitle")} subtitle={t("settings.desktops.detailsLine")}
-          open={details} onToggle={() => setDetails((open) => !open)}>
-          <div className="flex flex-col gap-6 px-4 py-4"><LocalComputerSection /></div>
-        </SettingsDisclosureRow>
-      </AdminOnly>
-    )}
+    <AdminOnly><DesktopKinds only={["private"]} /></AdminOnly>
     <AdvancedSection anchor="automation"><SettingsGroup label={t("settings.desktops.automation")} block="automation"><SettingsRows><SavedStepsRow /></SettingsRows></SettingsGroup></AdvancedSection>
   </>;
+}
+
+/** The desktop details fold, moved to the pending page; the page keeps its advanced-only visibility. */
+export function DesktopDetailsRow() {
+  const [details, setDetails] = useState(false);
+  return (
+    <AdminOnly>
+      <SettingsDisclosureRow id="desktop-details" block="desktop-details" title={t("settings.desktops.detailsTitle")} subtitle={t("settings.desktops.detailsLine")}
+        open={details} onToggle={() => setDetails((open) => !open)}>
+        <div className="flex flex-col gap-6 px-4 py-4"><LocalComputerSection /></div>
+      </SettingsDisclosureRow>
+    </AdminOnly>
+  );
 }
 
 export function MoveSection() {

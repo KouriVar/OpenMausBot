@@ -1,6 +1,7 @@
 import { MoreHorizontal } from "lucide-react";
 
 import { useChiefStyle } from "@/fork/chief-style";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { chiefMark } from "@/fork/chief-mark";
 import { t } from "@/lib/i18n";
 import { stateForBot } from "@/lib/mascot";
@@ -11,7 +12,9 @@ import { openBotContextMenu, useVisibleMessages, type MenuState } from "./Sideba
 /** The phone's home leads with the chief of staff, large and centred, instead of a row. */
 export function PhoneHero({ bot, selected, onOpen, onMenu }: { bot: Bot; selected: boolean; onOpen: () => void; onMenu: (menu: MenuState) => void }) {
   const visible = useVisibleMessages(bot);
+  const shown = usePendingHideOn("sidebarPhone");
   const ChiefMark = chiefMark(useChiefStyle(bot.id));
+  if (!shown) return null;
   return (
     <div className="relative mb-2 flex flex-col items-center pb-2 pt-1">
       <button

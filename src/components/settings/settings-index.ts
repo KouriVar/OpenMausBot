@@ -1,5 +1,5 @@
 import {
-  Archive, ArrowLeftRight, Bot, Coins, CreditCard, LockKeyhole, Monitor, Palette, Server, SlidersHorizontal, Smartphone,
+  Archive, ArrowLeftRight, Bot, Coins, CreditCard, EyeOff, LockKeyhole, Monitor, Palette, Server, SlidersHorizontal, Smartphone,
   Sparkles, Users, type LucideIcon,
 } from "lucide-react";
 import type { LocaleKey } from "@/locales";
@@ -57,7 +57,7 @@ export const ADVANCED_PAGES: readonly SettingsPageId[] = ["bots", "desktops", "u
 
 export const SETTINGS_PAGES: readonly SettingsPage[] = [
   { id: "overview", owner: "place", labelKey: "settings.page.overview", synonyms: ["overview", "place", "status", "version", "domain", "address", "sidebar"], when: () => true },
-  { id: "phone", owner: "place", labelKey: "settings.section.phoneDevices", icon: Smartphone, when: notClient,
+  { id: "phone", owner: "place", labelKey: "settings.section.phoneDevices", icon: Smartphone, nav: false, when: notClient,
     synonyms: ["phone", "pair", "pairing", "qr", "code", "iphone", "android", "mobile", "tablet", "device", "devices", "wifi", "wi-fi", "anywhere", "relay", "remote", "companion", "tailscale", "connect your phone", "get the phone app", "pair a device", "this server", "remote access"] },
   { id: "ai", owner: "place", labelKey: "settings.group.ai", icon: Sparkles, when: adminPage,
     synonyms: ["ai", "models", "model providers", "providers", "engines", "api keys", "keys", "key", "claude", "codex", "openai", "anthropic", "ollama", "lm studio", "local model"] },
@@ -67,11 +67,11 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["bot desktops", "computer", "desktop", "desktops", "browser", "built-in browser", "proxy", "socks5", "private desktop", "sandbox", "docker", "podman", "container", "vps", "own server", "cloud desktops"] },
   { id: "vault", owner: "place", labelKey: "settings.section.vault", icon: LockKeyhole, when: notClient,
     synonyms: ["vault", "password", "passwords", "login", "logins", "secrets", "1password", "2fa"] },
-  { id: "usage", owner: "place", labelKey: "settings.page.spending", icon: Coins, when: advancedOnly(adminPage),
+  { id: "usage", owner: "place", labelKey: "settings.page.spending", icon: Coins, nav: false, when: advancedOnly(adminPage),
     synonyms: ["spending", "usage", "cost", "costs", "tokens", "money", "runs", "export csv"] },
   { id: "transfer", owner: "place", labelKey: "settings.page.importExport", icon: ArrowLeftRight, when: adminPage,
     synonyms: ["import", "export", "backup", "backups", "restore", "grok", "grok bot", "move from", "bring"] },
-  { id: "data", owner: "place", labelKey: "settings.page.data", icon: Archive, when: advancedOnly(adminPage),
+  { id: "data", owner: "place", labelKey: "settings.page.data", icon: Archive, nav: false, when: advancedOnly(adminPage),
     synonyms: ["data", "storage", "attachments", "activity", "audit"] },
   { id: "people", owner: "place", labelKey: "settings.section.people", icon: Users,
     when: (ctx) => !ctx.client && ctx.admin && (ctx.team || (!ctx.desktop && !ctx.cloud)),
@@ -88,6 +88,8 @@ export const SETTINGS_PAGES: readonly SettingsPage[] = [
     synonyms: ["general", "language", "typing", "send", "enter", "notifications", "sounds", "startup", "login", "analytics", "privacy", "talk"] },
   { id: "appearance", owner: "app", labelKey: "settings.section.appearance", icon: Palette, when: () => true,
     synonyms: ["appearance", "theme", "skin", "looks", "dark mode", "light mode", "font", "chat width", "layout", "threads", "pins"] },
+  { id: "pending", owner: "app", labelKey: "settings.page.pending", icon: EyeOff, when: () => true,
+    synonyms: ["pending", "hide", "triage", "unused", "排查", "待隐藏", "隐藏功能"] },
 ];
 
 export const OWNERS: readonly SettingsOwner[] = ["place", "account", "app"];

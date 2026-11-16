@@ -8,6 +8,7 @@ import { botInDepartment } from "@/lib/department-filter";
 import { t } from "@/lib/i18n";
 import { addDays, calendarRangeLabel, projectCalls, projectedRoutineItems, scheduleAt, startOfDay, startOfWeek } from "@/lib/routine-calendar";
 import { resetMarkers, useEngineLimits, type ResetMarker } from "@/lib/limit-resets";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { automationsFrom, automationStatus } from "@/lib/automations";
 import type { RoutineRun } from "@/lib/routines";
 import { api, useStore } from "@/state/store";
@@ -39,7 +40,8 @@ export function AutomationsCalendar({ botFilter, department = "all", selectedAut
   const rangeStart = days === 7 ? startOfWeek(anchor) : startOfDay(anchor);
   const rangeEnd = addDays(rangeStart, days);
   useRoutineRunsFrom(rangeStart);
-  const markers = resetMarkers(useEngineLimits(), rangeStart, rangeEnd);
+  const limitResetsShown = usePendingHideOn("automationsLimitResets");
+  const markers = resetMarkers(useEngineLimits(), rangeStart, rangeEnd).filter(() => limitResetsShown);
 
   const loadCalls = useCallback(async () => {
     try { setCalls((await api("/api/calendar-calls")).calls ?? []); }

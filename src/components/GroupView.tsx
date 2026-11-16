@@ -26,6 +26,7 @@ import { ThreadRefText } from "./ThreadRefs";
 import { TurnPresence } from "./TurnPresence";
 import { showToolCallsEnabled } from "@/lib/feature-flags";
 import { CompactionChip, DigestChip } from "./DigestChip";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { roomActivityVisible } from "@/lib/room-activity";
 import { StatusActivityRow } from "@/components/StatusActivityRow"; import { BugReportNote } from "@/components/BugReportNote";
 import { normalizeState } from "@/lib/mascot";
@@ -335,6 +336,8 @@ export const Transcript = memo(function Transcript({
   onReply: (message: Message) => void;
 }) {
   const { state, dispatch } = useStore();
+  const digestShown = usePendingHideOn("automationsDigests");
+  const publishedPageShown = usePendingHideOn("chatPublishedPage");
   const phone = useMediaQuery(PHONE_LAYOUT);
   const showThreads = useShowThreads();
   const showToolCalls = showToolCallsEnabled(state.config);
@@ -472,8 +475,8 @@ export const Transcript = memo(function Transcript({
           ) : m.kind === "compaction" ? (
             <CompactionChip message={m} />
           ) : m.kind === "digest" ? (
-            showToolCalls ? <DigestChip message={m} /> : null
-          ) : (m.kind === "app" || m.kind === "widget") && m.from ? <RoomRichRow message={m} from={m.from} threadId={group.threadId} /> : m.publishedPage ? <PublishedPageCard message={m} /> : m.kind === "text" && (m.text || m.attachments?.length) ? (
+            showToolCalls && digestShown ? <DigestChip message={m} /> : null
+          ) : (m.kind === "app" || m.kind === "widget") && m.from ? <RoomRichRow message={m} from={m.from} threadId={group.threadId} /> : m.publishedPage ? (publishedPageShown ? <PublishedPageCard message={m} /> : null) : m.kind === "text" && (m.text || m.attachments?.length) ? (
             !user && isPureLeakedSystemHarnessMessage(m.text) && !m.attachments?.length ? null : (
               <RoomTextMessage
                 group={group}

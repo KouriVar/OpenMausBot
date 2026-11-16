@@ -45,7 +45,7 @@ import { splitTranscriptCitations, type CitationAttachment } from "@/lib/citatio
 import { PlaceChip } from "./PlaceChip";
 import { ApprovalModeSelector } from "./ApprovalModeSelector";
 import { approvalModeFor } from "../../shared/approval-mode";
-import { useOnCall } from "@/lib/call";
+import { useOnCall } from "@/lib/call"; import { usePendingHideOn } from "@/fork/pending-hide";
 import { isLiveCallRunning, useLiveMedia } from "@/lib/live-call-media";
 import {
   appendPastedText,
@@ -520,8 +520,8 @@ export function Composer({
   const mayAct = useMayAct(), mayStop = !sharedChat || mayAct(profile?.tasks?.find((task) => task.threadId === threadId)?.askedBy);
   const stoppable = (busy || Boolean(!group && bot?.waitingForTeammates)) && mayStop;
   // Simple mode's round button is the call, Send while there is text, and Stop while the bot works.
-  const stopInSlot = simpleDock && stoppable && !locked && !hasContent && !calling;
-  const callShown = !simpleDock || (!hasContent && !stopInSlot);
+  const stopInSlot = simpleDock && stoppable && !locked && !hasContent && !calling; const callEntryShown = usePendingHideOn("composerCall");
+  const callShown = callEntryShown && (!simpleDock || (!hasContent && !stopInSlot));
   // One colour for everything that belongs to this bot: its avatars, your bubble, and these buttons.
   const accent = useBloubAccent({ id: group ? undefined : bot?.id, color: bot?.color });
   // Fork: a white avatar in dark mode takes the grey voice buttons, same as the bubble.

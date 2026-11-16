@@ -29,7 +29,7 @@ import { BotAvatar } from "./Avatar";
 import { SidebarPopoverMenu } from "./SidebarPopoverMenu";
 import { appCategoryLabel, CATEGORY_SECTION_SIZE, catalogSections, connectorDescription, inCategory, rankCategories } from "@/lib/app-catalog";
 import { McpServersPanel } from "./McpServersPanel";
-import { HOSTED_MCP_APPS, mcpServerConnected, ownMcpServer, type HostedApp, type HostedConnections } from "@/lib/hosted-mcp-apps";
+import { HOSTED_MCP_APPS, mcpServerConnected, ownMcpServer, type HostedApp, type HostedConnections } from "@/lib/hosted-mcp-apps"; import { usePendingHideOn } from "@/fork/pending-hide";
 import { isRemoteMcpListing, type McpServerListing } from "./mcp-draft";
 import { useSuggestedApps } from "@/lib/app-suggestions";
 import { matchesCatalogSearch } from "../../shared/app-suggestions";
@@ -112,6 +112,7 @@ export function botsUsingService(bots: Bot[], instances: InstanceInfo[], slug: s
 
 export function PluginsPanel() {
   const { state, dispatch } = useStore();
+  const emailShown = usePendingHideOn("appsEmail"); const xShown = usePendingHideOn("appsX"); const postizShown = usePendingHideOn("appsPostiz"); const hostedEntriesShown = usePendingHideOn("appsHostedMcp");
   const remoteClient = window.ogb?.remoteClient?.active === true;
   const dialogRef = useRef<HTMLDivElement>(null);
   const surface = state.pluginsSurface;
@@ -405,10 +406,10 @@ export function PluginsPanel() {
   const searching = search.trim().length > 0;
   /** A search covers the whole catalog, whichever view it was typed in. */
   const listing: AppsFilter = searching && filter === "connected" ? "all" : filter;
-  const shownHosted = new Set(HOSTED_MCP_APPS.filter((app) => hostedShown(app, search, listing, hostedConnected)).map((app) => app.id));
-  const showEmail = (!search || `email mail imap smtp mailbox ${t("email.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && emailConnected !== false));
-  const showX = (!search || `${X_CARD_SEARCH} ${t("apps.x.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && xConnected !== false));
-  const showPostiz = (!search || `${POSTIZ_SEARCH} ${t("postiz.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && postizConnected !== false));
+  const shownHosted = new Set(hostedEntriesShown ? HOSTED_MCP_APPS.filter((app) => hostedShown(app, search, listing, hostedConnected)).map((app) => app.id) : []);
+  const showEmail = emailShown && (!search || `email mail imap smtp mailbox ${t("email.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && emailConnected !== false));
+  const showX = xShown && (!search || `${X_CARD_SEARCH} ${t("apps.x.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && xConnected !== false));
+  const showPostiz = postizShown && (!search || `${POSTIZ_SEARCH} ${t("postiz.description")}`.toLowerCase().includes(search.toLowerCase().trim())) && (listing === "all" || (listing === "connected" && postizConnected !== false));
   const visible = (listing === "connected" ? matching.filter((card) => isConnected(card.slug)) : matching)
     .map((card, index) => ({ card, index }))
     .sort((a, b) => Number(isConnected(b.card.slug)) - Number(isConnected(a.card.slug)) || a.index - b.index)

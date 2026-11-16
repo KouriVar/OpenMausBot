@@ -108,7 +108,7 @@ import { useLiveMedia } from "@/lib/live-call-media";
 import { LiveCallPill, liveBadgeFor } from "./LiveCallPill";
 import { ShortcutHint } from "./ShortcutHint";
 import { usePopoverDismiss } from "@/hooks/use-popover-dismiss";
-import { useAdvancedMode } from "@/lib/interface-mode";
+import { useAdvancedMode } from "@/lib/interface-mode"; import { usePendingHideOn } from "@/fork/pending-hide";
 import { myDefaultBot, useViewerEmail, useWelcomingBot } from "@/lib/default-bot";
 import { PinnedBotRoster, PinnedCircleThreadSection } from "./PinnedCircleThreads";
 import { archiveBotWithNotice, onArchiveNotice } from "./bot-archive";
@@ -1019,7 +1019,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   // Fork: Advanced's sidebar is built from Simple's chrome (top row, search, inbox row, footer, new button); its bot
   // rows and section headers keep Advanced's own layout.
   const chrome = simple || (advanced && FORK_ADVANCED_SIMPLE_SHELL && density !== "icons");
-  const simpleDesk = chrome && !phone;
+  const simpleDesk = chrome && !phone; const teamLibraryShown = usePendingHideOn("appsTeamLibrary");
   const rail = density === "icons" && (!advanced || FORK_ADVANCED_SIMPLE_SHELL);
   const sidePanelOpen = state.computerOpen || state.inspectorOpen;
   const sizing = useSidebarWidth({ simple: chrome, sidePanelOpen, sidebarRef });
@@ -1691,7 +1691,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           onRestored={(message) => setTeamFeedback({ error: false, text: message })}
         />
       )}
-      {!remoteClient && teamLibraryOpen && (
+      {!remoteClient && teamLibraryShown && teamLibraryOpen && (
         <TeamLibraryPanel
           returnFocusRef={importReturnRef}
           initialUrl={teamInstallUrl ?? undefined}

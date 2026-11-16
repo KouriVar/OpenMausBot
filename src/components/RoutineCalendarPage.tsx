@@ -39,7 +39,7 @@ import { ResultsDestination, resultsOfPlace, RoutineAudience } from "@/component
 import { CronScheduleFields, CronSchedulePreview } from "@/components/routines/CronScheduleFields";
 import { cronChoiceFor, cronDraftFor, cronEditorValue, isCronChoice, type CronChoice } from "@/components/routines/cron-editor";
 import { partlyDone, routineRunLabel, routineRunsOn, routineRunText, routineRunTime, routineScheduleState } from "@/lib/routine-display";
-import { useAdvancedMode } from "@/lib/interface-mode";
+import { useAdvancedMode } from "@/lib/interface-mode"; import { usePendingHideOn } from "@/fork/pending-hide";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { intlLocale, t } from "@/lib/i18n";
 import { intakeFilesWithNotice } from "@/lib/attach-notice";
@@ -329,7 +329,7 @@ export function EventEditor({
   const [intervalTimeoutDefaultApplied, setIntervalTimeoutDefaultApplied] = useState(Boolean(existingRoutine));
   const [overlap, setOverlap] = useState<"skip" | "queue">(existingRoutine?.overlap ?? "skip");
   const [continuity, setContinuity] = useState(Boolean(existingRoutine?.continuity));
-  const [runOnStartup, setRunOnStartup] = useState(Boolean(existingRoutine?.runOnStartup));
+  const [runOnStartup, setRunOnStartup] = useState(Boolean(existingRoutine?.runOnStartup)); const limitResetShown = usePendingHideOn("automationsLimitResets");
   const [recurrence, setRecurrence] = useState<RecurrenceChoice>(seed.limitReset ? "limit_reset" : recurrenceFor(schedule, initialAt));
   const [limitReset, setLimitReset] = useState<LimitResetChoice>(schedule.type === "limit_reset" ? schedule : { engine: seed.limitReset?.engine ?? "", repeat: "once" });
   const [cronDraft, setCronDraft] = useState(() => cronDraftFor(schedule.type === "cron" ? schedule : undefined, initialAt));
@@ -616,7 +616,7 @@ export function EventEditor({
                   <option value="weekly">{t("routines.schedule.weeklyOn", { day: dayName(new Date(at).getDay()) })}</option>
                   <option value="custom">{t("routines.repeat.selectedWeekdays")}</option>
                   {kind === "routine" && <><option value="monthly">{t("routines.repeat.monthly")}</option><option value="yearly">{t("routines.repeat.yearly")}</option><option value="cron">{t("routines.repeat.customCron")}</option></>}
-                  {kind === "routine" && <option value="limit_reset">{t("routines.limitReset.option")}</option>}
+                  {kind === "routine" && limitResetShown && <option value="limit_reset">{t("routines.limitReset.option")}</option>}
                 </Select>
               </div>
   );

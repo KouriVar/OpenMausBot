@@ -4,6 +4,7 @@ import { AppPage, AppearancePage, GeneralPage } from "./AppPages";
 import { DataPage, ImportExportPage, InstallationsPage, PeoplePage, SpendingPage, VaultPage } from "./DataPages";
 import { PhonePage } from "./PhonePage";
 import { AiPage, BotsPage, DesktopsPage, OverviewPage } from "./PlacePages";
+import { PendingHidePage } from "@/fork/PendingHidePage";
 
 const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
   overview: OverviewPage,
@@ -22,6 +23,7 @@ const PAGES: Record<SettingsPageId, () => React.ReactNode> = {
   app: AppPage,
   general: GeneralPage,
   appearance: AppearancePage,
+  pending: PendingHidePage,
 };
 
 export function SettingsPageBody({ page }: { page: SettingsPageId }) {

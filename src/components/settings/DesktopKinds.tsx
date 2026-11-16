@@ -57,11 +57,13 @@ function PrivateSetup({ status, onCheck, onClose }: { status: PrivateStatus; onC
   );
 }
 
-/** Desktops: what each kind is, its state first, and one Set up. */
-export function DesktopKinds() {
+/** Desktops: what each kind is, its state first, and one Set up. `only` narrows the rows a page draws: the pending
+ * page moves Cloud and servers, This computer keeps Private. */
+export function DesktopKinds({ only }: { only?: readonly ("cloud" | "private" | "servers")[] }) {
   const { ctx, place, go } = useSettingsShell();
   const { state } = useStore();
   const cloudHome = state.config?.cloudHome === true;
+  const shows = (kind: "cloud" | "private" | "servers") => !only || only.includes(kind);
   const [local, setLocal] = useState<PrivateStatus>(null);
   const [cloud, setCloud] = useState<{ configured: boolean; available: boolean } | null>(null);
   const [vps, setVps] = useState<{ configured: boolean; available: boolean } | null>(null);
@@ -102,9 +104,9 @@ export function DesktopKinds() {
   return (
     <SettingsGroup label={t("settings.desktops.kinds")} block="desktops">
       <SettingsRows icons>
-        {row(cloudKind, t("settings.desktops.cloud"), t("settings.desktops.cloudLine"), <Cloud strokeWidth={1.75} />, () => go(ctx.plan && !cloud?.configured ? "plan" : "ai", ctx.plan && !cloud?.configured ? undefined : "ai-keys"), "cloud")}
-        {!cloudHome && row(privateKind, t("settings.desktops.private"), t("settings.desktops.privateLine"), <Laptop strokeWidth={1.75} />, () => setSetup(true), "private")}
-        {(ctx.advanced || vps?.configured) && row(serversKind, t("settings.desktops.servers"), t("settings.desktops.serversLine"), <Server strokeWidth={1.75} />, () => go("ai", "ai-keys"), "servers")}
+        {shows("cloud") && row(cloudKind, t("settings.desktops.cloud"), t("settings.desktops.cloudLine"), <Cloud strokeWidth={1.75} />, () => go(ctx.plan && !cloud?.configured ? "plan" : "ai", ctx.plan && !cloud?.configured ? undefined : "ai-keys"), "cloud")}
+        {shows("private") && !cloudHome && row(privateKind, t("settings.desktops.private"), t("settings.desktops.privateLine"), <Laptop strokeWidth={1.75} />, () => setSetup(true), "private")}
+        {shows("servers") && (only || ctx.advanced || vps?.configured) && row(serversKind, t("settings.desktops.servers"), t("settings.desktops.serversLine"), <Server strokeWidth={1.75} />, () => go("ai", "ai-keys"), "servers")}
       </SettingsRows>
       {setup && <PrivateSetup status={local} onCheck={load} onClose={() => setSetup(false)} />}
     </SettingsGroup>

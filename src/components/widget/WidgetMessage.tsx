@@ -9,6 +9,8 @@ import { openThread } from "@/state/thread-navigation";
 import { cn } from "@/lib/cn";
 import { activeLocale, t } from "@/lib/i18n";
 import { localizedCard } from "@/lib/widget-text";
+import { usePendingHideOn } from "@/fork/pending-hide";
+import { readWidgetText } from "../../../shared/widget-text";
 import { useAdvancedMode } from "@/lib/interface-mode";
 import {
   PHONE_PAIRING_ACTION, widgetActions, widgetFields, widgetInitialValues, widgetScope, widgetString, type WidgetField, type WidgetNode, type WidgetOther, type WidgetPayload,
@@ -43,9 +45,11 @@ function isEmpty(field: WidgetField, values: WidgetValues, other: WidgetOther): 
  * `inline`: drawn inside a reply, whose message is the surface, so the card brings no frame or width cap of its own. */
 export function WidgetMessage({ botId, threadId, message, viewOnly, inline }: { botId: string; threadId?: string; message: Message; viewOnly?: boolean; inline?: boolean }) {
   const simple = !useAdvancedMode();
+  const briefShown = usePendingHideOn("chatBrief");
   const serverCard = (message as { serverCard?: true }).serverCard === true;
   const locale = activeLocale();
   const payload = useMemo(() => (message.widget?.root ? localizedCard(message.widget, serverCard, locale) : message.widget), [message.widget, serverCard, locale]);
+  if (!briefShown && serverCard && readWidgetText(payload?.root?.i18n)?.title?.key === "brief.card.title") return null;
   if (!payload?.root || typeof payload.root !== "object" || typeof payload.root.type !== "string") {
     return message.text
       ? <div data-chat-bubble={simple ? "simple" : ""} className={plainBotBubble(simple)}>{message.text}</div>

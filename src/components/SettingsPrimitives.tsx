@@ -3,11 +3,17 @@ import { ArrowUpRight, Check, ChevronRight, Copy, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useCopyFeedback } from "@/lib/copy-text";
 import { t } from "@/lib/i18n";
+import { PendingSource } from "@/fork/pending-hide";
 
 /** True inside the Settings window: every primitive draws the one Settings look (cards with edges, 44/64 px rows). */
 export const SettingsLook = createContext(false);
 
 const InCard = createContext(false);
+
+/** A moved row names its old home, when the pending page is drawing it. */
+function withSource(prefix: string | null, title: string): string {
+  return prefix ? `${prefix}${title}` : title;
+}
 
 /** A card: radius 12 on the card fill, with its 0.5 px edge drawn as an inset hairline above the rows (a border this thin
  * is rounded up to a whole pixel on some screens, which made cards read heavier than their 0.5 px dividers). */
@@ -118,6 +124,8 @@ export function SettingRow({
   inertText?: string;
 }) {
   const titleId = useId();
+  const source = useContext(PendingSource);
+  const shownTitle = withSource(source, title);
   if (useContext(SettingsLook)) {
     const quiet = inert != null && inert !== false;
     return (
@@ -129,7 +137,7 @@ export function SettingRow({
             on the whole block, so an inert row's 40% control lines up with the row, not its first line. */}
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-6 gap-y-3">
           <div className="flex min-w-[min(100%,7rem)] flex-1 flex-col">
-            <div id={titleId} className={cn("flex min-w-0 items-center gap-1.5 text-[14px] leading-5", quiet ? "text-ink-secondary" : "text-ink")}>{title}{tag && <SettingsTag>{tag}</SettingsTag>}</div>
+            <div id={titleId} className={cn("flex min-w-0 items-center gap-1.5 text-[14px] leading-5", quiet ? "text-ink-secondary" : "text-ink")}>{shownTitle}{tag && <SettingsTag>{tag}</SettingsTag>}</div>
             {subtitle && <div className="mt-0.5 text-[13px] leading-[18px] text-ink-secondary">{subtitle}</div>}
             {message && <div className="mt-1 text-[12px] leading-4 text-ink-secondary">{message}</div>}
             {quiet && <div data-settings-reason="" className="mt-1 text-[12px] leading-4 text-ink-secondary">{inert}</div>}
@@ -145,7 +153,7 @@ export function SettingRow({
     <div role="group" aria-labelledby={titleId} className={cn("px-4", className)}>
       <div className="grid min-w-0 grid-cols-1 items-center gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-6">
         <div className="min-w-0">
-          <div id={titleId} className="text-[14px] font-medium text-ink">{title}</div>
+          <div id={titleId} className="text-[14px] font-medium text-ink">{shownTitle}</div>
           {subtitle && <div className="mt-1 text-[12px] leading-relaxed text-pretty text-ink-secondary">{subtitle}</div>}
         </div>
         <div className="min-w-0 sm:max-w-[240px]">{children}</div>
@@ -220,12 +228,13 @@ export function SettingsLinkRow({ title, subtitle, value, badge, leading, extern
   onClick: () => void;
   data?: Record<string, string>;
 }) {
+  const source = useContext(PendingSource);
   return (
     <button type="button" onClick={onClick} {...data}
       className="group flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
       {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[14px] leading-5 text-ink">{title}</span>
+        <span className="text-[14px] leading-5 text-ink">{withSource(source, title)}</span>
         {subtitle && <span className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
       </span>
       <span className="ml-3 flex shrink-0 items-center gap-1.5 text-[13px] leading-5 text-ink-secondary">
@@ -250,13 +259,14 @@ export function SettingsFoldRow({ id, title, subtitle, value, leading, open, onT
   onToggle: () => void;
   children?: ReactNode;
 }) {
+  const source = useContext(PendingSource);
   return <>
     <div data-settings-disclosure={id} data-settings-fold="">
       <button type="button" aria-expanded={open} onClick={onToggle}
         className="group flex min-h-11 w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-menu-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none">
         {leading !== undefined && <span data-settings-slot="" className={SLOT}>{leading}</span>}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[14px] leading-5 text-ink">{title}</span>
+          <span className="text-[14px] leading-5 text-ink">{withSource(source, title)}</span>
           {subtitle && <span className="text-[13px] leading-[18px] text-pretty text-ink-secondary">{subtitle}</span>}
         </span>
         <span className="ml-3 flex shrink-0 items-center gap-1.5 text-[13px] leading-5 text-ink-secondary">

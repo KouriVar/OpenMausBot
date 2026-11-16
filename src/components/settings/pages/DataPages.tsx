@@ -14,13 +14,19 @@ import { WorkspaceBackupSettings } from "../../WorkspaceBackupSettings";
 import { WorkspacesSection } from "../../WorkspacesSection";
 import { useSettingsShell } from "../settings-shell";
 import { MoveSection } from "./PlacePages";
+import { PendingMovedNotice } from "@/fork/pending-moved";
 
 export function VaultPage() {
   return <div data-settings-block="saved" className="flex flex-col gap-6"><VaultSettings /></div>;
 }
 
-export function SpendingPage() {
+export function SpendingPageContent() {
   return <div data-settings-block="summary" className="flex flex-col gap-6"><AdminOnly note="settings.adminOnly.usage"><UsageSection /></AdminOnly></div>;
+}
+
+/** Every row moved to Settings → 排查 → 待隐藏功能. */
+export function SpendingPage() {
+  return <PendingMovedNotice menu="settings.page.spending" />;
 }
 
 export function ImportExportPage() {
@@ -38,7 +44,7 @@ export function ImportExportPage() {
   </AdminOnly>;
 }
 
-export function DataPage() {
+export function DataPageContent() {
   const { ctx } = useSettingsShell();
   return <>
     <SettingsGroup label={t("settings.data.storage")} block="storage">
@@ -47,6 +53,11 @@ export function DataPage() {
     {ctx.advanced && <ThreadCleanupSettings />}
     {!ctx.desktop && ctx.admin && <ActivitySection />}
   </>;
+}
+
+/** Every row moved to Settings → 排查 → 待隐藏功能. */
+export function DataPage() {
+  return <PendingMovedNotice menu="settings.page.data" />;
 }
 
 export function PeoplePage() {

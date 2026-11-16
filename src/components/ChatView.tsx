@@ -1,5 +1,6 @@
 import { createContext, memo, use, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch, type ReactNode } from "react";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { PHONE_LAYOUT, SIDEBAR_AUTO_HIDDEN, SIDEBAR_COMPACT, useMediaQuery } from "@/lib/use-media-query";
 import { ThreadLinkContext } from "@/components/ThreadLinkMenu";
 import { useShowThreads } from "@/lib/thread-preferences";
@@ -703,6 +704,9 @@ const MessagesList = memo(function MessagesList({
 }) {
   const { botId, threadId, botName, botColor, bots, hasMore, focus, showToolCalls, locale, simple = false } = useChatRows(), busy = use(ChatBusyContext);
   const dividerAccent = useBloubAccent({ id: botId, color: botColor });
+  const setupOfferShown = usePendingHideOn("chatSetupOffer");
+  const publishedPageShown = usePendingHideOn("chatPublishedPage");
+  const digestShown = usePendingHideOn("automationsDigests");
   const messages = useLiveTranscript(threadId, saved, transcript);
   // A finished turn keeps the bot's progress lines and folds only its tool steps under "Worked for", in both modes.
   const items = useMemo(() => groupTranscript(messages), [messages, locale]);
@@ -800,13 +804,13 @@ const MessagesList = memo(function MessagesList({
               return <ActivityChip message={m} place={place} />;
             }
             case "digest":
-              return showToolCalls ? <DigestChip message={m} /> : null;
+              return showToolCalls && digestShown ? <DigestChip message={m} /> : null;
             case "compaction":
               return <CompactionChip message={m} />;
             case "screen":
               return <ScreenFrame threadId={threadId} message={m} />;
             default: {
-              if (m.publishedPage) return <PublishedPageCard message={m} />;
+              if (m.publishedPage) return publishedPageShown ? <PublishedPageCard message={m} /> : null;
               const peer = peerLine(m) ?? peerRequest(m, botId);
               const user = m.role === "user" && !peer;
               if (!user && isPureLeakedSystemHarnessMessage(m.text) && !m.attachments?.length) return null;
@@ -847,7 +851,7 @@ const MessagesList = memo(function MessagesList({
             {newDay && <DaySeparator at={m.at} today={today} simple={simple} />}
             {divider}
             {m.automation && <AutomationCaption message={m} line={m.automation} botId={botId} />}{m.inbox && <InboxCaption message={m} />}
-            {isLiveReply(m) ? <StreamingReplyContext value>{row}</StreamingReplyContext> : row}{m.inbox?.answers && <InboxAnswers message={m} />}{m.inbox && <InboxCardSlot threadId={threadId} messageId={m.id} />}{m.setupOffer && <SetupOffer botId={botId} threadId={threadId} message={m} transcript={transcript} />}{m.savedSteps && <SavedStepsChip botId={botId} message={m} />}
+            {isLiveReply(m) ? <StreamingReplyContext value>{row}</StreamingReplyContext> : row}{m.inbox?.answers && <InboxAnswers message={m} />}{m.inbox && <InboxCardSlot threadId={threadId} messageId={m.id} />}{m.setupOffer && setupOfferShown && <SetupOffer botId={botId} threadId={threadId} message={m} transcript={transcript} />}{m.savedSteps && <SavedStepsChip botId={botId} message={m} />}
           </div>
         );
       })}

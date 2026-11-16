@@ -1,4 +1,5 @@
 import { FORK_BOT_SETTINGS_QUIET } from "@/fork/bot-panel";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { useState } from "react";
 import { AppWindow, AudioLines, Bell, ChevronRight, ExternalLink, Eye, FileText, MessageSquareText, ShieldCheck, Slack, Tag } from "lucide-react";
 
@@ -51,6 +52,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
   onEditInstructions?: (open: boolean) => void;
 }) {
   const { state, dispatch, flushBotPatches } = useStore();
+  const visibilityShown = usePendingHideOn("panelVisibility");
   const { capabilities, ready } = useDesktopCapabilities();
   const apps = useBotApps(bot);
   const { servers: allServers } = useMcpServers();
@@ -264,7 +266,7 @@ export function SettingsPage({ bot, derived, onOpen, editingInstructions = false
             <ExternalLink size={14} className="shrink-0 text-ink-tertiary" aria-hidden="true" />
           </a>
         )}
-        {choosesVisibility && (
+        {choosesVisibility && visibilityShown && (
           <NavRow
             data-panel-page="visibility"
             icon={Eye}

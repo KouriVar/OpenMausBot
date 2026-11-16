@@ -16,6 +16,7 @@ import { useDesktopCapabilities } from "../DesktopCapabilities";
 import { CloudBackendPicker } from "../CloudBackendPicker";
 import { placeManagedBy, worksOnChoices, WorksOnGrid, worksOnSelected, type WorksOnMode } from "../WorksOnGrid";
 import { Switch } from "../SettingsPrimitives";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { PhoneAppsCard } from "./PhoneAppsCard";
 import { ProposalStatus } from "./ProposalStatus";
 import { ToolGroupsCard } from "./ToolGroupsCard";
@@ -640,7 +641,11 @@ function DraftWorksOn({ bot, patch, seat }: { bot: Bot; patch: ReturnType<typeof
   const localReason = localComputerDisabledReason({ capabilities, providerSupportsLocal });
   const named = { ...bot, name: bot.name || t("sidebar.newBotSimple") };
   const simularConnected = useSimularBoxReady();
-  const options = worksOnChoices(state.config, capabilities).map(([mode, labelKey, descriptionKey, Icon]) => {
+  const cloudPlaceShown = usePendingHideOn("panelCloud");
+  const vmPlaceShown = usePendingHideOn("panelVm");
+  const options = worksOnChoices(state.config, capabilities)
+    .filter(([mode]) => mode === "cloud" ? cloudPlaceShown : mode === "vm" ? vmPlaceShown : true)
+    .map(([mode, labelKey, descriptionKey, Icon]) => {
     const view = placeViewFor(placeFacts({
       bot: named, place: mode ?? "auto", seat, config: state.config, instances: state.instances, simularConnected,
       local: {
@@ -678,6 +683,7 @@ export function AccessSection({
 }) {
   const { draft } = useBotEditor();
   const { state, dispatch } = useStore();
+  const webhooksShown = usePendingHideOn("panelWebhooks");
   const {
     patch,
     canUseConnectedApps,
@@ -836,9 +842,9 @@ export function AccessSection({
 
       {!draft && shows("xResearch") && <ResearchCard bot={bot} patch={patch} />}
 
-      {!draft && shows("webhooks") && <BotApiCard bot={bot} />}
+      {!draft && shows("webhooks") && webhooksShown && <BotApiCard bot={bot} />}
 
-      {!draft && shows("webhooks") && <div className="rounded-xl bg-card p-4">
+      {!draft && shows("webhooks") && webhooksShown && <div className="rounded-xl bg-card p-4">
         <div className="text-[15px] font-medium text-ink">{t("botAccess.webhooks.title")}</div>
         <div className="mt-0.5 text-[13px] text-ink-secondary">{t("botAccess.webhooks.description")}</div>
         <ProposalStatus bot={bot} kind="owner" />

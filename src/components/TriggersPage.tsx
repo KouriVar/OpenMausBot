@@ -19,6 +19,7 @@ import { FixButton, StatusMark } from "./automations/parts";
 import { RoutineEditor } from "./RoutineCalendarPage";
 import { Select } from "./Select";
 import { Switch } from "./SettingsPrimitives";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { TOOL_PAGE_TITLE, ToolPage, ToolPageActions, ToolPageHeader } from "./ToolPageShell";
 import { WebhookEditor } from "./WebhookTrigger";
 import { schedulableBots, useTeamPeople } from "@/state/team-people";
@@ -29,6 +30,8 @@ const FILTER_FROM = 9;
 /** Automations: every schedule and every "when another app sends something", each as one plain sentence. */
 export function TriggersPage({ onBack, onOpenRoom }: { onBack: () => void; onOpenRoom: (id: string) => void }) {
   const { state, dispatch } = useStore();
+  const webhooksShown = usePendingHideOn("automationsWebhooks");
+  const appTriggersShown = usePendingHideOn("automationsAppTriggers");
   const actions = useAllAutomationActions();
   const appTriggers = useAppTriggers();
   const backButtonRef = useRef<HTMLButtonElement>(null);
@@ -51,8 +54,13 @@ export function TriggersPage({ onBack, onOpenRoom }: { onBack: () => void; onOpe
   }, [focus]);
   useEffect(() => { backButtonRef.current?.focus({ preventScroll: true }); }, []);
 
-  const all = useMemo(() => automationsFrom({ routines: state.routines, webhooks: routinesOnly ? [] : state.webhooks, appTriggers: appTriggers.triggers, runs: state.routineRuns, bots: state.bots }),
-    [state.routines, state.webhooks, appTriggers.triggers, state.routineRuns, state.bots, routinesOnly]);
+  const all = useMemo(() => automationsFrom({
+    routines: state.routines,
+    webhooks: routinesOnly || !webhooksShown ? [] : state.webhooks,
+    appTriggers: appTriggersShown ? appTriggers.triggers : [],
+    runs: state.routineRuns,
+    bots: state.bots,
+  }), [state.routines, state.webhooks, appTriggers.triggers, state.routineRuns, state.bots, routinesOnly, webhooksShown, appTriggersShown]);
   const departments = filterableDepartments(state.bots, [...new Set([...(state.sections ?? []), ...state.bots.flatMap((bot) => bot.section ? [bot.section] : [])])]);
   const showDepartments = departments.names.length + (departments.hasGeneral ? 1 : 0) > 1;
   const activeDepartment = department === "all" || (department === GENERAL_DEPARTMENT ? departments.hasGeneral : departments.names.includes(department)) ? department : "all";

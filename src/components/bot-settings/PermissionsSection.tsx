@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { cn } from "@/lib/cn";
 import { useChiefStyle, setChiefStyle } from "@/fork/chief-style";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { CHIEF_STYLES, chiefMark } from "@/fork/chief-mark";
 import { t } from "@/lib/i18n";
 import { useOwnerOrAdmin } from "@/lib/use-owner-or-admin";
@@ -39,6 +40,7 @@ export function PermissionsSection({
   const [localAutoWarning, setLocalAutoWarning] = useState<string | null>(null);
   const [commandAllowlistTarget, setCommandAllowlistTarget] = useState<{ botId: string; botName: string } | null>(null);
   const shows = (part: PermissionsPart) => !parts || parts.includes(part);
+  const chiefShown = usePendingHideOn("panelTeamChief");
   // Fork: a Chief shows a crown or a department lead's flag; both are the same role, chosen here and kept on this computer.
   const chiefStyle = useChiefStyle(bot.id);
   const ChiefBadge = chiefMark(chiefStyle);
@@ -59,7 +61,7 @@ export function PermissionsSection({
 
   return (
     <div className="flex flex-col gap-4">
-      {shows("chief") && !team && <div
+      {shows("chief") && chiefShown && !team && <div
         className={cn(
           "rounded-xl border p-4",
           bot.chiefOfStaff ? "border-accent/40 bg-accent/10" : "border-hairline/40 bg-card",

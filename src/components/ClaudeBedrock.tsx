@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 
 import { api, useStore, type InstanceInfo } from "@/state/store";
@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { KEY_FIELD } from "./keys/KeyRow";
 import { PresetProviderMark } from "./ProviderIcons";
+import { PendingSource } from "@/fork/pending-hide";
 
 const INPUT = cn(KEY_FIELD, "font-sans");
 const TIER_PLACEHOLDER = {
@@ -181,12 +182,13 @@ function BedrockRow({ instance, onEdit }: { instance: InstanceInfo; onEdit: () =
 }
 
 export function ClaudeBedrockEndpoints() {
+  const source = useContext(PendingSource);
   const { state } = useStore();
   const instances = state.instances.filter((instance) => instance.claudeBedrock);
   const [open, setOpen] = useState<string | null>(null);
   return (
     <div data-claude-bedrock-endpoints="" className="mt-3 space-y-2">
-      <div className="text-[13px] leading-[18px] text-ink">{t("claudeBedrock.title")}</div>
+      <div className="text-[13px] leading-[18px] text-ink">{source}{t("claudeBedrock.title")}</div>
       <p className="text-[12px] leading-4 text-ink-secondary">{t("claudeBedrock.hint")}</p>
       {instances.length === 0
         ? <p className="text-[12px] leading-4 text-ink-secondary">{t("claudeBedrock.empty")}</p>

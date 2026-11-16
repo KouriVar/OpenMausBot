@@ -16,6 +16,7 @@ import { cn } from "@/lib/cn";
 import { BotAvatar } from "./Avatar";
 import { CallTargetButton, type CallButtonPlacement } from "./CallView";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { CALL_ENDPOINT_MS, speechBridge } from "@/lib/speech";
 import { useDesktopCapabilities } from "./DesktopCapabilities";
 import { isRoutineApproval, isSkillApproval, pendingApprovals, spokenApprovalPrompt } from "./PendingApproval";
@@ -29,7 +30,8 @@ type Phase = "listening" | "sending" | "working" | "speaking";
 /** `fill` (Simple composer): a round button in that colour, with its glyph in `ink`. */
 export function GroupCallButton({ group, members, placement, fill, ink }: { group: Group; members: Bot[]; placement?: CallButtonPlacement; fill?: string; ink?: string }) {
   const { capabilities, ready } = useDesktopCapabilities();
-  if (group.dm) return null;
+  const shown = usePendingHideOn("groupCall");
+  if (group.dm || !shown) return null;
   if (ready && !capabilities.dictation.available) return null;
   return (
     <CallTargetButton

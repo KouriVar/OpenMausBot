@@ -5,6 +5,7 @@ import { t } from "@/lib/i18n";
 import { api, ApiError } from "@/state/api";
 import { ANDROID_KEY_NAMES, AndroidNavButtons, fittedUnitPoint, type UnitPoint } from "./android-device-parts";
 import { PhoneScreenPanel } from "./PhoneScreenPanel";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { Select } from "./Select";
 import type { AndroidDeviceInput, AndroidDeviceStatus, AndroidUsbDevice } from "@/types/ogb";
 
@@ -243,7 +244,7 @@ export function AndroidDevicePanel({ status, serverPhones = false }: { status: A
             : t("computer.android.badState", { state: selected.state })}
         </div>
       ) : serverPhones ? (
-        <PhoneScreenPanel key={selected.serial} serial={selected.serial} name={deviceLabel(selected)} />
+        <PhoneScreenGate key={selected.serial} serial={selected.serial} name={deviceLabel(selected)} />
       ) : (
         <>
           <div
@@ -345,4 +346,10 @@ export function AndroidDevicePanel({ status, serverPhones = false }: { status: A
       </div>
     </div>
   );
+}
+
+/** The phone's mirrored screen: one排查 switch, drawn by AndroidDevicePanel. */
+function PhoneScreenGate({ serial, name }: { serial: string; name: string }) {
+  const shown = usePendingHideOn("panelPhoneScreen");
+  return shown ? <PhoneScreenPanel serial={serial} name={name} /> : null;
 }

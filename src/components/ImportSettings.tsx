@@ -246,7 +246,6 @@ export function ImportSettings({ client = setupImportApi, children }: { client?:
   if (useContext(SettingsLook)) {
     return (
       <SettingsRows>
-        <GrokImportSection />
         <AiAppsImport client={client} local={localSetupImport(state.config?.cloudHome === true)} />
         {children}
       </SettingsRows>
@@ -254,7 +253,6 @@ export function ImportSettings({ client = setupImportApi, children }: { client?:
   }
   return (
     <div className="flex flex-col gap-4">
-      <GrokImportSection />
       <AiAppsImport client={client} local={localSetupImport(state.config?.cloudHome === true)} />
       {children}
     </div>

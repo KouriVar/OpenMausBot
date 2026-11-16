@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { simularBoxReady, useMcpServers } from "@/lib/mcp-servers";
 import { useStore } from "@/state/store";
 import { t } from "@/lib/i18n";
+import { usePendingHideOn } from "@/fork/pending-hide";
 
 const BACKENDS = [
   ["box", "botAccess.cloud.boat"],
@@ -27,6 +28,8 @@ export function CloudBackendPicker({
   onChange: (backend: CloudBackend) => void;
 }) {
   const { state } = useStore();
+  const simularShown = usePendingHideOn("panelSimular");
+  const vpsShown = usePendingHideOn("panelVps");
   const { servers } = useMcpServers();
   const simularReady = simularBoxReady(servers);
   if (state.config?.cloudHome) return null;
@@ -35,7 +38,7 @@ export function CloudBackendPicker({
       <div className="text-[12px] font-medium text-ink">{compact ? t("botAccess.cloud.provider") : t("botAccess.cloud.backend")}</div>
       <div className="mt-0.5 text-[12px] text-ink-secondary">{descriptionOf(value, compact)}</div>
       <div className="mt-2 flex overflow-hidden rounded-lg border border-hairline/40">
-        {BACKENDS.map(([backend, labelKey], i) => {
+        {BACKENDS.filter(([backend]) => backend === "box" || (backend === "simular" ? simularShown : vpsShown)).map(([backend, labelKey], i) => {
           const blocked = backend === "simular" && !simularReady;
           return (
             <button

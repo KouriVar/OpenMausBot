@@ -17,7 +17,6 @@ import { PlaceLookRows } from "../../PlaceLookCard";
 import { DefaultBotSidebarRow } from "../../DefaultBotControls";
 import { InteractiveAnswersRow } from "@/fork/InteractiveAnswersRow";
 import { A2uiOutputRow } from "@/fork/A2uiOutputRow";
-import { AnalyticsRow } from "../../AnalyticsRow";
 import { ChatWidthRow, FontRow, SidebarToolsLayoutRow } from "../../AppearanceSelectRows";
 import {
   ColorUserBubblesRow, FollowUpRow, ForkAvatarStyleRow, LanguageRow, PinnedCirclesRow, RunCardRow, SendKeyRow, ShowThreadsRow,
@@ -151,9 +150,6 @@ export function GeneralPage() {
         <SettingsRows>{window.ogb?.openAtLogin ? <OpenAtLoginRow simple /> : <InertRow title={t("settings.openAtLogin.title")} control={<Switch checked={false} tabIndex={-1} aria-label={t("settings.openAtLogin.title")} />} />}</SettingsRows>
       </SettingsGroup>
     )}
-    <SettingsGroup label={t("settings.general.privacy")} block="privacy">
-      <SettingsRows><AnalyticsRow simple /></SettingsRows>
-    </SettingsGroup>
   </>;
 }
 

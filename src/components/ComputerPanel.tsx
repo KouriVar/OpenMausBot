@@ -1,5 +1,6 @@
 import { boatCapableEngine, cloudEngineOf } from "@/lib/remote-desktop";
 import { canWorkOnCloud } from "../../shared/cloud-computer";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { viewerTargetId } from "../../shared/desktop-viewer";
 import { Switch } from "./SettingsPrimitives";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
@@ -113,6 +114,9 @@ export function ComputerPanel({
   const threadBot = currentTaskBot(profileBot);
   const connectionKey = `${profileBot.id}:${profileBot.threadId}:${livePlace}:${profileBot.cloudBackend ?? "box"}:${threadBot.modelSelection.instanceId}`;
   const [autoSurface, setAutoSurface] = useState<{ key: string; surface: Bot["computer"] } | null>(null);
+  const cloudPlaceShown = usePendingHideOn("panelCloud");
+  const vmPlaceShown = usePendingHideOn("panelVm");
+  const androidShown = usePendingHideOn("panelAndroid");
   const autoSurfaceCurrent = autoSurface?.key === connectionKey;
   const surfaceReady = livePlace !== "auto" || autoSurfaceCurrent;
   const bot = { ...threadBot, computer: livePlace === "auto"
@@ -1117,7 +1121,9 @@ export function ComputerPanel({
   const cloudView = viewOf("cloud", cloudRefused);
   const autoView = viewOf("auto");
   const localHidden = pageOnRemoteServer(capabilities);
-  const placeOptions = worksOnChoices(state.config, capabilities).map(([mode, labelKey, descriptionKey, Icon]) => {
+  const placeOptions = worksOnChoices(state.config, capabilities)
+    .filter(([mode]) => mode === "cloud" ? cloudPlaceShown : mode === "vm" ? vmPlaceShown : true)
+    .map(([mode, labelKey, descriptionKey, Icon]) => {
     const selected = worksOnSelected(mode, profileBot.computer, capabilities);
     const managedBy = placeManagedBy(mode, profileBot.cloudBackend, managedPolicy);
     const view = mode === null ? autoView : mode === "cloud" ? cloudView : viewOf(mode);
@@ -1251,7 +1257,7 @@ export function ComputerPanel({
         <div {...tabPanelProps("files")} className={cn("flex min-h-0 flex-1 flex-col", TAB_PANEL_FOCUS)}>
           <ComputerFilesPane bot={bot} />
         </div>
-      ) : panelView === "android" && androidConnected ? (
+      ) : panelView === "android" && androidConnected && androidShown ? (
         <div {...tabPanelProps("android")} className={cn("flex-1 overflow-y-auto px-4 pt-2", TAB_PANEL_FOCUS)}>
           <AndroidDevicePanel status={androidStatus} serverPhones={usbPhoneTakeoverEnabled(state.config)} />
         </div>

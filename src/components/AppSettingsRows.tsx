@@ -14,7 +14,6 @@ import { setKeepAdvanced, useKeepAdvanced } from "@/fork/keep-advanced";
 import { BloubStudioButton } from "./BloubStudio";
 import { UsbPhoneTakeoverSettings } from "./UsbPhoneTakeoverSettings";
 import { MoreText, SettingRow, SettingsGroup, SettingsRows, Switch } from "./SettingsPrimitives";
-import { LearnedSkillsSettings } from "./ShareLearnedSkillsSettings";
 import { effortLabel } from "./ModelPicker";
 import { EFFORT_LEVELS, isEffortLevel } from "../../shared/wire";
 import { setColorUserBubbles, useColorUserBubbles } from "@/lib/user-bubble-preference";
@@ -472,7 +471,6 @@ export function ExperimentalFeaturesRow() {
             className="disabled:cursor-wait disabled:opacity-50"
           />
         </SettingRow>
-        <LearnedSkillsSettings />
         <UsbPhoneTakeoverSettings />
       </SettingsRows>
     </SettingsGroup>

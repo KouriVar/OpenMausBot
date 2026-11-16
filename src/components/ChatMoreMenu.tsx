@@ -3,6 +3,7 @@ import { Bug, CalendarClock, Copy, Cpu, Database, Download, Gauge, Globe, ListCh
 import { RiMenuSearchLine } from "@remixicon/react";
 import { currentTaskBot, openBotThread, useStore, visibleMessages, type Bot } from "@/state/store";
 import { useAdvancedMode } from "@/lib/interface-mode";
+import { usePendingHideOn } from "@/fork/pending-hide";
 import { useShowThreads } from "@/lib/thread-preferences";
 import { requestChatFind, useChatFindOpen } from "@/lib/chat-find";
 import { usageSummary } from "@/lib/chat-usage-summary";
@@ -47,12 +48,14 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
   const side = useConversationSide(profile);
   const threads = showThreads ? [] : orderedThreadList((side ? tasksOfSide(profile, side) : profile.tasks ?? []).filter((task) => !task.routineRunId));
   const sharing = shareChoices(profile, profile.tasks?.find((task) => task.threadId === bot.threadId), Boolean(useTeamName()));
-  const shareItems: SidebarMenuItem[] = [
+  const shareShown = usePendingHideOn("chatShare");
+  const inspectorShown = usePendingHideOn("chatInspector");
+  const shareItems: SidebarMenuItem[] = shareShown ? [
     ...(sharing.team ? [{ key: "share-team", label: t("conversationShare.withTeam"), icon: <Users size={16} />,
       onSelect: () => openConversationDialog({ kind: "team", botId: profile.id, threadId: bot.threadId }) }] : []),
     ...(sharing.person ? [{ key: "share-person", label: t("conversationShare.withPerson"), icon: <UserPlus size={16} />,
       onSelect: () => openConversationDialog({ kind: "person", botId: profile.id, threadId: bot.threadId }) }] : []),
-  ].map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item));
+  ].map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item)) : [];
   const selection = profile.modelSelection;
   const modelName = phoneHeader && selection
     ? state.instances.find((candidate) => candidate.instanceId === selection.instanceId)?.models.options.find((option) => option.id === selection.model)?.label ?? selection.model
@@ -197,7 +200,7 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       active: state.activityOpen,
       separatorBefore: !usage,
       onSelect: () => dispatch({ type: "toggleActivity" }),
-    } satisfies SidebarMenuItem, {
+    } satisfies SidebarMenuItem, ...(inspectorShown ? [{
       key: "inspector",
       label: t("chat.inspector"),
       icon: <Bug size={16} />,
@@ -205,7 +208,7 @@ export function useChatMoreItems(profile: Bot, phoneHeader = false): { items: Si
       // Simple mode keeps Activity and Inspector together, as the panel's menu draws them.
       separatorBefore: advanced,
       onSelect: () => dispatch({ type: "toggleInspector" }),
-    } satisfies SidebarMenuItem]),
+    } satisfies SidebarMenuItem] : [])]),
   ];
   return { items, on: findOpen || state.inspectorOpen || state.activityOpen };
 }

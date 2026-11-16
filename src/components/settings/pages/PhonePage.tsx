@@ -10,6 +10,12 @@ import { SettingsGroup, SettingsLinkRow, SettingsRows } from "../../SettingsPrim
 import { useCloudPhoneDestination } from "../../SidebarProfileMenu";
 import { useOtherPlaces } from "../settings-context";
 import { useSettingsShell } from "../settings-shell";
+import { PendingMovedNotice } from "@/fork/pending-moved";
+
+/** The page is empty now: every row moved to Settings → 排查 → 待隐藏功能. */
+export function PhonePage() {
+  return <PendingMovedNotice menu="settings.section.phoneDevices" />;
+}
 
 /** This computer's door to pairing with My Cloud: My Cloud opens with its pairing dialog and code. */
 function PairWithCloud() {
@@ -60,7 +66,7 @@ function OtherPlaces() {
   );
 }
 
-export function PhonePage() {
+export function PhonePageContent() {
   const { ctx, place } = useSettingsShell();
   const { state } = useStore();
   const focus = state.appSettingsPhonePairing;
