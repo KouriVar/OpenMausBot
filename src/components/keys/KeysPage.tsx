@@ -130,7 +130,7 @@ export function KeysPage({ bare = false, exclude = [] }: { bare?: boolean; exclu
   const { state } = useStore();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<ReadonlySet<KeySectionId>>(() => new Set(
-    KEY_SECTIONS.filter((section) => section.id === "ai" || KEY_CATALOG.some((entry) => entry.section === section.id && connected(entry, state.config)))
+    KEY_SECTIONS.filter((section) => section.id === "ai" || section.id === "voice" || KEY_CATALOG.some((entry) => entry.section === section.id && connected(entry, state.config)))
       .map((section) => section.id),
   ));
   const pageRef = useRef<HTMLDivElement>(null);
