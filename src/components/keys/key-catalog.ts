@@ -264,7 +264,7 @@ export function savedState(entry: KeyEntry, config: ConfigStatus | null | undefi
  * hidden. */
 export function keyHidden(id: KeyId, config: ConfigStatus | null | undefined): boolean {
   // This build reads replies with ElevenLabs or MiMo; the other two rows are gone from the page.
-  if (id === "fishAudio" || id === "geminiTts") return true;
+  if (id === "fishAudio" || id === "geminiTts" || id === "xai") return true;
   const provider = config?.live?.provider;
   return id === "liveCalls" && (provider === "azure" || provider === "fish" || provider === "gemini" || provider === "elevenlabs");
 }

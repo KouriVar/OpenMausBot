@@ -466,7 +466,12 @@ function ProviderRow({ instance, ready, open, onToggle, compact, children }: {
   </>;
 }
 
-const DEFAULT_PROVIDERS = new Set(["deepseek", "deepseekAgent", "opencodeGo", "grok", "grokAgent"]);
+/** The three providers this build keeps on the page, in this order. */
+const SIMPLE_PROVIDERS: ReadonlyArray<{ rank: number; matches: (instance: InstanceInfo) => boolean }> = [
+  { rank: 0, matches: (instance) => instance.instanceId === "magpie" || /magpie/i.test(instance.displayName) },
+  { rank: 1, matches: (instance) => instance.driverKind === "opencodeGo" || instance.instanceId === "opencodeGo" || /opencode/i.test(instance.displayName) },
+  { rank: 2, matches: (instance) => instance.driverKind === "grok" || instance.driverKind === "grokAgent" || instance.instanceId === "grok" || /^grok\b/i.test(instance.displayName) },
+];
 
 function SimpleEngines({ rows, isReady, renderEngine, more }: {
   rows: InstanceInfo[];
@@ -477,9 +482,14 @@ function SimpleEngines({ rows, isReady, renderEngine, more }: {
   const [opened, setOpened] = useState<string | null>(null);
   // A hidden provider is gone from the instance list, so without these rows nothing in Settings brings it back.
   const hidden = useHiddenProviders();
-  // The three providers this build keeps on the page; every other engine waits under More providers.
-  const featured = rows.filter((instance) => DEFAULT_PROVIDERS.has(instance.driverKind));
-  const others = rows.filter((instance) => !featured.includes(instance));
+  // Only Magpie, OpenCode Go and Grok are listed; every other engine stays configured but off this page.
+  const featured = rows
+    .flatMap((instance) => {
+      const found = SIMPLE_PROVIDERS.find((provider) => provider.matches(instance));
+      return found ? [{ instance, rank: found.rank }] : [];
+    })
+    .sort((left, right) => left.rank - right.rank)
+    .map((entry) => entry.instance);
   const row = (instance: InstanceInfo, compact: boolean) => {
     const open = opened === instance.instanceId;
     return <ProviderRow key={instance.instanceId} instance={instance} ready={isReady(instance)} open={open} compact={compact}
@@ -489,10 +499,9 @@ function SimpleEngines({ rows, isReady, renderEngine, more }: {
     <SettingsGroup label={t("settings.ai.providers")} actions={<RefreshEngines />}>
       <SettingsRows icons>
         {featured.map((instance) => row(instance, false))}
-        {others.length + hidden.length > 0 && (
-          <SettingsFoldRow id={more.id} title={t("settings.ai.moreProviders")} value={String(others.length + hidden.length)} open={more.open} onToggle={more.onToggle}
+        {hidden.length > 0 && (
+          <SettingsFoldRow id={more.id} title={t("settings.ai.moreProviders")} value={String(hidden.length)} open={more.open} onToggle={more.onToggle}
             leading={<span aria-hidden="true" />}>
-            {others.map((instance) => row(instance, true))}
             <HiddenProviderRows hidden={hidden} />
           </SettingsFoldRow>
         )}
