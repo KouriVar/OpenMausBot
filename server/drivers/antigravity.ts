@@ -14,6 +14,7 @@ import type {
 } from "../contracts.ts";
 import { createAcpDriver, type AcpConfig, type AcpSupport } from "./acp/core.ts";
 import {
+  antigravityClientInfo,
   antigravityProfileAuthenticated,
   antigravityProfileDirectory,
   antigravitySessionSetup,
@@ -27,6 +28,7 @@ import {
   validateAntigravityRuntime,
   verifyAntigravityBrowserHelper,
 } from "./antigravity-acp.ts";
+import { antigravityLimitFacts, watchAntigravityPromptOutcome } from "./antigravity-turn-outcome.ts";
 import { AntigravityAuthController } from "./antigravity-auth.ts";
 import {
   antigravityManagedInstallAvailable,
@@ -71,6 +73,10 @@ export function antigravitySignInError(error: unknown): boolean {
 
 const managedAsset = resolveAntigravityReleaseAsset();
 const runtimeProcesses = new AntigravityProcesses();
+/** Every model id an account here has been offered, beside the bundled catalog's. */
+const offeredModels = new Set<string>();
+/** The version of the runtime each instance's turns were last started on, known before it answers initialize. */
+const launchedVersions = new Map<string, string | null>();
 
 const support: AcpSupport = {
   driverKind: "antigravityAgent",
@@ -102,6 +108,7 @@ const support: AcpSupport = {
 
   resolveCommand: async (env, config, instanceId) => {
     const runtime = await resolveAntigravityRuntime(config.cli, env);
+    launchedVersions.set(instanceId, runtime.version);
     const profile = await prepareAntigravityProfile({ instanceId, runtime, baseEnv: env });
     if (profile.tempDirectory) scheduleAntigravityTempSweep(instanceId);
     return {
@@ -116,11 +123,13 @@ const support: AcpSupport = {
     const runtime = await resolveAntigravityRuntime(config.cli, env);
     const profile = await prepareAntigravityProfile({ instanceId, runtime, baseEnv: env });
     if (!(await antigravityProfileAuthenticated(profile))) throw new Error(support.loginNote);
-    return probeAntigravityModels({
+    const catalog = await probeAntigravityModels({
       runtime,
       profile,
       fallbackDefault: currentEngineCatalog("antigravity").default,
     });
+    for (const option of catalog.options) offeredModels.add(option.id);
+    return catalog;
   },
 
   pickAuthMethod: (methods) => methods.some((method) => method.id === "oauth-personal")
@@ -136,6 +145,10 @@ const support: AcpSupport = {
   },
   processStarted: (child, instanceId) => runtimeProcesses.track(instanceId, child),
   sessionSetupParams: antigravitySessionSetup,
+  // One model family's quota is not the account's: Gemini and the models that share another allowance keep running.
+  limitFacts: (_text, model) => antigravityLimitFacts(model, [...support.models.options.map((option) => option.id), ...offeredModels]),
+  clientInfo: (instanceId) => antigravityClientInfo(launchedVersions.get(instanceId)),
+  promptOutcome: (instanceId, sessionId) => watchAntigravityPromptOutcome(support.displayName, antigravityProfileDirectory(instanceId), sessionId),
   requireAuthenticationBeforeSpawn: true,
   isAuthenticated: async (env, config, instanceId) => {
     try {

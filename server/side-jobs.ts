@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { helperModelAllowed } from "../shared/wire.ts";
 import { AMBIGUITY_FAST_MODEL } from "../shared/composer-ambiguity.ts";
+import { backgroundTextSlots, type JobSlots } from "./job-slots.ts";
 import type { ProviderAdapter, ProviderInstance, SmallModelFallback, TextGenerationOptions } from "./contracts.ts";
 import { refusesModel } from "./quick-model-fallback.ts";
 import { fastModelFor } from "./turn-route.ts";
@@ -53,8 +54,12 @@ export interface SideJobBot {
 
 export interface SideJobText {
   via: "engine" | "helper";
-  generateText: (prompt: string, options?: Pick<TextGenerationOptions, "signal" | "timeoutMs">) => Promise<string>;
+  generateText: (prompt: string, options?: SideJobTextOptions) => Promise<string>;
 }
+
+/** `waiting`: the call has to wait for a free slot (other bots' background calls); `started`: it starts now, after waiting
+ * or at once. A call that is never queued calls neither. */
+export type SideJobTextOptions = Pick<TextGenerationOptions, "signal" | "timeoutMs"> & { waiting?(): void; started?(): void };
 
 export interface SideJobsDeps {
   bot: (botId: string) => SideJobBot | null | undefined;
@@ -70,6 +75,8 @@ export interface SideJobsDeps {
   assertWithinBudget: () => void;
   book: (row: Omit<UsageRow, "at" | "costSource">, tokensReported: boolean, notificationThreadId: string) => void;
   log?: (line: string) => void;
+  /** How many background jobs run at once, across bots. */
+  slots?: JobSlots;
 }
 
 export interface SideJobs {
@@ -88,6 +95,11 @@ function ownCall(job: SideJob, instance: SideJobInstance): TextCall | undefined 
   const call = ONE_OFF_ONLY.has(job) ? instance.generateText : instance.generateText ?? instance.generateMemoryText;
   return call?.bind(instance);
 }
+
+/** A turn or a person is waiting on these, so they start at once. */
+const NEVER_QUEUED: ReadonlySet<SideJob> = new Set(["compaction", "representative", "status-reply"]);
+/** A person sees these soon (a new bot's suggestions card): they wait ahead of memory upkeep and skill review. */
+const SEEN_SOON: ReadonlySet<SideJob> = new Set(["setup-suggestions"]);
 
 export function createSideJobs(deps: SideJobsDeps): SideJobs {
   // Logged once per change, not once per call.
@@ -186,52 +198,61 @@ export function createSideJobs(deps: SideJobsDeps): SideJobs {
     return { instance, call: instance.generateText.bind(instance), ...(helper.model ? { model: helper.model } : {}) };
   }
 
-  return {
-    text(job, botId, at = {}) {
-      const bot = deps.bot(botId);
-      const analysis = at.instance ? undefined : at.analysisModel;
-      const requested = analysis ? deps.instance(analysis.instanceId) : null;
-      const usable = requested && (requested.models.options.some((option) => option.id === analysis!.model) || requested.driverKind === "opencodeGo") ? requested : null;
-      const routed = !usable && job === "composer-ambiguity" && Boolean(bot && (bot.modelSelection.model?.startsWith("auto/") || bot.modelSelection.instanceId === "magpie"));
-      const direct = routed ? deps.analysisDirect?.() : undefined;
-      const directInstance = direct ? deps.instance(direct.instanceId) : null;
-      const directUsable = direct && directInstance && (directInstance.models.options.some((option) => option.id === direct.model) || directInstance.driverKind === "opencodeGo") ? direct : undefined;
-      const own = at.instance ?? usable ?? (directUsable ? deps.instance(directUsable.instanceId) : null) ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
-      if (!bot || !own || deps.refusal(own)) return null;
-      const analysisModel = usable && analysis ? analysis.model : directUsable?.model;
-      // The review's changes are written with the bot's own skill tools, whoever read the conversation.
-      if (job === "skill-review" && own.adapter.capabilities.agentsMcp !== true) return null;
-      const call = ownCall(job, own);
-      if (call) {
-        // The summary belongs to a turn that already passed the spend limit and is not booked on its own.
-        if (job === "compaction") return { via: "engine", generateText: call };
-        if (job === "setup-suggestions") {
-          const quick = quickModel(bot, own);
-          const write = booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...quick }));
-          return { via: "engine", generateText: quick.model ? rememberRefusal(write, own, quick.model) : write };
-        }
-        if (job === "composer-ambiguity") {
-          const model = analysisModel ?? AMBIGUITY_FAST_MODEL;
-          const provider = model.includes("/") ? model.slice(0, model.indexOf("/")) : own.driverKind;
-          deps.log?.(`[omb-analysis] instance=${own.instanceId} driver=${own.driverKind} provider=${provider} model=${model}`);
-          const write = (named?: string) => booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...(named ? { model: named } : {}) }));
-          const primary = write(model);
-          return { via: "engine", generateText: async (prompt, options) => {
-            try {
-              return await primary(prompt, options);
-            } catch (error) {
-              if (!analysisModel && !directUsable) throw error;
-              deps.log?.(`[omb-analysis] fallback=${own.instanceId} the named model failed; retrying the engine's own default`);
-              return write(undefined)(prompt, options);
-            }
-          } };
-        }
-        return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
+  const slots = deps.slots ?? backgroundTextSlots;
+  const queued = (job: SideJob, found: SideJobText | null): SideJobText | null => found && !NEVER_QUEUED.has(job)
+    ? { via: found.via, generateText: (prompt, { waiting, started, ...options } = {}) => slots.run(() => {
+      started?.();
+      return found.generateText(prompt, options);
+    }, { signal: options.signal, interactive: SEEN_SOON.has(job), onWait: waiting }) }
+    : found;
+
+  function find(job: SideJob, botId: string, at: { instance?: SideJobInstance; analysisModel?: { instanceId: string; model: string } }): SideJobText | null {
+    const bot = deps.bot(botId);
+    const analysis = at.instance ? undefined : at.analysisModel;
+    const requested = analysis ? deps.instance(analysis.instanceId) : null;
+    const usable = requested && (requested.models.options.some((option) => option.id === analysis!.model) || requested.driverKind === "opencodeGo") ? requested : null;
+    const routed = !usable && job === "composer-ambiguity" && Boolean(bot && (bot.modelSelection.model?.startsWith("auto/") || bot.modelSelection.instanceId === "magpie"));
+    const direct = routed ? deps.analysisDirect?.() : undefined;
+    const directInstance = direct ? deps.instance(direct.instanceId) : null;
+    const directUsable = direct && directInstance && (directInstance.models.options.some((option) => option.id === direct.model) || directInstance.driverKind === "opencodeGo") ? direct : undefined;
+    const own = at.instance ?? usable ?? (directUsable ? deps.instance(directUsable.instanceId) : null) ?? (bot ? deps.instance(bot.modelSelection.instanceId) : null);
+    if (!bot || !own || deps.refusal(own)) return null;
+    const analysisModel = usable && analysis ? analysis.model : directUsable?.model;
+    // The review's changes are written with the bot's own skill tools, whoever read the conversation.
+    if (job === "skill-review" && own.adapter.capabilities.agentsMcp !== true) return null;
+    const call = ownCall(job, own);
+    if (call) {
+      // The summary belongs to a turn that already passed the spend limit and is not booked on its own.
+      if (job === "compaction") return { via: "engine", generateText: call };
+      if (job === "setup-suggestions") {
+        const quick = quickModel(bot, own);
+        const write = booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...quick }));
+        return { via: "engine", generateText: quick.model ? rememberRefusal(write, own, quick.model) : write };
       }
-      if (!helperModelAllowed(bot)) return null;
-      const helper = usableHelper();
-      if (!helper) return null;
-      return { via: "helper", generateText: booked(job, bot, helper.instance, helper.call, { kind: "helper", botId: bot.id, job }, () => (helper.model ? { model: helper.model } : {})) };
-    },
+      if (job === "composer-ambiguity") {
+        const model = analysisModel ?? AMBIGUITY_FAST_MODEL;
+        const provider = model.includes("/") ? model.slice(0, model.indexOf("/")) : own.driverKind;
+        deps.log?.(`[omb-analysis] instance=${own.instanceId} driver=${own.driverKind} provider=${provider} model=${model}`);
+        const write = (named?: string) => booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own), ...(named ? { model: named } : {}) }));
+        const primary = write(model);
+        return { via: "engine", generateText: async (prompt, options) => {
+          try {
+            return await primary(prompt, options);
+          } catch (error) {
+            if (!analysisModel && !directUsable) throw error;
+            deps.log?.(`[omb-analysis] fallback=${own.instanceId} the named model failed; retrying the engine's own default`);
+            return write(undefined)(prompt, options);
+          }
+        } };
+      }
+      return { via: "engine", generateText: booked(job, bot, own, call, { kind: "bot", botId: bot.id }, () => ({ fallback: ownFallback(bot, own) })) };
+    }
+    if (!helperModelAllowed(bot)) return null;
+    const helper = usableHelper();
+    if (!helper) return null;
+    return { via: "helper", generateText: booked(job, bot, helper.instance, helper.call, { kind: "helper", botId: bot.id, job }, () => (helper.model ? { model: helper.model } : {})) };
+  }
+  return {
+    text: (job, botId, at = {}) => queued(job, find(job, botId, at)),
   };
 }
