@@ -23,6 +23,7 @@ import { OllamaModels, ollamaShortStatus } from "./OllamaStatusLine";
 import { isAddedServer } from "@/lib/openai-compat-endpoints";
 import { InstanceProviderMark } from "./ProviderIcons";
 import { HiddenEngines, HiddenProviderRows, useHiddenProviders } from "./HiddenProviders";
+import { AdminOnly } from "./AdminOnly";
 
 export { HiddenEngines };
 
@@ -473,23 +474,28 @@ const SIMPLE_PROVIDERS: ReadonlyArray<{ rank: number; matches: (instance: Instan
   { rank: 2, matches: (instance) => instance.driverKind === "grok" || instance.driverKind === "grokAgent" || instance.instanceId === "grok" || /^grok\b/i.test(instance.displayName) },
 ];
 
-function SimpleEngines({ rows, isReady, renderEngine, more }: {
+function SimpleEngines({ rows, isReady, renderEngine, more, accountsOnly = false }: {
   rows: InstanceInfo[];
   isReady: (instance: InstanceInfo) => boolean;
   renderEngine: (instance: InstanceInfo, bare?: boolean) => ReactNode;
   more: { id: string; open: boolean; onToggle: () => void };
+  /** The chat's sign-in card: every account row in view, no fold and no hidden providers. */
+  accountsOnly?: boolean;
 }) {
   const [opened, setOpened] = useState<string | null>(null);
   // A hidden provider is gone from the instance list, so without these rows nothing in Settings brings it back.
-  const hidden = useHiddenProviders();
-  // Only Magpie, OpenCode Go and Grok are listed; every other engine stays configured but off this page.
-  const featured = rows
-    .flatMap((instance) => {
-      const found = SIMPLE_PROVIDERS.find((provider) => provider.matches(instance));
-      return found ? [{ instance, rank: found.rank }] : [];
-    })
-    .sort((left, right) => left.rank - right.rank)
-    .map((entry) => entry.instance);
+  const allHidden = useHiddenProviders(), hidden = accountsOnly ? [] : allHidden;
+  // Only Magpie, OpenCode Go and Grok are listed on the settings page; the chat's sign-in card lists the accounts a
+  // person signs in to, whatever provider they belong to.
+  const featured = accountsOnly
+    ? rows.filter((instance) => isReady(instance) || instance.authentication !== undefined)
+    : rows
+      .flatMap((instance) => {
+        const found = SIMPLE_PROVIDERS.find((provider) => provider.matches(instance));
+        return found ? [{ instance, rank: found.rank }] : [];
+      })
+      .sort((left, right) => left.rank - right.rank)
+      .map((entry) => entry.instance);
   const row = (instance: InstanceInfo, compact: boolean) => {
     const open = opened === instance.instanceId;
     return <ProviderRow key={instance.instanceId} instance={instance} ready={isReady(instance)} open={open} compact={compact}
@@ -510,12 +516,8 @@ function SimpleEngines({ rows, isReady, renderEngine, more }: {
   );
 }
 
-export function EnginesSettings({ simple = false, more }: { simple?: boolean; more?: { id: string; open: boolean; onToggle: () => void } }) {
-  const { state } = useStore();
-  // Leaving Settings ends the "now uses the copy OpenMausBot installed" lines.
-  useEffect(() => forgetAppCopySwitches, []);
-  const listed = state.instances.filter((i) => i.readOnly || i.cli !== undefined || i.cliDefault !== undefined || i.snapshot.state === "unavailable" || isApiKeyEngine(i) || i.claudeEndpoint !== undefined || i.claudeBedrock !== undefined || i.codexEndpoint !== undefined);
-  // A provider's accounts share one card, which takes the place of its first account.
+/** A provider's accounts share one card, which takes the place of its first account. */
+function groupedAccounts(listed: InstanceInfo[]) {
   const groups = new Map<AccountGroup, InstanceInfo[]>();
   for (const instance of listed) {
     const group = accountGroupOf(instance);
@@ -525,7 +527,30 @@ export function EnginesSettings({ simple = false, more }: { simple?: boolean; mo
     const group = accountGroupOf(instance);
     return group && groups.get(group)?.[0] === instance ? group : null;
   };
-  const rows = listed.filter((instance) => !accountGroupOf(instance) || groupOf(instance));
+  return { groups, groupOf, rows: listed.filter((instance) => !accountGroupOf(instance) || groupOf(instance)) };
+}
+
+/** The chat's AI sign-in card: Simple Providers with only the accounts a person signs in to (Claude, ChatGPT or Codex,
+ * Antigravity), for an owner or admin. */
+export function AiSignInSettings() {
+  const { state } = useStore();
+  const { groups, groupOf, rows } = groupedAccounts(state.instances.filter((instance) => accountGroupOf(instance) !== null || (instance.driverKind === "antigravityAgent" && !instance.readOnly)));
+  const isReady = (instance: InstanceInfo) => { const group = groupOf(instance); return group ? accountsReady(groups.get(group)!) : engineReady(instance); };
+  const renderEngine = (instance: InstanceInfo, bare = false) => {
+    const group = groupOf(instance);
+    return group ? <AccountsCard group={group} accounts={groups.get(group)!} bare={bare} /> : <EngineRow instance={instance} bare={bare} />;
+  };
+  return <AdminOnly><div data-ai-sign-in="">
+    <SimpleEngines rows={rows} isReady={isReady} renderEngine={renderEngine} accountsOnly more={{ id: "ai-sign-in-more", open: false, onToggle: () => {} }} />
+  </div></AdminOnly>;
+}
+
+export function EnginesSettings({ simple = false, more }: { simple?: boolean; more?: { id: string; open: boolean; onToggle: () => void } }) {
+  const { state } = useStore();
+  // Leaving Settings ends the "now uses the copy OpenMausBot installed" lines.
+  useEffect(() => forgetAppCopySwitches, []);
+  const listed = state.instances.filter((i) => i.readOnly || i.cli !== undefined || i.cliDefault !== undefined || i.snapshot.state === "unavailable" || isApiKeyEngine(i) || i.claudeEndpoint !== undefined || i.claudeBedrock !== undefined || i.codexEndpoint !== undefined);
+  const { groups, groupOf, rows } = groupedAccounts(listed);
   // A hidden ordinary Claude instance takes its card, and the endpoint section inside it, away. A hosted
   // workspace lists every engine read-only and refuses instance changes, so there the section has no Add.
   const hostedWorkspace = rows.length > 0 && rows.every((instance) => instance.readOnly);

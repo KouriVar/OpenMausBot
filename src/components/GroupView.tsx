@@ -84,7 +84,7 @@ import { CHAT_PANE_CLIP, FORK_CHAT_PANE_CLIP } from "@/fork/ui-batch-1111";
 import { awaitedMemberId, showWorkingDots } from "@/lib/turn-tail";
 import { turnNowPhrases } from "@/lib/live-activity"; import { useTurnLive } from "@/state/turn-status"; import { isLiveReply, StreamingReplyContext, streamedReply, useLiveTranscript } from "@/state/live-reply";
 import { splitTranscriptAttachments } from "@/lib/composer-attachments";
-import { useTranscriptViewport } from "@/hooks/use-transcript-viewport";
+import { useTranscriptViewport } from "@/hooks/use-transcript-viewport"; import { staysInView } from "../../shared/person-wait";
 import { useUnreadDivider } from "@/hooks/use-unread-divider";
 import { unreadMessageIds } from "@/lib/unread-divider";
 import { NewMessagesDivider } from "./NewMessagesDivider";
@@ -989,7 +989,7 @@ export function GroupView({ group, inForkPanel = false }: { group: Group; inFork
     messages: group.messages,
     pinOn: [group.busyBotId, group.working, composerDock.pad],
     transcriptShown: !setupPending,
-    hasMore: group.hasMore,
+    hasMore: group.hasMore, rests: staysInView,
   });
   const unreadDivider = useUnreadDivider({ threadId: group.threadId, messages: group.messages, following });
 
