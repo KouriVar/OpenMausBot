@@ -44,16 +44,8 @@ export function DigestChip({ message }: { message: Message }) {
   );
 }
 
-const COMPACTION_CHIP = "max-w-[min(var(--chat-bubble-max),var(--chat-bubble-pct))] rounded-xl border border-hairline/40 bg-panel px-3 py-2 text-[12px] text-ink-secondary";
-
-export function CompactionChip({ message }: { message: Message }) {
-  if (!message.compaction) return message.engineCompaction ? (
-    <div className={COMPACTION_CHIP} data-testid="engine-compaction-chip">
-      <p className="font-medium">{t("chat.engineCompactionTitle")}</p>
-      <p className="mt-1">{t("chat.engineCompactionHint")}</p>
-    </div>
-  ) : null;
-  if (message.compaction.fresh) {
+export function CompactionChip({ message }: { message: Message; onNewChat?: () => void }) {
+  if (message.compaction?.fresh) {
     return (
       <div role="separator" data-testid="fresh-start-divider" className="flex w-full items-center gap-3 py-1 text-[12px] text-ink-secondary">
         <span aria-hidden="true" className="h-px flex-1 bg-hairline" />

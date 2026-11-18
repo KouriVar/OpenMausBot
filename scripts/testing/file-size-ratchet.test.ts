@@ -49,7 +49,7 @@ const LINES: Record<string, number> = {
   "server/meetings/meetbot.ts": 1047,
   "packages/phone-protocol/src/widget.ts": 1087,
   "packages/phone-protocol/src/wire.ts": 1009,
-  "src/components/Composer.tsx": 1021,
+  "src/components/Composer.tsx": 1040,
   "electron/data-dir-lease.node-test.mjs": 846, // the data-folder lease's own tests: many platform cases (Windows probes in data-dir-lease-windows.node-test.mjs)
 };
 

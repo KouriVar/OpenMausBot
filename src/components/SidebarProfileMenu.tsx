@@ -58,6 +58,7 @@ import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
 import { ACCOUNT_MENU_PHONE_APP, ACCOUNT_MENU_SUPPORT, FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
+import { useAnnouncements } from "./announcements/use-announcements";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
 import { inboxFixes, waitingCount } from "./inbox/inbox-view";
@@ -347,8 +348,7 @@ export function phoneMenuItems({
   ];
 }
 
-export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPublishedApps, onPanel, panels = [], archived }: {
-  activeView: string;
+export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onAutomations, onTeamMap, onFiles, onPublishedApps, onTeamFiles, onPanel, panels = [], archived }: {  activeView: string;
   /** the open pinned panel, so its row reads as current */
   activePanel?: string | null;
   automationsNeedYou: boolean;
@@ -361,6 +361,9 @@ export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onA
   /** opens a pinned web panel; the sidebar's own rows for them moved into this menu */
   onPanel?: (id: string) => void;
   panels?: Array<{ id: string; name: string }>;
+
+  /** set only on a Team Cloud: its shared folder */
+  onTeamFiles?: () => void;
   archived?: ArchivedBots;
 }): SidebarMenuItem[] {
   return [
@@ -369,26 +372,33 @@ export function toolMenuItems({ activeView, activePanel, automationsNeedYou, onA
     ...(onFiles ? [{ key: "files", label: t("sidebar.nav.files"), icon: <FolderOpen size={16} />, active: activeView === "files", onSelect: onFiles }] : []),
     ...(onPublishedApps ? [{ key: "published-apps", label: t("sidebar.nav.publishedApps"), icon: <Rocket size={16} />, active: activeView === "published-apps", onSelect: onPublishedApps }] : []),
     ...(onPanel ? panels.map((panel) => ({ key: `web-panel-${panel.id}`, label: panel.name, icon: <Compass size={16} />, active: activeView === "web-panel" && activePanel === panel.id, onSelect: () => onPanel(panel.id) })) : []),
+
+    ...(onTeamFiles ? [{ key: "team-files", label: t("sidebar.nav.teamFiles"), icon: <FolderOpen size={16} />, active: activeView === "team-files", onSelect: onTeamFiles }] : []),
     ...(archived?.count ? [{ key: "archived", label: t("sidebar.archived.title"), icon: <Archive size={16} />, value: String(archived.count), onSelect: archived.open }] : []),
   ];
 }
 
 /** The account button's name: the person, then whatever its dot is raised for, then the move to My Cloud while it goes.
  * A failing move and automations that need the person share one segment. */
-export function accountLabel(name: string, { automationsNeedYou, update, move = null }: { automationsNeedYou: boolean; update: string | null; move?: AccountMoveKind | null }): string {
+export function accountLabel(name: string, { automationsNeedYou, update, move = null, announcements = false }: {
+  automationsNeedYou: boolean; update: string | null; move?: AccountMoveKind | null; announcements?: boolean;
+}): string {
   const needsYou = move === "failed"
     ? t(automationsNeedYou ? "sidebar.account.moveAndAutomationsNeedYou" : "sidebar.account.moveNeedsYou")
     : automationsNeedYou ? t("sidebar.account.automationsNeedYou") : "";
-  return [name, needsYou, move === "sending" ? t("sidebar.account.moving") : "", update ?? ""].filter(Boolean).join(" · ");
+  return [name, needsYou, move === "sending" ? t("sidebar.account.moving") : "", update ?? "", announcements ? t("announcements.new") : ""].filter(Boolean).join(" · ");
 }
 
 export type AccountDot = "danger" | "accent";
 const DOT_COLOR: Record<AccountDot, string> = { danger: "bg-danger", accent: "bg-accent" };
 
-/** The avatar's dot: red while automations, a failed update or the failing move to My Cloud need the person, the accent
- * for an update; none for the move on its way or done (what it brought waits in the menu). */
-export function accountDot({ automationsNeedYou, update, move }: { automationsNeedYou: boolean; update: "failed" | "news" | null; move: AccountMoveKind | null }): AccountDot | null {
-  if (automationsNeedYou || update === "failed" || move === "failed") return "danger";
+/** The avatar's dot: red while automations, a failed update or the failing move to My Cloud need the person, or while
+ * an announcement is new to them; the accent for an update; none for the move on its way or done (what it brought waits
+ * in the menu). */
+export function accountDot({ automationsNeedYou, update, move, announcements = false }: {
+  automationsNeedYou: boolean; update: "failed" | "news" | null; move: AccountMoveKind | null; announcements?: boolean;
+}): AccountDot | null {
+  if (automationsNeedYou || update === "failed" || move === "failed" || announcements) return "danger";
   return update ? "accent" : null;
 }
 
@@ -608,6 +618,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   iconOnly?: boolean; rail?: boolean; circle?: boolean; bar?: boolean; menuActions?: SidebarMenuItem[]; simple?: SimpleAccount;
 } = {}) {
   const { state, dispatch } = useStore();
+  const news = useAnnouncements();
   const simple = account !== undefined;
   const [, setMenuOpen] = useState(false);
   const phone = useSidebarPhoneStatus();
@@ -742,10 +753,10 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
   const needsYou = account?.automationsNeedYou === true;
   const initials = profileInitials(profile);
   const nameless = simple && initials === "?" ? <UserRound size={18} strokeWidth={1.75} aria-hidden /> : undefined;
-  const label = accountLabel(name, { automationsNeedYou: needsYou, update: simple && noteworthy && update ? update.label : null, move: move.kind });
-  const dot = accountDot({ automationsNeedYou: needsYou, update: noteworthy ? (update.phase === "error" ? "failed" : "news") : null, move: move.kind });
-  // Advanced's full row has its own update badge: its avatar's dot is the move's alone.
-  const moveDot = accountDot({ automationsNeedYou: false, update: null, move: move.kind });
+  const label = accountLabel(name, { automationsNeedYou: needsYou, update: simple && noteworthy && update ? update.label : null, move: move.kind, announcements: news.unread });
+  const dot = accountDot({ automationsNeedYou: needsYou, update: noteworthy ? (update.phase === "error" ? "failed" : "news") : null, move: move.kind, announcements: news.unread });
+  // Advanced's full row has its own update badge: its avatar's dot is the move's and the announcements' alone.
+  const moveDot = accountDot({ automationsNeedYou: false, update: null, move: move.kind, announcements: news.unread });
 
   return (
     <>

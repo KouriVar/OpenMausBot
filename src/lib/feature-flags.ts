@@ -74,10 +74,6 @@ export function claudeUserSkillsEnabled(config: FeatureFlagConfig | null | undef
   return config?.features?.claudeUserSkills === true;
 }
 
-export function llmThreadTitlesEnabled(config: FeatureFlagConfig | null | undefined): boolean {
-  return config?.features?.llmThreadTitles === true;
-}
-
 export function skillsLibraryEnabled(config: FeatureFlagConfig | null | undefined): boolean {
   return config?.features?.skillsLibrary === true;
 }

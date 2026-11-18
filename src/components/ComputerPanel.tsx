@@ -48,8 +48,7 @@ import { busyBoatView, instanceSupportsLocalComputer, localComputerDisabledReaso
 import { TAB_PANEL_FOCUS, tabPanelProps, useAndroidTabFallback } from "./computer-panel-tabs";
 import { CompactionSummaryPanel } from "./CompactionSummaryPanel";
 import { useComputerPanelEntry } from "@/lib/computer-panel-focus";
-import { PANEL_MAX_WIDTH, PANEL_MIN_WIDTH, useComputerPanelResize } from "./computer-panel-resize";
-import {
+import { PANEL_MIN_WIDTH, useComputerPanelResize } from "./computer-panel-resize";import {
   COMPUTER_PANEL_VIEW_EVENT,
   readComputerPanelView,
   resolveComputerPanelView,
@@ -106,7 +105,7 @@ export function ComputerPanel({
   onOpenVmWorkspace?: (botId: string) => void;
 }) {
   const { dragProps } = useCaptionChrome();
-  const { panelWidth, separatorRef, separatorWidth, onSeparatorKeyDown, onResizeStart, onResizeMove, onResizeEnd } = useComputerPanelResize();
+  const { panelWidth, maxWidth, separatorRef, separatorWidth, onSeparatorKeyDown, onResizeStart, onResizeMove, onResizeEnd } = useComputerPanelResize();
   const { state, dispatch, flushBotPatches } = useStore();
   const liveTask = profileBot.tasks?.find((task) => task.threadId === profileBot.threadId);
   const livePlace = effectivePlace(profileBot, liveTask);
@@ -1198,7 +1197,7 @@ export function ComputerPanel({
         aria-orientation="vertical"
         aria-label={t("computer.resizeAria")}
         aria-valuemin={PANEL_MIN_WIDTH}
-        aria-valuemax={PANEL_MAX_WIDTH}
+        aria-valuemax={maxWidth}
         aria-valuenow={separatorWidth ?? undefined}
         tabIndex={0}
         onKeyDown={onSeparatorKeyDown}

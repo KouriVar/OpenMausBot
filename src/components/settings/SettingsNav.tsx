@@ -18,6 +18,7 @@ import { usePhonePlaceState } from "./phone-status";
 import type { SettingsPlace } from "./settings-context";
 import { pageById, type SearchHit, type SettingsContext, type SettingsOwner, type SettingsPage, type SettingsPageId } from "./settings-index";
 import { useUpdaterState } from "@/lib/updater";
+import { isMacPlatform } from "@/lib/keyboard-shortcuts";
 import { keySection, type KeyEntry } from "../keys/key-catalog";
 import { HELP_CENTER_URL, desktopAppVersion } from "@/lib/app-links";
 
@@ -313,7 +314,7 @@ function highlight(label: string, query: string): ReactNode {
 export function hitLabel(hit: SearchHit, _place: SettingsPlace, desktop: boolean): string {
   if (hit.entry.id === "page:account") return t("settings.page.account");
   if (hit.entry.id === "page:app") return desktop ? t("settings.page.app") : t("settings.page.browser");
-  return t(hit.entry.labelKey, { app: productName(), helper: "" });
+  return t(hit.entry.macLabelKey && isMacPlatform() ? hit.entry.macLabelKey : hit.entry.labelKey, { app: productName(), helper: "" });
 }
 
 function HitRow({ ctx, place, hit, query, onHit }: { ctx: SettingsContext; place: SettingsPlace; hit: SearchHit; query: string; onHit: (hit: SearchHit) => void }) {

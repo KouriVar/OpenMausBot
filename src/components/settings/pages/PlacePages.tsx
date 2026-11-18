@@ -6,6 +6,7 @@ import { useStore } from "@/state/store";
 import { AdminOnly } from "../../AdminOnly";
 import { AutomaticRecoverySettings } from "../../AutomaticRecoverySettings";
 import { AwayEmailsSetting } from "../../AwayEmailsSetting";
+import { DisplayNameSetting } from "../../DisplayNameSetting";
 import { PausedBotsButton } from "../../AwakeBotsPicker";
 import { BrowserProxyRow, BuiltInBrowserRow, NewBrowserSettings, ServerSitesRow } from "../../BrowserSettingsRows";
 import { CacheKeepWarmSettings } from "../../CacheKeepWarmSettings";
@@ -73,7 +74,7 @@ export function BotsPage() {
       footnote={ctx.here || !ctx.desktop ? t("settings.bots.aboutYouHome", { app: productName() }) : undefined}>
       <div className="flex flex-col gap-2">
         <Card><ProfileFields /></Card>
-        <SettingsRows><AwayEmailsSetting row /></SettingsRows>
+        <SettingsRows><DisplayNameSetting /><AwayEmailsSetting row /></SettingsRows>
       </div>
     </SettingsGroup>
     <SettingsGroup label={t("settings.bots.newBots")} block="new-bots">

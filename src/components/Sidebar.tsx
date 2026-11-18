@@ -1,7 +1,7 @@
 import { OrganizationIdentity } from "./OrganizationIdentity";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type Dispatch } from "react";
 import { createPortal } from "react-dom";
-import { Archive, Bot as BotIcon, Check, ChevronRight, ClipboardCopy, FolderPlus, LayoutTemplate, Loader2, MessageSquarePlus, Pencil, Phone, Pin, Plus, Search, SquarePen, TextQuote, Trash2, Users, X } from "lucide-react";
+import { Archive, Bot as BotIcon, Check, ChevronRight, ClipboardCopy, FolderInput, FolderPlus, LayoutTemplate, Loader2, MessageSquarePlus, MoreHorizontal, Pencil, Phone, Pin, Plus, Search, SquarePen, TextQuote, Trash2, Users, X } from "lucide-react";
 import { sidebarState } from "./sidebar-state"; import { sameFields, useStoreDispatch, useStoreSelector } from "@/state/store-select"; import { useStoreRef } from "@/state/store-ref"; import { sameDrawnBots } from "@/lib/drawn-bots";
 import { api, formatTime, visibleMessages, currentTaskBot, botOpensTo, openBot, openThread, type Action, type AppState, type Bot, type BotProject, type Group, type InstanceInfo, type Message } from "@/state/store";
 import { approvalModeFor } from "../../shared/approval-mode";
@@ -18,19 +18,18 @@ import { searchMatchesThreads, useSearchDisclosure } from "@/lib/search-disclosu
 import { useHeldMenuMotion, useMenuMotion } from "./MenuMotion";
 import { lastNonReceipt } from "@/lib/receipts";
 import { lastTurnFailed } from "@/lib/failed-turn";
-import { botPreview, groupPreview } from "./sidebar-preview";
+import { botPreview, groupPreview, lastLine } from "./sidebar-preview";
 import { activeLocale, t } from "@/lib/i18n"; import { isBotHeld } from "@/lib/bot-pause";
 import { copyText } from "@/lib/copy-text";
 import type { LocaleKey } from "@/locales";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { BulkSelectFilters, ThreadListFooter, deleteThreadsInBulk, retitleThreadsInBulk, useBulkSelect } from "./BulkSelectBar";
- 
 import { StackedMauses } from "./StackedMauses";
 import { LocalComputerAutoWarning } from "./LocalComputerAutoWarning";
 import { nextRename } from "@/lib/rename";
 import { useDesktopCapabilities, windowFramed } from "./DesktopCapabilities";
 import { MIN_QUERY, SearchResults } from "./SearchResults";
-import { ShareTeamDialog, TeamLibraryPanel } from "./lazy-screens";
+import { ImportDialog, ShareDepartmentDialog, TeamLibraryPanel } from "./lazy-screens";
 import { SidebarNewChatPanel } from "./SidebarNewChatPanel";
 import { openCommandPalette } from "./CommandPalette";
 import { TeamSettingsDialog } from "./TeamSettingsDialog";
@@ -97,7 +96,7 @@ import { attentionJumpAction, attentionUnpinAction, crossBotAttentionThreads, cr
 import { SidebarNoBots, SidebarTileGrid } from "./SidebarTiles";
 import { BotContextMenu } from "./SidebarBotMenu";
 export { BotContextMenu };
-import { RowDot, RowStatusText, rowSurface } from "./SidebarRowMarkers";
+import { RowDot, RowStatusText, rowSelectedSurface, rowSurface } from "./SidebarRowMarkers";
 import { AvatarStatusDot, avatarDotState, FORK_ONE_AVATAR_DOT } from "@/fork/avatar-dot";
 
 
@@ -204,9 +203,9 @@ export const GroupListItem = memo(function GroupListItem({
       className={cn(
         "relative flex w-full items-center text-left", FORK_UI_1110 ? ROW_RADIUS : "rounded-md", SIMPLE_ROW_FOCUS,
         density === "icons" ? (railTile ? "h-[54px] justify-center" : "justify-center px-1 py-1.5") : simpleRow
-          ? cn("gap-2 py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
+          ? cn("gap-2 py-2 pr-2 group-hover:pr-9 group-focus-within:pr-9 max-md:pr-9 touch:pr-9 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]", !group.dm && hasThreadList ? "pl-6" : "pl-2")
           // Advanced: the faces line up with the section's title on the sidebar's one left line.
-          : cn("gap-2 py-1.5 pr-9"),
+          : cn("gap-2 py-1.5 pl-6 pr-9"),
         selected && !expanded ? "bg-raised" : "hover:bg-raised/50",
         rowSurface(selected),
       )}
@@ -752,10 +751,10 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
       : simpleRow ? cn("gap-2 py-2 pr-2 md:h-[54px] md:py-0", FORK_UI_1110 ? ROW_RADIUS_SIMPLE : "rounded-[8px]")
         : cn(showThreads ? "gap-2 py-2" : "gap-3 py-2", "pr-3"),
     !iconOnly && "max-md:rounded-2xl max-md:py-2.5",
-    selected ? "bg-raised" : "hover:bg-raised/50",
+    selected ? rowSelectedSurface : "hover:bg-raised/50",
     simpleRow && rowSurface(selected),
   );
-  const { waiting, working, teammateWait, queued } = sidebarBotStatus(bot, pendingQueued);
+  const { waiting, working, failed, teammateWait, queued } = sidebarBotStatus(bot, pendingQueued, visible);
   const { unread, noticing } = useBotUnread(bot);
   // Fork: one dot at the avatar's bottom-right, its colour the one state that matters most.
   const rowDot = FORK_ONE_AVATAR_DOT ? avatarDotState({ error: lastTurnFailed(last) || bot.activity === "dead" || bot.activity === "no-signal", waiting, working, unread }) : null;
@@ -806,7 +805,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
         )}
       </span>
       <div className={cn("min-w-0 flex-1", iconOnly && "hidden")}>
-        <div className={cn("flex items-baseline justify-between gap-2", simpleRow && "pr-7")}>
+        <div className={cn("flex items-baseline justify-between gap-2", simpleRow && "pe-7 group-hover:pe-[3.25rem] group-focus-within:pe-[3.25rem] touch:pe-[3.25rem] max-md:touch:pe-7")}>
           <span className={cn("flex min-w-0 grow items-center gap-1.5 truncate text-ink", simpleRow ? "text-[14px] font-medium leading-5" : "text-[15px] font-semibold leading-5")}>
             {!simpleList && bot.pinned && <Pin size={12} className="shrink-0 text-ink-secondary" />}
             <RenameTitle
@@ -860,13 +859,13 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
               {working ? (
                 <SidebarWorkingStep bot={bot} last={last} />
               ) : (
-                <FadeLine>{waiting ? t("sidebar.preview.waiting") : teammateWait ? t("sidebar.preview.waitingOnTeammate") : queued ? t("task.queued") : botPreview(bot, visible, instances, advanced)}</FadeLine>
+                <FadeLine>{waiting ? t("sidebar.preview.waiting") : teammateWait ? t("sidebar.preview.waitingOnTeammate") : queued && !failed ? t("task.queued") : failed ? lastLine(bot, visible, instances, advanced) : botPreview(bot, visible, instances, advanced)}</FadeLine>
               )}
             </span>
           )}
           {simpleRow && !FORK_UI_1110 && <BotEngineMark bot={bot} instances={instances} className="ms-auto" />}
         </div>}
-        {simpleRow && <RowStatusText working={working} unread={unread} />}
+        {simpleRow && <RowStatusText working={working} failed={failed} unread={unread} />}
       </div>
     </>
   );
@@ -893,7 +892,7 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
           !renaming && iconOnly
             ? deleting
               ? t("sidebar.bot.deletingAria", { name: bot.name })
-              : `${bot.name}${bot.title?.trim() ? ` · ${bot.title.trim()}` : ""}${bot.chiefOfStaff ? ` · ${t("sidebar.bot.chiefOfStaff")}` : ""}${onLiveCall ? ` · ${t("call.live.badge")}` : ""}${waiting ? ` · ${t("sidebar.preview.waiting")}` : working ? ` · ${t("chat.activity.working")}` : teammateWait ? ` · ${t("sidebar.preview.waitingOnTeammate")}` : queued ? ` · ${t("task.queued")}` : ""}${unread ? ` · ${t("task.unread")}` : ""}`
+              : `${bot.name}${bot.title?.trim() ? ` · ${bot.title.trim()}` : ""}${bot.chiefOfStaff ? ` · ${t("sidebar.bot.chiefOfStaff")}` : ""}${onLiveCall ? ` · ${t("call.live.badge")}` : ""}${waiting ? ` · ${t("sidebar.preview.waiting")}` : working ? ` · ${t("chat.activity.working")}` : failed ? ` · ${t("sidebar.preview.failed")}` : teammateWait ? ` · ${t("sidebar.preview.waitingOnTeammate")}` : queued ? ` · ${t("task.queued")}` : ""}${unread ? ` · ${t("task.unread")}` : ""}`
             : undefined
         }
         aria-busy={deleting || undefined} aria-keyshortcuts={drag ? "Alt+ArrowUp Alt+ArrowDown" : undefined}
@@ -924,7 +923,10 @@ export const BotListItem = memo(function BotListItem(props: BotRowProps) {
       ><ChevronRight aria-hidden="true" size={13} className={cn("transition-transform", threadsOpen && "rotate-90")} /></button>}
       {!renaming && !deleting && !iconOnly && <>
         {showThreads && <button type="button" aria-label={t("task.newShort")} title={t("task.newShort")} onClick={() => { setThreadsOpen(true); dispatch({ type: "newTask", botId: bot.id }); }}
-          className="pointer-events-none absolute right-2 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded text-ink-secondary opacity-0 hover:bg-raised hover:text-ink group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 max-md:hidden touch:pointer-events-auto touch:opacity-70"><Plus size={14} /></button>}
+          className="pointer-events-none absolute right-[3.75rem] top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded text-ink-secondary opacity-0 hover:bg-raised hover:text-ink group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 max-md:hidden touch:pointer-events-auto touch:opacity-70"><Plus size={14} /></button>}
+        <button type="button" data-bot-actions={bot.id} aria-label={t("sidebar.bot.actions", { name: bot.name })} title={t("sidebar.bot.actions", { name: bot.name })} aria-haspopup="menu" onClick={(event) => { const rect = event.currentTarget.getBoundingClientRect(); onMenu({ botId: bot.id, x: rect.left, y: rect.bottom }); }}
+          className={cn("absolute top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded text-ink-secondary hover:bg-raised hover:text-ink", simpleRow ? "end-[3px] top-1.5 size-6 translate-y-0 rounded-lg" : "right-1",
+            selected && !simpleRow ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 max-md:pointer-events-auto max-md:opacity-70 touch:pointer-events-auto touch:opacity-70")}><MoreHorizontal size={15} /></button>
       </>}
       {deleting && iconOnly && (
         <span className="pointer-events-none absolute bottom-1 right-1 rounded-full bg-card p-1 text-ink-secondary">
@@ -999,7 +1001,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
   const [newTaskFolderBotId, setNewTaskFolderBotId] = useState<string | null>(null);
   const newTaskFolderBot = state.bots.find((bot) => bot.id === newTaskFolderBotId);
   const [teamLibraryOpen, setTeamLibraryOpen] = useState(false);
-  const [teamInstallUrl, setTeamInstallUrl] = useState<string | null>(null);
+  const [importUrl, setImportUrl] = useState<string | null>(null);
   const [archivedBotsOpen, setArchivedBotsOpen] = useState(false);
   const [teamFeedback, setTeamFeedback] = useState<{
     error: boolean;
@@ -1053,10 +1055,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
 
   useEffect(() => {
     if (remoteClient) return;
-    return window.ogb?.onPackageInstall?.((url) => {
-      setTeamInstallUrl(url);
-      setTeamLibraryOpen(true);
-    });
+    return window.ogb?.onPackageInstall?.((url) => setImportUrl(url));
   }, [remoteClient]);
 
   useEffect(() => {
@@ -1231,12 +1230,8 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           >
             <Users size={16} className="text-ink-secondary" />{t("sidebar.newChannel.title")}
           </button>
-          {advanced && !remoteClient && teamSettingsAllowed !== false && <button
-            onClick={() => { setPlusOpen(false); setNewTeam(true); }}
-            role="menuitem"
-            className={plusItem}
-          >
-            <FolderPlus size={16} className="text-ink-secondary" /> {t("team.create")}
+          {!remoteClient && teamSettingsAllowed !== false && <button onClick={() => { setPlusOpen(false); setNewTeam(true); }} role="menuitem" className={plusItem}>
+            <FolderPlus size={16} className="text-ink-secondary" />{t("sidebar.addDepartment")}
           </button>}
           {!remoteClient && <>
           {teamSettingsAllowed !== false && <button
@@ -1247,6 +1242,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
             <LayoutTemplate size={16} className="text-ink-secondary" />
             {t("sidebar.teamLibrary")}
           </button>}
+          {teamSettingsAllowed !== false && <button onClick={() => { setPlusOpen(false); setImportUrl(""); }} role="menuitem" className={plusItem}><FolderInput size={16} className="text-ink-secondary" />{t("sidebar.import")}</button>}
           {advanced && archivedBots.length > 0 && (
             <button
               onClick={() => {
@@ -1624,7 +1620,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
             .finally(() => { teamDeleteRunning.current = false; setTeamDeletePending(false); });
         }} />
       {moveToTeam && <TeamDialog section={moveToTeam} onClose={() => setMoveToTeam(null)} />}
-      {shareTeam !== null && <ShareTeamDialog team={shareTeam} onClose={() => setShareTeam(null)} />}
+      {shareTeam !== null && <ShareDepartmentDialog department={shareTeam} onClose={() => setShareTeam(null)} />}
       {teamSettings !== null && <TeamSettingsDialog team={teamSettings} onClose={() => setTeamSettings(null)} />}
       <SectionPicker
           current={sectionPicker ? state.bots.find((b) => b.id === sectionPicker.botId)?.section : undefined}
@@ -1688,14 +1684,9 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
       {!remoteClient && teamLibraryOpen && (
         <TeamLibraryPanel
           returnFocusRef={importReturnRef}
-          initialUrl={teamInstallUrl ?? undefined}
-          onClose={() => {
-            setTeamLibraryOpen(false);
-            setTeamInstallUrl(null);
-          }}
+          onClose={() => setTeamLibraryOpen(false)}
           onImported={(result) => {
             setTeamLibraryOpen(false);
-            setTeamInstallUrl(null);
             setTeamFeedback({
               error: false,
               text:
@@ -1709,6 +1700,8 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           }}
         />
       )}
+      {!remoteClient && importUrl !== null && <ImportDialog initialUrl={importUrl || undefined} onClose={() => setImportUrl(null)}
+        onAdded={(line) => { setImportUrl(null); setTeamFeedback({ error: false, text: line }); }} />}
       {teamFeedback &&
         createPortal(
           <div

@@ -1,6 +1,8 @@
 // Security: the harness holds the cloud provider keys; the renderer never talks to ElevenLabs or Fish Audio itself.
 import { DEFAULT_OPENAI_VOICE, OPENAI_VOICES } from "../../shared/openai-voice";
 import { DEFAULT_MIMO_VOICE, isMimoVoice } from "../../shared/mimo-voice";
+
+import { DEFAULT_DEEPSEEK_VOICE, DEEPSEEK_VOICES } from "../../shared/deepseek-voice";
 import { useEffect, useRef, useState } from "react";
 import { Check, Loader2, Volume2 } from "lucide-react";
 
@@ -127,6 +129,7 @@ export function VoiceSettings({
       : provider === "chatterbox"
         ? t("voice.hostLabel", { provider: t("voice.chatterboxLabel") })
         : provider === "openai" ? t("voice.hostLabel", { provider: "OpenAI" })
+          : provider === "deepseek" ? t("voice.hostLabel", { provider: "DeepSeek" })
           : provider === "xai" ? t("voice.grok.host") : t("voice.host");
   const systemVoicesAvailable = capabilities.host.platform === "darwin";
   const hostConfigured = Boolean(tts?.configured);
@@ -257,7 +260,7 @@ export function VoiceSettings({
       .finally(() => current() && setAddingVoice(null));
   };
 
-  const setProvider = (next: "elevenlabs" | "fish" | "system" | "chatterbox" | "xai" | "gemini" | "openai" | "mimo") => {
+  const setProvider = (next: NonNullable<NonNullable<ConfigStatus["tts"]>["provider"]>) => {
     if (next === provider || switching || (next === "system" && !systemVoicesAvailable)) return;
     setSwitching(true);
     setKeyDraft({ provider: null, value: "" });
@@ -269,6 +272,9 @@ export function VoiceSettings({
         }
         if (next === "mimo" && currentBot.current.id === bot.id && !isMimoVoice(currentBot.current.voice)) {
           onPatch({ voice: DEFAULT_MIMO_VOICE });
+        }
+        if (next === "deepseek" && currentBot.current.id === bot.id && !DEEPSEEK_VOICES.some((voice) => voice === currentBot.current.voice)) {
+          onPatch({ voice: DEFAULT_DEEPSEEK_VOICE });
         }
         dispatch({ type: "configStatus", config: status });
       })
@@ -326,7 +332,7 @@ export function VoiceSettings({
   const selectedVoice = usesLocalSystem ? deviceVoice : (bot.voice ?? "");
   const ready = usesLocalSystem || (hostConfigured && Boolean(selectedVoice || tts.voice));
   const selectedDescription = voices.find((voice) => voice.id === selectedVoice)?.description;
-  const providerName = cloudProvider?.name ?? (provider === "xai" ? "Grok" : provider === "chatterbox" ? "Chatterbox" : t("voice.macBuiltIn"));
+  const providerName = cloudProvider?.name ?? (provider === "xai" ? "Grok" : provider === "chatterbox" ? "Chatterbox" : provider === "deepseek" ? "DeepSeek" : t("voice.macBuiltIn"));
   const everyReply = bot.voiceNoteEveryReply ?? tts?.everyReply === true;
 
   return (
@@ -346,6 +352,8 @@ export function VoiceSettings({
                   : ` ${t("voice.macUnavailable")}`
                 : provider === "xai"
                   ? ` ${t("voice.grok.sharedKey")}`
+                : provider === "deepseek"
+                  ? ` ${t("voice.deepseek.sharedKey")}`
                 : provider === "chatterbox"
                   ? ` ${t("voice.chatterboxShared")}`
                   : ` ${t("voice.providerShared", { provider: cloudProvider?.name ?? t("voice.provider") })}`}</>}
@@ -392,6 +400,7 @@ export function VoiceSettings({
               { value: "mimo", label: t("voice.mimo.label"), available: true, span: "col-span-1" },
               { value: "system", label: t("voice.macBuiltIn"), available: systemVoicesAvailable, span: "col-span-1" },
               { value: "chatterbox", label: t("voice.chatterboxLocal"), available: true, span: "col-span-1" },
+              { value: "deepseek", label: "DeepSeek", available: true, span: "col-span-1" },
             ] as const).map((option) => (
               <button
                 key={option.value}
@@ -481,6 +490,13 @@ export function VoiceSettings({
         <div className="mt-4 space-y-1.5 text-[13px] leading-relaxed text-ink-secondary">
           <p>{t("voice.openai.description")}</p>
           {!hostConfigured && <p>{t("voice.openai.missingKey")} <KeysLink id="openai" /></p>}
+        </div>
+      )}
+
+      {provider === "deepseek" && (
+        <div className="mt-4 space-y-1.5 text-[13px] leading-relaxed text-ink-secondary">
+          <p>{t("voice.deepseek.description")}</p>
+          {!hostConfigured && <p>{t("voice.deepseek.missingKey")} <KeysLink id="deepseek" /></p>}
         </div>
       )}
 
@@ -595,7 +611,7 @@ export function VoiceSettings({
                 )}
                 {voices.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.label}
+                    {provider !== "deepseek" ? v.label : v.id === "stella" ? t("voice.deepseek.stella") : v.id === "tide" ? t("voice.deepseek.tide") : v.label}
                   </option>
                 ))}
               </Select>

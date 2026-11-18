@@ -146,6 +146,8 @@ export function BotProfileAvatarCard({
                 </button>
               ))}
             </div>
+          </>
+        )}
 
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
               {t("botIdentity.color")}
@@ -169,6 +171,8 @@ export function BotProfileAvatarCard({
               ))}
             </div>
 
+        {crop === "mascot" && (
+          <>
             <div className="mb-2 mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-ink-secondary">
               {t("botIdentity.body")}
             </div>

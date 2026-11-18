@@ -239,6 +239,16 @@ export function BotContextMenu({
     </button>
   );
 
+  // Only the owner or an admin pauses; a bot paused with its department is resumed from the department's menu.
+  const pausedHere = isPausedHere(state.config, "bot", bot.id), everyBotPaused = isEveryBotPaused(state.config);
+  const pause = admin !== true ? null : item(pausedHere ? <Play size={16} className="text-ink-secondary" /> : <Pause size={16} className="text-ink-secondary" />,
+    t(pausedHere ? "pause.resumeBot" : "pause.pauseBot"),
+    () => { void setPaused("bot", bot.id, !pausedHere).catch((error: unknown) => dispatch({ type: "error", message: error instanceof Error ? error.message : String(error) })); },
+    !pausedHere && isBotHeld(state.config, bot.id) ? { disabled: true, hint: t(everyBotPaused ? "pause.byAll" : "pause.byDepartment") } : undefined);
+  const pauseAll = admin !== true ? null : item(everyBotPaused ? <Play size={16} className="text-ink-secondary" /> : <Pause size={16} className="text-ink-secondary" />,
+    t(everyBotPaused ? "pause.resumeAll" : "pause.pauseAll"),
+    () => { void setEveryBotPaused(!everyBotPaused).catch((error: unknown) => dispatch({ type: "error", message: error instanceof Error ? error.message : String(error) })); });
+
   if (simpleMenu) {
     const copyId = item(<ClipboardCopy size={16} className="text-ink-secondary" />, t("sidebar.copyConversationId"), () => { void copyText(bot.threadId); });
     const current = bot.section?.trim() ?? "";
@@ -268,15 +278,6 @@ export function BotContextMenu({
         { disabled: readingBotId !== null, keepOpen: true },
       )
       : item(<BellDot size={16} className="text-ink-secondary" />, t("sidebar.bot.simple.markUnread"), () => dispatch({ type: "markUnread", botId: bot.id }));
-    // Only the owner or an admin pauses; a bot paused with its department is resumed from the department's menu.
-    const pausedHere = isPausedHere(state.config, "bot", bot.id), everyBotPaused = isEveryBotPaused(state.config);
-    const pause = admin !== true ? null : item(pausedHere ? <Play size={16} className="text-ink-secondary" /> : <Pause size={16} className="text-ink-secondary" />,
-      t(pausedHere ? "pause.resumeBot" : "pause.pauseBot"),
-      () => { void setPaused("bot", bot.id, !pausedHere).catch((error: unknown) => dispatch({ type: "error", message: error instanceof Error ? error.message : String(error) })); },
-      !pausedHere && isBotHeld(state.config, bot.id) ? { disabled: true, hint: t(everyBotPaused ? "pause.byAll" : "pause.byDepartment") } : undefined);
-    const pauseAll = admin !== true ? null : item(everyBotPaused ? <Play size={16} className="text-ink-secondary" /> : <Pause size={16} className="text-ink-secondary" />,
-      t(everyBotPaused ? "pause.resumeAll" : "pause.pauseAll"),
-      () => { void setEveryBotPaused(!everyBotPaused).catch((error: unknown) => dispatch({ type: "error", message: error instanceof Error ? error.message : String(error) })); });
     const moreItems = remoteClient ? [editProfile, owner, ...deleteAll] : [
       editProfile,
       pause,
@@ -466,6 +467,8 @@ export function BotContextMenu({
         (!member || ownEdit) && item(<Copy size={16} className="text-ink-secondary" />, t("sidebar.bot.duplicate"), () =>
           dispatch({ type: "duplicateBot", botId: bot.id }),
         ),
+        pause,
+        pauseAll,
         divider("d2"),
         item(<ClipboardCopy size={16} className="text-ink-secondary" />, t("sidebar.copyConversationId"), () => {
           void copyText(bot.threadId);

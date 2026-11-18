@@ -69,7 +69,7 @@ import {
   type PasteAttachment,
 } from "@/lib/composer-attachments";
 import { goalCoordinatorForComposer, jevRoomRoutingOn, openTaskWorking, roomRouteForComposer } from "@/lib/group-routing";
-import { composerPlaceholder, sendLabels, SIMPLE_COMPOSER, SIMPLE_CONTROL, slotColors } from "./composer-simple"; import { ComposerSendButton } from "./ComposerSendButton";
+import { composerPlaceholder, sendLabels, SIMPLE_COMPOSER, SIMPLE_CONTROL, slotColors } from "./composer-simple"; import { ComposerSendButton } from "./ComposerSendButton"; import { ComposerContextMenu } from "./ComposerContextMenu";
 import { BOT_BUTTON } from "@/lib/bot-button";
 import { useColorScheme } from "@/lib/color-scheme";
 import { FORK_WHITE_BUBBLE, isWhiteAccent, WHITE_BUBBLE_BG, WHITE_BUBBLE_INK } from "@/fork/use-user-bubble-style";
@@ -524,9 +524,8 @@ export function Composer({
   const calling = callTarget !== undefined && (onCall === callTarget || (isLiveCallRunning(media.phase) && media.botId === callTarget));
   const mayAct = useMayAct(), mayStop = !sharedChat || mayAct(profile?.tasks?.find((task) => task.threadId === threadId)?.askedBy);
   const stoppable = (busy || Boolean(!group && bot?.waitingForTeammates)) && mayStop;
-  // Simple mode's round button is the call, Send while there is text, and Stop while the bot works.
   const stopInSlot = simpleDock && stoppable && !locked && !hasContent && !calling;
-  const callShown = !simpleDock || (!hasContent && !stopInSlot);
+  const callShown = !simpleDock || !hasContent || busy || Boolean(!group && bot?.waitingForTeammates) || calling;
   // One colour for everything that belongs to this bot: its avatars, your bubble, and these buttons.
   const accent = useBloubAccent({ id: group ? undefined : bot?.id, color: bot?.color });
   // Fork: a white avatar in dark mode takes the grey voice buttons, same as the bubble.
@@ -1000,6 +999,7 @@ export function Composer({
             <Square size={simpleDock ? 10 : 14} className="fill-current" />
           </button>
         )}
+        {!locked && <ComposerContextMenu bot={bot} group={group} members={members} className={cn(simpleDock ? "size-7" : "size-8", advanced || singleRow ? "text-ink-secondary hover:bg-raised hover:text-ink" : SIMPLE_CONTROL)} />}
         {!locked && !busy && micReady && (
           <button
             onClick={toggleMic}

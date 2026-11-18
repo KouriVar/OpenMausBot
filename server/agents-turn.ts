@@ -19,7 +19,7 @@ export interface AgentsConversation {
   botDriven?: boolean;
   /** `x`: a research credential is held (a treg key or a plan's); `research`: research works for it too; `appHosting`:
    * the plan's included app hosting reaches this server. */
-  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; interactiveAnswers: InteractiveAnswerMode; meetings?: boolean; appHosting?: boolean };
+  host: { skillAuthoring: boolean; sharedComputers: boolean; cloudHome: boolean; team: boolean; voiceNotes: boolean; x: boolean; research: boolean; imageGeneration: boolean; interactiveAnswers: InteractiveAnswerMode; meetings?: boolean; appHosting?: boolean; localVm: boolean };
 }
 
 /** What one turn may do. Its bearer carries this to the harness, which checks it on every call. */
@@ -55,6 +55,7 @@ export function agentsServerEnv(conversation: AgentsConversation, turn: AgentsTu
     OMB_APP_HOSTING: flag(host.appHosting === true),
     OMB_INTERACTIVE_ANSWERS: host.interactiveAnswers,
     OMB_COMPUTER_SELECTION: flag(!conversation.room && bot.computer !== "off" && !conversation.teamComputer && !conversation.botDriven),
+    OMB_LOCAL_VM: flag(host.localVm),
     [TOOLS_OFF_ENV]: (bot.toolsOff ?? []).join(","),
   };
 }

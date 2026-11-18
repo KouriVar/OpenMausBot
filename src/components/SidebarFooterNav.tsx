@@ -183,6 +183,16 @@ export function SidebarFooterNav({
         icon={(active) => <Rocket size={iconSize} strokeWidth={iconStroke} className={tone(active)} />}
         onClick={() => dispatch({ type: "showPublishedApps" })}
       />
+      {state.config?.team && (
+        <NavRow
+          id="team-files"
+          label={t("sidebar.nav.teamFiles")}
+          iconsOnly={iconsOnly || toolbar}
+          active={state.activeView === "team-files"}
+          icon={(active) => <FolderOpen size={iconSize} className={tone(active)} />}
+          onClick={() => dispatch({ type: "showTeamFiles" })}
+        />
+      )}
       {advanced && webPanels.map((panel) => (
         <NavRow
           key={panel.id}
