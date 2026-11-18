@@ -1700,7 +1700,7 @@ export const Sidebar = memo(function Sidebar({ open, onClose, collapseToIcons = 
           }}
         />
       )}
-      {!remoteClient && importUrl !== null && <ImportDialog initialUrl={importUrl || undefined} onClose={() => setImportUrl(null)}
+      {!remoteClient && importUrl !== null && <ImportDialog onClose={() => setImportUrl(null)}
         onAdded={(line) => { setImportUrl(null); setTeamFeedback({ error: false, text: line }); }} />}
       {teamFeedback &&
         createPortal(

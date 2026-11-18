@@ -555,6 +555,7 @@ export function profileMenuItems({
       present(advancedToggle ?? null),
       toolsGroup(tools, apps, inbox),
       present(settings),
+      present(update && !updateTop ? update : null),
       phone,
       ...(ACCOUNT_MENU_SUPPORT ? [[support]] : []),
       [...present(accountItem), ...accounts],
@@ -564,7 +565,7 @@ export function profileMenuItems({
   }
   if (!simple) {
     // Icon and rail densities ask for this menu with no account context; its rows are the ones they always had.
-    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...phone, ...(ACCOUNT_MENU_SUPPORT ? [support] : []), settings, ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
+    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...phone, ...(ACCOUNT_MENU_SUPPORT ? [support] : []), settings, ...present(update && !updateTop ? update : null), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
   const raised: SidebarMenuItem | null = update && updateTop ? {
@@ -581,7 +582,8 @@ export function profileMenuItems({
     present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
     toolsGroup(simple.tools ?? tools, connectors, inbox),
-    [settings],
+    present(settings),
+    present(update && !updateTop ? update : null),
     // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
     FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
     FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],

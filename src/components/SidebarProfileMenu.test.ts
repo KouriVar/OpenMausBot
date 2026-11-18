@@ -387,17 +387,18 @@ describe("profileMenuItems", () => {
     ...patch,
   });
 
-  it("groups usage and the phone, then help and settings, then the account under a divider", () => {
+  it("lists the phone and settings, then the account under a divider (the fork draws no usage or help rows)", () => {
     const items = build();
-    expect(items.map((item) => item.key)).toEqual(["usage", "phone-app", "support", "settings", "account"]);
+    expect(items.map((item) => item.key)).toEqual(["phone-app", "settings", "account"]);
     expect(items.filter((item) => item.separatorBefore).map((item) => item.key)).toEqual(["account"]);
-    expect(items.find((item) => item.key === "support")!.submenu!.map((item) => item.key)).toEqual(["help", "feedback", "shortcuts", "about"]);
+    expect(items.some((item) => item.key === "usage")).toBe(false);
+    expect(items.some((item) => item.key === "support")).toBe(false);
     expect(items.find((item) => item.key === "account")!.label).toBe("OpenMausBot Cloud");
   });
 
   it("only offers what this window has: no usage on a remote server, no account without one", () => {
     const items = build({ usage: false, account: null });
-    expect(items.map((item) => item.key)).toEqual(["phone-app", "support", "settings"]);
+    expect(items.map((item) => item.key)).toEqual(["phone-app", "settings"]);
     expect(items.some((item) => item.separatorBefore)).toBe(false);
   });
 
@@ -416,25 +417,25 @@ describe("profileMenuItems", () => {
     };
     // Fork: Simple's own menu stays what it is — no Apps, no phone, no help; the Inbox row closes its tools group.
     const inbox = { key: "inbox", label: "Inbox", onSelect: noop };
-    expect(profileMenuItems({ ...shared, inbox }).map((item) => item.key)).toEqual(["automations", "team-map", "inbox", "usage", "settings"]);
+    expect(profileMenuItems({ ...shared, inbox }).map((item) => item.key)).toEqual(["automations", "apps", "inbox", "team-map", "settings"]);
     const full = profileMenuItems({ ...shared, inbox, menu: "advanced" });
     // Advanced puts the Inbox right under Apps.
-    expect(full.map((item) => item.key)).toEqual(["automations", "team-map", "apps", "inbox", "usage", "settings", "phone-app", "support", "account"]);
+    expect(full.map((item) => item.key)).toEqual(["automations", "apps", "inbox", "team-map", "settings", "phone-app", "account"]);
     full.find((item) => item.key === "apps")!.onSelect();
     expect(apps).toHaveBeenCalledOnce();
   });
 
   it("keeps the update entry beside settings", () => {
     const update = { key: "update", label: "Check for updates", onSelect: noop };
-    expect(build({ update }).map((item) => item.key)).toEqual(["usage", "phone-app", "support", "settings", "update", "account"]);
+    expect(build({ update }).map((item) => item.key)).toEqual(["phone-app", "settings", "update", "account"]);
   });
 
-  it("opens the Usage and account pages of Settings", () => {
-    const onUsage = vi.fn(), onAccount = vi.fn();
-    const items = build({ onUsage, onAccount });
-    items.find((item) => item.key === "usage")!.onSelect();
+  it("opens Settings and the account page", () => {
+    const onSettings = vi.fn(), onAccount = vi.fn();
+    const items = build({ onSettings, onAccount });
+    items.find((item) => item.key === "settings")!.onSelect();
     items.find((item) => item.key === "account")!.onSelect();
-    expect(onUsage).toHaveBeenCalledOnce();
+    expect(onSettings).toHaveBeenCalledOnce();
     expect(onAccount).toHaveBeenCalledOnce();
   });
 });
@@ -467,11 +468,12 @@ describe("Simple mode's account menu", () => {
   }, []);
 
   // Fork: the menu keeps only what this build uses (FORK_PROFILE_MENU_MINIMAL) — no phone app, support or place rows.
-  it("leads with Automations and Team map, then usage and Settings, and nothing else", () => {
+  it("leads with Automations and Team map, then Settings, and nothing else", () => {
     const items = build();
     expect(groups(items)).toEqual([
       ["automations", "team-map"],
-      ["usage", "settings"],
+      ["settings"],
+      ["update"],
     ]);
     for (const gone of ["phone-app", "support", "place", "switch-place", "account"]) {
       expect(items.find((item) => item.key === gone), gone).toBeUndefined();
@@ -499,19 +501,14 @@ describe("Simple mode's account menu", () => {
     expect(simpleUpdateTop(null)).toBeNull();
   });
 
-  it("gives the usage row a trailing meta and a chevron, and no reset line", () => {
-    const usageRow = (items: SidebarMenuItem[]) => items.find((item) => item.key === "usage")!;
-    expect(usageRow(build({ usageSummary: { value: "12% used", weekly: true, resets: "Resets in 3 days" } })))
-      .toMatchObject({ label: "Weekly usage", value: "12% used", chevron: true });
-    expect(usageRow(build({ usageSummary: { value: "12% used", weekly: true, resets: "Resets in 3 days" } })).subtitle)
-      .toBeUndefined();
-    expect(usageRow(build())).toMatchObject({ label: "Usage", chevron: true });
-    expect(usageRow(build()).value).toBeUndefined();
+  it("draws no usage row at all: the fork keeps spending in Settings alone", () => {
+    const items = build({ usageSummary: { value: "12% used", weekly: true, resets: "Resets in 3 days" } });
+    expect(items.find((item) => item.key === "usage")).toBeUndefined();
   });
 
   it("keeps the menu icon and rail densities ask for, without an account's page rows", () => {
     const items = build({ simple: undefined, usageSummary: { value: "12% used" } });
-    expect(items.map((item) => item.key)).toEqual(["usage", "phone-app", "support", "settings", "update", "account"]);
+    expect(items.map((item) => item.key)).toEqual(["phone-app", "settings", "update", "account"]);
     expect(items[0]!.chevron).toBeUndefined();
   });
 
@@ -568,7 +565,8 @@ describe("Simple mode's account menu", () => {
     expect(groups(build({ move }))).toEqual([
       ["cloud-move"],
       ["automations", "team-map"],
-      ["usage", "settings"],
+      ["settings"],
+      ["update"],
     ]);
     expect(groups(build({ move, update, updateTop: { label: "Update ready", action: "Restart" } })).slice(0, 2)).toEqual([["cloud-move"], ["update"]]);
     expect(groups(build({ move: [] }))[0]).toEqual(["automations", "team-map"]);
@@ -589,8 +587,8 @@ describe("Simple mode's account menu", () => {
 
   it("puts the move's row first in Advanced's account menu too, under its own divider", () => {
     const move = [{ key: "cloud-move", label: "Moving to My Cloud…", title: "Moving your bots to My Cloud… 34 of 120 chats", onSelect: noop }];
-    expect(groups(build({ simple: undefined, move }))).toEqual([["cloud-move"], ["usage", "phone-app", "support", "settings", "update"], ["account"]]);
-    expect(groups(build({ simple: undefined }))).toEqual([["usage", "phone-app", "support", "settings", "update"], ["account"]]);
+    expect(groups(build({ simple: undefined, move }))).toEqual([["cloud-move"], ["phone-app", "settings", "update"], ["account"]]);
+    expect(groups(build({ simple: undefined }))).toEqual([["phone-app", "settings", "update"], ["account"]]);
   });
 
   it("draws a person instead of a question mark for someone with no name, at the trigger's own size", () => {
