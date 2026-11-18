@@ -27,6 +27,24 @@ including dots painted on the mascot body; on conflict this place always keeps o
 
 ## Unreleased / 未发布
 
+### OE046 · 2026.1118.1 — upstream v0.1.169, and the chat column shrinks with the window
+
+Upstream `0.1.169` (528 commits after `0.1.165`) is merged whole on top of the fork's interface: DeepSeek voices beside MiMo, team files, templates and their sharing, the always-on home, announcements, usage caps, the assistant's own context panel, computer selection prompts, and the local-VM capability.
+
+- **The window's width**: the row between the window frame and the Inset card names `min-w-0` in the inset and framed layouts, so the chat column (messages and Composer alike) shrinks with the window instead of keeping its content width and being clipped at the right edge.
+- **What stays ours**: the glass pill and Composer, one status dot at the avatar's bottom-right, the compact chat head, the folded composer tools, the sidebar's hover preview, the context menu instead of row hover buttons, the minimal account menu, and the settings layout. `README` stays the fork's own.
+- **What the merge keeps from upstream**: a room draws one mark again (a DM keeps the members' faces), the account row's plain update entry, the section header's count slot, the nine voice services, and the new entry points listed above, none hidden by the merge.
+- **Version**: 2026.1118.1.
+
+中文：**V2026.1118.1：合上游 0.1.169，窗口变窄时聊天列跟着收**
+
+上游 `0.1.169`（比 `0.1.165` 多 528 个提交）整体合进我方界面：DeepSeek 语音与 MiMo 并存、团队文件、模板与共享、常开主机、公告、用量上限、助手的上下文面板、电脑选择提示、以及本地 VM 能力。
+
+- **窗口宽度**：窗口框架与 Inset 卡片之间那层行在 inset / framed 布局下补了 `min-w-0`，聊天列（消息和输入框）跟着窗口收缩，不再保持内容宽度、被窗口右侧裁掉。
+- **仍然是我方的**：玻璃胶囊与输入框、头像右下单点、紧凑聊天头、收进 `+` 的输入框工具、侧栏悬停预览、右键行菜单而不是悬停按钮、精简账户菜单、现有设置版式；`README` 保留我方版本。
+- **这次合并保留的上游行为**：房间恢复显示一个完整图标（DM 仍显示成员头像）、账户菜单的普通更新行、区段标题的计数槽位、九个语音服务，以及上面列出的新入口，合并没有隐藏它们。
+- **版本**：2026.1118.1。
+
 ### OE045 · 0.8.3 — controls inside the sentence
 
 `0.8.3` finishes the intra-turn controls started in 0.8.2: one option model behind every skin, blanks that sit inside the sentence, and the fixes the 0.8.2 trial asked for.
