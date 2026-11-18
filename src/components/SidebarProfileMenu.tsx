@@ -15,7 +15,6 @@ import {
   Compass,
   Download,
   FolderOpen,
-  Gauge,
   Info,
   HelpCircle,
   Keyboard,
@@ -38,8 +37,6 @@ import { DiscordIcon } from "./DiscordIcon";
 import { AboutDialog } from "./AboutDialog";
 import { PhoneAppDialog } from "./lazy-screens";
 import { CloudTile } from "./cloud-buy/parts";
-import { usageBridge } from "./CloudUsageMeter";
-import { useCloudPlanSnapshot } from "./CloudTrialNotice";
 import type { WorkspacePlace } from "./DesktopWorkspaceSwitcher";
 import { railShown, usePlaces } from "@/lib/places";
 import { useAutomationsNeedYou } from "./SidebarFooterNav";
@@ -60,7 +57,6 @@ import { cloudColor } from "@/lib/cloud-look";
 import { FORK_LOCAL_ONLY } from "@/fork/local-only";
 import { RAIL_MENU_ACTIONS, useRailActions } from "@/fork/rail-actions";
 import { FORK_HIDDEN_SIDEBAR, useHiddenSidebar } from "@/fork/hidden-sidebar";
-import { displayAppVersion } from "@/fork/version-label";
 import { ACCOUNT_MENU_PHONE_APP, ACCOUNT_MENU_SUPPORT, FORK_PROFILE_MENU_MINIMAL } from "@/fork/ui-batch-1111";
 import { closeInbox, openInbox, useInboxPanel, useInboxSupport, useInboxView } from "@/state/inbox";
 import { useTeamPeople } from "@/state/team-people";
@@ -466,26 +462,10 @@ export function cloudUsageSummary(plan: CloudPlanSnapshot | null): UsageSummary 
   return null;
 }
 
-function usePlanUsageSummary(enabled: boolean): UsageSummary | null {
-  const [summary, setSummary] = useState<UsageSummary | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    let alive = true;
-    void api<PlanUsageWindows>("/api/plan-usage", { background: true })
-      .then((report) => { if (alive) setSummary(planUsageSummary(report)); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [enabled]);
-  return summary;
-}
-
 export function profileMenuItems({
   phone,
-  usage,
-  usageSummary = null,
   update,
   updateTop = null,
-  version = null,
   move = [],
   account,
   accounts = [],
@@ -495,7 +475,6 @@ export function profileMenuItems({
   simple,
   menu,
   onApps,
-  onUsage,
   onSettings,
   onShortcuts,
   onAbout,
@@ -504,12 +483,14 @@ export function profileMenuItems({
   onAccount,
 }: {
   phone: SidebarMenuItem[];
+  /** Kept for callers and tests; this fork no longer draws the weekly-usage row. */
   usage: boolean;
   usageSummary?: UsageSummary | null;
+  /** Kept for callers and tests; this fork no longer draws the current-version row. */
+  version?: SidebarMenuItem | null;
+  onUsage: () => void;
   update: SidebarMenuItem | null;
   updateTop?: { label: string; action: string } | null;
-  /** the Current version row: the app's version, and this fork's releases page on a Mac */
-  version?: SidebarMenuItem | null;
   /** the move to My Cloud's own rows, first of all (AccountMove) */
   move?: SidebarMenuItem[];
   account: string | null;
@@ -526,7 +507,6 @@ export function profileMenuItems({
   menu?: "simple" | "advanced";
   /** opens Apps (the plugins, MCP and connector panel); Advanced's menu only */
   onApps?: () => void;
-  onUsage: () => void;
   onSettings: () => void;
   onShortcuts: () => void;
   onAbout: () => void;
@@ -546,15 +526,6 @@ export function profileMenuItems({
     },
     { key: "about", label: t("sidebar.menu.about"), icon: <Info size={18} />, separatorBefore: true, onSelect: onAbout },
   ];
-  const usageItem: SidebarMenuItem | null = usage ? {
-    key: "usage",
-    label: usageSummary?.weekly ? t("sidebar.menu.weeklyUsage") : t("settings.section.usage"),
-    ...(usageSummary ? { value: usageSummary.value } : {}),
-    // Fork: the menu keeps only the used share; when a window resets is not shown here.
-    ...(simple ? { chevron: true } : {}),
-    icon: <Gauge size={18} />,
-    onSelect: onUsage,
-  } : null;
   const support: SidebarMenuItem = { key: "support", label: t("sidebar.menu.support"), icon: <LifeBuoy size={18} />, submenu: help, onSelect: () => {} };
   const settings: SidebarMenuItem = { key: "settings", label: t("sidebar.menu.settings"), icon: <SettingsIcon size={18} />, onSelect: onSettings };
   const accountItem: SidebarMenuItem | null = account ? { key: "account", label: account, icon: <CircleUserRound size={18} />, onSelect: onAccount } : null;
@@ -570,11 +541,10 @@ export function profileMenuItems({
     // Fork: Advanced's menu is Simple's rows plus everything else this build can still reach — its tools and Apps,
     // the phone rows, help and updates — one group per kind of thing. Simple's own menu below stays as it is.
     const apps: SidebarMenuItem | null = onApps ? { key: "apps", label: t("sidebar.nav.connectors"), icon: <Puzzle size={16} />, onSelect: onApps } : null;
-    const usageRow: SidebarMenuItem | null = usageItem ? { ...usageItem, chevron: true } : null;
     const groups: SidebarMenuItem[][] = [
       present(advancedToggle ?? null),
       toolsGroup(tools, apps, inbox),
-      present(usageRow, settings, version),
+      present(settings),
       phone,
       ...(ACCOUNT_MENU_SUPPORT ? [[support]] : []),
       [...present(accountItem), ...accounts],
@@ -584,7 +554,7 @@ export function profileMenuItems({
   }
   if (!simple) {
     // Icon and rail densities ask for this menu with no account context; its rows are the ones they always had.
-    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...present(usageItem), ...phone, ...(ACCOUNT_MENU_SUPPORT ? [support] : []), settings, ...present(version), ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
+    const rest = [...present(advancedToggle ?? null), ...present(...tools), ...phone, ...(ACCOUNT_MENU_SUPPORT ? [support] : []), settings, ...(accountItem ? [{ ...accountItem, separatorBefore: true }] : []), ...accounts.map((item, index) => (index === 0 ? { ...item, separatorBefore: true } : item))];
     return [...move, ...rest.map((item, index) => (move.length && index === 0 ? { ...item, separatorBefore: true } : item))];
   }
   const raised: SidebarMenuItem | null = update && updateTop ? {
@@ -601,7 +571,7 @@ export function profileMenuItems({
     present(advancedToggle ?? null),
     // Places you go first, then the app's own settings, then getting the phone app and help.
     toolsGroup(simple.tools ?? tools, connectors, inbox),
-    present(usageItem, settings, version),
+    [settings],
     // Fork: this build keeps the menu to what it uses — no phone app, no support submenu, no place switcher.
     FORK_PROFILE_MENU_MINIMAL ? [] : [...phone, { ...support, submenu: raised ? help : [...help, ...present(update)] }],
     FORK_PROFILE_MENU_MINIMAL ? [] : [...simple.places, ...present(accountItem)],
@@ -639,9 +609,7 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
 } = {}) {
   const { state, dispatch } = useStore();
   const simple = account !== undefined;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const cloudUsage = cloudUsageSummary(useCloudPlanSnapshot(simple ? usageBridge(state.config?.cloudHome === true) : undefined));
-  const engineUsage = usePlanUsageSummary(simple && menuOpen && cloudUsage === null && window.ogb?.remoteClient?.active !== true);
+  const [, setMenuOpen] = useState(false);
   const phone = useSidebarPhoneStatus();
   const connectPhone = useConnectPhoneEntry(state.config?.cloudHome === true);
   const cloudPhone = useCloudPhoneDestination(connectPhone?.target === "computer");
@@ -711,17 +679,6 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
     trailing: inboxDot(inboxCount),
   };
   const railItems: SidebarMenuItem[] = railActions && RAIL_MENU_ACTIONS ? [
-    {
-      key: "rail-inbox",
-      label: t("inbox.panel.title"),
-      icon: <Inbox size={16} />,
-      value: inboxCount > 0 ? (inboxCount > 9 ? "9+" : String(inboxCount)) : undefined,
-      active: inboxPanel.open,
-      onSelect: () => {
-        if (inboxPanel.open) closeInbox();
-        else openInbox();
-      },
-    },
     { key: "rail-search", label: t("sidebar.search"), icon: <Search size={16} />, onSelect: railActions.onSearch },
     { key: "rail-new", label: t("sidebar.new"), icon: <Plus size={16} />, onSelect: railActions.onNew },
     { key: "rail-plugins", label: t("sidebar.nav.apps"), icon: <Puzzle size={16} />, onSelect: railActions.onPlugins },
@@ -739,36 +696,17 @@ export function SidebarProfileMenu({ iconOnly = false, rail = false, circle = fa
       onGetApp: () => setPhoneAppOpen(true),
     });
   const phoneRows = ACCOUNT_MENU_PHONE_APP ? phoneItems : phoneItems.filter((item) => item.key !== "phone-app");
-  const isMac = window.ogb?.platform === "darwin";
-  const versionItem: SidebarMenuItem = {
-    key: "current-version",
-    label: t("sidebar.menu.currentVersion"),
-    icon: update?.item.icon ?? <Info size={18} />,
-    value: displayAppVersion(appVersion()),
-    disabled: isMac ? false : update?.item.disabled ?? false,
-    keepOpen: isMac ? false : update?.item.keepOpen ?? false,
-    attention: update?.item.attention,
-    attentionTone: update?.item.attentionTone,
-    onSelect: () => {
-      if (isMac) {
-        void openExternalLink(__FORK_RELEASES_URL__);
-        return;
-      }
-      update?.item.onSelect();
-    },
-  };
   const items = [...(bar ? menuActions : railItems), ...profileMenuItems({
     phone: phoneRows,
-    version: versionItem,
     usage: !remote,
-    usageSummary: cloudUsage ?? engineUsage,
     update: update?.item ?? null,
     updateTop: simple ? simpleUpdateTop(update) : null,
     move: move.items,
     account: cloudAccount ? cloudRowLabel(accounts.view) : null,
     accounts: accountMenuItems(accounts),
     advancedToggle,
-    // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section.
+    // Fork: the tools live in this menu in both modes now, so the sidebar no longer needs a tools section. The Inbox is
+    // one row wherever the menu opens, and it carries the waiting dot.
     inbox: inboxRow,
     tools: toolMenuItems({
       activeView: state.activeView,

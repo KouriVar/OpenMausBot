@@ -397,7 +397,7 @@ function Shell({ viewer }: { viewer: WelcomeViewer | null }) {
       <div data-window-card={framed && !inset ? "" : undefined}
         className={framed && !inset ? "relative flex min-w-0 flex-1 flex-col overflow-hidden rounded-t-[12px] rounded-bl-[12px] bg-app" : "contents"}>
       {framed && !inset && strips}
-      <div className={framed && !inset ? "relative flex min-h-0 flex-1" : inset ? "relative flex min-h-0 flex-1" : "contents"}>
+      <div className={cn("relative flex min-h-0 flex-1", inset && "min-w-0", framed && !inset && "min-w-0")}>
       {!calendarFocus && FORK_HIDDEN_SIDEBAR && hiddenSidebar && !autoHiddenSidebar && <SidebarPeek onReveal={revealHiddenSidebar} />}
       {!calendarFocus && !(FORK_HIDDEN_SIDEBAR && sidebarHidden) && <Sidebar
         collapseToIcons={collapseSidebar || compactSidebar}
