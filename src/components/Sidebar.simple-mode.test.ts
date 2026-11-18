@@ -87,11 +87,11 @@ describe("bot-first sidebar", () => {
   });
 
   it.each([
-    { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pl-3", "pr-3"] },
+    { advanced: true, enabled: true, density: "comfortable", size: 32, spacing: ["gap-2", "py-2", "pr-3"] },
     // Fork: Advanced's rail is Simple's rail, so its bot portrait is the same 40px in the same 54px slot.
     { advanced: true, enabled: true, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
-    { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pl-3", "pr-3"] },
-    { advanced: false, enabled: false, density: "comfortable", size: 46, spacing: ["gap-2", "rounded-[8px]", "pl-2", "pr-2", "md:h-[54px]"] },
+    { advanced: true, enabled: false, density: "comfortable", size: 44, spacing: ["gap-3", "py-2", "pr-3"] },
+    { advanced: false, enabled: false, density: "comfortable", size: 46, spacing: ["gap-2", "rounded-[8px]", "pr-2", "md:h-[54px]"] },
     { advanced: false, enabled: false, density: "icons", size: SIDEBAR_AVATAR_RAIL, spacing: ["h-[54px]", "justify-center"] },
   ] as const)("sizes bot portraits and row spacing in $density density with threads $enabled (advanced $advanced)", ({ advanced, enabled, density, size, spacing }) => {
     fixture.advanced = advanced;
@@ -105,8 +105,8 @@ describe("bot-first sidebar", () => {
       expect(markup).toContain(avatar.avatarUrl
         ? `width="${size}" height="${size}"`
         : `width="${size}px" height="${size}px"`);
-      // Simple draws its mascot larger than the 36px it takes in the row, so the text stays where it was.
-      if (!advanced && density === "comfortable") expect(markup).toContain('<span class="relative flex shrink-0 -m-[3px]">');
+      // Simple draws its mascot larger than the 36px slot it takes.
+      if (!advanced && density === "comfortable") expect(markup).toContain('width="46px"');
     }
   });
 
@@ -136,8 +136,8 @@ describe("bot-first sidebar", () => {
     const markup = renderToStaticMarkup(createElement(BotListItem, rowProps("comfortable", { ...bot, tasks: [], projects: [] })));
     const name = markup.match(/<span class="flex min-w-0 grow items-center gap-1\.5 truncate text-ink ([^"]*)"/)?.[1];
     expect(name).toBe(advanced ? "text-[15px] font-semibold leading-5" : "text-[14px] font-medium leading-5");
-    // Fork UI batch: the preview keeps its size and takes one weight step up.
-    expect(markup).toContain("truncate text-[13px] font-medium leading-[18px]");
+    // The preview keeps its own line, drawn by FadeLine so a long preview fades instead of clipping.
+    expect(markup).toContain("text-[13px] font-medium leading-[18px]");
   });
 
   it("puts the bot's role in its name line in Advanced mode", () => {
@@ -163,7 +163,7 @@ describe("bot-first sidebar", () => {
     expect(markup.match(/data-provider-mark=/g)).toBeNull();
     expect(String(findElement(tree, "data-sidebar-bot-row", bot.id)!.props.className)).not.toContain("group-hover:pr-9");
     expect(markup).not.toContain("group-hover:pr-7");
-    expect(markup).toMatch(/data-bot-actions="atlas"[^>]*class="[^"]*\bright-2 top-1 translate-y-0\b/);
+    expect(markup).not.toContain("data-bot-actions");
     expect(markup).toContain('data-avatar-dot="unread"');
   });
 

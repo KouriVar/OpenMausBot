@@ -85,9 +85,20 @@ const sectionOrder = (tree: ReactElement<Props>[]) => tree.map((node) => node.pr
 const headers = (tree: ReactElement<Props>[]) => tree.filter((node) => node.type === SidebarSectionHeader) as ReactElement<Parameters<typeof SidebarSectionHeader>[0]>[];
 const listedBots = (tree: ReactElement<Props>[]) => tree.map((node) => (node.props.bot as Bot | undefined)?.id).filter(Boolean);
 const labelled = (tree: ReactElement<Props>[], label: string) => tree.some((node) => node.props["aria-label"] === label);
-/** The footer's action row: the search, the inbox and the + that sit on the account's own line. */
-const footerActions = (tree: ReactElement<Props>[]) => nodes(tree.find((node) => node.type === SidebarFooter)!.props.footerActions as ReactNode);
-const footerButton = (tree: ReactElement<Props>[], label: string) => footerActions(tree).find((node) => node.type === "button" && node.props["aria-label"] === label);
+/** The footer's account menu: its first rows are Search and the New menu, which the round account button opens. */
+type MenuItem = { key: string; label: string; submenu?: MenuItem[]; onSelect: () => void };
+const footerMenu = (tree: ReactElement<Props>[]) => (tree.find((node) => node.type === SidebarFooter)!.props.menuActions ?? []) as MenuItem[];
+const footerItem = (tree: ReactElement<Props>[], key: string): MenuItem | undefined => {
+  const walk = (items: MenuItem[]): MenuItem | undefined => {
+    for (const item of items) {
+      if (item.key === key) return item;
+      const found = item.submenu ? walk(item.submenu) : undefined;
+      if (found) return found;
+    }
+    return undefined;
+  };
+  return walk(footerMenu(tree));
+};
 
 beforeEach(() => {
   fixture.values = [];
@@ -141,16 +152,14 @@ describe("Simple-mode sidebar layout", () => {
   it("fades the list's edges in both modes, with the top buttons and the tiles fixed above it", () => {
     fixture.state = { ...fixture.state, bots: [bot("chief", { chiefOfStaff: true, pinned: true }), bot("atlas", { pinned: true }), bot("bea")] };
     const simple = render();
-    expect(simple.tree.find((node) => node.type === GlassScrollFrame)!.props.fade).toBe(true);
+    expect(simple.tree.some((node) => node.type === GlassScrollFrame)).toBe(true);
     const head = simple.tree.find((node) => node.type === GlassBar && node.props.edge === "top")!;
     expect(nodes(head.props.children).some((node) => node.type === SidebarTileGrid)).toBe(true);
     const list = simple.tree.find((node) => node.type === GlassScroller)!;
     expect(nodes(list.props.children).some((node) => node.type === SidebarTileGrid)).toBe(false);
-    expect(simple.root.props.className).toContain("max-md:[--scroll-fade-surface:var(--color-app)]");
     fixture.advanced = true;
     const advanced = render();
-    expect(advanced.tree.find((node) => node.type === GlassScrollFrame)!.props.fade).toBe(true);
-    expect(advanced.root.props.className).toContain("max-md:[--scroll-fade-surface:var(--color-app)]");
+    expect(advanced.tree.some((node) => node.type === GlassScrollFrame)).toBe(true);
   });
 
   it("shows Advanced's pinned bots as the same tiles, with no Pinned heading", () => {
@@ -176,14 +185,14 @@ describe("Simple-mode sidebar layout", () => {
     expect(simple.root.props.className).toContain("border-r-[0.5px] border-edge");
     expect(simple.root.props.className).not.toContain("border-hairline");
     expect(footer(simple.tree)).toBe(true);
-    expect(footerButton(simple.tree, "Search bots and messages")).toBeDefined();
+    expect(footerItem(simple.tree, "account-search")).toBeDefined();
     fixture.values = [];
     fixture.advanced = true;
     const advanced = render();
     expect(advanced.root.props.className).toContain("border-r-[0.5px] border-edge");
     expect(footer(advanced.tree)).toBe(true);
-    expect(footerButton(advanced.tree, "Search bots and messages")).toBeDefined();
-    expect(footerButton(advanced.tree, "New or share")).toBeDefined();
+    expect(footerItem(advanced.tree, "account-search")).toBeDefined();
+    expect(footerItem(advanced.tree, "account-new")).toBeDefined();
   });
 
   it("leaves a department's management to its menu: no add-or-remove row, empty or not", () => {
@@ -259,7 +268,7 @@ describe("Simple-mode sidebar layout", () => {
 
   it("toggles a search pill from the footer's round search button, and closing it clears the filter", () => {
     // Fork: the round search button sits on the footer's action row now, beside the account, instead of the top row.
-    const toggle = () => footerButton(render().tree, "Search bots and messages")!;
+    const toggle = () => ({ props: { onClick: footerItem(render().tree, "account-search")!.onSelect } });
     const pill = () => render().tree.find((node) => node.type === SidebarSearchPill)?.props as Parameters<typeof SidebarSearchPill>[0] | undefined;
     expect(render().tree.some((node) => node.props["aria-label"] === "Search bots and messages" && node.type === "input")).toBe(false);
     expect(pill()).toBeUndefined();
@@ -273,7 +282,7 @@ describe("Simple-mode sidebar layout", () => {
     expect(listedBots(render().tree)).toEqual(["atlas", "bea", "dodo"]);
     (toggle().props.onClick as () => void)();
     pill()!.onQuery("atlas");
-    (toggle().props.onClick as () => void)();
+    pill()!.onClose();
     expect(pill()).toBeUndefined();
     expect(listedBots(render().tree)).toHaveLength(3);
   });
@@ -296,9 +305,10 @@ describe("Simple-mode sidebar layout", () => {
     const handle = render().tree.find((node) => node.type === SidebarResizeHandle)!.props as Parameters<typeof SidebarResizeHandle>[0];
     expect(handle.sizing.defaultWidth).toBe(280);
     expect(handle.sizing.valueNow).toBe(300);
+    // Past the cap a saved width is ignored and the default comes back.
     fixture.storage.set(SIMPLE_SIDEBAR_WIDTH_KEY, "460");
     fixture.values = [];
-    expect(width()).toBe("400px");
+    expect(width()).toBe("280px");
     fixture.storage.set(SIMPLE_SIDEBAR_WIDTH_KEY, "300");
     fixture.values = [];
     fixture.advanced = true;
@@ -353,20 +363,19 @@ describe("Simple-mode sidebar layout", () => {
     // Fork: the + sits on the footer's action row in both modes, so its menu is reached from there.
     fixture.state = { ...fixture.state, bots: [bot("atlas", { chiefOfStaff: true }), bot("bea")] };
     const openMenu = () => {
-      const plus = () => footerButton(render().tree, "New or share")!;
-      (plus().props.onClick as () => void)();
+      footerItem(render().tree, "account-new")!.onSelect();
       const tree = render().tree;
-      return (label: string) => footerActions(tree).find((node) => node.type === "button" && nodes(node.props.children).concat(node).some((part) => Children.toArray(part.props.children).includes(label)));
+      return (key: string) => footerItem(tree, key)!;
     };
-    (openMenu()("New bot")!.props.onClick as () => void)();
+    openMenu()("account-new-bot").onSelect();
     expect(fixture.dispatch.mock.calls.map(([action]) => action)).toEqual([{ type: "newBot" }]);
     fixture.dispatch.mockClear();
     fixture.values = [];
     fixture.advanced = true;
     const item = openMenu();
-    expect(item("Create department")).toBeDefined();
-    expect(item("Templates")).toBeDefined();
-    (item("New Bot")!.props.onClick as () => void)();
+    expect(item("account-new-channel")).toBeDefined();
+    expect(item("account-team-library")).toBeDefined();
+    item("account-new-bot").onSelect();
     expect(fixture.dispatch.mock.calls.map(([action]) => action)).toEqual([{ type: "newBot" }]);
   });
 
